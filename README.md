@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://tuiml.ai/static/images/tuiml_logo.png" alt="TuiML Logo" width="320">
+  <img src="https://raw.githubusercontent.com/TechyNilesh/tuiml/main/tuiml_logo.png" alt="TuiML Logo" width="320">
 </p>
 <p align="center"><strong>An Open-Source Agentic ML Ecosystem</strong></p>
 
