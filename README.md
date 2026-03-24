@@ -1,10 +1,10 @@
 <p align="center">
   <img src="https://raw.githubusercontent.com/TechyNilesh/tuiml/main/tuiml_logo.png" alt="TuiML Logo" width="320">
 </p>
-<p align="center"><strong>An Open-Source Agentic ML Ecosystem</strong></p>
+<p align="center"><strong>An Open-Source Machine Learning Toolkit</strong></p>
 
 <p align="center">
-TuiML is a complete ML ecosystem for building algorithms, training models, running experiments, and serving predictions through a clean Python API. Every algorithm is also exposed as a tool via MCP so AI agents can use them directly. A built-in community Hub lets anyone publish and discover algorithms, datasets, and models.
+TuiML is an open-source machine learning toolkit for Python. Train models, run experiments, build reusable workflows, and serve predictions through a clean API, CLI, and community Hub. It is also agent-ready through MCP, so AI assistants can discover and execute structured ML workflows.
 </p>
 
 <p align="center">
@@ -17,11 +17,11 @@ TuiML is a complete ML ecosystem for building algorithms, training models, runni
 
 ## Three Pillars
 
-**Simplified ML** -- High-level Python APIs designed to be beginner-friendly while remaining powerful enough for researchers to experiment and innovate.
+**Python-First** -- Clean APIs for training models, running experiments, and building reusable workflows.
 
-**LLM-Friendly** -- Every algorithm is exposed as a tool via the Model Context Protocol (MCP), making them instantly accessible to any AI agent or assistant.
+**Agent-Ready** -- MCP tools let AI agents discover components and execute structured ML workflows.
 
-**Community Driven** -- Connected with TuiML Hub where anyone can push results and download state-of-the-art algorithms for benchmarking.
+**Community-Powered** -- TuiML Hub makes it easy to publish, discover, and benchmark algorithms and datasets.
 
 ## Installation
 
@@ -99,7 +99,7 @@ Plus preprocessing (scaling, encoding, imputation, SMOTE, text vectorization), f
 
 ## MCP Server
 
-TuiML includes an MCP server that exposes all algorithms as tools for AI agents.
+TuiML includes an MCP server that exposes workflow and discovery tools for AI agents.
 
 ```bash
 tuiml-mcp
@@ -117,7 +117,7 @@ Configure with Claude Desktop:
 }
 ```
 
-Tools available: `tuiml_train`, `tuiml_predict`, `tuiml_evaluate`, `tuiml_experiment`, `tuiml_list`, `tuiml_describe`, `tuiml_search`, `tuiml_serve_model`. Any component registered with `@classifier`, `@regressor`, or `@transformer` is automatically discoverable.
+Tools available include `tuiml_train`, `tuiml_predict`, `tuiml_evaluate`, `tuiml_experiment`, `tuiml_tune`, `tuiml_plot`, `tuiml_upload_data`, `tuiml_list`, `tuiml_describe`, and `tuiml_search`. Any component registered with `@classifier`, `@regressor`, or `@transformer` is automatically discoverable through these tools.
 
 ## CLI
 
