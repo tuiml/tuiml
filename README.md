@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/TechyNilesh/tuiml/main/tuiml_logo.png" alt="TuiML Logo" width="320">
+  <img src="https://raw.githubusercontent.com/tuiml/tuiml/main/tuiml_logo.png" alt="TuiML Logo" width="320">
 </p>
 <p align="center"><strong>An Open-Source Machine Learning Toolkit</strong></p>
 
@@ -187,16 +187,16 @@ BSD 3-Clause License. See [LICENSE](LICENSE) for details.
 - [Website](https://tuiml.ai)
 - [Documentation](https://tuiml.ai/docs/getting_started.html)
 - [API Reference](https://tuiml.ai/docs/api)
-- [GitHub](https://github.com/TechyNilesh/TuiML)
+- [GitHub](https://github.com/tuiml/tuiml)
 - [PyPI](https://pypi.org/project/tuiml)
 - [Changelog](https://tuiml.ai/docs/changelog.html)
 
 ## Star History
 
-<a href="https://www.star-history.com/?repos=TechyNilesh%2Ftuiml&type=date&legend=top-left">
+<a href="https://www.star-history.com/?repos=tuiml%2Ftuiml&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/image?repos=TechyNilesh/tuiml&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/image?repos=TechyNilesh/tuiml&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/image?repos=TechyNilesh/tuiml&type=date&legend=top-left" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/image?repos=tuiml/tuiml&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/image?repos=tuiml/tuiml&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/image?repos=tuiml/tuiml&type=date&legend=top-left" />
  </picture>
 </a>
