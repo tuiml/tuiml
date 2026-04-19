@@ -20,7 +20,7 @@ def cli(ctx):
     pass
 
 # Import commands
-from tuiml.cli.commands import train, predict, evaluate, experiment, list_cmd, upload, serve, datasets_cmd
+from tuiml.cli.commands import train, predict, evaluate, experiment, list_cmd, serve, setup
 
 # Register commands
 cli.add_command(train.train)
@@ -28,9 +28,8 @@ cli.add_command(predict.predict)
 cli.add_command(evaluate.evaluate)
 cli.add_command(experiment.experiment)
 cli.add_command(list_cmd.list_algorithms)
-cli.add_command(upload.upload)
 cli.add_command(serve.serve)
-cli.add_command(datasets_cmd.datasets)
+cli.add_command(setup.setup)
 
 def main():
     """Main entry point for CLI."""

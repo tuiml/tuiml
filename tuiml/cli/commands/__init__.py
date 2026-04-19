@@ -7,8 +7,8 @@ from . import predict
 from . import evaluate
 from . import experiment
 from . import list_cmd
-from . import upload
 from . import serve
+from . import setup
 
 __all__ = [
     'train',
@@ -16,6 +16,6 @@ __all__ = [
     'evaluate',
     'experiment',
     'list_cmd',
-    'upload',
     'serve',
+    'setup',
 ]

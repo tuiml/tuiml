@@ -1,10 +1,10 @@
 <p align="center">
   <img src="https://raw.githubusercontent.com/tuiml/tuiml/main/tuiml_logo.png" alt="TuiML Logo" width="320">
 </p>
-<p align="center"><strong>An Open-Source Machine Learning Toolkit</strong></p>
+<p align="center"><strong>Machine Learning that agents can actually call.</strong></p>
 
 <p align="center">
-TuiML is an open-source machine learning toolkit for Python. Train models, run experiments, build reusable workflows, and serve predictions through a clean API, CLI, and community Hub. It is also agent-ready through MCP, so AI assistants can discover and execute structured ML workflows.
+TuiML is an agent-native ML runtime. Install, connect to your AI agent, and start running real ML workflows &mdash; classification, regression, clustering, experiments &mdash; all from one structured interface.
 </p>
 
 <p align="center">
@@ -15,31 +15,41 @@ TuiML is an open-source machine learning toolkit for Python. Train models, run e
   <a href="https://pepy.tech/projects/tuiml"><img src="https://img.shields.io/pepy/dt/tuiml?style=for-the-badge" alt="Downloads"></a>
 </p>
 
-## Three Pillars
+## Why TuiML
 
-**Python-First** -- Clean APIs for training models, running experiments, and building reusable workflows.
+**Agents can call it** &mdash; Every algorithm, dataset, and metric ships with a JSON schema. Agents read the schema, call the tool, get structured results. No hallucinated parameters, no wrapper glue.
 
-**Agent-Ready** -- MCP tools let AI agents discover components and execute structured ML workflows.
+**Agents can discover it** &mdash; A queryable registry tagged by task, data shape, and benchmarks. Agents browse and pick instead of memorising class names.
 
-**Community-Powered** -- TuiML Hub makes it easy to publish, discover, and benchmark algorithms and datasets.
+**Agents can trust it** &mdash; Deterministic, typed, reproducible outputs. Every call is a loggable, replayable tool invocation you can audit, diff, and trust in production.
 
-## Installation
+## Get running in 3 steps
 
-```bash
-pip install tuiml
-```
-
-Or with uv:
+**1. Install** &mdash; one command, installs `uv` and `tuiml` globally:
 
 ```bash
-uv add tuiml
+curl -fsSL https://tuiml.ai/install.sh | bash
 ```
 
-## Quick Start
+Already have Python? `pip install tuiml` works too.
 
-TuiML provides three API levels. Pick the one that fits your workflow.
+**2. Connect your agent** &mdash; auto-detects Claude Desktop, Cursor, Claude Code, and more:
 
-**High-Level** -- One-liner for quick experiments:
+```bash
+tuiml setup
+```
+
+**3. Ask your agent** &mdash; in any connected client:
+
+> "Train a random forest on my sales data and report the accuracy."
+
+Your agent discovers algorithms, sets parameters from the schema, trains, evaluates, and returns structured results. No glue code.
+
+## Python API
+
+Same workflows are available directly from Python.
+
+**High-level &mdash; one-liner:**
 
 ```python
 from tuiml import train
@@ -48,7 +58,7 @@ result = train("RandomForestClassifier", "iris", target="class", cv=10)
 print(f"Accuracy: {result.metrics['accuracy_score']:.3f}")
 ```
 
-**Mid-Level** -- Chainable workflow:
+**Mid-level &mdash; chainable workflow:**
 
 ```python
 from tuiml import Workflow
@@ -61,7 +71,7 @@ result = (Workflow()
     .run())
 ```
 
-**Low-Level** -- Full OOP control:
+**Low-level &mdash; full OOP control:**
 
 ```python
 from tuiml.algorithms.trees import RandomForestClassifier
@@ -73,6 +83,17 @@ X_train, X_test, y_train, y_test = train_test_split(data.X, data.y, test_size=0.
 clf = RandomForestClassifier(n_estimators=100)
 clf.fit(X_train, y_train)
 print(accuracy_score(y_test, clf.predict(X_test)))
+```
+
+## CLI
+
+```bash
+tuiml train RandomForestClassifier data.csv class --cv 10
+tuiml list --type classifier --search "forest"
+tuiml experiment -a RandomForestClassifier -a SVC -d iris.csv -t class --cv 10
+tuiml serve model.pkl --port 8000
+tuiml setup           # connect TuiML to your AI agents
+tuiml-mcp             # run the MCP server directly
 ```
 
 ## What's Included
@@ -97,52 +118,34 @@ TuiML ships with 13 algorithm families, many originally from Weka, completely re
 
 Plus preprocessing (scaling, encoding, imputation, SMOTE, text vectorization), feature engineering (selection, extraction, generation), evaluation (metrics, cross-validation, tuning, statistical tests), and 15+ built-in datasets.
 
-## MCP Server
+## MCP Tools
 
-TuiML includes an MCP server that exposes workflow and discovery tools for AI agents.
+The MCP server exposes 200+ tools agents can call directly. Key workflow tools include `tuiml_train`, `tuiml_predict`, `tuiml_evaluate`, `tuiml_experiment`, `tuiml_tune`, `tuiml_plot`, `tuiml_list`, `tuiml_describe`, and `tuiml_search`. Any component registered with `@classifier`, `@regressor`, or `@transformer` is automatically discoverable through these tools.
 
-```bash
-tuiml-mcp
-```
-
-Configure with Claude Desktop:
+For manual setup, add this to your client's MCP config:
 
 ```json
 {
     "mcpServers": {
-        "tuiml": {
-            "command": "tuiml-mcp"
-        }
+        "tuiml": { "command": "tuiml-mcp" }
     }
 }
 ```
 
-Tools available include `tuiml_train`, `tuiml_predict`, `tuiml_evaluate`, `tuiml_experiment`, `tuiml_tune`, `tuiml_plot`, `tuiml_upload_data`, `tuiml_list`, `tuiml_describe`, and `tuiml_search`. Any component registered with `@classifier`, `@regressor`, or `@transformer` is automatically discoverable through these tools.
+## Component Registry
 
-## CLI
-
-```bash
-tuiml train RandomForestClassifier data.csv class --cv 10
-tuiml list --type classifier --search "forest"
-tuiml experiment -a RandomForestClassifier -a SVC -d iris.csv -t class --cv 10
-tuiml serve model.pkl --port 8000
-```
-
-## TuiML Hub
-
-A community platform for sharing algorithms, datasets, and models. Visit [tuiml.ai](https://tuiml.ai) to browse.
+Browse all registered algorithms, transformers, and metrics from the local registry:
 
 ```python
-from tuiml.hub import registry, remote
+from tuiml.hub import registry
 
 classifiers = registry.list("classifier")
-remote.search("random forest")
-remote.install("community-algorithm-name")
+regressors = registry.list("regressor")
 ```
 
 ## Building Custom Components
 
-Register your own algorithms and they become instantly available through the Python API, CLI, MCP server, and Hub.
+Register your own algorithms and they become instantly available through the Python API, CLI, and MCP server.
 
 ```python
 from tuiml.base.algorithms import Classifier, classifier
@@ -175,7 +178,7 @@ BSD 3-Clause License. See [LICENSE](LICENSE) for details.
 
 ```bibtex
 @software{tuiml2026,
-    title={TuiML: An Open-Source Agentic ML Ecosystem},
+    title={TuiML: An Agent-Native Machine Learning Runtime},
     author={Verma, Nilesh and Bifet, Albert and Pfahringer, Bernhard},
     year={2026},
     url={https://tuiml.ai}
