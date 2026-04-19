@@ -178,7 +178,7 @@ BSD 3-Clause License. See [LICENSE](LICENSE) for details.
 
 ```bibtex
 @software{tuiml2026,
-    title={TuiML: An Agent-Native Machine Learning Runtime},
+    title={TuiML: Machine Learning that agents can actually call},
     author={Verma, Nilesh and Bifet, Albert and Pfahringer, Bernhard},
     year={2026},
     url={https://tuiml.ai}
