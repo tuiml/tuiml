@@ -225,6 +225,7 @@ class LightGBMClassifier(Classifier):
         self.model_ = None
         self.classes_ = None
         self.n_classes_ = None
+        self._objective_ = None
 
     @classmethod
     def get_parameter_schema(cls) -> Dict[str, Any]:
@@ -259,6 +260,28 @@ class LightGBMClassifier(Classifier):
             "Ke et al. (2017). LightGBM: A highly efficient gradient boosting decision tree. NeurIPS."
         ]
 
+    def _build_params(self, objective: str) -> Dict[str, Any]:
+        """Build the native LightGBM parameter dict."""
+        params: Dict[str, Any] = {
+            'objective': objective,
+            'num_leaves': self.num_leaves,
+            'max_depth': self.max_depth,
+            'learning_rate': self.learning_rate,
+            'feature_fraction': self.colsample_bytree,
+            'bagging_fraction': self.subsample,
+            'bagging_freq': 1 if self.subsample < 1.0 else 0,
+            'lambda_l1': self.reg_alpha,
+            'lambda_l2': self.reg_lambda,
+            'min_data_in_leaf': self.min_child_samples,
+            'min_gain_to_split': self.min_split_gain,
+            'verbose': self.verbose,
+        }
+        if objective == 'multiclass':
+            params['num_class'] = int(self.n_classes_)
+        if self.random_state is not None:
+            params['seed'] = int(self.random_state)
+        return params
+
     def fit(self, X: np.ndarray, y: np.ndarray) -> "LightGBMClassifier":
         """Fit the LightGBM classifier to training data.
 
@@ -281,25 +304,26 @@ class LightGBMClassifier(Classifier):
         self.classes_ = np.unique(y)
         self.n_classes_ = len(self.classes_)
 
-        # Initialize LightGBM classifier
-        self.model_ = lgb.LGBMClassifier(
-            n_estimators=self.n_estimators,
-            max_depth=self.max_depth,
-            learning_rate=self.learning_rate,
-            num_leaves=self.num_leaves,
-            subsample=self.subsample,
-            colsample_bytree=self.colsample_bytree,
-            reg_alpha=self.reg_alpha,
-            reg_lambda=self.reg_lambda,
-            min_child_samples=self.min_child_samples,
-            min_split_gain=self.min_split_gain,
-            random_state=self.random_state,
-            verbose=self.verbose
-        )
+        # Encode labels to 0..n_classes-1
+        class_to_idx = {c: i for i, c in enumerate(self.classes_)}
+        y_encoded = np.array([class_to_idx[c] for c in y], dtype=np.int32)
 
-        # Fit the model
-        self.model_.fit(X, y)
-        self.feature_importances_ = self.model_.feature_importances_
+        objective = 'binary' if self.n_classes_ <= 2 else 'multiclass'
+        params = self._build_params(objective)
+
+        dtrain = lgb.Dataset(X, label=y_encoded, free_raw_data=False)
+        self.model_ = lgb.train(
+            params,
+            dtrain,
+            num_boost_round=self.n_estimators,
+        )
+        self._objective_ = objective
+
+        importances = self.model_.feature_importance(importance_type='gain').astype(float)
+        total = importances.sum()
+        if total > 0:
+            importances = importances / total
+        self.feature_importances_ = importances
 
         return self
 
@@ -318,9 +342,10 @@ class LightGBMClassifier(Classifier):
         """
         if self.model_ is None:
             raise ValueError("Model has not been fitted yet.")
-        
-        X = np.asarray(X)
-        return self.model_.predict(X)
+
+        proba = self.predict_proba(np.asarray(X))
+        idx = np.argmax(proba, axis=1)
+        return self.classes_[idx]
 
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
         """Predict class probabilities for samples.
@@ -337,9 +362,13 @@ class LightGBMClassifier(Classifier):
         """
         if self.model_ is None:
             raise ValueError("Model has not been fitted yet.")
-        
+
         X = np.asarray(X)
-        return self.model_.predict_proba(X)
+        raw = self.model_.predict(X)
+        if self._objective_ == 'binary':
+            raw = np.asarray(raw).reshape(-1)
+            return np.column_stack([1.0 - raw, raw])
+        return np.asarray(raw)
 
     def __repr__(self) -> str:
         return (
@@ -599,27 +628,37 @@ class LightGBMRegressor(Regressor):
             Fitted estimator.
         """
         X = np.asarray(X)
-        y = np.asarray(y)
+        y = np.asarray(y, dtype=float)
 
-        # Initialize LightGBM regressor
-        self.model_ = lgb.LGBMRegressor(
-            n_estimators=self.n_estimators,
-            max_depth=self.max_depth,
-            learning_rate=self.learning_rate,
-            num_leaves=self.num_leaves,
-            subsample=self.subsample,
-            colsample_bytree=self.colsample_bytree,
-            reg_alpha=self.reg_alpha,
-            reg_lambda=self.reg_lambda,
-            min_child_samples=self.min_child_samples,
-            min_split_gain=self.min_split_gain,
-            random_state=self.random_state,
-            verbose=self.verbose
+        params: Dict[str, Any] = {
+            'objective': 'regression',
+            'num_leaves': self.num_leaves,
+            'max_depth': self.max_depth,
+            'learning_rate': self.learning_rate,
+            'feature_fraction': self.colsample_bytree,
+            'bagging_fraction': self.subsample,
+            'bagging_freq': 1 if self.subsample < 1.0 else 0,
+            'lambda_l1': self.reg_alpha,
+            'lambda_l2': self.reg_lambda,
+            'min_data_in_leaf': self.min_child_samples,
+            'min_gain_to_split': self.min_split_gain,
+            'verbose': self.verbose,
+        }
+        if self.random_state is not None:
+            params['seed'] = int(self.random_state)
+
+        dtrain = lgb.Dataset(X, label=y, free_raw_data=False)
+        self.model_ = lgb.train(
+            params,
+            dtrain,
+            num_boost_round=self.n_estimators,
         )
 
-        # Fit the model
-        self.model_.fit(X, y)
-        self.feature_importances_ = self.model_.feature_importances_
+        importances = self.model_.feature_importance(importance_type='gain').astype(float)
+        total = importances.sum()
+        if total > 0:
+            importances = importances / total
+        self.feature_importances_ = importances
 
         return self
 
@@ -638,9 +677,9 @@ class LightGBMRegressor(Regressor):
         """
         if self.model_ is None:
             raise ValueError("Model has not been fitted yet.")
-        
+
         X = np.asarray(X)
-        return self.model_.predict(X)
+        return np.asarray(self.model_.predict(X))
 
     def __repr__(self) -> str:
         return (

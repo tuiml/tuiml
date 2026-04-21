@@ -220,6 +220,7 @@ class XGBoostClassifier(Classifier):
         self.model_ = None
         self.classes_ = None
         self.n_classes_ = None
+        self._objective_ = None
 
     @classmethod
     def get_parameter_schema(cls) -> Dict[str, Any]:
@@ -256,6 +257,26 @@ class XGBoostClassifier(Classifier):
             "Chen, T., & Guestrin, C. (2016). XGBoost: A Scalable Tree Boosting System. KDD."
         ]
 
+    def _build_params(self, objective: str) -> Dict[str, Any]:
+        """Build the native XGBoost parameter dict."""
+        params: Dict[str, Any] = {
+            'objective': objective,
+            'max_depth': self.max_depth,
+            'learning_rate': self.learning_rate,
+            'subsample': self.subsample,
+            'colsample_bytree': self.colsample_bytree,
+            'min_child_weight': self.min_child_weight,
+            'gamma': self.gamma,
+            'reg_alpha': self.reg_alpha,
+            'reg_lambda': self.reg_lambda,
+            'verbosity': 0,
+        }
+        if objective == 'multi:softprob':
+            params['num_class'] = int(self.n_classes_)
+        if self.random_state is not None:
+            params['seed'] = int(self.random_state)
+        return params
+
     def fit(self, X: np.ndarray, y: np.ndarray) -> "XGBoostClassifier":
         """Fit the XGBoost classifier to training data.
 
@@ -278,32 +299,33 @@ class XGBoostClassifier(Classifier):
         self.classes_ = np.unique(y)
         self.n_classes_ = len(self.classes_)
 
-        # Determine objective based on number of classes
+        # Encode labels to 0..n_classes-1 as required by XGBoost
+        class_to_idx = {c: i for i, c in enumerate(self.classes_)}
+        y_encoded = np.array([class_to_idx[c] for c in y], dtype=np.int32)
+
         if self.objective == 'binary:logistic' and self.n_classes_ > 2:
             objective = 'multi:softprob'
+        elif self.objective == 'binary:logistic' and self.n_classes_ <= 2:
+            objective = 'binary:logistic'
         else:
             objective = self.objective
 
-        # Initialize XGBoost classifier
-        self.model_ = xgb.XGBClassifier(
-            n_estimators=self.n_estimators,
-            max_depth=self.max_depth,
-            learning_rate=self.learning_rate,
-            subsample=self.subsample,
-            colsample_bytree=self.colsample_bytree,
-            min_child_weight=self.min_child_weight,
-            gamma=self.gamma,
-            reg_alpha=self.reg_alpha,
-            reg_lambda=self.reg_lambda,
-            objective=objective,
-            random_state=self.random_state,
-            use_label_encoder=False,
-            eval_metric='logloss'
-        )
+        params = self._build_params(objective)
+        dtrain = xgb.DMatrix(X, label=y_encoded)
+        self.model_ = xgb.train(params, dtrain, num_boost_round=self.n_estimators)
+        self._objective_ = objective
 
-        # Fit the model
-        self.model_.fit(X, y)
-        self.feature_importances_ = self.model_.feature_importances_
+        # Feature importances (gain-based, aligned to feature index)
+        score = self.model_.get_score(importance_type='gain')
+        importances = np.zeros(X.shape[1], dtype=float)
+        for k, v in score.items():
+            # Keys are like 'f0', 'f1', ...
+            idx = int(k[1:]) if k.startswith('f') else int(k)
+            importances[idx] = v
+        total = importances.sum()
+        if total > 0:
+            importances = importances / total
+        self.feature_importances_ = importances
 
         return self
 
@@ -322,9 +344,10 @@ class XGBoostClassifier(Classifier):
         """
         if self.model_ is None:
             raise ValueError("Model has not been fitted yet.")
-        
-        X = np.asarray(X)
-        return self.model_.predict(X)
+
+        proba = self.predict_proba(np.asarray(X))
+        idx = np.argmax(proba, axis=1)
+        return self.classes_[idx]
 
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
         """Predict class probabilities for samples.
@@ -341,9 +364,15 @@ class XGBoostClassifier(Classifier):
         """
         if self.model_ is None:
             raise ValueError("Model has not been fitted yet.")
-        
+
         X = np.asarray(X)
-        return self.model_.predict_proba(X)
+        dtest = xgb.DMatrix(X)
+        raw = self.model_.predict(dtest)
+
+        if self._objective_ == 'binary:logistic':
+            raw = np.asarray(raw).reshape(-1)
+            return np.column_stack([1.0 - raw, raw])
+        return np.asarray(raw)
 
     def __repr__(self) -> str:
         return (
@@ -588,26 +617,35 @@ class XGBoostRegressor(Regressor):
             Fitted estimator.
         """
         X = np.asarray(X)
-        y = np.asarray(y)
+        y = np.asarray(y, dtype=float)
 
-        # Initialize XGBoost regressor
-        self.model_ = xgb.XGBRegressor(
-            n_estimators=self.n_estimators,
-            max_depth=self.max_depth,
-            learning_rate=self.learning_rate,
-            subsample=self.subsample,
-            colsample_bytree=self.colsample_bytree,
-            min_child_weight=self.min_child_weight,
-            gamma=self.gamma,
-            reg_alpha=self.reg_alpha,
-            reg_lambda=self.reg_lambda,
-            objective=self.objective,
-            random_state=self.random_state
-        )
+        params: Dict[str, Any] = {
+            'objective': self.objective,
+            'max_depth': self.max_depth,
+            'learning_rate': self.learning_rate,
+            'subsample': self.subsample,
+            'colsample_bytree': self.colsample_bytree,
+            'min_child_weight': self.min_child_weight,
+            'gamma': self.gamma,
+            'reg_alpha': self.reg_alpha,
+            'reg_lambda': self.reg_lambda,
+            'verbosity': 0,
+        }
+        if self.random_state is not None:
+            params['seed'] = int(self.random_state)
 
-        # Fit the model
-        self.model_.fit(X, y)
-        self.feature_importances_ = self.model_.feature_importances_
+        dtrain = xgb.DMatrix(X, label=y)
+        self.model_ = xgb.train(params, dtrain, num_boost_round=self.n_estimators)
+
+        score = self.model_.get_score(importance_type='gain')
+        importances = np.zeros(X.shape[1], dtype=float)
+        for k, v in score.items():
+            idx = int(k[1:]) if k.startswith('f') else int(k)
+            importances[idx] = v
+        total = importances.sum()
+        if total > 0:
+            importances = importances / total
+        self.feature_importances_ = importances
 
         return self
 
@@ -626,9 +664,10 @@ class XGBoostRegressor(Regressor):
         """
         if self.model_ is None:
             raise ValueError("Model has not been fitted yet.")
-        
+
         X = np.asarray(X)
-        return self.model_.predict(X)
+        dtest = xgb.DMatrix(X)
+        return np.asarray(self.model_.predict(dtest))
 
     def __repr__(self) -> str:
         return (
