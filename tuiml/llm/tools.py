@@ -11,13 +11,23 @@ import os
 import uuid
 import tempfile
 
-# Models are saved to disk in this directory so they persist across calls
-# and don't consume memory. The LLM gets back a model_id which maps to a file.
-_MODELS_DIR = os.path.join(tempfile.gettempdir(), 'tuiml_models')
+# Persistent TuiML state directory (survives MCP server restarts, unlike /tmp).
+_TUIML_HOME = os.path.join(os.path.expanduser('~'), '.tuiml')
+_MODELS_DIR = os.path.join(_TUIML_HOME, 'models')
+_UPLOADS_DIR = os.path.join(_TUIML_HOME, 'uploads')
 os.makedirs(_MODELS_DIR, exist_ok=True)
+os.makedirs(_UPLOADS_DIR, exist_ok=True)
 
 # Maps model_id -> file path on disk
 _MODEL_INDEX: Dict[str, str] = {}
+
+# Maps dataset_id (user-provided name or auto-generated) -> file path on disk.
+# Scanned at import time so uploads persist across MCP server restarts.
+_DATASET_INDEX: Dict[str, str] = {}
+for _f in os.listdir(_UPLOADS_DIR):
+    _full = os.path.join(_UPLOADS_DIR, _f)
+    if os.path.isfile(_full):
+        _DATASET_INDEX[os.path.splitext(_f)[0]] = _full
 
 # Serving state: tracks running API servers
 _SERVING_SERVERS: Dict[str, Dict[str, Any]] = {}  # server_id -> {thread, server, port, ...}
@@ -48,21 +58,29 @@ def _load_model_from_disk(model_id: str = None, model_path: str = None):
     return None
 
 def _load_data(data_source: str):
-    """Load data from file path or built-in dataset name."""
+    """Load data from an uploaded dataset_id, file path, or built-in dataset name.
+
+    Resolution order:
+      1. Uploaded dataset_id (registered via tuiml_upload_data)
+      2. Existing file path on disk
+      3. Built-in dataset name (iris, diabetes, ...)
+    """
     from tuiml.datasets import load, load_dataset
 
-    # Check if it's a file path or built-in dataset name
-    _SUPPORTED_EXTS = {'csv', 'tsv', 'arff', 'parquet', 'pq', 'json', 'jsonl', 'ndjson', 'xlsx', 'xls', 'npy', 'npz'}
-    is_file_path = (
-        os.path.sep in data_source or
-        '/' in data_source or
-        ('.' in data_source and data_source.rsplit('.', 1)[-1].lower() in _SUPPORTED_EXTS)
-    )
+    # 1. Uploaded dataset registered by name
+    if data_source in _DATASET_INDEX:
+        path = _DATASET_INDEX[data_source]
+        if os.path.exists(path):
+            return load(path)
+        # Stale entry — drop and fall through
+        _DATASET_INDEX.pop(data_source, None)
 
-    if is_file_path and os.path.exists(data_source):
+    # 2. File path on disk
+    if os.path.exists(data_source):
         return load(data_source)
-    else:
-        return load_dataset(data_source)
+
+    # 3. Built-in dataset name
+    return load_dataset(data_source)
 
 # =============================================================================
 # Tool Schemas (JSON Schema format for MCP)
@@ -147,8 +165,14 @@ OUTPUT_SCHEMAS = {
         "type": "object",
         "properties": {
             "status": {"type": "string", "enum": ["success", "error"]},
+            "dataset_id": {
+                "type": "string",
+                "description": "Stable name to pass as `data` to tuiml_train / tuiml_predict / tuiml_evaluate"
+            },
             "file_path": {"type": "string"},
-            "shape": {"type": "array", "items": {"type": "integer"}},
+            "rows": {"type": "integer"},
+            "features": {"type": "integer"},
+            "feature_names": {"type": "array", "items": {"type": "string"}},
             "message": {"type": "string"},
             "error": {"type": "string"}
         },
@@ -1212,6 +1236,24 @@ def execute_train(**kwargs) -> Dict[str, Any]:
     save_path = kwargs.pop('save_path', None)
     kwargs.update(algo_params)
 
+    # Pre-resolve data via the shared loader so dataset_ids, upload paths,
+    # and built-in dataset names all work identically (Workflow only handles
+    # file paths + built-in names).
+    data_arg = kwargs.get('data')
+    if isinstance(data_arg, str):
+        try:
+            kwargs['data'] = _load_data(data_arg)
+        except Exception as e:
+            return {
+                'status': 'error',
+                'error': f"Could not resolve data='{data_arg}': {e}",
+                'error_type': type(e).__name__,
+                'suggestion': (
+                    'Use a built-in dataset name (e.g., "iris"), a dataset_id from '
+                    'tuiml_upload_data, or an existing file path.'
+                )
+            }
+
     try:
         result = tuiml.train(**kwargs)
 
@@ -1861,7 +1903,7 @@ def execute_upload_data(**kwargs) -> Dict[str, Any]:
                 'error_type': 'ValueError'
             }
 
-        upload_dir = os.path.join(tempfile.gettempdir(), 'tuiml_uploads')
+        upload_dir = _UPLOADS_DIR
         os.makedirs(upload_dir, exist_ok=True)
 
         if src_path:
@@ -1900,13 +1942,19 @@ def execute_upload_data(**kwargs) -> Dict[str, Any]:
             dataset = _load_data(file_path)
             n_rows, n_cols = dataset.X.shape if hasattr(dataset, 'X') else (None, None)
             feature_names = list(dataset.feature_names) if hasattr(dataset, 'feature_names') and dataset.feature_names is not None else None
+            dataset_id = os.path.splitext(os.path.basename(file_path))[0]
+            _DATASET_INDEX[dataset_id] = file_path
             return {
                 'status': 'success',
+                'dataset_id': dataset_id,
                 'file_path': file_path,
                 'rows': n_rows,
                 'features': n_cols,
                 'feature_names': feature_names,
-                'message': f'Dataset registered ({n_rows} rows, {n_cols} features). Use this path with other tools: {file_path}'
+                'message': (
+                    f'Dataset registered ({n_rows} rows, {n_cols} features). '
+                    f'Pass data="{dataset_id}" (or the full file_path) to other tools.'
+                )
             }
         except Exception as e:
             os.remove(file_path)
