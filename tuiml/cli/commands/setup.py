@@ -102,6 +102,16 @@ def _platform_app_dir(macos: str, linux: str, windows: str) -> Path:
 def client_specs() -> list[dict]:
     """Return all known MCP client specs."""
     return [
+        # ----- OpenClaw (featured partner) ---------------------------------
+        # Config lives at ~/.openclaw/openclaw.json with nested "mcp.servers".
+        {
+            "id": "openclaw",
+            "name": "OpenClaw",
+            "kind": "json-key",
+            "key": "mcp.servers",
+            "detect": HOME / ".openclaw",
+            "config": HOME / ".openclaw" / "openclaw.json",
+        },
         # ----- Claude Desktop ----------------------------------------------
         {
             "id": "claude-desktop",
@@ -194,16 +204,6 @@ def client_specs() -> list[dict]:
             "kind": "yaml-instructions",
             "detect": _xdg_config("goose"),
             "config": _xdg_config("goose") / "config.yaml",
-        },
-        # ----- OpenClaw (CLI agent) ----------------------------------------
-        # Config lives at ~/.openclaw/openclaw.json with nested "mcp.servers".
-        {
-            "id": "openclaw",
-            "name": "OpenClaw",
-            "kind": "json-key",
-            "key": "mcp.servers",
-            "detect": HOME / ".openclaw",
-            "config": HOME / ".openclaw" / "openclaw.json",
         },
     ]
 
@@ -398,9 +398,9 @@ def setup(assume_yes: bool, list_only: bool, clients: tuple[str, ...]) -> None:
     for MCP clients, copies the SKILL.md file for skill-based agents, or
     prints manual instructions for YAML/unsupported configs.
 
-    Supported clients: Claude Desktop, Claude Code, ChatGPT Desktop,
+    Supported clients: OpenClaw, Claude Desktop, Claude Code, ChatGPT Desktop,
     Perplexity Desktop, Cursor, Windsurf, OpenAI Codex CLI, Zed,
-    Continue (VS Code), VS Code (Copilot), Goose, OpenClaw.
+    Continue (VS Code), VS Code (Copilot), Goose.
     """
     banner()
 
