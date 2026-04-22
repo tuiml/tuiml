@@ -1259,6 +1259,29 @@ WORKFLOW_TOOLS = {
         ),
         "inputSchema": {"type": "object", "properties": {}},
     },
+    "tuiml_research_log": {
+        "name": "tuiml_research_log",
+        "description": (
+            "Return the aggregated research history for user-authored "
+            "algorithms. Combines metadata.json (class, kind, version, source "
+            "hash) with runs.jsonl (every tuiml_experiment run that referenced "
+            "this algorithm) and computes best primary score per version, run "
+            "count, and most recent run timestamp. Pass `name` to scope to one "
+            "algorithm; omit it to get every user algorithm on disk. "
+            "This is the typed artifact behind the landing-page research log: "
+            "every tuiml_experiment call automatically appends an entry, so "
+            "the log is up to date without any extra work from the agent."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Scope to a single user algorithm by directory name. Omit to list all.",
+                },
+            },
+        },
+    },
     "tuiml_delete_user_algorithm": {
         "name": "tuiml_delete_user_algorithm",
         "description": (
@@ -1837,6 +1860,18 @@ def execute_experiment(**kwargs) -> Dict[str, Any]:
                 }
                 for p in progress_log
             ]
+
+        # Best-effort research-log hook: append a run entry to the matching
+        # user algorithm's runs.jsonl. Silently no-ops when no algorithm in
+        # this experiment is a user algorithm, or when the feature flag is off.
+        try:
+            from tuiml.llm import user_algorithms as _user_algorithms
+            appended = _user_algorithms.record_experiment_runs(result)
+            if appended:
+                result["research_log_updates"] = appended
+        except Exception:
+            pass
+
         return result
     except Exception as e:
         return {'status': 'error', 'error': str(e)}
@@ -3373,6 +3408,11 @@ def execute_list_user_algorithms(**kwargs) -> Dict[str, Any]:
     return user_algorithms.list_all()
 
 
+def execute_research_log(**kwargs) -> Dict[str, Any]:
+    from tuiml.llm import user_algorithms
+    return user_algorithms.research_log(name=kwargs.get("name"))
+
+
 def execute_delete_user_algorithm(**kwargs) -> Dict[str, Any]:
     from tuiml.llm import user_algorithms
     if "name" not in kwargs:
@@ -3567,6 +3607,7 @@ TOOL_EXECUTORS = {
     "tuiml_create_algorithm": execute_create_algorithm,
     "tuiml_list_user_algorithms": execute_list_user_algorithms,
     "tuiml_delete_user_algorithm": execute_delete_user_algorithm,
+    "tuiml_research_log": execute_research_log,
 }
 
 
