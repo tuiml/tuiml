@@ -10,7 +10,7 @@ Quick Start
 -----------
 Run the MCP server::
 
-    python -m tuiml.llm.server
+    python -m tuiml.agent.mcp.server
 
 Or configure in Claude Desktop (claude_desktop_config.json)::
 
@@ -42,7 +42,7 @@ the hub or registered with a decorator, it is automatically available.
 
 Example Usage
 -------------
->>> from tuiml.llm import execute_tool
+>>> from tuiml.agent import execute_tool
 >>>
 >>> # Train any algorithm by name
 >>> result = execute_tool(
@@ -58,14 +58,14 @@ Example Usage
 """
 
 # Core exports
-from tuiml.llm.tools import (
+from tuiml.agent.tools import (
     execute_tool,
     get_workflow_tools,
     WORKFLOW_TOOLS,
     DISCOVERY_TOOLS,
 )
 
-from tuiml.llm.registry import (
+from tuiml.agent.registry import (
     get_all_tools,
     get_tool,
     list_tools_by_category,
@@ -84,12 +84,12 @@ def get_mcp_server():
     """Get the MCP server (lazy import to avoid circular import)."""
     if not MCP_AVAILABLE:
         raise ImportError("MCP package not installed. Install with: pip install mcp")
-    from tuiml.llm.server import create_server
+    from tuiml.agent.mcp.server import create_server
     return create_server()
 
 def run_mcp_server():
     """Run the MCP server."""
-    from tuiml.llm.server import main
+    from tuiml.agent.mcp.server import main
     main()
 
 def get_tools_for_llm(format: str = "mcp") -> list:
@@ -126,6 +126,34 @@ def get_tools_for_llm(format: str = "mcp") -> list:
 
     return tools
 
+# ---------------------------------------------------------------------------
+# Framework-agnostic helpers (re-exported from tuiml.agent._core)
+# ---------------------------------------------------------------------------
+from tuiml.agent._core import invoke, callables, load_skill
+
+
+# ---------------------------------------------------------------------------
+# One-liner agent (Pydantic-AI substrate)
+# ---------------------------------------------------------------------------
+
+def agent(model: "Optional[str]" = None, **kwargs):  # type: ignore[name-defined]
+    """Return a ready-to-run Pydantic-AI ``Agent`` pre-loaded with every
+    TuiML tool and the canonical ``SKILL.md`` system prompt.
+
+    Requires ``pip install tuiml[pydantic-ai]``.
+
+    Example
+    -------
+    >>> import tuiml
+    >>> result = tuiml.agent().run_sync(
+    ...     "Train RandomForestClassifier on iris and report accuracy."
+    ... )
+    >>> print(result.output)
+    """
+    from tuiml.agent.pydantic_ai import agent as _agent
+    return _agent(model=model, **kwargs)
+
+
 __all__ = [
     # Tool execution
     "execute_tool",
@@ -143,4 +171,10 @@ __all__ = [
     "get_mcp_server",
     "run_mcp_server",
     "MCP_AVAILABLE",
+    # Framework-agnostic helpers
+    "invoke",
+    "callables",
+    "load_skill",
+    # One-liner agent
+    "agent",
 ]

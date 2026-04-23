@@ -919,7 +919,7 @@ Serve model as API:
 ### Programmatic Tool Execution
 
 ```python
-from tuiml.llm import execute_tool, get_tools_for_llm
+from tuiml.agent import execute_tool, get_tools_for_llm
 
 result = execute_tool("tuiml_train", algorithm="RandomForestClassifier", data="iris", target="class")
 tools = get_tools_for_llm(format="mcp")

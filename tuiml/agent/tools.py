@@ -1865,7 +1865,7 @@ def execute_experiment(**kwargs) -> Dict[str, Any]:
         # user algorithm's runs.jsonl. Silently no-ops when no algorithm in
         # this experiment is a user algorithm, or when the feature flag is off.
         try:
-            from tuiml.llm import user_algorithms as _user_algorithms
+            from tuiml.agent import user_algorithms as _user_algorithms
             appended = _user_algorithms.record_experiment_runs(result)
             if appended:
                 result["research_log_updates"] = appended
@@ -1878,7 +1878,7 @@ def execute_experiment(**kwargs) -> Dict[str, Any]:
 
 def execute_list(**kwargs) -> Dict[str, Any]:
     """Execute list components."""
-    from tuiml.llm.registry import get_all_tools, list_tools_by_category
+    from tuiml.agent.registry import get_all_tools, list_tools_by_category
 
     try:
         category = kwargs.get('category', 'all')
@@ -2016,7 +2016,7 @@ def execute_describe(**kwargs) -> Dict[str, Any]:
             pass
 
         # 3. Try from component tool registry (preprocessing, features, splitting)
-        from tuiml.llm.registry import get_all_tools
+        from tuiml.agent.registry import get_all_tools
         tools = get_all_tools()
 
         for prefix in ['tuiml_preprocessing_', 'tuiml_feature_', 'tuiml_splitting_']:
@@ -2046,7 +2046,7 @@ def execute_describe(**kwargs) -> Dict[str, Any]:
 
 def execute_search(**kwargs) -> Dict[str, Any]:
     """Execute search components."""
-    from tuiml.llm.registry import get_all_tools
+    from tuiml.agent.registry import get_all_tools
 
     try:
         query = kwargs['query'].lower()
@@ -3378,7 +3378,7 @@ def execute_read_data(**kwargs) -> Dict[str, Any]:
 
 
 def execute_algorithm_skeleton(**kwargs) -> Dict[str, Any]:
-    from tuiml.llm import user_algorithms
+    from tuiml.agent import user_algorithms
     return user_algorithms.skeleton(
         kind=kwargs.get("kind", "classifier"),
         class_name=kwargs.get("class_name", "MyAlgorithm"),
@@ -3388,7 +3388,7 @@ def execute_algorithm_skeleton(**kwargs) -> Dict[str, Any]:
 
 
 def execute_create_algorithm(**kwargs) -> Dict[str, Any]:
-    from tuiml.llm import user_algorithms
+    from tuiml.agent import user_algorithms
     required = [k for k in ("name", "kind", "code") if k not in kwargs]
     if required:
         return {"status": "error", "error_type": "ValueError",
@@ -3404,17 +3404,17 @@ def execute_create_algorithm(**kwargs) -> Dict[str, Any]:
 
 
 def execute_list_user_algorithms(**kwargs) -> Dict[str, Any]:
-    from tuiml.llm import user_algorithms
+    from tuiml.agent import user_algorithms
     return user_algorithms.list_all()
 
 
 def execute_research_log(**kwargs) -> Dict[str, Any]:
-    from tuiml.llm import user_algorithms
+    from tuiml.agent import user_algorithms
     return user_algorithms.research_log(name=kwargs.get("name"))
 
 
 def execute_delete_user_algorithm(**kwargs) -> Dict[str, Any]:
-    from tuiml.llm import user_algorithms
+    from tuiml.agent import user_algorithms
     if "name" not in kwargs:
         return {"status": "error", "error_type": "ValueError",
                 "error": "missing required field: name"}
@@ -3614,7 +3614,7 @@ TOOL_EXECUTORS = {
 # Bootstrap: re-register agent-authored algorithms from disk so they survive
 # MCP server restarts. Gated by TUIML_ALLOW_USER_ALGORITHMS.
 try:
-    from tuiml.llm import user_algorithms as _user_algorithms
+    from tuiml.agent import user_algorithms as _user_algorithms
     _bootstrap_result = _user_algorithms.load_all()
     if _bootstrap_result.get("loaded"):
         import sys as _sys
@@ -3779,7 +3779,7 @@ def execute_tool(tool_name: str, **kwargs) -> Dict[str, Any]:
         return TOOL_EXECUTORS[tool_name](**kwargs)
 
     # For any component tool, ensure full registry is loaded
-    from tuiml.llm.registry import get_tool
+    from tuiml.agent.registry import get_tool
     tool = get_tool(tool_name)
     if tool:
         try:

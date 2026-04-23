@@ -340,7 +340,7 @@ def install_skill_file(skills_dir: Path) -> tuple[bool, str]:
     """Copy the bundled SKILL.md into a coding agent's skills directory."""
     try:
         from importlib.resources import files
-        skill_src = files("tuiml.llm").joinpath("Skill.md")
+        skill_src = files("tuiml.agent").joinpath("SKILL.md")
         if not skill_src.is_file():
             return False, f"skill file not found in package: {skill_src}"
         src_text = skill_src.read_text(encoding="utf-8")

@@ -32,6 +32,9 @@ from tuiml.api import (
 # Mid-level API
 from tuiml.workflow import Workflow, WorkflowResult
 
+# Agent entry points (tools for every major framework + one-liner agent)
+from tuiml.agent import agent
+
 __version__ = "0.1.2"
 
 __all__ = [
@@ -58,4 +61,7 @@ __all__ = [
     # Mid-level API (fluent workflow)
     "Workflow",
     "WorkflowResult",
+
+    # Agent / framework integration
+    "agent",
 ]

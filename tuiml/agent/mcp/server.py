@@ -12,7 +12,7 @@ Usage:
     tuiml-mcp
 
     # Or run as Python module
-    python -m tuiml.llm.server
+    python -m tuiml.agent.mcp.server
 
     # Server options
     tuiml-mcp --help   # Show help
@@ -123,7 +123,7 @@ def create_server() -> "Server":
         """List workflow and discovery tools (not 200+ component tools)."""
         tools = []
 
-        from tuiml.llm.tools import get_workflow_tools, get_tool_output_schema, get_tool_annotations
+        from tuiml.agent.tools import get_workflow_tools, get_tool_output_schema, get_tool_annotations
 
         # Tools that return image content blocks cannot use outputSchema
         # (MCP validates structured output against the schema, but image
@@ -152,7 +152,7 @@ def create_server() -> "Server":
     @server.call_tool()
     async def call_tool(name: str, arguments: Dict[str, Any]):
         """Execute any TuiML tool."""
-        from tuiml.llm.tools import execute_tool
+        from tuiml.agent.tools import execute_tool
 
         try:
             # For long-running tools, set up real-time progress notifications
@@ -307,7 +307,7 @@ async def run_server():
 
     # Pre-load component registry so discovery tools are fast
     print("Loading TuiML components...", file=sys.stderr)
-    from tuiml.llm.registry import get_all_tools
+    from tuiml.agent.registry import get_all_tools
     get_all_tools()  # Trigger registry loading
 
     # Report counts
@@ -340,7 +340,7 @@ def main():
         print(f"Discoverable Components: {info['tools']['discoverable_components']}")
         print()
         print("Exposed tools (workflow + discovery):")
-        from tuiml.llm.tools import get_workflow_tools
+        from tuiml.agent.tools import get_workflow_tools
         for name in get_workflow_tools():
             print(f"  - {name}")
         print()
@@ -374,8 +374,8 @@ def main():
 
 def get_server_info() -> Dict[str, Any]:
     """Get information about the MCP server."""
-    from tuiml.llm.registry import get_tool_count
-    from tuiml.llm.tools import get_workflow_tools
+    from tuiml.agent.registry import get_tool_count
+    from tuiml.agent.tools import get_workflow_tools
 
     workflow_count = len(get_workflow_tools())
     component_counts = get_tool_count()
