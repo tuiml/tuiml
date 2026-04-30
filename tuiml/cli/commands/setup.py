@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import re
 import shutil
+import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -71,7 +72,8 @@ def confirm(prompt: str, default: bool = True, assume_yes: bool = False) -> bool
 #   id        : short slug used by --client flag
 #   name      : human-readable label
 #   detect    : Path that, if it exists, indicates the client is installed
-#   kind      : "json-mcp"  (JSON config with mcpServers key)
+#   kind      : "openclaw"  (OpenClaw CLI registry, fallback to JSON)
+#                "json-mcp"  (JSON config with mcpServers key)
 #                "json-key" (JSON config with custom key, eg Zed)
 #                "toml-mcp" (TOML config, eg OpenAI Codex CLI)
 #                "skill"    (drop SKILL.md in a skills directory)
@@ -107,8 +109,9 @@ def client_specs() -> list[dict]:
         {
             "id": "openclaw",
             "name": "OpenClaw",
-            "kind": "json-key",
+            "kind": "openclaw",
             "key": "mcp.servers",
+            "detect_command": "openclaw",
             "detect": HOME / ".openclaw",
             "config": HOME / ".openclaw" / "openclaw.json",
         },
@@ -128,11 +131,15 @@ def client_specs() -> list[dict]:
                 "NemoClaw runs OpenClaw inside a sandboxed Docker container,\n"
                 "so its OpenClaw MCP config is not reachable from the host.\n"
                 "To wire TuiML into a NemoClaw sandbox:\n"
-                "  1. Enter the sandbox shell:\n"
-                "       nemoclaw <sandbox-name> shell\n"
-                "  2. Install TuiML inside the sandbox:\n"
-                "       curl -fsSL https://tuiml.ai/install.sh | bash\n"
-                "  3. Configure OpenClaw from inside the sandbox:\n"
+                "  1. Allow PyPI package installs from the host:\n"
+                "       nemoclaw <sandbox-name> policy-add pypi --yes\n"
+                "  2. Connect to the sandbox:\n"
+                "       nemoclaw <sandbox-name> connect\n"
+                "  3. Install TuiML inside the sandbox:\n"
+                "       python -m venv /sandbox/.openclaw/workspace/tuiml_venv\n"
+                "       . /sandbox/.openclaw/workspace/tuiml_venv/bin/activate\n"
+                "       pip install tuiml\n"
+                "  4. Configure OpenClaw from inside the sandbox:\n"
                 "       tuiml setup --client openclaw -y"
             ),
         },
@@ -233,8 +240,16 @@ def client_specs() -> list[dict]:
 
 
 def detect_clients() -> list[dict]:
-    """Return only the specs whose detect path exists."""
-    return [c for c in client_specs() if c["detect"].exists()]
+    """Return specs detected by config path or command availability."""
+    detected = []
+    for spec in client_specs():
+        if spec["detect"].exists():
+            detected.append(spec)
+            continue
+        command = spec.get("detect_command")
+        if command and shutil.which(command):
+            detected.append(spec)
+    return detected
 
 
 # ---------------------------------------------------------------------------
@@ -301,6 +316,34 @@ def write_json_mcp(config_path: Path, key: str, server_name: str, command: str) 
     _set_nested(data, key, existing_block)
     config_path.write_text(json.dumps(data, indent=2))
     return True, "added new entry"
+
+
+def _tuiml_mcp_command() -> str:
+    """Return the current tuiml-mcp executable path when discoverable."""
+    return shutil.which("tuiml-mcp") or "tuiml-mcp"
+
+
+def configure_openclaw(spec: dict) -> tuple[bool, str]:
+    """Configure OpenClaw using its MCP registry command when available."""
+    openclaw = shutil.which("openclaw")
+    mcp_command = _tuiml_mcp_command()
+    if openclaw:
+        payload = json.dumps({"command": mcp_command}, separators=(",", ":"))
+        result = subprocess.run(
+            [openclaw, "mcp", "set", "tuiml", payload],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.returncode == 0:
+            return True, f"registered via openclaw mcp set ({mcp_command})"
+
+        detail = (result.stderr or result.stdout).strip()
+        if detail:
+            warn(f"  OpenClaw CLI setup failed: {detail}")
+        warn("  Falling back to direct config edit.")
+
+    return write_json_mcp(spec["config"], spec["key"], "tuiml", mcp_command)
 
 
 def write_toml_mcp(config_path: Path, server_name: str, command: str) -> tuple[bool, str]:
@@ -393,6 +436,8 @@ def print_instructions(spec: dict) -> tuple[bool, str]:
 
 def configure(spec: dict) -> tuple[bool, str]:
     kind = spec["kind"]
+    if kind == "openclaw":
+        return configure_openclaw(spec)
     if kind == "json-mcp":
         return write_json_mcp(spec["config"], "mcpServers", "tuiml", "tuiml-mcp")
     if kind == "json-key":
