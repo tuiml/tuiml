@@ -325,6 +325,12 @@ class Experiment(BaseExperiment):
                 if model_class_name in registry:
                     info = registry.get_info(model_class_name)
                     model_types[model_name] = info.get('type', 'unknown')
+                elif getattr(model, '_estimator_type', None) in (
+                    'classifier', 'regressor', 'clusterer'
+                ):
+                    # Wrapped estimators (e.g. SklearnAdapter) declare their task
+                    # type directly rather than registering by class name.
+                    model_types[model_name] = model._estimator_type
                 else:
                     # Fallback: check if model has fit(X, y) or fit(X) signature
                     import inspect

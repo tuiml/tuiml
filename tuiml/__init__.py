@@ -35,6 +35,19 @@ from tuiml.workflow import Workflow, WorkflowResult
 # Agent entry points (tools for every major framework + one-liner agent)
 from tuiml.agent import agent
 
+# Optional third-party bridges. Each registers its wrappers into the hub under a
+# namespaced key (``sklearn.*`` / ``capymoa.*``) when its backing library is
+# installed. They are best-effort: a missing backing library must never break
+# ``import tuiml`` or the native algorithms.
+try:
+    import tuiml.sklearn  # noqa: F401
+except Exception:  # pragma: no cover - defensive; native must still import
+    pass
+try:
+    import tuiml.capymoa  # noqa: F401
+except Exception:  # pragma: no cover
+    pass
+
 __version__ = "0.1.5"
 
 __all__ = [
