@@ -162,10 +162,15 @@ def flatten_tree(root: TreeNode, value_width: int) -> FlattenedTree:
 
     return FlattenedTree(
         feature=np.array(features, dtype=np.int32),
-        threshold=np.array(thresholds, dtype=np.float32),
+        # float64 (not float32): split thresholds come from the C++ builder as
+        # doubles; rounding them to float32 flips samples whose feature value
+        # sits close to a threshold, silently corrupting routing — this produced
+        # catastrophic, seed-dependent trees on data with high-precision
+        # features. value is float64 too so regressor leaf means keep precision.
+        threshold=np.array(thresholds, dtype=np.float64),
         children_left=np.array(left_children, dtype=np.int32),
         children_right=np.array(right_children, dtype=np.int32),
-        value=np.array(np.array(values), dtype=np.float32),
+        value=np.array(np.array(values), dtype=np.float64),
         n_nodes=node_index,
     )
 

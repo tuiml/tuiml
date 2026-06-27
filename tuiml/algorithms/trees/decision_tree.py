@@ -355,7 +355,7 @@ class DecisionTreeClassifier(Classifier):
             Class probability estimates.
         """
         self._check_is_fitted()
-        X = np.atleast_2d(np.asarray(X, dtype=np.float32))
+        X = np.atleast_2d(np.asarray(X, dtype=np.float64))
         return predict_proba_batch(self.flat_tree_, X)
 
     def get_tree_description(self, node=None, depth: int = 0) -> str:
@@ -684,7 +684,7 @@ class DecisionTreeRegressor(Regressor):
             Predicted values.
         """
         self._check_is_fitted()
-        X = np.atleast_2d(np.asarray(X, dtype=np.float32))
+        X = np.atleast_2d(np.asarray(X, dtype=np.float64))
         raw = predict_batch(self.flat_tree_, X)
         return raw.ravel()
 

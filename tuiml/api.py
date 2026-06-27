@@ -465,7 +465,14 @@ def train(
         raise ValueError("Data must be provided")
 
     # Extract algorithm name and params (only place we need to handle dict format)
-    if isinstance(algorithm, dict):
+    from tuiml.sklearn.adapter import is_sklearn_estimator, wrap_sklearn
+
+    if is_sklearn_estimator(algorithm):
+        # A raw scikit-learn-compatible estimator object — wrap it so it speaks
+        # the TuiML interface, and pass the instance straight to the workflow.
+        algo_name = wrap_sklearn(algorithm)
+        algo_params = {}
+    elif isinstance(algorithm, dict):
         algo_dict = algorithm.copy()
         algo_name = algo_dict.pop("name", None)
         algo_params = {**algo_dict, **kwargs}  # Merge dict params with kwargs
@@ -787,12 +794,18 @@ def experiment(
     """
     from tuiml.evaluation import run_experiment
     from tuiml.hub import registry
+    from tuiml.sklearn.adapter import is_sklearn_estimator, wrap_sklearn
     import tuiml.algorithms  # noqa: F401 - trigger registration
 
     # Convert algorithms to dict format
     models_dict = {}
     if isinstance(algorithms, dict):
-        models_dict = algorithms
+        # Auto-wrap any raw scikit-learn-compatible estimators so they speak
+        # the TuiML interface inside run_experiment.
+        models_dict = {
+            name: (wrap_sklearn(m) if is_sklearn_estimator(m) else m)
+            for name, m in algorithms.items()
+        }
     elif isinstance(algorithms, list):
         for item in algorithms:
             if isinstance(item, str):
@@ -817,8 +830,14 @@ def experiment(
                             )
                         models_dict[name] = model_class(**params_or_model)
                     else:
-                        models_dict[name] = params_or_model
+                        models_dict[name] = (
+                            wrap_sklearn(params_or_model)
+                            if is_sklearn_estimator(params_or_model)
+                            else params_or_model
+                        )
             else:
+                if is_sklearn_estimator(item):
+                    item = wrap_sklearn(item)
                 model_name = item.__class__.__name__
                 models_dict[model_name] = item
 

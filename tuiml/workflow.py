@@ -205,6 +205,39 @@ class WorkflowResult:
         return api_serve(self, host=host, port=port, model_id=model_id)
 
 
+def _clone_estimator(prototype):
+    """Return a fresh, unfitted copy of an estimator instance.
+
+    Used when an already-built estimator instance is handed to the workflow
+    (e.g. a raw scikit-learn estimator wrapped via ``wrap_sklearn``), because
+    cross-validation re-instantiates the model once per fold.
+
+    Parameters
+    ----------
+    prototype : object
+        An estimator instance to clone.
+
+    Returns
+    -------
+    object
+        A fresh copy in the same configuration as ``prototype``.
+    """
+    # scikit-learn-backed adapter: clone the wrapped estimator properly.
+    inner = getattr(prototype, "estimator", None)
+    if inner is not None:
+        try:
+            from sklearn.base import clone as _sk_clone
+            from tuiml.sklearn.adapter import wrap_sklearn
+            return wrap_sklearn(_sk_clone(inner))
+        except Exception:
+            pass
+    # Generic fallback: rebuild from the class and its constructor params.
+    try:
+        return type(prototype)(**prototype.get_params())
+    except Exception:
+        return prototype
+
+
 def _inject_seed_to_algorithm(model_cls, model_params: dict, seed: int | None) -> dict:
     """Inject seed into model parameters if supported and not already explicitly set."""
     if seed is None:
@@ -938,11 +971,24 @@ class Workflow:
 
         use_cv = eval_config.get('method') == 'cross_validate'
 
-        # 4. Resolve model class
-        try:
-            model_cls = registry.get(self._model)
-        except KeyError:
-            raise ValueError(f"Unknown algorithm: {self._model}")
+        # 4. Resolve model class.
+        # ``self._model`` is normally a registry name (str). It may also be a
+        # class, or an already-built estimator instance — e.g. a raw
+        # scikit-learn estimator that the high-level API wrapped via
+        # ``wrap_sklearn``. For an instance we build a factory that returns a
+        # fresh clone on each call, since CV re-instantiates the model per fold.
+        if isinstance(self._model, str):
+            try:
+                model_cls = registry.get(self._model)
+            except KeyError:
+                raise ValueError(f"Unknown algorithm: {self._model}")
+        elif isinstance(self._model, type):
+            model_cls = self._model
+        else:
+            _prototype = self._model
+
+            def model_cls(**_kwargs):
+                return _clone_estimator(_prototype)
 
         model_params = self._model_params or {}
         model_params = _inject_seed_to_algorithm(model_cls, model_params, random_state)
@@ -973,14 +1019,20 @@ class Workflow:
         is_timeseries = False
         algo_tags = []
         algo_info = {}
-        try:
-            algo_info = registry.get_info(self._model)
-            algo_tags = algo_info.get('tags', [])
-            is_clustering = algo_info.get('type') in ('clusterer', 'clustering')
-            is_anomaly = 'anomaly-detection' in algo_tags
-            is_timeseries = 'timeseries' in algo_tags
-        except (KeyError, Exception):
-            pass
+        if isinstance(self._model, str):
+            try:
+                algo_info = registry.get_info(self._model)
+                algo_tags = algo_info.get('tags', [])
+                is_clustering = algo_info.get('type') in ('clusterer', 'clustering')
+                is_anomaly = 'anomaly-detection' in algo_tags
+                is_timeseries = 'timeseries' in algo_tags
+            except (KeyError, Exception):
+                pass
+        else:
+            # Instance/class passed directly (e.g. a wrapped sklearn estimator):
+            # infer the task type from the reported estimator type.
+            est_type = getattr(self._model, '_estimator_type', None)
+            is_clustering = est_type == 'clusterer'
 
         # Auto-resolve metrics based on algorithm type when not specified
         if _user_metrics:

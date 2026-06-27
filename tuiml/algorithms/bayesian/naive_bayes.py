@@ -142,7 +142,8 @@ class NaiveBayesClassifier(Classifier):
     """
 
     def __init__(self, use_kernel_estimator: bool = False,
-                 use_laplace: bool = True):
+                 use_laplace: bool = True,
+                 var_smoothing: float = 1e-9):
         """
         Initialize the Naive Bayes classifier.
 
@@ -155,14 +156,23 @@ class NaiveBayesClassifier(Classifier):
         use_laplace : bool, default=True
             Whether to apply Laplace smoothing to class prior
             probabilities to avoid zero probabilities.
+        var_smoothing : float, default=1e-9
+            Portion of the largest feature variance added to all per-class
+            feature variances as a floor. Like scikit-learn's ``var_smoothing``,
+            this floor is **relative to the data scale**, which keeps the
+            Gaussian estimators stable on standardized or one-hot features
+            (a fixed absolute floor produces spiky densities and wrong
+            predictions on scaled data).
         """
         super().__init__()
         self.use_kernel_estimator = use_kernel_estimator
         self.use_laplace = use_laplace
+        self.var_smoothing = var_smoothing
         self.classes_ = None
         self.class_prior_ = None
         self.estimators_: List[List] = []  # [class_idx][feature_idx]
         self._epsilon = 1e-9
+        self._var_floor = 1e-9  # refined relative to the data in fit()
         self._n_features = 0
 
     @classmethod
@@ -281,7 +291,7 @@ class NaiveBayesClassifier(Classifier):
         if self.use_kernel_estimator:
             return KernelEstimator()
         else:
-            return NormalEstimator()
+            return NormalEstimator(precision=self._var_floor)
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> "NaiveBayesClassifier":
         """
@@ -328,6 +338,17 @@ class NaiveBayesClassifier(Classifier):
 
         n_samples, n_features = X.shape
         self._n_features = n_features
+
+        # Variance floor relative to the data scale (mirrors sklearn's
+        # var_smoothing). An absolute floor is wrong when features are scaled
+        # or one-hot encoded — it makes per-class Gaussians razor-thin and the
+        # likelihood unstable, collapsing predictions.
+        if n_features:
+            with np.errstate(invalid="ignore"):
+                max_var = np.nanmax(np.nanvar(X, axis=0))
+            if not np.isfinite(max_var):
+                max_var = 0.0
+            self._var_floor = max(self.var_smoothing * float(max_var), 1e-12)
 
         # Find classes and compute priors
         self.classes_, class_counts = np.unique(y, return_counts=True)
@@ -477,13 +498,15 @@ class NaiveBayesClassifier(Classifier):
                         # Missing value contributes 0 to log probability
                         continue
                     
-                    prob = estimator.get_probability(val)
-                    
-                    # Avoid log(0)
-                    if prob > 0:
-                        class_log_prob[sample_idx] += np.log(prob)
+                    # Prefer the numerically-stable log density when the
+                    # estimator provides it (Gaussian); fall back to log(prob)
+                    # with an epsilon floor for estimators that don't.
+                    if hasattr(estimator, "get_log_probability"):
+                        class_log_prob[sample_idx] += estimator.get_log_probability(val)
                     else:
-                        class_log_prob[sample_idx] += np.log(self._epsilon)
+                        prob = estimator.get_probability(val)
+                        class_log_prob[sample_idx] += (
+                            np.log(prob) if prob > 0 else np.log(self._epsilon))
             
             log_likelihood[:, class_idx] = class_log_prob
 
