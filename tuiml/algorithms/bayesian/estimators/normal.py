@@ -182,7 +182,32 @@ class NormalEstimator(Estimator):
         
         # Normal distribution PDF: (1 / (sigma * sqrt(2*pi))) * exp(...)
         return (1.0 / (np.sqrt(2 * np.pi) * self._std_dev)) * np.exp(exponent)
-        
+
+    def get_log_probability(self, value: float) -> float:
+        """Log probability density of a value (numerically stable).
+
+        Computes the Gaussian log-PDF directly rather than ``log(pdf)``, so
+        far-from-mean values give large finite negatives instead of
+        underflowing to zero (which would otherwise be clamped to a constant
+        and corrupt the per-class comparison).
+
+        Parameters
+        ----------
+        value : float
+            The numeric value to query.
+
+        Returns
+        -------
+        log_density : float
+            ``log P(value)`` under the fitted normal; ``0.0`` for NaN.
+        """
+        if np.isnan(value):
+            return 0.0
+        self._calculate_stats()
+        diff = value - self._mean
+        return (-0.5 * np.log(2 * np.pi * self._variance)
+                - (diff * diff) / (2 * self._variance))
+
     def get_mean(self) -> float:
         """Get the estimated mean."""
         self._calculate_stats()

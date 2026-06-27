@@ -181,7 +181,7 @@ class SVC(Classifier):
                  degree: int = 3,
                  coef0: float = 0.0,
                  tol: float = 1e-3,
-                 max_iter: int = 1000):
+                 max_iter: int = -1):
         """Initialize SVC classifier.
 
         Parameters
@@ -198,8 +198,11 @@ class SVC(Classifier):
             Independent term in poly/sigmoid kernel.
         tol : float, default=1e-3
             Tolerance for stopping criterion.
-        max_iter : int, default=1000
-            Maximum iterations.
+        max_iter : int, default=-1
+            Hard cap on SMO iterations. ``-1`` (default) auto-scales the cap to
+            ``max(10000, n_samples)`` so the solver actually converges on larger
+            datasets — a small fixed cap silently returns an under-trained
+            (degenerate) model on data with more than a few thousand rows.
         """
         super().__init__()
         self.C = C
@@ -262,9 +265,8 @@ class SVC(Classifier):
             },
             "max_iter": {
                 "type": "integer",
-                "default": 1000,
-                "minimum": 1,
-                "description": "Maximum number of iterations"
+                "default": -1,
+                "description": "Iteration cap; -1 auto-scales to max(10000, n_samples)"
             }
         }
 
@@ -381,12 +383,21 @@ class SVC(Classifier):
         None
             Sets ``self._cpp_model`` in-place.
         """
+        # Auto-scale the iteration cap when max_iter=-1 (default). SMO needs on
+        # the order of n iterations to converge; a small fixed cap leaves the
+        # model under-trained (degenerate) on datasets with more than a few
+        # thousand rows. An explicit positive max_iter is always respected.
+        if self.max_iter is None or self.max_iter < 0:
+            eff_max_iter = max(10000, int(X.shape[0]))
+        else:
+            eff_max_iter = self.max_iter
+
         if self._use_precomputed:
             # Custom kernel (PUK, String, etc.) — compute kernel matrix in Python
             K = self._kernel_obj.compute_matrix_cross(X, X)
             K = np.ascontiguousarray(K, dtype=np.float64)
             self._cpp_model = _cpp_svm.svc_train_precomputed(
-                K, y_int, self.C, self.tol, self.max_iter
+                K, y_int, self.C, self.tol, eff_max_iter
             )
         else:
             # Native kernel — use C++ solver directly
@@ -395,7 +406,7 @@ class SVC(Classifier):
             self._cpp_model = _cpp_svm.svc_train(
                 X_c, y_int, kt, self.C,
                 self._gamma_actual, self.degree, self.coef0,
-                self.tol, self.max_iter
+                self.tol, eff_max_iter
             )
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> "SVC":

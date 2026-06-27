@@ -178,7 +178,7 @@ class SVR(Regressor):
         degree: int = 3,
         coef0: float = 0.0,
         tol: float = 1e-3,
-        max_iter: int = 10000,
+        max_iter: int = -1,
     ):
         """Initialize SVR.
 
@@ -395,11 +395,19 @@ class SVR(Regressor):
 
         y_c = np.ascontiguousarray(y, dtype=np.float64)
 
+        # Auto-scale the iteration cap when max_iter=-1 (default), so SMO
+        # converges on larger datasets instead of returning an under-trained
+        # model. An explicit positive max_iter is always respected.
+        if self.max_iter is None or self.max_iter < 0:
+            eff_max_iter = max(10000, int(X.shape[0]))
+        else:
+            eff_max_iter = self.max_iter
+
         if self._use_precomputed:
             K = self._kernel_obj.compute_matrix_cross(X, X)
             K = np.ascontiguousarray(K, dtype=np.float64)
             self._cpp_model = _cpp_svm.svr_train_precomputed(
-                K, y_c, self.C, self.epsilon, self.tol, self.max_iter
+                K, y_c, self.C, self.epsilon, self.tol, eff_max_iter
             )
         else:
             X_c = np.ascontiguousarray(X, dtype=np.float64)
@@ -407,7 +415,7 @@ class SVR(Regressor):
             self._cpp_model = _cpp_svm.svr_train(
                 X_c, y_c, kt, self.C, self.epsilon,
                 self._gamma_value, self.degree, self.coef0,
-                self.tol, self.max_iter
+                self.tol, eff_max_iter
             )
 
         # Extract fitted attributes

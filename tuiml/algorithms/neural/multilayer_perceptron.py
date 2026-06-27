@@ -1039,8 +1039,12 @@ class MultilayerPerceptronRegressor(Regressor):
         weight_grads = [np.zeros_like(w) for w in self.weights_]
         bias_grads = [np.zeros_like(b) for b in self.biases_]
 
-        # Output layer error (MSE derivative): 2/N * (pred - y)
-        delta = 2.0 * (activations[-1] - y) / n_samples
+        # Output layer error (MSE derivative). The 1/N averaging is applied once
+        # below (weight grads divide by n_samples, bias grads use mean) — exactly
+        # as in the classifier's backward pass — so delta must NOT pre-divide by
+        # n_samples here, or gradients shrink by an extra factor of N and the
+        # network fails to learn (near-mean predictions -> R^2 around 0).
+        delta = 2.0 * (activations[-1] - y)
 
         for i in range(len(self.weights_) - 1, -1, -1):
             weight_grads[i] = activations[i].T @ delta / n_samples
@@ -1122,7 +1126,20 @@ class MultilayerPerceptronRegressor(Regressor):
             # Backward pass
             weight_grads, bias_grads = self._backward(
                 X_scaled, y_scaled, activations, zs)
- 
+
+            # Global-norm gradient clipping to prevent exploding gradients.
+            # With correctly-scaled gradients and momentum, a few datasets
+            # (high-dimensional / wide-range targets) can otherwise diverge to
+            # NaN; clipping keeps training stable without hurting convergence.
+            total_norm = np.sqrt(
+                sum(float(np.sum(g ** 2)) for g in weight_grads) +
+                sum(float(np.sum(g ** 2)) for g in bias_grads))
+            max_norm = 1.0
+            if total_norm > max_norm:
+                scale = max_norm / (total_norm + 1e-8)
+                weight_grads = [g * scale for g in weight_grads]
+                bias_grads = [g * scale for g in bias_grads]
+
             # Update weights with momentum
             for i in range(len(self.weights_)):
                 self.weight_velocities_[i] = (self.momentum * self.weight_velocities_[i] -

@@ -26,10 +26,14 @@ def _predict_single_flat(flat_tree: FlattenedTree, x: np.ndarray) -> np.ndarray:
 
 def predict_batch(flat_tree: FlattenedTree, X: np.ndarray) -> np.ndarray:
     """Predict over a batch of samples using flattened NumPy tree arrays."""
-    X = np.asarray(X, dtype=np.float32)
+    # float64 (not float32): the split thresholds are float64, so downcasting
+    # the input rounds feature values across split boundaries and misroutes
+    # samples — which silently corrupted predictions (catastrophically on
+    # data with high-precision features).
+    X = np.asarray(X, dtype=np.float64)
     if X.ndim == 1:
         X = X.reshape(1, -1)
-    return np.array([_predict_single_flat(flat_tree, x) for x in X], dtype=np.float32)
+    return np.array([_predict_single_flat(flat_tree, x) for x in X], dtype=np.float64)
 
 
 def predict_proba_batch(flat_tree: FlattenedTree, X: np.ndarray) -> np.ndarray:
