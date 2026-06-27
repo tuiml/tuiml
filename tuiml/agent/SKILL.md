@@ -59,10 +59,11 @@ result = train("RandomForestClassifier", "iris", target="class", cv=10)
 # Mid-level: chainable workflow
 from tuiml import Workflow
 result = (Workflow()
-    .data("iris", target="class")
-    .preprocess("SimpleImputer", "StandardScaler")
-    .algorithm("RandomForestClassifier", n_estimators=100)
-    .evaluate(cv=10, metrics=["accuracy_score", "f1_score"])
+    .load("iris")
+    .preprocess("SimpleImputer")
+    .preprocess("StandardScaler")
+    .train("RandomForestClassifier", n_estimators=100)
+    .cross_validate(cv=10, metrics=["accuracy_score", "f1_score"])
     .run())
 
 # Low-level: full OOP control
@@ -86,11 +87,13 @@ All top-level functions are importable from `tuiml` directly.
 ```python
 from tuiml import (
     train, run, predict, evaluate, experiment,
-    save, load, list_algorithms, describe_algorithm, search_algorithms,
+    save, load,
+    list_algorithms, describe_algorithm, search_algorithms,
     serve, stop_server, server_status,
     PRESETS,
     Workflow, WorkflowResult,
-    registry, ComponentType,
+    agent,
+    hub, ComponentType,
 )
 ```
 
@@ -101,53 +104,145 @@ result = train(
     algorithm="RandomForestClassifier",
     data="iris",                          # built-in name or file path
     target="class",
-    cv=10,
-    algorithm_params={"n_estimators": 100, "max_depth": 10},
     preprocessing=["SimpleImputer", "StandardScaler"],
     feature_selection={"name": "SelectKBestSelector", "k": 10},
-    metrics=["accuracy_score", "f1_score"],
+    test_size=0.2,
+    stratify=True,
+    random_seed=None,                     # also accepts legacy random_state= kwarg
+    cv=10,
+    metrics="auto",                       # "auto" or list of metric names
+    return_model=True,
+    return_predictions=False,
+    return_probabilities=False,
+    preset=None,                          # "minimal", "fast", "standard", "full", "imbalanced"
+    verbose=False,
+    **kwargs,                             # algorithm hyperparameters
 )
-# result contains model_id, metrics, model object
+# result is a WorkflowResult with .model, .metrics, .model_id, etc.
 ```
 
 ### experiment()
 
 ```python
 result = experiment(
-    algorithms=["RandomForestClassifier", "SVC", "NaiveBayesClassifier"],
-    data="iris",
-    target="class",
+    algorithms=[                          # list of names, list of (name, params) tuples,
+        "RandomForestClassifier",         # or dict of {"label": model_instance}
+        "SVC",
+        "NaiveBayesClassifier",
+    ],
+    datasets={                            # dict of {"name": (X, y)},
+        "iris": (X, y),                  # list of built-in name strings,
+    },                                   # or list of {"path": ..., "target": ...} dicts
+    preprocessing=None,                  # preset name or step list applied to all datasets
     cv=10,
-    metrics=["accuracy_score", "f1_score", "precision_score"],
+    metrics=["accuracy_score", "f1_score"],
+    n_jobs=1,                            # -1 to use all CPUs
+    verbose=0,                           # int verbosity level
+    random_seed=None,
+    progress_callback=None,
 )
 ```
 
 ### predict() / evaluate()
 
 ```python
-predictions = predict(model_id="a1b2c3", data="test_data.csv")
-metrics = evaluate(model_id="a1b2c3", data="test.csv", target="class")
+predictions = predict(model, data)       # model object with .predict(); data as DataFrame/ndarray
+metrics = evaluate(model, X, y, metrics="auto")   # X/y as arrays; returns dict of metric→value
+```
+
+### run()
+
+```python
+result = run(config)                     # dict or path to JSON config file
+```
+
+### save() / load()
+
+```python
+save(model, path="model.pkl", metadata={"notes": "iris experiment"})
+model = load("model.pkl")
 ```
 
 ### serve()
 
 ```python
-url = serve(model_id="a1b2c3", port=8000)
-# Model API at http://127.0.0.1:8000/predict
-stop_server(port=8000)
+# Returns a dict (not a URL string) when background=True; None when background=False
+info = serve(
+    model_or_path,           # file path, WorkflowResult, or any object with .predict()
+    host="127.0.0.1",
+    port=8000,
+    model_id="default",
+    background=True,         # False blocks the process
+)
+# info = {"server_id": "127.0.0.1:8000", "url": "http://...", "endpoints": {...}}
+
+stop_server(server_id=None)              # server_id format: "host:port" e.g. "127.0.0.1:8000"
+                                         # None stops all running servers
+```
+
+### PRESETS
+
+```python
+PRESETS = {
+    "minimal":    {},                                               # no preprocessing
+    "fast":       SimpleImputer(strategy="most_frequent"),
+    "standard":   SimpleImputer(mean) → MinMaxScaler → OneHotEncoder,
+    "full":       SimpleImputer(median) → StandardScaler → OneHotEncoder → SelectKBestSelector(k=10),
+    "imbalanced": SimpleImputer(mean) → MinMaxScaler → SMOTESampler,
+}
+# Pass as preset="standard" to train(), or as preprocessing="standard" (both work)
 ```
 
 ### Discovery
 
 ```python
-algorithms = list_algorithms(category="algorithm")
+algorithms = list_algorithms(type=None)  # type: "classifier", "regressor", etc.
 info = describe_algorithm("RandomForestClassifier")
 results = search_algorithms("ensemble")
 ```
 
 ---
 
-## 3. Algorithms
+## 3. Workflow Class
+
+```python
+from tuiml import Workflow
+
+result = (Workflow()
+    .load("iris")                              # built-in name, file path, or Dataset object
+    .impute(strategy="mean")                   # or handle_missing(strategy="mean")
+    .normalize(method="minmax")                # MinMax scaling
+    .standardize()                             # StandardScaler
+    .encode_categorical(method="onehot")
+    .resample(method="smote")                  # class balancing
+    .preprocess("SimpleImputer", strategy="median")   # any named preprocessor
+    .select_features("CFSSelector")
+    .pca(n_components=0.95)
+    .split(test_size=0.2, stratify=True, random_seed=42)
+    .train("RandomForestClassifier", n_estimators=100)   # or .model(...)
+    .evaluate(metrics="auto")
+    .cross_validate(cv=5, metrics="auto")
+    .run())
+
+# WorkflowResult
+result.model
+result.model_id
+result.metrics
+result.cv_results
+result.predictions
+result.probabilities
+result.feature_importance
+
+result.predict(X)
+result.predict_proba(X)
+result.save("path.pkl")
+result.serve(port=8000, host="127.0.0.1", model_id=None)
+WorkflowResult.load("path.pkl")
+```
+
+---
+
+## 4. Algorithms
 
 13 algorithm families with exact class names as imports.
 
@@ -157,15 +252,15 @@ from tuiml.algorithms import (
     NaiveBayesClassifier, NaiveBayesMultinomialClassifier,
     BayesianNetworkClassifier, GaussianProcessesRegressor,
     # Trees
-    C45TreeClassifier, RandomForestClassifier,
+    C45TreeClassifier, RandomForestClassifier, RandomForestRegressor,
     RandomTreeClassifier, DecisionStumpClassifier,
     ReducedErrorPruningTreeClassifier, HoeffdingTreeClassifier,
     M5ModelTreeRegressor, LogisticModelTreeClassifier,
     # Neighbors
-    KNearestNeighborsClassifier, KStarClassifier,
-    LocallyWeightedLearningRegressor,
+    KNearestNeighborsClassifier, KNearestNeighborsRegressor,
+    KStarClassifier, LocallyWeightedLearningRegressor,
     # Linear
-    LogisticRegression, LinearRegression, SGDClassifier,
+    LogisticRegression, LinearRegression, SGDClassifier, SGDRegressor,
     SimpleLinearRegression, SimpleLogisticClassifier,
     # SVM
     SVC, SVR,
@@ -179,21 +274,23 @@ from tuiml.algorithms import (
     VotingClassifier, RandomCommitteeClassifier,
     RandomSubspaceClassifier, LogitBoostClassifier,
     FilteredClassifier, MultiClassClassifier,
-    AdditiveRegressionRegressor, RegressionByDiscretizationRegressor,
+    AdditiveRegression, RegressionByDiscretization,
     # Gradient Boosting
-    XGBoostClassifier, CatBoostClassifier, LightGBMClassifier,
+    XGBoostClassifier, XGBoostRegressor,
+    CatBoostClassifier, CatBoostRegressor,
+    LightGBMClassifier, LightGBMRegressor,
     # Clustering
     KMeansClusterer, DBSCANClusterer, AgglomerativeClusterer,
     GaussianMixtureClusterer, CanopyClusterer, CobwebClusterer,
     FarthestFirstClusterer, FilteredClusterer,
     # Associations
-    AprioriAssociator, FPGrowthAssociator, ECLATAssociator,
+    AprioriAssociator, FPGrowthAssociator,
     # Anomaly
     IsolationForestDetector, LocalOutlierFactorDetector,
     EllipticEnvelopeDetector, OneClassSVMDetector, ABODDetector,
     # Time Series
     ARIMA, ExponentialSmoothing, STLDecomposition,
-    AutoRegressive, MovingAverage, ARMA, Prophet,
+    AR, MA, ARMA, Prophet,
 )
 ```
 
@@ -215,6 +312,7 @@ clf.oob_score_       # algorithm-specific
 # Static metadata
 schema = RandomForestClassifier.get_parameter_schema()
 caps = RandomForestClassifier.get_capabilities()
+meta = RandomForestClassifier.get_metadata()
 ```
 
 ### Clustering (unsupervised)
@@ -243,18 +341,19 @@ forecast = model.predict(n_steps=10)
 
 ---
 
-## 4. Datasets
+## 5. Datasets
 
 ### Built-in Datasets
 
 ```python
 from tuiml.datasets import (
-    load_iris, load_diabetes, load_breast_cancer,
+    load_iris, load_iris_2d, load_diabetes, load_breast_cancer,
     load_glass, load_ionosphere, load_vote, load_credit,
-    load_weather, load_soybean, load_labor, load_hypothyroid,
-    load_segment, load_unbalanced, load_contact_lenses,
-    load_cpu, load_airline,
-    load_supermarket, load_reuters_corn,
+    load_weather, load_weather_nominal, load_soybean, load_labor,
+    load_hypothyroid, load_segment, load_segment_test, load_unbalanced,
+    load_contact_lenses,
+    load_cpu, load_cpu_with_vendor, load_airline,
+    load_supermarket, load_reuters_corn, load_reuters_grain,
     list_datasets, load_dataset, get_dataset_info, get_datasets_by_task,
     DATASET_REGISTRY,
 )
@@ -306,8 +405,8 @@ save_parquet(data, "output.parquet")
 ```python
 from tuiml.datasets import (
     RandomRBF, Agrawal, LED, Hyperplane,       # classification
-    Friedman, MexicanHat, Sine,                 # regression
-    Blobs, Moons, Circles, SwissRoll,           # clustering
+    Friedman, MexicanHat, Sine,                # regression
+    Blobs, Moons, Circles, SwissRoll,          # clustering
 )
 
 data = Blobs(n_samples=1000, n_clusters=5, random_state=42).generate()
@@ -332,7 +431,7 @@ data.shape          # (n_samples, n_features)
 
 ---
 
-## 5. Preprocessing
+## 6. Preprocessing
 
 All preprocessors follow the fit/transform pattern. Import from `tuiml.preprocessing`.
 
@@ -382,9 +481,15 @@ X_disc = disc.fit_transform(X_train)
 
 ```python
 from tuiml.preprocessing import (
+    # SMOTE family
     SMOTESampler, BorderlineSMOTESampler, ADASYNSampler,
-    RandomOverSampler, RandomUnderSampler,
-    TomekLinksSampler, NearMissSampler,
+    SVMSMOTESampler, KMeansSMOTESampler,
+    # Oversampling
+    RandomOverSampler, ClusterOverSampler,
+    # Undersampling
+    RandomUnderSampler, TomekLinksSampler, ENNSampler, CNNSampler,
+    NearMissSampler, HardnessThresholdSampler,
+    # Utility
     ClassBalanceSampler, ReservoirSampler,
 )
 
@@ -405,8 +510,8 @@ X_clean = detector.fit_transform(X_train)
 
 ```python
 from tuiml.preprocessing import (
-    WordTokenizer, NGramTokenizer, RegexTokenizer,
-    CountVectorizer, TfidfVectorizer, HashingVectorizer,
+    WordTokenizer, NGramTokenizer, RegexTokenizer, SentenceTokenizer,
+    CountVectorizer, TfidfVectorizer, TfidfTransformer, HashingVectorizer,
     TextCleaner, StopWordRemover, Stemmer,
 )
 
@@ -423,10 +528,9 @@ lag = LagTransformer(n_lags=5)
 X_lagged = lag.fit_transform(X_ts)
 ```
 
-
 ---
 
-## 6. Feature Engineering
+## 7. Feature Engineering
 
 ### Selection
 
@@ -466,7 +570,7 @@ X_poly = poly.fit_transform(X_train)
 
 ---
 
-## 7. Evaluation
+## 8. Evaluation
 
 Everything is importable from `tuiml.evaluation`.
 
@@ -590,7 +694,7 @@ table = to_latex_table(result_matrix)
 
 ---
 
-## 8. Building Custom Components
+## 9. Building Custom Components
 
 ### Custom Algorithm
 
@@ -713,7 +817,7 @@ class MyMetric(Metric):
 
 ---
 
-## 9. CLI
+## 10. CLI
 
 ```bash
 # Train
@@ -726,6 +830,9 @@ tuiml list
 tuiml list --type classifier --search "forest"
 tuiml list --format json
 
+# Describe
+tuiml describe RandomForestClassifier
+
 # Predict & evaluate
 tuiml predict model.pkl data.csv
 tuiml evaluate RandomForestClassifier data.csv class --cv 10
@@ -733,38 +840,99 @@ tuiml evaluate RandomForestClassifier data.csv class --cv 10
 # Experiment
 tuiml experiment --models RF SVC NB --datasets iris.csv --n-folds 10
 
+# Tuning
+tuiml tune RandomForestClassifier data.csv class --method grid
+
+# Preprocessing & feature selection
+tuiml preprocess data.csv --steps SimpleImputer StandardScaler
+tuiml select_features data.csv class --method CFSSelector
+
+# Plotting
+tuiml plot confusion_matrix --model model.pkl --data data.csv --target class
+
+# Statistical tests
+tuiml test_statistics --results results.json --test friedman --post-hoc nemenyi
+
 # Serve
 tuiml serve model.pkl --port 8000
+tuiml stop_server
+tuiml status
+
+# Data tools
+tuiml profile data.csv
+tuiml read_data data.csv --n-rows 20
+tuiml generate Blobs --n-samples 1000 --n-clusters 5
+tuiml datasets list
+tuiml datasets search "classification"
+tuiml datasets info iris
+
+# Agent-authored algorithms
+tuiml get_skeleton --kind classifier
+tuiml create_algorithm --name MyAlgo --kind classifier --file algo.py
+tuiml read_algorithm MyAlgo
+tuiml edit_algorithm MyAlgo
+tuiml delete_algorithm MyAlgo
+tuiml list_files
+tuiml search_source --query "def fit"
 
 # Setup / uninstall (MCP-client wiring)
 tuiml setup                     # Auto/Manual menu
 tuiml setup -y                  # configure all detected clients
 tuiml uninstall                 # unwire every client
 
-# Datasets
-tuiml datasets list
-tuiml datasets search "classification"
-tuiml datasets info iris
+# System
+tuiml info
+tuiml update
+tuiml restart
 ```
 
 ---
 
-## 10. Local Registry
+## 11. Local Registry
 
 ```python
-from tuiml.hub import registry, ComponentType
+from tuiml.hub import hub, ComponentType
 
 # Local, in-process registry (no network calls)
-classifiers = registry.list("classifier")
-model = registry.create("RandomForestClassifier", n_estimators=100)
-exists = registry.exists("RandomForestClassifier")
+classifiers = hub.list("classifier")
+model = hub.create("RandomForestClassifier", n_estimators=100)
+exists = hub.exists("RandomForestClassifier")
 ```
 
-The remote community hub is currently decommissioned — use agent-authored algorithms (section 11 + 13) to add algorithms to the registry at runtime instead.
+The remote community hub is currently decommissioned — use agent-authored algorithms (section 12 + 14) to add algorithms to the registry at runtime instead.
+
+### Optional algorithm backends (scikit-learn, CapyMOA)
+
+Native TuiML algorithms always work with no extra dependencies. Two **optional**
+backends add the external ecosystems, each as a separate package that registers
+into the same hub under a **namespaced key** (so they never collide with native
+names):
+
+```bash
+pip install tuiml[sklearn]    # scikit-learn estimators
+pip install tuiml[capymoa]    # CapyMOA streaming learners (needs Java)
+```
+
+```python
+# Curated, namespaced wrappers — discoverable via tuiml_list / train / experiment
+from tuiml.sklearn import RandomForestClassifier      # sklearn-backed
+from tuiml.algorithms import RandomForestClassifier   # native (no clash)
+train("sklearn.RandomForestClassifier", "iris", target="class", cv=5)
+train("capymoa.HoeffdingTree", "electricity", target="class")
+
+# Generic adapter: wrap ANY scikit-learn-compatible estimator (incl. pipelines,
+# GridSearchCV, third-party). train()/experiment() also auto-wrap a passed estimator.
+from sklearn.svm import SVC
+train(SVC(C=2.0), "iris", target="class", cv=10)   # no wrapper needed
+```
+
+A missing backend only errors at instantiation (with a `pip install tuiml[...]`
+hint), never at `import tuiml`. Hub keys are namespaced `sklearn.<Name>` /
+`capymoa.<Name>`; native algorithms keep their bare names.
 
 ---
 
-## 11. MCP Server (LLM Integration)
+## 12. MCP Server (LLM Integration)
 
 ### Setup
 
@@ -794,7 +962,7 @@ OpenClaw uses the key `mcp.servers`, Zed uses `context_servers`, Codex CLI uses 
 
 ### MCP Tools
 
-28 tools total. All follow `tuiml_<verb>_<noun>` naming.
+30 tools total. All follow `tuiml_<verb>_<noun>` naming.
 
 **Core workflow**
 
@@ -804,39 +972,40 @@ OpenClaw uses the key `mcp.servers`, Zed uses `context_servers`, Codex CLI uses 
 | `tuiml_predict` | Predict using model_id or model path |
 | `tuiml_evaluate` | Evaluate trained model with metrics |
 | `tuiml_experiment` | Compare multiple algorithms across datasets |
-| `tuiml_tune` | Grid or random search over hyperparameters |
-| `tuiml_test_statistics` | Friedman / Wilcoxon / Nemenyi test on experiment results |
+| `tuiml_tune` | Grid, random, or bayesian search over hyperparameters |
+| `tuiml_test_statistics` | Friedman / Wilcoxon / Nemenyi / Quade / ANOVA / aligned-Friedman test on experiment results |
 
 **Data & preparation**
 
 | Tool | Purpose |
 |------|---------|
-| `tuiml_upload_data` | Upload CSV/ARFF content for other tools |
-| `tuiml_read_data` | Preview rows from a dataset |
+| `tuiml_upload_data` | Upload CSV/ARFF/TSV/JSON content for other tools |
+| `tuiml_read_data` | Preview rows from a dataset (head/tail/sample/indices) |
 | `tuiml_profile_data` | Summary stats: shape, dtypes, missingness, cardinality |
 | `tuiml_generate_data` | Generate synthetic datasets (blobs, moons, Friedman, …) |
-| `tuiml_preprocess` | Apply preprocessors without a full workflow |
+| `tuiml_preprocess` | Apply preprocessors as a standalone step (with atomic stages: split/impute/balance/scale/encode/discretize) |
 | `tuiml_select_features` | Feature selection as a standalone step |
-| `tuiml_plot` | Standard plots (confusion matrix, ROC, PCA, …) |
+| `tuiml_plot` | Standard plots (confusion matrix, ROC, PCA, feature importance, …) |
 
 **Discovery**
 
 | Tool | Purpose |
 |------|---------|
-| `tuiml_list` | List components by category (`algorithm`, `dataset`, `preprocessing`, `feature`, `custom`) |
+| `tuiml_list` | List components by category (`algorithm`, `dataset`, `preprocessing`, `feature`, `splitting`, `custom`, `all`) |
 | `tuiml_describe` | Get parameter schema for any component |
 
-> `tuiml_list(search="forest")` replaces the old `tuiml_search` tool.
+> `tuiml_list(search="forest")` filters by keyword.
 > `tuiml_list(category="custom")` lists user-authored algorithms with versions and best scores.
 > `tuiml_list(category="custom", include_runs=true)` adds full experiment run history.
+> `tuiml_list` also accepts `type` (e.g. `"classifier"`, `"regressor"`) and pagination via `limit` / `offset`.
 
 **Serving**
 
 | Tool | Purpose |
 |------|---------|
 | `tuiml_save_model` | Save trained model to custom path |
-| `tuiml_serve_model` | Start REST API for a model |
-| `tuiml_stop_server` | Stop a serving server |
+| `tuiml_serve_model` | Start REST API for a model (params: `model_id`, `model_path`, `port`, `host`) |
+| `tuiml_stop_server` | Stop a serving server (param: `server_id`; omit to stop all) |
 | `tuiml_server_status` | Check server status |
 
 **Self-introspection & upgrade**
@@ -844,7 +1013,14 @@ OpenClaw uses the key `mcp.servers`, Zed uses `context_servers`, Codex CLI uses 
 | Tool | Purpose |
 |------|---------|
 | `tuiml_system_info` | Installed version, install method, package path, latest PyPI version, update_available flag |
-| `tuiml_self_update` | Upgrade to the latest release (auto-detects `uv tool` vs `pip`). Restart the client afterward. |
+| `tuiml_self_update` | Upgrade to the latest release (params: `dry_run`, `target_version`). Restart the client afterward. |
+| `tuiml_restart` | Restart tuiml-mcp processes (param: `include_self`, default true) |
+
+**Export**
+
+| Tool | Purpose |
+|------|---------|
+| `tuiml_export_notebook` | Export the current MCP session as a Jupyter notebook (params: `path`, `title`) |
 
 **Agent-authored algorithms (requires `TUIML_ALLOW_USER_ALGORITHMS=1`)**
 
@@ -892,7 +1068,8 @@ Train with preprocessing:
             "StandardScaler"
         ],
         "feature_selection": {"name": "SelectKBestSelector", "k": 10},
-        "cv": 10
+        "cv": 10,
+        "random_seed": 42
     }
 }
 ```
@@ -919,7 +1096,37 @@ Serve model as API:
     "tool": "tuiml_serve_model",
     "arguments": {
         "model_id": "a1b2c3d4",
-        "port": 8000
+        "port": 8000,
+        "host": "127.0.0.1"
+    }
+}
+```
+
+Hyperparameter tuning:
+
+```json
+{
+    "tool": "tuiml_tune",
+    "arguments": {
+        "algorithm": "RandomForestClassifier",
+        "data": "iris",
+        "target": "class",
+        "method": "grid",
+        "param_grid": {"n_estimators": [50, 100, 200], "max_depth": [5, 10]},
+        "cv": 5,
+        "scoring": "f1_weighted"
+    }
+}
+```
+
+Export session as notebook:
+
+```json
+{
+    "tool": "tuiml_export_notebook",
+    "arguments": {
+        "path": "experiment.ipynb",
+        "title": "Iris Classification Experiment"
     }
 }
 ```
@@ -927,10 +1134,13 @@ Serve model as API:
 ### Programmatic Tool Execution
 
 ```python
-from tuiml.agent import execute_tool, get_tools_for_llm
+from tuiml.agent import execute_tool, get_tools_for_llm, invoke, agent
 
 result = execute_tool("tuiml_train", algorithm="RandomForestClassifier", data="iris", target="class")
 tools = get_tools_for_llm(format="mcp")
+
+# Pydantic-AI agent pre-loaded with all TuiML tools
+ai_agent = agent()
 ```
 
 ### MCP Resources
@@ -954,7 +1164,7 @@ All tools return structured responses:
 
 ---
 
-## 12. Common Patterns
+## 13. Common Patterns
 
 ### Full Pipeline with Cross-Validation
 
@@ -1071,6 +1281,9 @@ best = grid.best_estimator_
 
 9. tuiml_list(category="custom", include_runs=true)
    →  full history: all versions, best scores, run counts
+
+10. tuiml_export_notebook(path="research.ipynb", title="NoisyTreeBag Study")
+    →  reproducible Jupyter notebook of the full session
 ```
 
 **Versioning rules**
@@ -1114,7 +1327,7 @@ print(results.to_markdown())
 
 ### Preprocessing Order
 
-Recommended pipeline order: Imputation -> Scaling -> Encoding -> Sampling -> Feature Selection
+Recommended pipeline order: Imputation → Scaling → Encoding → Sampling → Feature Selection
 
 ### Naming
 
@@ -1146,3 +1359,4 @@ Use TuiML when user mentions:
 - Hyperparameter tuning, grid search
 - Statistical testing, Friedman, Nemenyi
 - Model serving, REST API
+- Export notebook, Jupyter
