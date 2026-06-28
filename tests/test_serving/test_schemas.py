@@ -145,7 +145,7 @@ class TestModelListResponse:
 # ---------------------------------------------------------------------------
 class TestHealthResponse:
     def test_valid_construction(self):
-        resp = HealthResponse(status="healthy", version="0.1.5", models_loaded=2)
+        resp = HealthResponse(status="healthy", version="0.1.6", models_loaded=2)
         assert resp.status == "healthy"
         assert resp.version == "0.1.4"
         assert resp.models_loaded == 2

@@ -5,6 +5,49 @@ All notable changes to TuiML will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.6] - 2026-06-29
+
+### Added
+- **Optional scikit-learn backend** (`tuiml.sklearn`): a curated set of
+  scikit-learn estimators registered into the hub under namespaced keys
+  (`sklearn.RandomForestClassifier`, …) plus a generic `SklearnAdapter` /
+  `wrap_sklearn()` that wraps *any* scikit-learn-compatible estimator
+  (pipelines, `GridSearchCV`, third-party). `train()` / `experiment()`
+  auto-wrap a passed estimator. Install with `pip install tuiml[sklearn]`.
+- **Optional CapyMOA backend** (`tuiml.capymoa`): streaming/online learners
+  under `capymoa.*` keys. Install with `pip install tuiml[capymoa]`.
+- Both backends are optional and lazily imported — native algorithms keep
+  working with no extra dependencies; a missing backend errors only at
+  instantiation, never at `import tuiml`.
+- Reproducible cross-library benchmark suite (`benchmarks/`): TuiML vs
+  scikit-learn vs Weka across 51 TabArena datasets.
+
+### Changed
+- `NaiveBayesClassifier` gains a `var_smoothing` parameter (scale-relative
+  variance floor, scikit-learn compatible).
+- `SVC` / `SVR` default `max_iter` is now `-1` (auto-scales the SMO iteration
+  cap to `max(10000, n_samples)`).
+
+### Fixed
+- **Decision trees and Random Forests (classification & regression):** feature
+  values and split thresholds were truncated to `float32` in prediction and
+  flattening, which rounded values across split boundaries and misrouted
+  samples on high-precision features — producing catastrophic, seed-dependent
+  trees. Now `float64` end-to-end; results match scikit-learn.
+- **`NaiveBayesClassifier`:** a fixed absolute `1e-6` variance floor plus a
+  `log(prob)` underflow clamp caused collapses on standardized / one-hot data.
+  Replaced with a scale-relative floor and direct log-density.
+- **`SVC` / `SVR`:** the old fixed `max_iter=1000` left the SMO solver
+  under-converged (degenerate but fast) on datasets larger than a few thousand
+  rows; the auto-scaling default fixes this.
+- **`MultilayerPerceptronRegressor`:** the gradient was averaged by `n_samples`
+  three times (near-zero updates → ~0 / negative R²); corrected the averaging
+  and added global-norm gradient clipping.
+- **`tuiml_export_notebook`:** exported predict / evaluate / plot cells now
+  re-apply the fitted preprocessing / feature-selection pipeline (via the
+  `WorkflowResult`) instead of running the bare model on raw data, so the
+  notebook reproduces correct results.
+
 ## [0.1.5] - 2026-06-17
 
 ### Added
@@ -113,6 +156,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Model serialization via joblib with save/load utilities.
 - Cross-validation, grid search, and hyperparameter tuning support.
 
+[0.1.6]: https://github.com/tuiml/tuiml/releases/tag/v0.1.6
 [0.1.5]: https://github.com/tuiml/tuiml/releases/tag/v0.1.5
 [0.1.4]: https://github.com/tuiml/tuiml/releases/tag/v0.1.4
 [0.1.3]: https://github.com/tuiml/tuiml/releases/tag/v0.1.3
