@@ -4918,7 +4918,10 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
         ]
         code = _data_load_lines(data) + [
             "\n",
-            f"predictions = tuiml.predict({model_var}, _dataset.X)\n",
+            # Predict via the WorkflowResult so any fitted preprocessing /
+            # feature-selection from training is re-applied (a bare model would
+            # see raw, untransformed inputs and produce wrong predictions).
+            f"predictions = {result_var}.predict(_dataset.X)\n",
             "print('Predictions (first 10):', predictions[:10])",
         ]
         return md, code
@@ -4937,8 +4940,11 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
         ]
         code = _data_load_lines(data) + [
             "\n",
+            # Evaluate via the WorkflowResult: tuiml.evaluate calls .predict(),
+            # and WorkflowResult.predict re-applies the fitted preprocessing /
+            # feature-selection so metrics reflect the real pipeline.
             f"eval_metrics = tuiml.evaluate(\n",
-            f"    {model_var}, _dataset.X, _dataset.y,\n",
+            f"    {var}, _dataset.X, _dataset.y,\n",
         ]
         if metrics:
             code.append(f"    metrics={repr(metrics)},\n")
@@ -5044,7 +5050,7 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
             code = (
                 _data_load_lines(data) + ["\n",
                 "from tuiml.evaluation.visualization import plot_confusion_matrix\n",
-                f"_preds = tuiml.predict({model_var}, _dataset.X)\n",
+                f"_preds = {var}.predict(_dataset.X)\n",
                 f"plot_confusion_matrix(_dataset.y, _preds, title={repr(title)})\n",
                 "plt.show()",
             ])
@@ -5052,7 +5058,7 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
             code = (
                 _data_load_lines(data) + ["\n",
                 "from tuiml.evaluation.visualization import plot_roc_curve\n",
-                f"_probas = {model_var}.predict_proba(_dataset.X)\n",
+                f"_probas = {var}.predict_proba(_dataset.X)\n",
                 f"plot_roc_curve(_dataset.y, _probas, title={repr(title)})\n",
                 "plt.show()",
             ])
@@ -5060,7 +5066,7 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
             code = (
                 _data_load_lines(data) + ["\n",
                 "from tuiml.evaluation.visualization import plot_pr_curve\n",
-                f"_probas = {model_var}.predict_proba(_dataset.X)\n",
+                f"_probas = {var}.predict_proba(_dataset.X)\n",
                 "# PR curve takes positive-class scores; pick column 1 if 2-D.\n",
                 "_score = _probas[:, 1] if _probas.ndim == 2 else _probas\n",
                 f"plot_pr_curve(_dataset.y, _score, title={repr(title)})\n",
