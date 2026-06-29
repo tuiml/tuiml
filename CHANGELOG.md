@@ -5,6 +5,23 @@ All notable changes to TuiML will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **`CategoricalNBClassifier`** — Naive Bayes for nominal / integer-coded
+  categorical features (per-feature categorical distributions with Laplace
+  smoothing), the discrete-data analogue of the Gaussian `NaiveBayesClassifier`.
+  Matches scikit-learn's `CategoricalNB`.
+
+### Fixed
+- **`RandomForestClassifier` / `RandomForestRegressor` memory:** parallel tree
+  builds each materialize a full bootstrap copy of `X`, so with `n_jobs=-1` on
+  a many-core machine peak memory reached `n_workers * X.nbytes` (8-16 GB on
+  the largest datasets). The number of *concurrent* builds is now bounded to a
+  memory budget (default 1 GB, override with `TUIML_RF_MEM_BUDGET_MB`), cutting
+  peak RSS to ~2 GB with no change to accuracy or fit time. Bootstrap indices
+  are also no longer retained unless `oob_score=True`.
+
 ## [0.1.6] - 2026-06-29
 
 ### Added

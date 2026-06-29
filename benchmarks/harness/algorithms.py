@@ -26,8 +26,13 @@ ALGORITHMS = {
     },
     "naive_bayes": {
         "task": "classification",
-        "sklearn": ("sklearn.naive_bayes", "GaussianNB", {}),
-        "tuiml": ("NaiveBayesClassifier", {}),
+        # Categorical-aware NB: features are ordinal-encoded / quantile-binned to
+        # a discrete matrix (see common.load_and_prepare_categorical). All three
+        # use their native categorical NB on that representation, rather than
+        # Gaussian NB over standardized one-hot columns.
+        "prep": "categorical",
+        "sklearn": ("sklearn.naive_bayes", "CategoricalNB", {}),
+        "tuiml": ("CategoricalNBClassifier", {}),
         "weka": ("weka.classifiers.bayes.NaiveBayes", []),
     },
     "logistic": {

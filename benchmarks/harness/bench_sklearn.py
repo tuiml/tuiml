@@ -24,6 +24,11 @@ from algorithms import ALGORITHMS
 def build_and_run(X_tr, X_te, y_tr, task, meta):
     spec = ALGORITHMS[ARGS.algo]["sklearn"]
     module, cls_name, kwargs = spec
+    kwargs = dict(kwargs)
+    # CategoricalNB needs the full per-feature category count so test-set
+    # categories never index past the fitted tables.
+    if meta.get("categorical") and cls_name == "CategoricalNB":
+        kwargs["min_categories"] = meta["n_categories"]
     cls = getattr(importlib.import_module(module), cls_name)
     model = cls(**kwargs)
 
@@ -46,8 +51,9 @@ def main():
     ap.add_argument("--bucket", required=True)
     ap.add_argument("--out", default="results")
     ARGS = ap.parse_args()
+    prep = ALGORITHMS[ARGS.algo].get("prep", "standard")
     common.run_experiment("sklearn", ARGS.algo, ARGS.dataset, ARGS.task,
-                          ARGS.bucket, ARGS.out, build_and_run)
+                          ARGS.bucket, ARGS.out, build_and_run, prep=prep)
 
 
 if __name__ == "__main__":

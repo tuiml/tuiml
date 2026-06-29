@@ -1,5 +1,7 @@
 """RandomForestClassifier and RandomForestRegressor using C++ tree builders."""
 
+import os
+
 import numpy as np
 from typing import Dict, List, Any, Optional
 from joblib import Parallel, delayed
@@ -18,6 +20,51 @@ from tuiml.algorithms.trees._core_dispatch import (
 
 
 # ── Helpers ────────────────────────────────────────────────────────────
+
+# Ceiling on concurrent bootstrap-copy memory during a forest fit. Each tree
+# built in parallel materializes a full bootstrap copy of ``X`` (``X[indices]``)
+# that stays alive for the whole build, so peak memory is roughly
+# ``n_concurrent_workers * X.nbytes``. With ``n_jobs=-1`` on a many-core box
+# that reached 8-16 GB on the largest datasets. We bound the *number of
+# concurrent* builds so peak stays within this budget while keeping full
+# parallelism on small/medium data (where the copy is cheap). Override with
+# the ``TUIML_RF_MEM_BUDGET_MB`` environment variable.
+_RF_MEM_BUDGET_BYTES = max(1, int(os.environ.get("TUIML_RF_MEM_BUDGET_MB", "1024"))) * 1024 * 1024
+
+
+def _resolve_workers(n_jobs, n_estimators, X):
+    """Resolve the effective worker count for a forest fit.
+
+    Caps the requested parallelism so the concurrent bootstrap copies of ``X``
+    fit within :data:`_RF_MEM_BUDGET_BYTES`. Small datasets are unaffected
+    (the per-copy cost is tiny); only large datasets are throttled, which is
+    exactly where peak memory previously blew up.
+
+    Parameters
+    ----------
+    n_jobs : int or None
+        Requested job count (``-1`` for all CPUs, ``None``/``0`` for serial).
+    n_estimators : int
+        Number of trees; parallelism never exceeds this.
+    X : np.ndarray
+        Training matrix; ``X.nbytes`` estimates one bootstrap copy.
+
+    Returns
+    -------
+    workers : int
+        Effective number of concurrent workers (always >= 1).
+    """
+    if not n_jobs:  # None or 0
+        resolved = 1
+    elif n_jobs < 0:
+        resolved = os.cpu_count() or 1
+    else:
+        resolved = n_jobs
+    resolved = min(resolved, n_estimators)
+    per_tree = max(int(getattr(X, "nbytes", 0)), 1)
+    mem_cap = max(1, _RF_MEM_BUDGET_BYTES // per_tree)
+    return max(1, min(resolved, mem_cap))
+
 
 def _build_single_classifier_tree(X, y, config, seed):
     """Build one classification tree on a bootstrap sample.
@@ -534,14 +581,18 @@ class RandomForestClassifier(Classifier):
         master_rng = np.random.RandomState(self.random_state)
         seeds = master_rng.randint(0, 2**31, size=self.n_estimators)
 
+        workers = _resolve_workers(self.n_jobs, self.n_estimators, X)
+
         if self.bootstrap:
             # Build trees with bootstrap sampling, optionally in parallel
-            results = Parallel(n_jobs=self.n_jobs, prefer="threads")(
+            results = Parallel(n_jobs=workers, prefer="threads")(
                 delayed(_build_single_classifier_tree)(X, y_encoded, config, int(s))
                 for s in seeds
             )
             self.estimators_ = [r[0] for r in results]
-            bootstrap_indices = [r[1] for r in results]
+            # Bootstrap indices are only needed for the OOB score; dropping them
+            # otherwise avoids retaining n_estimators * n_samples index arrays.
+            bootstrap_indices = [r[1] for r in results] if self.oob_score else None
         else:
             # No bootstrap: each tree sees all data (still randomized via max_features)
             def _build_no_bootstrap(seed):
@@ -549,7 +600,7 @@ class RandomForestClassifier(Classifier):
                 tree = build_classifier_tree(X, y_encoded, config, rng)
                 return tree
 
-            trees = Parallel(n_jobs=self.n_jobs, prefer="threads")(
+            trees = Parallel(n_jobs=workers, prefer="threads")(
                 delayed(_build_no_bootstrap)(int(s)) for s in seeds
             )
             self.estimators_ = trees
@@ -950,20 +1001,24 @@ class RandomForestRegressor(Regressor):
         master_rng = np.random.RandomState(self.random_state)
         seeds = master_rng.randint(0, 2**31, size=self.n_estimators)
 
+        workers = _resolve_workers(self.n_jobs, self.n_estimators, X)
+
         if self.bootstrap:
-            results = Parallel(n_jobs=self.n_jobs, prefer="threads")(
+            results = Parallel(n_jobs=workers, prefer="threads")(
                 delayed(_build_single_regressor_tree)(X, y, config, int(s))
                 for s in seeds
             )
             self.estimators_ = [r[0] for r in results]
-            bootstrap_indices = [r[1] for r in results]
+            # Bootstrap indices are only needed for the OOB score; dropping them
+            # otherwise avoids retaining n_estimators * n_samples index arrays.
+            bootstrap_indices = [r[1] for r in results] if self.oob_score else None
         else:
             def _build_no_bootstrap(seed):
                 rng = np.random.RandomState(seed)
                 tree = build_regressor_tree(X, y, config, rng)
                 return tree
 
-            trees = Parallel(n_jobs=self.n_jobs, prefer="threads")(
+            trees = Parallel(n_jobs=workers, prefer="threads")(
                 delayed(_build_no_bootstrap)(int(s)) for s in seeds
             )
             self.estimators_ = trees

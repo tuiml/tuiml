@@ -47,8 +47,13 @@ def build_and_run(X_tr, X_te, y_tr, task, meta):
     data = create_instances_from_matrices(X_all, y_all, name="bench")
 
     if task == "classification":
+        # Categorical prep => every attribute is a discrete code, so make them
+        # all nominal and let Weka's NaiveBayes model them categorically (its
+        # native behaviour on nominal attributes). Otherwise only the class
+        # column is made nominal.
+        rng = "first-last" if meta.get("categorical") else "last"
         n2n = Filter(classname="weka.filters.unsupervised.attribute.NumericToNominal",
-                     options=["-R", "last"])
+                     options=["-R", rng])
         n2n.inputformat(data)
         data = n2n.filter(data)
     data.class_is_last()
@@ -86,10 +91,11 @@ def main():
     ap.add_argument("--heap", default="2048m", help="JVM max heap")
     ARGS = ap.parse_args()
 
+    prep = ALGORITHMS[ARGS.algo].get("prep", "standard")
     jvm.start(packages=False, max_heap_size=ARGS.heap)
     try:
         common.run_experiment("weka", ARGS.algo, ARGS.dataset, ARGS.task,
-                              ARGS.bucket, ARGS.out, build_and_run)
+                              ARGS.bucket, ARGS.out, build_and_run, prep=prep)
     finally:
         jvm.stop()
 

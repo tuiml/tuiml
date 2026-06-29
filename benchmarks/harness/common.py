@@ -80,6 +80,90 @@ def load_and_prepare(dataset_csv: str, task: str):
     return X_tr_t, X_te_t, y_tr_a, y_te_a, meta
 
 
+def load_and_prepare_categorical(dataset_csv: str, task: str):
+    """Load a CSV and prepare an **all-categorical**, integer-coded matrix.
+
+    Categorical-aware variant used by the Naive Bayes rows: nominal features
+    are ordinal-encoded and continuous features are quantile-binned, so every
+    column becomes a discrete category (the representation a categorical NB
+    expects). The category *vocabulary* (encoder categories / bin edges) is fit
+    on the full feature matrix — exactly the information Weka also derives from
+    the ARFF header — so train and test share an identical, consistent coding
+    and no framework sees an out-of-range category. Conditional probabilities
+    are still estimated on the training split only.
+
+    Returns
+    -------
+    (X_train, X_test, y_train, y_test, meta) : tuple
+        Feature arrays are dense int matrices; ``meta['categorical']`` is True
+        and ``meta['n_categories']`` lists the category count per column.
+    """
+    from sklearn.model_selection import train_test_split
+    from sklearn.impute import SimpleImputer
+    from sklearn.preprocessing import OrdinalEncoder, KBinsDiscretizer, LabelEncoder
+
+    df = pd.read_csv(dataset_csv)
+    target = df.columns[-1]
+    X = df.drop(columns=[target])
+    y = df[target]
+
+    num_cols = X.select_dtypes(include="number").columns.tolist()
+    cat_cols = [c for c in X.columns if c not in num_cols]
+
+    is_clf = task == "classification"
+    if is_clf:
+        y = pd.Series(LabelEncoder().fit_transform(y.astype(str)), index=y.index)
+    else:
+        y = pd.to_numeric(y, errors="coerce")
+
+    n_bins = 10
+    coded_parts = []      # list of (n_features, ) int columns, column-aligned
+    n_categories = []
+
+    # Continuous features: median impute then quantile-bin into ordinal codes.
+    if num_cols:
+        num_imp = SimpleImputer(strategy="median")
+        Xnum = num_imp.fit_transform(X[num_cols])
+        disc = KBinsDiscretizer(n_bins=n_bins, encode="ordinal", strategy="quantile")
+        # subsample=None keeps binning deterministic across sklearn versions.
+        try:
+            disc.set_params(subsample=None)
+        except ValueError:
+            pass
+        Xnum_coded = disc.fit_transform(Xnum).astype(int)
+        coded_parts.append(Xnum_coded)
+        n_categories.extend(int(b) for b in disc.n_bins_)
+
+    # Categorical features: most-frequent impute then ordinal-encode.
+    if cat_cols:
+        cat_imp = SimpleImputer(strategy="most_frequent")
+        Xcat = cat_imp.fit_transform(X[cat_cols].astype(str))
+        enc = OrdinalEncoder(handle_unknown="use_encoded_value", unknown_value=-1)
+        Xcat_coded = enc.fit_transform(Xcat).astype(int)
+        coded_parts.append(Xcat_coded)
+        n_categories.extend(len(cats) for cats in enc.categories_)
+
+    Xc = np.hstack(coded_parts).astype(int)
+    # Any unknown (-1) -> 0; vocabulary was fit on full data so this is rare.
+    Xc[Xc < 0] = 0
+
+    strat = y if is_clf else None
+    X_tr, X_te, y_tr, y_te = train_test_split(
+        Xc, y, test_size=TEST_SIZE, random_state=SEED, stratify=strat
+    )
+
+    meta = {
+        "n_train": int(X_tr.shape[0]),
+        "n_test": int(X_te.shape[0]),
+        "n_features_raw": int(X.shape[1]),
+        "n_features_prepared": int(X_tr.shape[1]),
+        "n_classes": int(len(np.unique(y))) if is_clf else None,
+        "categorical": True,
+        "n_categories": [int(k) for k in n_categories],
+    }
+    return X_tr, X_te, np.asarray(y_tr), np.asarray(y_te), meta
+
+
 def compute_metrics(task: str, y_true, y_pred) -> dict:
     """Return the quality metrics appropriate to the task."""
     if task == "classification":
@@ -116,11 +200,15 @@ def write_result(out_dir: str, record: dict) -> str:
     return path
 
 
-def run_experiment(framework, algo_key, dataset_csv, task, bucket, out_dir, build_and_run):
+def run_experiment(framework, algo_key, dataset_csv, task, bucket, out_dir,
+                   build_and_run, prep="standard"):
     """Shared driver: prepare data, time the model, capture metrics + resources.
 
     ``build_and_run(X_tr, X_te, y_tr, task, meta)`` must return
     ``(y_pred, fit_s, predict_s)`` and is supplied by each framework runner.
+    ``prep`` selects the data preparation: ``"standard"`` (impute + scale +
+    one-hot) or ``"categorical"`` (ordinal-encode + quantile-bin to an
+    all-categorical matrix, used by the Naive Bayes rows).
     """
     dataset = Path(dataset_csv).parent.name
     cpu0 = time.process_time()
@@ -130,7 +218,8 @@ def run_experiment(framework, algo_key, dataset_csv, task, bucket, out_dir, buil
         "bucket": bucket, "task": task, "status": "ok",
     }
     try:
-        X_tr, X_te, y_tr, y_te, meta = load_and_prepare(dataset_csv, task)
+        loader = load_and_prepare_categorical if prep == "categorical" else load_and_prepare
+        X_tr, X_te, y_tr, y_te, meta = loader(dataset_csv, task)
         record.update(meta)
         y_pred, fit_s, predict_s = build_and_run(X_tr, X_te, y_tr, task, meta)
         record["metrics"] = compute_metrics(task, y_te, y_pred)

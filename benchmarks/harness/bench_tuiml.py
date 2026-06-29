@@ -25,6 +25,9 @@ from tuiml.hub import registry
 
 def build_and_run(X_tr, X_te, y_tr, task, meta):
     name, kwargs = ALGORITHMS[ARGS.algo]["tuiml"]
+    kwargs = dict(kwargs)
+    if meta.get("categorical") and "min_categories" not in kwargs:
+        kwargs["min_categories"] = meta["n_categories"]
     model = registry.create(name, **kwargs)
 
     t0 = time.perf_counter()
@@ -46,8 +49,9 @@ def main():
     ap.add_argument("--bucket", required=True)
     ap.add_argument("--out", default="results")
     ARGS = ap.parse_args()
+    prep = ALGORITHMS[ARGS.algo].get("prep", "standard")
     common.run_experiment("tuiml", ARGS.algo, ARGS.dataset, ARGS.task,
-                          ARGS.bucket, ARGS.out, build_and_run)
+                          ARGS.bucket, ARGS.out, build_and_run, prep=prep)
 
 
 if __name__ == "__main__":
