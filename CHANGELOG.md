@@ -14,6 +14,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Matches scikit-learn's `CategoricalNB`.
 
 ### Fixed
+- **`LogisticRegression` under-convergence:** the fixed-step batch gradient
+  descent solver (`learning_rate=1.0`, `max_iter=100`, loss-delta stopping)
+  stopped far short of the optimum on large or high-dimensional datasets,
+  and the default `ridge=1e-8` was effectively unregularized (overfitting
+  when p >> n). The default solver is now **L-BFGS** (SciPy) with
+  `max_iter=1000` and `ridge="auto"` (= `1/n_samples`, equivalent to
+  scikit-learn's `C=1.0`). The legacy solver remains available via
+  `solver="gd"`.
 - **`RandomForestClassifier` / `RandomForestRegressor` memory:** parallel tree
   builds each materialize a full bootstrap copy of `X`, so with `n_jobs=-1` on
   a many-core machine peak memory reached `n_workers * X.nbytes` (8-16 GB on

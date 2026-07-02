@@ -1,7 +1,10 @@
 """Logistic Regression classifier with L2 regularization."""
 
 import numpy as np
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Union
+
+from scipy.optimize import minimize
+from scipy.special import logsumexp
 
 from tuiml.base.algorithms import Classifier, classifier
 
@@ -20,7 +23,8 @@ class LogisticRegression(Classifier):
     1. Initialize weight matrix and bias to zeros
     2. Compute predicted probabilities using sigmoid (binary) or softmax (multiclass)
     3. Compute the cross-entropy loss with L2 regularization penalty
-    4. Update weights via batch gradient descent
+    4. Update weights with the selected solver (**L-BFGS** quasi-Newton by
+       default, or batch gradient descent with ``solver="gd"``)
     5. Repeat until convergence or ``max_iter`` is reached
 
     For binary problems the model uses a single sigmoid output; for multiclass
@@ -50,15 +54,23 @@ class LogisticRegression(Classifier):
 
     Parameters
     ----------
-    max_iter : int, default=100
-        Maximum number of iterations for the gradient descent solver.
+    max_iter : int, default=1000
+        Maximum number of solver iterations.
     learning_rate : float, default=1.0
-        Step size for weight updates.
-    ridge : float, default=1e-8
+        Step size for weight updates. Only used by ``solver="gd"``;
+        L-BFGS performs its own line search.
+    ridge : float or "auto", default="auto"
         L2 regularization parameter (penalty) to prevent overfitting.
+        ``"auto"`` resolves to ``1 / n_samples`` at fit time, which is
+        equivalent to scikit-learn's default ``C=1.0``.
     tol : float, default=1e-4
-        Convergence tolerance. Training stops when the improvement
+        Convergence tolerance. For ``"lbfgs"`` this bounds the projected
+        gradient norm; for ``"gd"`` training stops when the improvement
         in loss is less than this value.
+    solver : {"lbfgs", "gd"}, default="lbfgs"
+        Optimization algorithm. ``"lbfgs"`` (quasi-Newton with line search,
+        via SciPy) converges reliably without tuning; ``"gd"`` is the legacy
+        fixed-step batch gradient descent.
 
     Attributes
     ----------
@@ -117,7 +129,7 @@ class LogisticRegression(Classifier):
     >>> clf.fit(X, y)
     >>>
     >>> # Predict classes
-    >>> clf.predict([[1.5, 1.5], [4, 4]])
+    >>> clf.predict([[0.5, 0.5], [4, 4]])
     array([0, 1])
     >>>
     >>> # Get probabilities
@@ -125,28 +137,32 @@ class LogisticRegression(Classifier):
     array([[0.5, 0.5]])
     """
 
-    def __init__(self, max_iter: int = 100,
+    def __init__(self, max_iter: int = 1000,
                  learning_rate: float = 1.0,
-                 ridge: float = 1e-8,
-                 tol: float = 1e-4):
+                 ridge: Union[float, str] = "auto",
+                 tol: float = 1e-4,
+                 solver: str = "lbfgs"):
         """Initialize LogisticRegression classifier with optimization parameters.
 
         Parameters
         ----------
-        max_iter : int, default=100
+        max_iter : int, default=1000
             Maximum number of iterations.
         learning_rate : float, default=1.0
-            Step size for gradient descent.
-        ridge : float, default=1e-8
-            L2 regularization strength.
+            Step size for gradient descent (``solver="gd"`` only).
+        ridge : float or "auto", default="auto"
+            L2 regularization strength; "auto" = 1 / n_samples.
         tol : float, default=1e-4
             Convergence threshold.
+        solver : {"lbfgs", "gd"}, default="lbfgs"
+            Optimization algorithm.
         """
         super().__init__()
         self.max_iter = max_iter
         self.learning_rate = learning_rate
         self.ridge = ridge
         self.tol = tol
+        self.solver = solver
         self.classes_ = None
         self.coef_ = None
         self.intercept_ = None
@@ -159,27 +175,32 @@ class LogisticRegression(Classifier):
         return {
             "max_iter": {
                 "type": "integer",
-                "default": 100,
+                "default": 1000,
                 "minimum": 1,
                 "description": "Maximum number of iterations"
             },
             "learning_rate": {
                 "type": "number",
-                "default": 0.1,
+                "default": 1.0,
                 "minimum": 0,
-                "description": "Learning rate for gradient descent"
+                "description": "Learning rate for gradient descent (solver='gd' only)"
             },
             "ridge": {
-                "type": "number",
-                "default": 1e-8,
-                "minimum": 0,
-                "description": "L2 regularization parameter"
+                "type": ["number", "string"],
+                "default": "auto",
+                "description": "L2 regularization parameter; 'auto' = 1 / n_samples"
             },
             "tol": {
                 "type": "number",
                 "default": 1e-4,
                 "minimum": 0,
                 "description": "Convergence tolerance"
+            },
+            "solver": {
+                "type": "string",
+                "default": "lbfgs",
+                "enum": ["lbfgs", "gd"],
+                "description": "Optimization algorithm"
             }
         }
 
@@ -271,7 +292,7 @@ class LogisticRegression(Classifier):
             # Compute loss with regularization
             loss = -np.mean(y * np.log(proba + 1e-10) +
                            (1 - y) * np.log(1 - proba + 1e-10))
-            loss += 0.5 * self.ridge * np.sum(self.coef_ ** 2)
+            loss += 0.5 * self._ridge * np.sum(self.coef_ ** 2)
 
             # Check convergence
             if abs(prev_loss - loss) < self.tol:
@@ -281,7 +302,7 @@ class LogisticRegression(Classifier):
 
             # Compute gradients
             error = proba - y
-            grad_w = (X.T @ error) / n_samples + self.ridge * self.coef_.ravel()
+            grad_w = (X.T @ error) / n_samples + self._ridge * self.coef_.ravel()
             grad_b = np.mean(error)
 
             # Update weights
@@ -324,7 +345,7 @@ class LogisticRegression(Classifier):
 
             # Compute cross-entropy loss with regularization
             loss = -np.mean(np.sum(y_onehot * np.log(proba + 1e-10), axis=1))
-            loss += 0.5 * self.ridge * np.sum(self.coef_ ** 2)
+            loss += 0.5 * self._ridge * np.sum(self.coef_ ** 2)
 
             # Check convergence
             if abs(prev_loss - loss) < self.tol:
@@ -334,7 +355,7 @@ class LogisticRegression(Classifier):
 
             # Compute gradients
             error = proba - y_onehot
-            grad_w = (X.T @ error).T / n_samples + self.ridge * self.coef_
+            grad_w = (X.T @ error).T / n_samples + self._ridge * self.coef_
             grad_b = np.mean(error, axis=0)
 
             # Update weights
@@ -342,6 +363,61 @@ class LogisticRegression(Classifier):
             self.intercept_ -= self.learning_rate * grad_b
         else:
             self.n_iter_ = self.max_iter
+
+    def _fit_lbfgs(self, X: np.ndarray, y: np.ndarray):
+        """Fit binary or multiclass logistic regression with L-BFGS.
+
+        Minimizes the mean cross-entropy plus the L2 penalty
+        :math:`0.5 \\cdot \\text{ridge} \\cdot \\|W\\|^2` (intercepts are
+        not penalized) using SciPy's L-BFGS-B with the analytic gradient.
+
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Standardized training features.
+        y : np.ndarray of shape (n_samples,)
+            Integer-encoded target labels.
+
+        Returns
+        -------
+        None
+            Updates ``coef_``, ``intercept_``, and ``n_iter_`` in place.
+        """
+        n_samples, n_features = X.shape
+        n_classes = len(self.classes_)
+        binary = n_classes == 2
+        n_out = 1 if binary else n_classes
+        ridge = self._ridge
+
+        if not binary:
+            y_onehot = np.eye(n_classes)[y]
+
+        def objective(params):
+            W = params[:n_out * n_features].reshape(n_out, n_features)
+            b = params[n_out * n_features:]
+            z = X @ W.T + b
+            if binary:
+                z = z.ravel()
+                # mean log-loss: softplus(z) - y*z, stable via logaddexp
+                loss = np.mean(np.logaddexp(0.0, z) - y * z)
+                error = (self._sigmoid(z) - y).reshape(-1, 1)
+            else:
+                log_norm = logsumexp(z, axis=1)
+                loss = np.mean(log_norm - z[np.arange(n_samples), y])
+                error = np.exp(z - log_norm[:, None]) - y_onehot
+            loss += 0.5 * ridge * np.sum(W ** 2)
+            grad_w = (error.T @ X) / n_samples + ridge * W
+            grad_b = np.mean(error, axis=0)
+            return loss, np.concatenate([grad_w.ravel(), grad_b])
+
+        x0 = np.zeros(n_out * n_features + n_out)
+        res = minimize(objective, x0, jac=True, method="L-BFGS-B",
+                       options={"maxiter": self.max_iter, "gtol": self.tol,
+                                "maxfun": 15 * self.max_iter})
+
+        self.coef_ = res.x[:n_out * n_features].reshape(n_out, n_features)
+        self.intercept_ = res.x[n_out * n_features:]
+        self.n_iter_ = int(res.nit)
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> "LogisticRegression":
         """Fit the Logistic Regression classifier.
@@ -377,11 +453,21 @@ class LogisticRegression(Classifier):
         self._std[self._std == 0] = 1  # Avoid division by zero
         X_scaled = (X - self._mean) / self._std
 
+        # "auto" matches scikit-learn's default C=1.0 (penalty scales with
+        # 1/n on the mean-loss objective).
+        self._ridge = 1.0 / X.shape[0] if self.ridge == "auto" else float(self.ridge)
+
         # Fit model
-        if len(self.classes_) == 2:
-            self._fit_binary(X_scaled, y_idx)
+        if self.solver == "lbfgs":
+            self._fit_lbfgs(X_scaled, y_idx)
+        elif self.solver == "gd":
+            if len(self.classes_) == 2:
+                self._fit_binary(X_scaled, y_idx)
+            else:
+                self._fit_multiclass(X_scaled, y_idx)
         else:
-            self._fit_multiclass(X_scaled, y_idx)
+            raise ValueError(f"Unknown solver: {self.solver!r} "
+                             "(expected 'lbfgs' or 'gd')")
 
         self._is_fitted = True
         return self
