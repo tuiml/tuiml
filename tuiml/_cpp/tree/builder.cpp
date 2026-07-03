@@ -110,7 +110,10 @@ std::tuple<int, double, double> find_best_split_classifier(
             if (gain > best_gain) {
                 best_gain = gain;
                 best_feature = feat_idx;
-                best_threshold = (val_i + val_next) / 2.0;
+                // Clamp: midpoint of adjacent doubles can round up to the
+                // upper value and create an empty child under <= partition.
+                double mid = (val_i + val_next) / 2.0;
+                best_threshold = (mid < val_next) ? mid : val_i;
             }
         }
     }
@@ -211,7 +214,10 @@ std::tuple<int, double, double> find_best_split_regressor(
             if (gain > best_gain) {
                 best_gain = gain;
                 best_feature = feat_idx;
-                best_threshold = (fval_i + fval_next) / 2.0;
+                // Clamp: midpoint of adjacent doubles can round up to the
+                // upper value and create an empty child under <= partition.
+                double mid = (fval_i + fval_next) / 2.0;
+                best_threshold = (mid < fval_next) ? mid : fval_i;
             }
         }
     }
@@ -331,6 +337,13 @@ std::tuple<
             } else {
                 right_samples.push_back(idx);
             }
+        }
+
+        // Degenerate partition (all samples on one side) would create an
+        // empty child whose class distribution is 0/0 = NaN; keep a leaf.
+        if (left_samples.empty() || right_samples.empty()) {
+            features[entry.node_idx] = -1;
+            continue;
         }
 
         // Update current node
@@ -480,6 +493,13 @@ std::tuple<
             } else {
                 right_samples.push_back(idx);
             }
+        }
+
+        // Degenerate partition (all samples on one side) would create an
+        // empty child whose mean is 0/0 = NaN; keep this node a leaf.
+        if (left_samples.empty() || right_samples.empty()) {
+            feat_vec[entry.node_idx] = -1;
+            continue;
         }
 
         feat_vec[entry.node_idx] = best_feat;

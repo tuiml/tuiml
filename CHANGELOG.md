@@ -14,6 +14,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Matches scikit-learn's `CategoricalNB`.
 
 ### Fixed
+- **Decision trees / Random Forests: NaN predictions from degenerate splits.**
+  When the two feature values flanking the best split are adjacent doubles,
+  the midpoint threshold `(a+b)/2` can round up to `b`; the `<=` partition
+  then sends every sample left, and the empty right child's mean / class
+  distribution is `0/0 = NaN`, which poisons any prediction routed to that
+  leaf (seen as rare `Input contains NaN` failures on high-precision
+  features). The C++ splitters now clamp the threshold to the lower value
+  (as scikit-learn does), and the builders keep a node a leaf if a partition
+  comes back empty.
 - **`LogisticRegression` under-convergence:** the fixed-step batch gradient
   descent solver (`learning_rate=1.0`, `max_iter=100`, loss-delta stopping)
   stopped far short of the optimum on large or high-dimensional datasets,

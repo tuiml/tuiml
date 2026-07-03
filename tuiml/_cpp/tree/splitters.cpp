@@ -106,8 +106,13 @@ std::tuple<int, double, double> best_split_classifier(
             if (gain > best_gain) {
                 best_gain = gain;
                 best_feature = feat_idx;
-                best_threshold = (X_buf(indices[i], feat_idx)
-                                + X_buf(indices[i + 1], feat_idx)) / 2.0;
+                // Midpoint of adjacent doubles can round up to the upper
+                // value; partitioning with <= would then send both rows left
+                // and create an empty child. Clamp to the lower value.
+                double lo = X_buf(indices[i], feat_idx);
+                double hi = X_buf(indices[i + 1], feat_idx);
+                double mid = (lo + hi) / 2.0;
+                best_threshold = (mid < hi) ? mid : lo;
             }
         }
     }
@@ -208,8 +213,12 @@ std::tuple<int, double, double> best_split_regressor(
             if (gain > best_gain) {
                 best_gain = gain;
                 best_feature = feat_idx;
-                best_threshold = (X_buf(indices[i], feat_idx)
-                                + X_buf(indices[i + 1], feat_idx)) / 2.0;
+                // Clamp: midpoint of adjacent doubles can round up to the
+                // upper value and create an empty child under <= partition.
+                double lo = X_buf(indices[i], feat_idx);
+                double hi = X_buf(indices[i + 1], feat_idx);
+                double mid = (lo + hi) / 2.0;
+                best_threshold = (mid < hi) ? mid : lo;
             }
         }
     }
