@@ -24,6 +24,8 @@ def main():
     ap.add_argument("--only-bucket", choices=list(BUCKET_TASK))
     ap.add_argument("--jobs-file", default="jobs.txt")
     ap.add_argument("--python", default="python3")
+    ap.add_argument("--seeds", type=int, nargs="+", default=[42],
+                    help="split seeds; one job per seed (repeated holdout)")
     args = ap.parse_args()
 
     here = Path(__file__).resolve().parent
@@ -43,14 +45,17 @@ def main():
             for algo in keys_for_task(task):
                 for fw in args.frameworks:
                     runner = here / f"bench_{fw}.py"
-                    lines.append(
-                        f"{args.python} {runner} --algo {algo} "
-                        f"--dataset {csv} --task {task} --bucket {bucket} --out {args.out}"
-                    )
+                    for seed in args.seeds:
+                        lines.append(
+                            f"{args.python} {runner} --algo {algo} "
+                            f"--dataset {csv} --task {task} --bucket {bucket} "
+                            f"--out {args.out} --seed {seed}"
+                        )
 
     Path(args.jobs_file).write_text("\n".join(lines) + "\n")
     print(f"Wrote {len(lines)} jobs to {args.jobs_file} "
-          f"({len(args.frameworks)} frameworks x algorithms x datasets)")
+          f"({len(args.frameworks)} frameworks x algorithms x datasets "
+          f"x {len(args.seeds)} seeds)")
 
 
 if __name__ == "__main__":

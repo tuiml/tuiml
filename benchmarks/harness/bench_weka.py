@@ -89,13 +89,15 @@ def main():
     ap.add_argument("--bucket", required=True)
     ap.add_argument("--out", default="results")
     ap.add_argument("--heap", default="2048m", help="JVM max heap")
+    ap.add_argument("--seed", type=int, default=common.SEED)
     ARGS = ap.parse_args()
 
     prep = ALGORITHMS[ARGS.algo].get("prep", "standard")
     jvm.start(packages=False, max_heap_size=ARGS.heap)
     try:
         common.run_experiment("weka", ARGS.algo, ARGS.dataset, ARGS.task,
-                              ARGS.bucket, ARGS.out, build_and_run, prep=prep)
+                              ARGS.bucket, ARGS.out, build_and_run, prep=prep,
+                              seed=ARGS.seed)
     finally:
         jvm.stop()
 

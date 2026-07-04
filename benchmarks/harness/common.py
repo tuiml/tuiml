@@ -21,11 +21,12 @@ SEED = 42
 TEST_SIZE = 0.2
 
 
-def load_and_prepare(dataset_csv: str, task: str):
+def load_and_prepare(dataset_csv: str, task: str, seed: int = SEED):
     """Load a CSV (target = last column), split, and preprocess identically.
 
     Numeric features: median impute + standardize. Categorical: most-frequent
     impute + one-hot (capped categories). Classification targets are label-encoded.
+    ``seed`` controls the train/test split, enabling repeated-holdout runs.
 
     Returns
     -------
@@ -54,7 +55,7 @@ def load_and_prepare(dataset_csv: str, task: str):
 
     strat = y if is_clf else None
     X_tr, X_te, y_tr, y_te = train_test_split(
-        X, y, test_size=TEST_SIZE, random_state=SEED, stratify=strat
+        X, y, test_size=TEST_SIZE, random_state=seed, stratify=strat
     )
 
     num_pipe = Pipeline([("imp", SimpleImputer(strategy="median")),
@@ -80,7 +81,7 @@ def load_and_prepare(dataset_csv: str, task: str):
     return X_tr_t, X_te_t, y_tr_a, y_te_a, meta
 
 
-def load_and_prepare_categorical(dataset_csv: str, task: str):
+def load_and_prepare_categorical(dataset_csv: str, task: str, seed: int = SEED):
     """Load a CSV and prepare an **all-categorical**, integer-coded matrix.
 
     Categorical-aware variant used by the Naive Bayes rows: nominal features
@@ -149,7 +150,7 @@ def load_and_prepare_categorical(dataset_csv: str, task: str):
 
     strat = y if is_clf else None
     X_tr, X_te, y_tr, y_te = train_test_split(
-        Xc, y, test_size=TEST_SIZE, random_state=SEED, stratify=strat
+        Xc, y, test_size=TEST_SIZE, random_state=seed, stratify=strat
     )
 
     meta = {
@@ -194,6 +195,8 @@ def write_result(out_dir: str, record: dict) -> str:
     """Write one experiment's result as a standalone JSON file (parallel-safe)."""
     Path(out_dir).mkdir(parents=True, exist_ok=True)
     fname = f"{record['framework']}__{record['algorithm']}__{record['dataset']}.json"
+    if record.get("seed", SEED) != SEED:
+        fname = fname[:-5] + f"__s{record['seed']}.json"
     path = os.path.join(out_dir, fname)
     with open(path, "w") as fh:
         json.dump(record, fh, indent=2, default=str)
@@ -201,25 +204,26 @@ def write_result(out_dir: str, record: dict) -> str:
 
 
 def run_experiment(framework, algo_key, dataset_csv, task, bucket, out_dir,
-                   build_and_run, prep="standard"):
+                   build_and_run, prep="standard", seed=SEED):
     """Shared driver: prepare data, time the model, capture metrics + resources.
 
     ``build_and_run(X_tr, X_te, y_tr, task, meta)`` must return
     ``(y_pred, fit_s, predict_s)`` and is supplied by each framework runner.
     ``prep`` selects the data preparation: ``"standard"`` (impute + scale +
     one-hot) or ``"categorical"`` (ordinal-encode + quantile-bin to an
-    all-categorical matrix, used by the Naive Bayes rows).
+    all-categorical matrix, used by the Naive Bayes rows). ``seed`` controls
+    the train/test split for repeated-holdout runs.
     """
     dataset = Path(dataset_csv).parent.name
     cpu0 = time.process_time()
     wall0 = time.perf_counter()
     record = {
         "framework": framework, "algorithm": algo_key, "dataset": dataset,
-        "bucket": bucket, "task": task, "status": "ok",
+        "bucket": bucket, "task": task, "seed": seed, "status": "ok",
     }
     try:
         loader = load_and_prepare_categorical if prep == "categorical" else load_and_prepare
-        X_tr, X_te, y_tr, y_te, meta = loader(dataset_csv, task)
+        X_tr, X_te, y_tr, y_te, meta = loader(dataset_csv, task, seed=seed)
         record.update(meta)
         y_pred, fit_s, predict_s = build_and_run(X_tr, X_te, y_tr, task, meta)
         record["metrics"] = compute_metrics(task, y_te, y_pred)
