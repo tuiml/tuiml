@@ -19,14 +19,47 @@ import pandas as pd
 
 SEED = 42
 TEST_SIZE = 0.2
+N_FOLDS = 10
 
 
-def load_and_prepare(dataset_csv: str, task: str, seed: int = SEED):
+def _split_indices(y, is_clf, seed, fold, n):
+    """Train/test row indices: fold k of stratified 10-fold CV, or None for holdout.
+
+    Parameters
+    ----------
+    y : array-like of shape (n_samples,)
+        Target values (used for stratification).
+    is_clf : bool
+        Whether the task is classification (stratified folds).
+    seed : int
+        Shuffle seed (same seed => identical folds across frameworks).
+    fold : int
+        Fold index in [0, N_FOLDS).
+    n : int
+        Number of samples.
+
+    Returns
+    -------
+    (train_idx, test_idx) : tuple of np.ndarray
+        Row indices for the requested fold.
+    """
+    from sklearn.model_selection import StratifiedKFold, KFold
+    if not 0 <= fold < N_FOLDS:
+        raise ValueError(f"fold must be in [0, {N_FOLDS}), got {fold}")
+    cls = StratifiedKFold if is_clf else KFold
+    kf = cls(n_splits=N_FOLDS, shuffle=True, random_state=seed)
+    splits = list(kf.split(np.zeros(n), y if is_clf else None))
+    return splits[fold]
+
+
+def load_and_prepare(dataset_csv: str, task: str, seed: int = SEED, fold=None):
     """Load a CSV (target = last column), split, and preprocess identically.
 
     Numeric features: median impute + standardize. Categorical: most-frequent
     impute + one-hot (capped categories). Classification targets are label-encoded.
     ``seed`` controls the train/test split, enabling repeated-holdout runs.
+    ``fold`` (0-based) selects one fold of stratified ``N_FOLDS``-fold CV
+    instead of the 80/20 holdout.
 
     Returns
     -------
@@ -53,10 +86,15 @@ def load_and_prepare(dataset_csv: str, task: str, seed: int = SEED):
     else:
         y = pd.to_numeric(y, errors="coerce")
 
-    strat = y if is_clf else None
-    X_tr, X_te, y_tr, y_te = train_test_split(
-        X, y, test_size=TEST_SIZE, random_state=seed, stratify=strat
-    )
+    if fold is not None:
+        tr_idx, te_idx = _split_indices(y, is_clf, seed, fold, len(X))
+        X_tr, X_te = X.iloc[tr_idx], X.iloc[te_idx]
+        y_tr, y_te = y.iloc[tr_idx], y.iloc[te_idx]
+    else:
+        strat = y if is_clf else None
+        X_tr, X_te, y_tr, y_te = train_test_split(
+            X, y, test_size=TEST_SIZE, random_state=seed, stratify=strat
+        )
 
     num_pipe = Pipeline([("imp", SimpleImputer(strategy="median")),
                          ("sc", StandardScaler())])
@@ -81,7 +119,8 @@ def load_and_prepare(dataset_csv: str, task: str, seed: int = SEED):
     return X_tr_t, X_te_t, y_tr_a, y_te_a, meta
 
 
-def load_and_prepare_categorical(dataset_csv: str, task: str, seed: int = SEED):
+def load_and_prepare_categorical(dataset_csv: str, task: str, seed: int = SEED,
+                                 fold=None):
     """Load a CSV and prepare an **all-categorical**, integer-coded matrix.
 
     Categorical-aware variant used by the Naive Bayes rows: nominal features
@@ -148,10 +187,15 @@ def load_and_prepare_categorical(dataset_csv: str, task: str, seed: int = SEED):
     # Any unknown (-1) -> 0; vocabulary was fit on full data so this is rare.
     Xc[Xc < 0] = 0
 
-    strat = y if is_clf else None
-    X_tr, X_te, y_tr, y_te = train_test_split(
-        Xc, y, test_size=TEST_SIZE, random_state=seed, stratify=strat
-    )
+    if fold is not None:
+        tr_idx, te_idx = _split_indices(y, is_clf, seed, fold, len(Xc))
+        X_tr, X_te = Xc[tr_idx], Xc[te_idx]
+        y_tr, y_te = y.iloc[tr_idx], y.iloc[te_idx]
+    else:
+        strat = y if is_clf else None
+        X_tr, X_te, y_tr, y_te = train_test_split(
+            Xc, y, test_size=TEST_SIZE, random_state=seed, stratify=strat
+        )
 
     meta = {
         "n_train": int(X_tr.shape[0]),
@@ -197,6 +241,8 @@ def write_result(out_dir: str, record: dict) -> str:
     fname = f"{record['framework']}__{record['algorithm']}__{record['dataset']}.json"
     if record.get("seed", SEED) != SEED:
         fname = fname[:-5] + f"__s{record['seed']}.json"
+    if record.get("fold") is not None:
+        fname = fname[:-5] + f"__f{record['fold']}.json"
     path = os.path.join(out_dir, fname)
     with open(path, "w") as fh:
         json.dump(record, fh, indent=2, default=str)
@@ -204,7 +250,7 @@ def write_result(out_dir: str, record: dict) -> str:
 
 
 def run_experiment(framework, algo_key, dataset_csv, task, bucket, out_dir,
-                   build_and_run, prep="standard", seed=SEED):
+                   build_and_run, prep="standard", seed=SEED, fold=None):
     """Shared driver: prepare data, time the model, capture metrics + resources.
 
     ``build_and_run(X_tr, X_te, y_tr, task, meta)`` must return
@@ -219,11 +265,11 @@ def run_experiment(framework, algo_key, dataset_csv, task, bucket, out_dir,
     wall0 = time.perf_counter()
     record = {
         "framework": framework, "algorithm": algo_key, "dataset": dataset,
-        "bucket": bucket, "task": task, "seed": seed, "status": "ok",
+        "bucket": bucket, "task": task, "seed": seed, "fold": fold, "status": "ok",
     }
     try:
         loader = load_and_prepare_categorical if prep == "categorical" else load_and_prepare
-        X_tr, X_te, y_tr, y_te, meta = loader(dataset_csv, task, seed=seed)
+        X_tr, X_te, y_tr, y_te, meta = loader(dataset_csv, task, seed=seed, fold=fold)
         record.update(meta)
         y_pred, fit_s, predict_s = build_and_run(X_tr, X_te, y_tr, task, meta)
         record["metrics"] = compute_metrics(task, y_te, y_pred)

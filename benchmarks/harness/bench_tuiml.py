@@ -49,11 +49,12 @@ def main():
     ap.add_argument("--bucket", required=True)
     ap.add_argument("--out", default="results")
     ap.add_argument("--seed", type=int, default=common.SEED)
+    ap.add_argument("--fold", type=int, default=None)
     ARGS = ap.parse_args()
     prep = ALGORITHMS[ARGS.algo].get("prep", "standard")
     common.run_experiment("tuiml", ARGS.algo, ARGS.dataset, ARGS.task,
                           ARGS.bucket, ARGS.out, build_and_run, prep=prep,
-                          seed=ARGS.seed)
+                          seed=ARGS.seed, fold=ARGS.fold)
 
 
 if __name__ == "__main__":

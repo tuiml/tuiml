@@ -26,6 +26,8 @@ def main():
     ap.add_argument("--python", default="python3")
     ap.add_argument("--seeds", type=int, nargs="+", default=[42],
                     help="split seeds; one job per seed (repeated holdout)")
+    ap.add_argument("--folds", type=int, default=None,
+                    help="k-fold CV: one job per fold (0..k-1) instead of holdout")
     args = ap.parse_args()
 
     here = Path(__file__).resolve().parent
@@ -46,16 +48,19 @@ def main():
                 for fw in args.frameworks:
                     runner = here / f"bench_{fw}.py"
                     for seed in args.seeds:
-                        lines.append(
-                            f"{args.python} {runner} --algo {algo} "
-                            f"--dataset {csv} --task {task} --bucket {bucket} "
-                            f"--out {args.out} --seed {seed}"
-                        )
+                        base = (f"{args.python} {runner} --algo {algo} "
+                                f"--dataset {csv} --task {task} --bucket {bucket} "
+                                f"--out {args.out} --seed {seed}")
+                        if args.folds:
+                            lines.extend(f"{base} --fold {k}"
+                                         for k in range(args.folds))
+                        else:
+                            lines.append(base)
 
     Path(args.jobs_file).write_text("\n".join(lines) + "\n")
+    variants = f"x {args.folds} folds" if args.folds else f"x {len(args.seeds)} seeds"
     print(f"Wrote {len(lines)} jobs to {args.jobs_file} "
-          f"({len(args.frameworks)} frameworks x algorithms x datasets "
-          f"x {len(args.seeds)} seeds)")
+          f"({len(args.frameworks)} frameworks x algorithms x datasets {variants})")
 
 
 if __name__ == "__main__":

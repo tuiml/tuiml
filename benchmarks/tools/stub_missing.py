@@ -27,13 +27,18 @@ for line in jobs:
     task = re.search(r"--task (\S+)", line).group(1)
     seed_m = re.search(r"--seed (\d+)", line)
     seed = int(seed_m.group(1)) if seed_m else DEFAULT_SEED
+    fold_m = re.search(r"--fold (\d+)", line)
+    fold = int(fold_m.group(1)) if fold_m else None
     fname = f"{fw}__{algo}__{dataset}.json"
     if seed != DEFAULT_SEED:
         fname = fname[:-5] + f"__s{seed}.json"
+    if fold is not None:
+        fname = fname[:-5] + f"__f{fold}.json"
     if fname in results:
         continue
     rec = {"framework": fw, "algorithm": algo, "dataset": dataset,
-           "bucket": bucket, "task": task, "seed": seed, "status": "timeout",
+           "bucket": bucket, "task": task, "seed": seed, "fold": fold,
+           "status": "timeout",
            "error": "killed by per-job timeout (computation too slow to finish)"}
     Path(args.results, fname).write_text(json.dumps(rec, indent=2))
     n += 1

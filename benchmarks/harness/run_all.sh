@@ -42,7 +42,7 @@ echo "Logs -> logs/  |  Results -> $OUT/"
 # 2. Fan out: each line runs in its own process; xargs maintains MAX_JOBS in flight.
 #    A per-line log captures stdout/stderr; `timeout` caps runaway experiments.
 < "$JOBS_FILE" xargs -P "$MAX_JOBS" -I {} \
-    bash -c 'cmd="{}"; tag=$(echo "$cmd" | grep -oE -- "--algo [^ ]+|--dataset [^ ]+|--seed [^ ]+" | tr -d "\n" | tr "/ " "__"); \
+    bash -c 'cmd="{}"; tag=$(echo "$cmd" | grep -oE -- "--algo [^ ]+|--dataset [^ ]+|--seed [^ ]+|--fold [^ ]+" | tr -d "\n" | tr "/ " "__"); \
              timeout '"$PER_JOB_TIMEOUT"' $cmd > "logs/${tag}.log" 2>&1; \
              echo "done: $cmd (exit $?)"'
 

@@ -40,12 +40,17 @@ def fnum(v):
 
 rows = list(csv.DictReader(open(SRC)))
 
-data = {}
+# Accumulate every seed row per (algo, dataset, framework) cell, then reduce
+# to mean +/- std over the ok seeds (repeated-holdout aggregation). A cell
+# with zero ok seeds keeps its timeout/error status.
+raw = {}
 datasets_meta = {}
+n_seeds_seen = set()
 for r in rows:
     algo, ds, fw, task = r["algorithm"], r["dataset"], r["framework"], r["task"]
     score = fnum(r["metric_accuracy"]) if task == "classification" else fnum(r["metric_r2"])
     n_train, n_test = fnum(r["n_train"]), fnum(r["n_test"])
+    n_seeds_seen.add((r.get("seed") or "42", r.get("fold") or ""))
     rec = {
         "score": score,
         "fit_s": fnum(r["fit_s"]),
@@ -53,15 +58,45 @@ for r in rows:
         "mem_mb": fnum(r["peak_rss_mb"]),
         "status": r["status"],
     }
-    data.setdefault(algo, {}).setdefault(ds, {})[fw] = rec
-    data[algo][ds]["_n_train"] = n_train
-    data[algo][ds]["_n_test"] = n_test
-    if ds not in datasets_meta:
+    cell = raw.setdefault(algo, {}).setdefault(ds, {})
+    cell.setdefault(fw, []).append(rec)
+    if n_train:
+        cell["_n_train"] = n_train
+        cell["_n_test"] = n_test
+    if ds not in datasets_meta or datasets_meta[ds]["rows"] is None:
         datasets_meta[ds] = {
             "rows": int((n_train or 0) + (n_test or 0)) or None,
             "features": int(fnum(r["n_features_raw"])) if fnum(r["n_features_raw"]) else None,
             "task": task,
         }
+
+
+def reduce_cell(recs):
+    """Mean +/- std over ok seeds; keep failure status if no seed succeeded."""
+    ok = [r for r in recs if r["status"] == "ok" and r["score"] is not None]
+    if not ok:
+        return {"score": None, "fit_s": None, "predict_s": None, "mem_mb": None,
+                "status": recs[0]["status"], "n_seeds": 0}
+    mean = lambda k: st.mean(r[k] for r in ok if r[k] is not None)
+    return {
+        "score": mean("score"),
+        "score_std": st.stdev(r["score"] for r in ok) if len(ok) > 1 else 0.0,
+        "fit_s": round(mean("fit_s"), 4),
+        "predict_s": round(mean("predict_s"), 4),
+        "mem_mb": round(mean("mem_mb"), 1),
+        "status": "ok",
+        "n_seeds": len(ok),
+    }
+
+
+data = {}
+for algo, dss in raw.items():
+    for ds, cell in dss.items():
+        red = {k: v for k, v in cell.items() if k.startswith("_")}
+        for fw in FRAMEWORKS:
+            if fw in cell:
+                red[fw] = reduce_cell(cell[fw])
+        data.setdefault(algo, {})[ds] = red
 
 algos_present = [a for a in CLF_ORDER + REG_ORDER if a in data]
 
@@ -116,7 +151,9 @@ meta = {
     "framework_labels": {"tuiml": "TuiML", "sklearn": "scikit-learn", "weka": "Weka"},
     "framework_colors": {"tuiml": "#f97316", "sklearn": "#3b82f6", "weka": "#a855f7"},
     "n_datasets": len(datasets_meta), "n_classification": n_clf, "n_regression": n_reg,
-    "n_experiments": len(rows), "suite": "TabArena-v0.1 (OpenML study 457)",
+    "n_experiments": len(rows), "n_seeds": len(n_seeds_seen),
+    "protocol": "stratified 10-fold cross-validation (shuffled, seed 42); scores are mean over folds",
+    "suite": "TabArena-v0.1 (OpenML study 457)",
 }
 
 OUT.parent.mkdir(parents=True, exist_ok=True)
