@@ -332,6 +332,7 @@ def create_server() -> "Server":
     @server.read_resource()
     async def read_resource(uri: str) -> str:
         """Read a dataset resource."""
+        uri = str(uri)
         if uri.startswith("tuiml://dataset/"):
             dataset_name = uri.replace("tuiml://dataset/", "")
 

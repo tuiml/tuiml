@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Matches scikit-learn's `CategoricalNB`.
 
 ### Fixed
+- **MCP server: dataset resources unreadable.** The MCP SDK passes resource
+  URIs as `AnyUrl` objects, not strings, so `read_resource` crashed with
+  `AttributeError` on any `tuiml://dataset/...` resource; the URI is now
+  coerced to `str` first.
 - **Decision trees / Random Forests: NaN predictions from degenerate splits.**
   When the two feature values flanking the best split are adjacent doubles,
   the midpoint threshold `(a+b)/2` can round up to `b`; the `<=` partition
