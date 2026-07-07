@@ -15,6 +15,17 @@ TuiML is an agent-native ML runtime. Install, connect to your AI agent, and star
   <a href="https://pepy.tech/projects/tuiml"><img src="https://img.shields.io/pepy/dt/tuiml?style=for-the-badge" alt="Downloads"></a>
 </p>
 
+<p align="center">
+  <a href="#why-tuiml">Why TuiML</a> &nbsp;&bull;&nbsp;
+  <a href="#quickstart">Quickstart</a> &nbsp;&bull;&nbsp;
+  <a href="#python-api">Python API</a> &nbsp;&bull;&nbsp;
+  <a href="#whats-included">What's Included</a> &nbsp;&bull;&nbsp;
+  <a href="#mcp-tools">MCP Tools</a> &nbsp;&bull;&nbsp;
+  <a href="#documentation">Docs</a>
+</p>
+
+---
+
 ## Why TuiML
 
 **Agents can call it** &mdash; Every algorithm, dataset, and metric ships with a JSON schema. Agents read the schema, call the tool, get structured results. No hallucinated parameters, no wrapper glue.
@@ -22,6 +33,10 @@ TuiML is an agent-native ML runtime. Install, connect to your AI agent, and star
 **Agents can discover it** &mdash; A queryable registry tagged by task, data shape, and benchmarks. Agents browse and pick instead of memorising class names.
 
 **Agents can trust it** &mdash; Deterministic, typed, reproducible outputs. Every call is a loggable, replayable tool invocation you can audit, diff, and trust in production.
+
+---
+
+<a id="quickstart"></a>
 
 ## Get running in 3 steps
 
@@ -45,6 +60,47 @@ tuiml setup
 
 Your agent discovers algorithms, sets parameters from the schema, trains, evaluates, and returns structured results. No glue code.
 
+---
+
+<a id="python-api"></a>
+
+## Use it from Python
+
+The same runtime agents call is a first-class Python library. Three levels of API, from one-liner to full control:
+
+```python
+import tuiml
+from tuiml.datasets import load_iris
+
+# High-level: one call trains, evaluates, and returns structured metrics
+data = load_iris()
+result = tuiml.train("RandomForestClassifier", data.X, data.y, n_trees=100)
+print(result.metrics)          # {'accuracy': 0.97, 'f1': 0.97, ...}
+preds = result.model.predict(data.X)
+```
+
+Compare many algorithms across many datasets in one benchmarking call:
+
+```python
+result = tuiml.experiment(
+    algorithms=["RandomForestClassifier", "SVM", "LogisticRegression"],
+    datasets=["iris", "breast-cancer"],
+    cv=10,
+)
+```
+
+Discover what's available &mdash; the same registry agents browse:
+
+```python
+tuiml.list_algorithms()                       # every registered algorithm
+tuiml.search_algorithms("gradient boosting")  # search by task or keyword
+tuiml.describe_algorithm("RandomForestClassifier")  # schema + parameters
+```
+
+---
+
+<a id="whats-included"></a>
+
 ## What's Included
 
 TuiML ships with 13 algorithm families, many originally from Weka, completely rewritten in Python with C++ acceleration for hot paths.
@@ -66,6 +122,10 @@ TuiML ships with 13 algorithm families, many originally from Weka, completely re
 | **Time Series** | ARIMA, ExponentialSmoothing, Prophet |
 
 Plus preprocessing (scaling, encoding, imputation, SMOTE, text vectorization), feature engineering (selection, extraction, generation), evaluation (metrics, cross-validation, tuning, statistical tests), and 15+ built-in datasets.
+
+---
+
+<a id="mcp-tools"></a>
 
 ## MCP Tools
 
@@ -115,9 +175,15 @@ class MyClassifier(Classifier):
         return predictions
 ```
 
+---
+
+<a id="documentation"></a>
+
 ## Documentation
 
 Full documentation is available at [tuiml.ai/docs](https://tuiml.ai/docs/getting_started.html), including getting started guides, API reference, and tutorials.
+
+---
 
 ## License
 
@@ -136,12 +202,12 @@ BSD 3-Clause License. See [LICENSE](LICENSE) for details.
 
 ## Links
 
-- [Website](https://tuiml.ai)
-- [Documentation](https://tuiml.ai/docs/getting_started.html)
-- [API Reference](https://tuiml.ai/docs/api)
-- [GitHub](https://github.com/tuiml/tuiml)
-- [PyPI](https://pypi.org/project/tuiml)
-- [Changelog](https://tuiml.ai/docs/changelog.html)
+| | | |
+|---|---|---|
+| 🌐 [Website](https://tuiml.ai) | 📚 [Documentation](https://tuiml.ai/docs/getting_started.html) | 🔧 [API Reference](https://tuiml.ai/docs/api) |
+| 💻 [GitHub](https://github.com/tuiml/tuiml) | 📦 [PyPI](https://pypi.org/project/tuiml) | 📝 [Changelog](https://tuiml.ai/docs/changelog.html) |
+
+---
 
 ## Star History
 
@@ -152,3 +218,10 @@ BSD 3-Clause License. See [LICENSE](LICENSE) for details.
    <img alt="Star History Chart" src="https://api.star-history.com/image?repos=tuiml/tuiml&type=date&legend=top-left" />
  </picture>
 </a>
+
+---
+
+<p align="center">
+  Built by the TuiML team &mdash; <a href="https://tuiml.ai">tuiml.ai</a><br>
+  <sub>If TuiML is useful to you, consider leaving a ⭐ &mdash; it helps others find the project.</sub>
+</p>
