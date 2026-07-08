@@ -508,6 +508,14 @@ WORKFLOW_TOOLS = {
                     "type": "string",
                     "description": "Target column (required for supervised, optional for clustering)"
                 },
+                "features": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": (
+                        "Optional: restrict the feature matrix to these named columns. "
+                        "When omitted, every non-target column is used as a feature."
+                    )
+                },
                 "preprocessing": {
                     "type": "array",
                     "items": {
@@ -4882,24 +4890,38 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
         n = train_counter[0]
         algo = args.get('algorithm', 'UnknownAlgorithm')
         data = args.get('data', '')
-        # tuiml.train() takes algorithm hyperparameters as direct **kwargs, not
-        # as an 'algorithm_params' dict (that wrapper is MCP-tool-only). Flatten
-        # it so the generated call is valid Python rather than passing an
-        # unexpected 'algorithm_params=' keyword.
-        flat_args = {k: v for k, v in args.items() if k != 'algorithm_params'}
+        target = args.get('target')
+        # tuiml.train() uses the spec convention: the model is a spec dict
+        # {"name": algo, **hyperparameters} and the data is a spec dict
+        # {"source": data, "target": target}. The MCP-tool-only 'algorithm_params'
+        # wrapper is folded into the model spec so the generated call is valid,
+        # idiomatic Python.
+        model_spec = {"name": algo}
         algo_params = args.get('algorithm_params')
         if isinstance(algo_params, dict):
-            for pk, pv in algo_params.items():
-                flat_args.setdefault(pk, pv)
-        kwargs_str = _call_to_kwargs_str(flat_args)
+            model_spec.update(algo_params)
+        data_spec = {"source": data}
+        if target is not None:
+            data_spec["target"] = target
+        if args.get('features') is not None:
+            data_spec["features"] = args['features']
+        # Remaining run options become keyword arguments.
+        run_opt_keys = ('preprocessing', 'feature_selection', 'cv', 'metrics',
+                        'test_size', 'stratify', 'preset', 'random_seed')
+        lines = [
+            f"result_{n} = tuiml.train(\n",
+            f"    {model_spec!r},\n",
+            f"    {data_spec!r},\n",
+        ]
+        for k in run_opt_keys:
+            if k in args and args[k] is not None:
+                lines.append(f"    {k}={args[k]!r},\n")
+        lines.append(")\n")
         md = [
             f"## Train `{algo}` (step {n})\n",
             f"> `tuiml_train(algorithm={repr(algo)}, data={repr(data)}, ...)`",
         ]
-        code = [
-            f"result_{n} = tuiml.train(\n",
-            kwargs_str + "\n",
-            ")\n",
+        code = lines + [
             f"model_{n} = result_{n}.model\n",
             f"print('Metrics:', result_{n}.metrics)",
         ]

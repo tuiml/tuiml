@@ -66,24 +66,44 @@ Your agent discovers algorithms, sets parameters from the schema, trains, evalua
 
 ## Use it from Python
 
-The same runtime agents call is a first-class Python library. Three levels of API, from one-liner to full control:
+The same runtime agents call is a first-class Python library. Every component — the model, each preprocessing step, the feature selector — is described the same way: a **spec** of the form `{"name": ..., **params}`. The data is its own spec, `{"source": ..., "target": ...}`.
 
 ```python
 import tuiml
-from tuiml.datasets import load_iris
 
-# High-level: one call trains, evaluates, and returns structured metrics
-data = load_iris()
-result = tuiml.train("RandomForestClassifier", data.X, data.y, n_trees=100)
-print(result.metrics)          # {'accuracy': 0.97, 'f1': 0.97, ...}
-preds = result.model.predict(data.X)
+# Model spec + data spec. One call trains, evaluates, and returns metrics.
+result = tuiml.train(
+    {"name": "RandomForestClassifier", "n_estimators": 100},   # model spec
+    {"source": "iris"},                                        # data spec (builtin)
+)
+print(result.metrics)          # {'accuracy_score': 0.97, 'f1_score': 0.96}
+preds = result.model.predict(X_new)
+```
+
+Point it at a file and name the label column — everything about the data lives in one place:
+
+```python
+result = tuiml.train(
+    {"name": "RandomForestClassifier", "n_estimators": 100},
+    {"source": "sales.csv", "target": "label"},
+    preprocessing=[{"name": "MinMaxScaler"}],
+    feature_selection={"name": "SelectKBestSelector", "k": 10},
+    cv=10,
+)
+```
+
+Prefer editor autocomplete? Pass a configured instance instead of a spec dict:
+
+```python
+from tuiml.algorithms.trees import RandomForestClassifier
+result = tuiml.train(RandomForestClassifier(n_estimators=100), {"source": "iris"})
 ```
 
 Compare many algorithms across many datasets in one benchmarking call:
 
 ```python
 result = tuiml.experiment(
-    algorithms=["RandomForestClassifier", "SVM", "LogisticRegression"],
+    algorithms=["RandomForestClassifier", "SVC", "LogisticRegression"],
     datasets=["iris", "breast-cancer"],
     cv=10,
 )
@@ -206,18 +226,6 @@ BSD 3-Clause License. See [LICENSE](LICENSE) for details.
 |---|---|---|
 | 🌐 [Website](https://tuiml.ai) | 📚 [Documentation](https://tuiml.ai/docs/getting_started.html) | 🔧 [API Reference](https://tuiml.ai/docs/api) |
 | 💻 [GitHub](https://github.com/tuiml/tuiml) | 📦 [PyPI](https://pypi.org/project/tuiml) | 📝 [Changelog](https://tuiml.ai/docs/changelog.html) |
-
----
-
-## Star History
-
-<a href="https://www.star-history.com/?repos=tuiml%2Ftuiml&type=date&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/image?repos=tuiml/tuiml&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/image?repos=tuiml/tuiml&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/image?repos=tuiml/tuiml&type=date&legend=top-left" />
- </picture>
-</a>
 
 ---
 

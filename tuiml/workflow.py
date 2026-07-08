@@ -4,6 +4,15 @@ from typing import Optional, List, Dict, Any, Union
 import numpy as np
 import pandas as pd
 
+# Tabular file formats whose loaders accept a target column and otherwise fall
+# back to the *last* column. ARFF is intentionally excluded: it declares its
+# class attribute in the file metadata, so no target guessing (or warning) is
+# needed for it.
+_TABULAR_TARGET_FORMATS = {
+    ".csv", ".tsv", ".parquet", ".pq", ".xlsx", ".xls",
+    ".json", ".jsonl", ".ndjson",
+}
+
 class WorkflowResult:
     """Result object returned by ``Workflow.run()``.
 
@@ -363,19 +372,26 @@ class Workflow:
             }
         }
 
-    def __init__(self, data: Union[str, pd.DataFrame, np.ndarray] = None, target: Optional[str] = None):
+    def __init__(self, data: Union[str, pd.DataFrame, np.ndarray] = None,
+                 target: Optional[str] = None,
+                 features: Optional[List[str]] = None):
         """Initialize workflow.
 
         Parameters
         ----------
         data : str, DataFrame, or ndarray, optional
             Path to data file, DataFrame, or numpy array.
-            
+
         target : str, optional
             Target column name (if data is DataFrame/file).
+
+        features : list of str, optional
+            Restrict the feature matrix to these named columns. When ``None``
+            (default), every non-target column is used as a feature.
         """
         self._data = data
         self._target = target
+        self._features = features
         self._preprocessing_steps = []
         self._feature_selection = None
         self._split_config = None
@@ -722,6 +738,79 @@ class Workflow:
         }
         return self
 
+    # ===== Data-loading helpers =====
+
+    def _loader_target_kwargs(self, path: str) -> Dict[str, Any]:
+        """Build loader kwargs so a file loader extracts the right target column.
+
+        Only forwards ``target_column`` when a target column name/index is set.
+        The ARFF loader declares its class in the file metadata and accepts an
+        integer index only, so a *string* target name is ignored for ``.arff``
+        (with a warning) and the file's own class attribute is used instead.
+
+        Parameters
+        ----------
+        path : str
+            Path to the data file about to be loaded.
+
+        Returns
+        -------
+        dict
+            Keyword arguments to pass to :func:`tuiml.datasets.load`.
+        """
+        import os
+        import warnings
+
+        target = self._target
+        # Array-like targets are applied after loading, not by the loader.
+        if target is None or isinstance(target, (np.ndarray, pd.Series, list)):
+            return {}
+
+        suffix = os.path.splitext(path)[1].lower()
+        if suffix == ".arff":
+            if isinstance(target, str):
+                warnings.warn(
+                    f"ARFF files declare their class column in the file metadata; "
+                    f"the string target {target!r} is ignored for {path!r}.",
+                    stacklevel=3,
+                )
+                return {}
+            return {"target_column": target}  # integer index
+        return {"target_column": target}
+
+    def _apply_feature_subset(self, X, feature_names):
+        """Select only the columns named in ``self._features`` from ``X``.
+
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            The full feature matrix.
+        feature_names : list of str or None
+            Column names aligned with ``X``'s columns.
+
+        Returns
+        -------
+        X_subset : np.ndarray
+            ``X`` restricted to the requested columns, in the requested order.
+        selected : list of str
+            The selected feature names.
+        """
+        features = list(self._features)
+        if not feature_names:
+            raise ValueError(
+                "features= was given but the data source has no column names to "
+                "select from (e.g. a raw numpy array). Provide named data "
+                "(file path, DataFrame, or Dataset) to use features=."
+            )
+        feature_names = list(feature_names)
+        missing = [f for f in features if f not in feature_names]
+        if missing:
+            raise ValueError(
+                f"features not found in data columns {feature_names}: {missing}"
+            )
+        idx = [feature_names.index(f) for f in features]
+        return np.asarray(X)[:, idx], features
+
     # ===== Execution =====
 
     def run(self) -> WorkflowResult:
@@ -907,6 +996,7 @@ class Workflow:
         """Internal execution method - performs actual training."""
         import numpy as np
         import os
+        import warnings
         from tuiml.datasets import load_dataset, load
         from tuiml.hub import registry
         import tuiml.algorithms  # noqa: F401 - trigger registration
@@ -916,18 +1006,29 @@ class Workflow:
         # 1. Load data — use TuiML loaders for all file formats
         from tuiml.datasets.loaders.arff import Dataset as WNDataset
 
+        feature_names = None
         if isinstance(self._data, WNDataset):
             # Already a Dataset object — use directly
             X, y = self._data.X, self._data.y
+            feature_names = self._data.feature_names
 
         elif isinstance(self._data, str):
             # String: try file path first (uses auto-detect loader for csv,
             # arff, parquet, json, excel, numpy), then built-in name
             if os.path.exists(self._data):
-                dataset = load(self._data)
+                load_kwargs = self._loader_target_kwargs(self._data)
+                suffix = os.path.splitext(self._data)[1].lower()
+                if 'target_column' not in load_kwargs and suffix in _TABULAR_TARGET_FORMATS:
+                    warnings.warn(
+                        f"No target column specified for {self._data!r}; defaulting "
+                        f"to the last column. Pass target=... to be explicit.",
+                        stacklevel=2,
+                    )
+                dataset = load(self._data, **load_kwargs)
             else:
                 dataset = load_dataset(self._data)
             X, y = dataset.X, dataset.y
+            feature_names = dataset.feature_names
 
         elif isinstance(self._data, pd.DataFrame):
             # DataFrame — use from_pandas to get a proper Dataset
@@ -938,6 +1039,7 @@ class Workflow:
             )
             X = dataset.X
             y = dataset.y
+            feature_names = dataset.feature_names
             # If target was passed as a separate array, use that instead
             if isinstance(self._target, (np.ndarray, pd.Series)):
                 y = np.asarray(self._target)
@@ -946,6 +1048,10 @@ class Workflow:
             # ndarray or array-like
             X = self._data if isinstance(self._data, np.ndarray) else np.asarray(self._data)
             y = np.asarray(self._target) if self._target is not None else None
+
+        # Restrict the feature matrix to the requested columns, if any.
+        if self._features is not None:
+            X, feature_names = self._apply_feature_subset(X, feature_names)
 
         # 3. Determine split config (merge evaluate's test_size if split not configured)
         from tuiml.evaluation.splitting import train_test_split

@@ -13,7 +13,7 @@ Examples
 --------
 >>> from sklearn.svm import SVC
 >>> import tuiml
->>> tuiml.train(SVC(C=2.0), "iris", "class", cv=10)   # auto-wrapped, no ceremony
+>>> tuiml.train(SVC(C=2.0), {"source": "iris", "target": "class"}, cv=10)   # auto-wrapped
 
 >>> from tuiml.sklearn import wrap_sklearn
 >>> model = wrap_sklearn(SVC()).fit(X_train, y_train)

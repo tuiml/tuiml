@@ -14,10 +14,10 @@ Examples
 >>> from tuiml.sklearn import RandomForestClassifier   # sklearn-backed
 >>> from tuiml.algorithms import RandomForestClassifier as NativeRF  # native
 >>> import tuiml
->>> tuiml.train("sklearn.RandomForestClassifier", "iris", "class", cv=5)
+>>> tuiml.train("sklearn.RandomForestClassifier", {"source": "iris", "target": "class"}, cv=5)
 
 >>> from sklearn.svm import SVC
->>> tuiml.train(SVC(), "iris", "class")   # any estimator, auto-wrapped
+>>> tuiml.train(SVC(), {"source": "iris", "target": "class"})   # any estimator, auto-wrapped
 """
 
 from tuiml.sklearn.adapter import SklearnAdapter, wrap_sklearn, is_sklearn_estimator

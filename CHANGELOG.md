@@ -7,7 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **`train()` / `run()`: spec-based, consistent component API.** Every ML
+  component is now described the same way — a spec dict `{"name": ..., **params}`
+  — for the model, each preprocessing step, and the feature selector. The data
+  is its own spec, `{"source": ..., "target": ..., "features": ...}` (or
+  `{"X": ..., "y": ...}` for in-memory arrays), so the file/label pairing lives
+  in one place. `run(spec)` takes one declarative object with `model` / `data` /
+  `preprocessing` / `feature_selection` / run-option keys. The previous forms —
+  string algorithm name, positional `data`/`target`, loose hyperparameter kwargs,
+  configured instances, and the legacy `run()` config schema — all still work,
+  so this is fully backward compatible.
+
+### Fixed
+- **`train()` ignored the target column for file paths.** When `data` was a file
+  path, `Workflow` loaded it without forwarding `target`, silently falling back
+  to the last column — training on the wrong label if the class column wasn't
+  last. The target is now passed through to the loader (ARFF still uses its
+  declared class attribute), and a warning is emitted when a tabular file falls
+  back to the last column.
+
 ### Added
+- **`features=` / data-spec `"features"`** on `train()` — restrict the feature
+  matrix to a named subset of columns.
 - **`CategoricalNBClassifier`** — Naive Bayes for nominal / integer-coded
   categorical features (per-feature categorical distributions with Laplace
   smoothing), the discrete-data analogue of the Gaussian `NaiveBayesClassifier`.

@@ -52,9 +52,9 @@ uv tool uninstall tuiml   # finally, remove the package
 ### Three API Levels
 
 ```python
-# High-level: one-liner
+# High-level: one-liner (model spec + data spec)
 from tuiml import train
-result = train("RandomForestClassifier", "iris", target="class", cv=10)
+result = train({"name": "RandomForestClassifier"}, {"source": "iris", "target": "class"}, cv=10)
 
 # Mid-level: chainable workflow
 from tuiml import Workflow
@@ -101,10 +101,11 @@ from tuiml import (
 
 ```python
 result = train(
-    algorithm="RandomForestClassifier",
-    data="iris",                          # built-in name or file path
-    target="class",
-    preprocessing=["SimpleImputer", "StandardScaler"],
+    {"name": "RandomForestClassifier", "n_estimators": 100},  # model spec: name + params
+    {"source": "iris", "target": "class"},                    # data spec: source + target
+    #   data spec also accepts "features": [...] to restrict columns,
+    #   or {"X": X_array, "y": y_array} for in-memory arrays.
+    preprocessing=[{"name": "SimpleImputer"}, {"name": "StandardScaler"}],
     feature_selection={"name": "SelectKBestSelector", "k": 10},
     test_size=0.2,
     stratify=True,
@@ -153,7 +154,15 @@ metrics = evaluate(model, X, y, metrics="auto")   # X/y as arrays; returns dict 
 ### run()
 
 ```python
-result = run(config)                     # dict or path to JSON config file
+# One declarative experiment spec (same component convention as train()).
+result = run({
+    "model": {"name": "RandomForestClassifier", "n_estimators": 100},
+    "data": {"source": "sales.csv", "target": "label"},
+    "preprocessing": [{"name": "MinMaxScaler"}],
+    "feature_selection": {"name": "SelectKBestSelector", "k": 10},
+    "cv": 10,
+})
+result = run("config.json")              # or a path to a JSON spec file
 ```
 
 ### save() / load()
@@ -917,13 +926,13 @@ pip install tuiml[capymoa]    # CapyMOA streaming learners (needs Java)
 # Curated, namespaced wrappers — discoverable via tuiml_list / train / experiment
 from tuiml.sklearn import RandomForestClassifier      # sklearn-backed
 from tuiml.algorithms import RandomForestClassifier   # native (no clash)
-train("sklearn.RandomForestClassifier", "iris", target="class", cv=5)
-train("capymoa.HoeffdingTree", "electricity", target="class")
+train("sklearn.RandomForestClassifier", {"source": "iris", "target": "class"}, cv=5)
+train("capymoa.HoeffdingTree", {"source": "electricity", "target": "class"})
 
 # Generic adapter: wrap ANY scikit-learn-compatible estimator (incl. pipelines,
 # GridSearchCV, third-party). train()/experiment() also auto-wrap a passed estimator.
 from sklearn.svm import SVC
-train(SVC(C=2.0), "iris", target="class", cv=10)   # no wrapper needed
+train(SVC(C=2.0), {"source": "iris", "target": "class"}, cv=10)   # no wrapper needed
 ```
 
 A missing backend only errors at instantiation (with a `pip install tuiml[...]`

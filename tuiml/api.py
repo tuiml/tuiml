@@ -283,11 +283,62 @@ def get_api_info(function_name: str = None) -> dict:
 
 # ===== Main API Functions =====
 
+def _resolve_data_spec(data, target, features):
+    """Normalize the ``data`` argument into ``(source, target, features)``.
+
+    The ``data`` argument may be a **data spec** dict or a bare source. A spec
+    dict groups everything about the data in one place:
+
+    - ``{"source": "sales.csv", "target": "label", "features": [...]}`` — a file
+      path or builtin name plus its target column (and optional feature subset).
+      ``"path"`` and ``"data"`` are accepted as aliases for ``"source"``.
+    - ``{"X": X_array, "y": y_array}`` — in-memory arrays, already split.
+
+    Anything that is not such a dict (a path string, builtin name, ``DataFrame``,
+    or ``ndarray``) is returned unchanged, paired with the separately supplied
+    ``target``/``features`` arguments.
+
+    Parameters
+    ----------
+    data : str, DataFrame, ndarray, or dict
+        The raw ``data`` argument passed to :func:`train`.
+    target : str, ndarray, or None
+        The separately supplied target (used only for bare-``data`` forms).
+    features : list of str or None
+        The separately supplied feature subset.
+
+    Returns
+    -------
+    source : object
+        The data source to hand to :class:`~tuiml.workflow.Workflow`.
+    target : object
+        The resolved target column name / array (or ``None``).
+    features : list of str or None
+        The resolved feature subset.
+    """
+    if not isinstance(data, dict):
+        return data, target, features
+
+    spec = dict(data)
+    features = spec.get("features", features)
+
+    # In-memory arrays, already split.
+    if "X" in spec:
+        return spec["X"], spec.get("y", target), features
+
+    # File path / builtin name / DataFrame reference.
+    source = spec.get("source", spec.get("path", spec.get("data")))
+    target = spec.get("target", target)
+    return source, target, features
+
+
 def train(
-    algorithm: Union[str, Dict] = None,
-    data: Union[str, pd.DataFrame, np.ndarray] = None,
+    model: Union[str, Dict, Any] = None,
+    data: Union[str, pd.DataFrame, np.ndarray, Dict] = None,
     target: Union[str, np.ndarray] = None,
     *,
+    # Restrict the feature matrix to these named columns
+    features: Optional[List[str]] = None,
     # Preprocessing (flexible formats)
     preprocessing: Optional[Union[str, List[Union[str, Dict]]]] = None,
     # Feature selection (flexible formats)
@@ -308,35 +359,56 @@ def train(
     preset: Optional[str] = None,
     # Verbosity
     verbose: bool = False,
-    # Accept any algorithm parameters as kwargs
+    # Deprecated positional alias for ``model`` (kept for backward compatibility)
+    algorithm: Union[str, Dict, Any] = None,
+    # Accept any algorithm parameters as kwargs (deprecated — put them in the
+    # model spec instead, e.g. {"name": "RandomForestClassifier", "n_estimators": 100})
     **kwargs
 ) -> WorkflowResult:
     """Train a machine learning model with a complete workflow.
 
     This is the **main high-level function** for training models in TuiML.
-    It supports multiple flexible input formats for maximum convenience and
-    is designed to be LLM-friendly for automated ML workflows.
+    Every ML component — the model, each preprocessing step, and the feature
+    selector — is described the same way: a **spec** of the form
+    ``{"name": ..., **params}``. The data is described by its own **data spec**
+    ``{"source": ..., "target": ..., "features": ...}``. This keeps each
+    component's parameters grouped with that component instead of scattered
+    across loose keyword arguments, and is designed to be LLM-friendly.
 
     Parameters
     ----------
-    algorithm : str or dict
-        Algorithm specification. Accepts flexible formats:
+    model : str, dict, class, or instance
+        Model specification. Accepts flexible formats:
 
-        - ``"RandomForestClassifier"`` — Class name as string
-        - ``{"name": "RandomForestClassifier", "n_trees": 100}`` — Dict with params
+        - ``{"name": "RandomForestClassifier", "n_estimators": 100}`` — **spec
+          dict** (recommended): the class name plus its hyperparameters.
+        - ``"RandomForestClassifier"`` — class name only, default params.
+        - ``RandomForestClassifier(n_estimators=100)`` — a configured instance
+          (opt into an import for editor autocomplete / type-checking).
+        - a class object — instantiated with the resolved parameters.
 
-    data : str, DataFrame, or ndarray
-        Training data source:
-        
-        - ``"path/to/file.csv"`` — Path to data file
-        - ``DataFrame`` — Pandas DataFrame
-        - ``ndarray`` — Numpy array
+    data : str, DataFrame, ndarray, or dict
+        Training data. Accepts:
 
-    target : str or ndarray
-        Target specification:
-        
-        - ``"column_name"`` — Column name in DataFrame
-        - ``ndarray`` — Target array
+        - ``{"source": "sales.csv", "target": "label"}`` — **data spec**
+          (recommended for files): file path or builtin name plus the target
+          column. Optional ``"features": [...]`` restricts the input columns.
+        - ``{"X": X_array, "y": y_array}`` — in-memory arrays, already split.
+        - ``"path/to/file.csv"`` / ``"iris"`` — a bare file path or builtin
+          name (use the ``target`` argument to name the label column).
+        - ``DataFrame`` / ``ndarray`` — in-memory data (with ``target``).
+
+    target : str or ndarray, optional
+        Target for the bare-``data`` forms (ignored when ``data`` is a spec
+        dict that already carries ``"target"``/``"y"``):
+
+        - ``"column_name"`` — the label column in a file/DataFrame.
+        - ``ndarray`` — a separate target array.
+
+    features : list of str, optional
+        Restrict the feature matrix to these named columns. When ``None``
+        (default), every non-target column is used. May also be supplied inside
+        the data spec as ``"features"``.
 
     preprocessing : str, list, or None, default=None
         Preprocessing pipeline specification:
@@ -360,8 +432,8 @@ def train(
     stratify : bool, default=True
         Whether to maintain class distribution in train/test split.
 
-    random_state : int or None, default=42
-        Random seed for reproducibility.
+    random_seed : int or None, default=None
+        Random seed for reproducibility. Falls back to the global seed, then 42.
 
     cv : int or None, default=None
         Number of cross-validation folds. If set, uses CV instead of holdout.
@@ -394,9 +466,15 @@ def train(
     verbose : bool, default=False
         Whether to print progress information.
 
+    algorithm : str, dict, class, or instance, optional
+        Deprecated alias for ``model``, kept for backward compatibility. If both
+        are given, ``model`` wins.
+
     **kwargs
-        Additional algorithm parameters passed directly to the model
-        (e.g., ``n_trees=100``, ``max_depth=10``).
+        Deprecated: loose model hyperparameters (e.g. ``n_estimators=100``).
+        Prefer putting them inside the model spec —
+        ``{"name": "RandomForestClassifier", "n_estimators": 100}``. Still
+        accepted and merged into the model params for backward compatibility.
 
     Returns
     -------
@@ -411,74 +489,76 @@ def train(
 
     Examples
     --------
-    Simplest usage with just algorithm and data:
+    Quick — model name and a data spec:
 
-    >>> result = tuiml.train("RandomForestClassifier", "iris.csv", "class")
+    >>> result = tuiml.train("RandomForestClassifier", {"source": "iris"})
 
-    With algorithm parameters as kwargs:
+    Configured — model spec with params + file data spec, no import:
 
     >>> result = tuiml.train(
-    ...     "RandomForestClassifier",
-    ...     "iris.csv",
-    ...     "class",
-    ...     n_trees=100,
-    ...     max_depth=10
+    ...     {"name": "RandomForestClassifier", "n_estimators": 100},
+    ...     {"source": "sales.csv", "target": "label"},
     ... )
 
-    Using a preprocessing preset:
+    Full pipeline — every component uses the same ``{"name": ..., **params}`` shape:
 
     >>> result = tuiml.train(
-    ...     "RandomForestClassifier",
-    ...     "iris.csv",
-    ...     "class",
-    ...     preset="standard",
-    ...     n_trees=100
-    ... )
-
-    With explicit preprocessing pipeline:
-
-    >>> result = tuiml.train(
-    ...     "RandomForestClassifier",
-    ...     "iris.csv",
-    ...     "class",
-    ...     preprocessing=["SimpleImputer", "MinMaxScaler"],
-    ...     feature_selection="SelectKBestSelector",
-    ...     n_trees=100
-    ... )
-
-    Cross-validation:
-
-    >>> result = tuiml.train(
-    ...     "SVM",
-    ...     "data.csv",
-    ...     "label",
-    ...     preprocessing="standard",
+    ...     {"name": "RandomForestClassifier", "n_estimators": 100},
+    ...     {"source": "sales.csv", "target": "label"},
+    ...     preprocessing=[
+    ...         {"name": "SimpleImputer", "strategy": "mean"},
+    ...         {"name": "MinMaxScaler"},
+    ...     ],
+    ...     feature_selection={"name": "SelectKBestSelector", "k": 10},
     ...     cv=10,
-    ...     kernel="rbf",
-    ...     C=1.0
     ... )
-    """
-    # Validate required params
-    if algorithm is None:
-        raise ValueError("Algorithm must be specified")
-    if data is None:
-        raise ValueError("Data must be provided")
 
-    # Extract algorithm name and params (only place we need to handle dict format)
+    In-memory arrays, already split:
+
+    >>> result = tuiml.train(
+    ...     {"name": "SVC", "kernel": "rbf", "C": 1.0},
+    ...     {"X": X, "y": y},
+    ... )
+
+    Type-safe — pass a configured instance (opt into an import for autocomplete):
+
+    >>> from tuiml.algorithms.trees import RandomForestClassifier
+    >>> result = tuiml.train(RandomForestClassifier(n_estimators=100), {"source": "iris"})
+    """
+    # Resolve the deprecated ``algorithm`` alias — ``model`` wins if both given.
+    if model is None:
+        model = algorithm
+
+    # A legacy seed passed as a loose kwarg is a run option, not a model param.
+    legacy_random_state = kwargs.pop('random_state', None)
+
+    # Resolve the data spec: {"source"/"path": ..., "target": ..., "features": ...}
+    # or {"X": ..., "y": ...}. Bare paths / DataFrames / arrays pass through with
+    # the separate ``target``/``features`` arguments.
+    data, target, features = _resolve_data_spec(data, target, features)
+
+    # Validate required params
+    if model is None:
+        raise ValueError("A model must be specified (name, spec dict, or instance).")
+    if data is None:
+        raise ValueError("Data must be provided.")
+
+    # Extract model name and params (handles str / spec dict / class / instance)
     from tuiml.sklearn.adapter import is_sklearn_estimator, wrap_sklearn
 
-    if is_sklearn_estimator(algorithm):
+    if is_sklearn_estimator(model):
         # A raw scikit-learn-compatible estimator object — wrap it so it speaks
         # the TuiML interface, and pass the instance straight to the workflow.
-        algo_name = wrap_sklearn(algorithm)
-        algo_params = {}
-    elif isinstance(algorithm, dict):
-        algo_dict = algorithm.copy()
+        algo_name = wrap_sklearn(model)
+        algo_params = dict(kwargs)
+    elif isinstance(model, dict):
+        algo_dict = model.copy()
         algo_name = algo_dict.pop("name", None)
-        algo_params = {**algo_dict, **kwargs}  # Merge dict params with kwargs
+        algo_params = {**algo_dict, **kwargs}  # spec params + any legacy kwargs
     else:
-        algo_name = algorithm
-        algo_params = kwargs
+        # String name, class object, or native instance.
+        algo_name = model
+        algo_params = dict(kwargs)
 
     # Handle preprocessing preset
     if preset and preset in PRESETS:
@@ -495,7 +575,7 @@ def train(
     # Use Workflow to execute the training
     from tuiml.workflow import Workflow
 
-    workflow = Workflow(data=data, target=target)
+    workflow = Workflow(data=data, target=target, features=features)
 
     # Add preprocessing steps
     if preprocessing:
@@ -516,8 +596,7 @@ def train(
         elif isinstance(feature_selection, str):
             workflow._feature_selection = {"name": feature_selection}
 
-    # Resolve seed
-    legacy_random_state = kwargs.pop('random_state', None)
+    # Resolve seed (legacy random_state kwarg was popped near the top)
     if random_seed is None:
         random_seed = legacy_random_state
     if random_seed is None:
@@ -560,14 +639,23 @@ def run(config: Union[Dict, str]) -> WorkflowResult:
     Parameters
     ----------
     config : dict or str
-        Configuration specification:
-        
-        - ``dict`` — Configuration dictionary
-        - ``str`` — Path to JSON configuration file
-        
-        Required keys: ``algorithm``, ``data``, ``target``
-        
-        Optional keys: ``preprocessing``, ``feature_selection``, ``cv``, ``metrics``, etc.
+        A single declarative **experiment spec**, using the same
+        ``{"name": ..., **params}`` component convention as :func:`train`:
+
+        - ``dict`` — the spec itself.
+        - ``str`` — path to a JSON file containing the spec.
+
+        Keys:
+
+        - ``model`` — model spec, e.g. ``{"name": "RandomForestClassifier",
+          "n_estimators": 100}`` (or a bare name string).
+        - ``data`` — data spec, e.g. ``{"source": "sales.csv", "target":
+          "label"}`` (or a bare path/builtin name).
+        - ``preprocessing`` / ``feature_selection`` — optional component specs.
+        - ``cv`` / ``metrics`` / ``test_size`` / ``preset`` / ... — run options.
+
+        The legacy flat schema (``algorithm`` + top-level ``data``/``target`` +
+        loose hyperparameters) is still accepted for backward compatibility.
 
     Returns
     -------
@@ -576,33 +664,20 @@ def run(config: Union[Dict, str]) -> WorkflowResult:
 
     Examples
     --------
-    From a configuration dictionary:
+    A declarative experiment spec — one serializable object, ideal for agents:
 
-    >>> config = {
-    ...     "algorithm": "RandomForestClassifier",
-    ...     "data": "iris.csv",
-    ...     "target": "class",
-    ...     "preprocessing": "standard",
-    ...     "n_trees": 100,
-    ...     "cv": 10
+    >>> spec = {
+    ...     "model": {"name": "RandomForestClassifier", "n_estimators": 100},
+    ...     "data": {"source": "sales.csv", "target": "label"},
+    ...     "preprocessing": [{"name": "MinMaxScaler"}],
+    ...     "feature_selection": {"name": "SelectKBestSelector", "k": 10},
+    ...     "cv": 10,
     ... }
-    >>> result = tuiml.run(config)
+    >>> result = tuiml.run(spec)
 
     From a JSON file:
 
     >>> result = tuiml.run("config.json")
-
-    LLM-generated configuration:
-
-    >>> llm_config = {
-    ...     "algorithm": {"name": "RandomForestClassifier", "n_trees": 100},
-    ...     "data": "data.csv",
-    ...     "target": "label",
-    ...     "preprocessing": ["SimpleImputer", "Normalize"],
-    ...     "feature_selection": {"name": "SelectKBestSelector", "k": 10},
-    ...     "cv": 5
-    ... }
-    >>> result = tuiml.run(llm_config)
     """
     if isinstance(config, str):
         # Load from JSON file
@@ -610,7 +685,10 @@ def run(config: Union[Dict, str]) -> WorkflowResult:
         with open(config, 'r') as f:
             config = json.load(f)
 
-    # Pass entire config to train() as kwargs
+    # The spec keys map 1:1 onto train()'s parameters (model, data,
+    # preprocessing, feature_selection, cv, ...). Legacy configs using
+    # ``algorithm`` + flat ``target``/hyperparameters also flow through, since
+    # train() still accepts them.
     return train(**config)
 
 def predict(model, data: Union[pd.DataFrame, np.ndarray]) -> np.ndarray:
@@ -738,7 +816,7 @@ def experiment(
         Algorithm specifications. Accepts flexible formats:
 
         - ``{"RF": RandomForestClassifier(), "SVM": SVM()}`` — Dict of name to instance
-        - ``["RandomForestClassifier", "SVM"]`` — List of class names (uses defaults)
+        - ``["RandomForestClassifier", "SVC"]`` — List of class names (uses defaults)
         - ``[("RF", {"n_trees": 100}), ...]`` — List of (name, params) tuples
 
     datasets : dict or list
@@ -775,7 +853,7 @@ def experiment(
     Compare algorithms using class names:
 
     >>> exp = tuiml.experiment(
-    ...     algorithms=["RandomForestClassifier", "SVM", "NaiveBayesClassifier"],
+    ...     algorithms=["RandomForestClassifier", "SVC", "NaiveBayesClassifier"],
     ...     datasets=["iris", "wine"],
     ...     cv=10
     ... )
@@ -1158,7 +1236,7 @@ def serve(
     --------
     Serve from a WorkflowResult:
 
-    >>> result = tuiml.train("NaiveBayesClassifier", "iris", "class")
+    >>> result = tuiml.train("NaiveBayesClassifier", {"source": "iris", "target": "class"})
     >>> info = tuiml.serve(result, port=9999)
     >>> print(info["url"])
     http://127.0.0.1:9999
