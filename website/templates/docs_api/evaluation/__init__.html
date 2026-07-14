@@ -1,0 +1,103 @@
+{% extends 'layouts/docs_generated.html' %}
+
+{% set active_nav = 'api' %}
+{% set breadcrumb_html = '<a href="/docs/getting_started.html" class="hover:text-gray-900">Documentation</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="../api-reference.html" class="hover:text-gray-900">API Reference</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="index.html" class="hover:text-gray-900">evaluation</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">__init__</span>' %}
+
+{% block title %}__init__ - API Documentation{% endblock %}
+
+{% block content %}
+<div class="flex flex-col lg:flex-row gap-8">
+<aside class="w-full lg:w-64 flex-shrink-0">
+</aside>
+<main class="flex-1 min-w-0">
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary">Evaluation module for TuiML.</p>
+<div class="doc-extended">This module provides:
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+metrics: Classification, regression, clustering, and information-theoretic metrics
+</li>
+
+<li class="text-gray-700">
+splitting: Data splitting strategies (KFold, train_test_split, etc.)
+</li>
+
+<li class="text-gray-700">
+statistics: Statistical tests for model comparison
+</li>
+
+<li class="text-gray-700">
+visualization: Plots and diagrams for result visualization
+</li>
+
+<li class="text-gray-700">
+reporting: Output formatters (LaTeX, HTML, Markdown)
+</li>
+
+<li class="text-gray-700">
+tuning: Hyperparameter tuning (GridSearchCV, RandomSearchCV)
+</li>
+
+<li class="text-gray-700">
+experiments: Controlled experiments with statistical significance testing
+</li>
+
+</ul>
+</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-code text-purple-500 mr-2"></i>Examples</h4>
+            </div>
+            <div class="p-4">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">PYTHON</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.evaluation import accuracy_score, f1_score
+&gt;&gt;&gt; from tuiml.evaluation.experiments import Experiment, run_experiment
+&gt;&gt;&gt; from tuiml.evaluation.splitting import KFold, train_test_split
+&gt;&gt;&gt; from tuiml.evaluation.tuning import GridSearchCV, RandomSearchCV
+&gt;&gt;&gt;
+&gt;&gt;&gt; # Quick metric computation
+&gt;&gt;&gt; accuracy = accuracy_score(y_true, y_pred)
+&gt;&gt;&gt;
+&gt;&gt;&gt; # Data splitting
+&gt;&gt;&gt; X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+&gt;&gt;&gt;
+&gt;&gt;&gt; # Cross-validation
+&gt;&gt;&gt; kfold = KFold(n_splits=5, shuffle=True)
+&gt;&gt;&gt; for train_idx, test_idx in kfold.split(X):
+...     pass
+&gt;&gt;&gt;
+&gt;&gt;&gt; # Hyperparameter tuning
+&gt;&gt;&gt; grid = GridSearchCV(estimator, param_grid={&#x27;C&#x27;: [0.1, 1, 10]})
+&gt;&gt;&gt; grid.fit(X, y)
+&gt;&gt;&gt;
+&gt;&gt;&gt; # Full experiment
+&gt;&gt;&gt; exp = run_experiment(
+...     models={&#x27;RF&#x27;: RandomForestClassifier(), &#x27;SVM&#x27;: SVC()},
+...     datasets={&#x27;data&#x27;: (X, y)},
+...     n_folds=10,
+...     metrics=[&#x27;accuracy_score&#x27;, &#x27;f1_score&#x27;]
+... )
+&gt;&gt;&gt; print(exp.to_latex())</code></pre>
+            </div>
+        </div>
+        </div>
+        </div>
+        </div>
+</main>
+</div>
+{% endblock %}

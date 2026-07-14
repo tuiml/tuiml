@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Benchmarks: TuiML vs scikit-learn vs Weka</title>
+    <meta name="description" content="TuiML benchmarked against scikit-learn and Weka across 51 real-world TabArena datasets: accuracy, R², training time, and memory, per algorithm and per dataset.">
+    <meta name="robots" content="index,follow">
+    <link rel="canonical" href="{{ request.url|string }}">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{{ config.project_name }}">
+    <meta property="og:title" content="Benchmarks: TuiML vs scikit-learn vs Weka">
+    <meta property="og:description" content="TuiML vs scikit-learn vs Weka across 51 real-world TabArena datasets.">
+    <meta property="og:url" content="{{ request.url|string }}">
+    <meta property="og:image" content="{{ request.url_for('static', path='images/tuiml_logo.png')|string }}">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Benchmarks: TuiML vs scikit-learn vs Weka">
+    <meta name="twitter:description" content="TuiML vs scikit-learn vs Weka across 51 real-world TabArena datasets.">
+    <meta name="twitter:image" content="{{ request.url_for('static', path='images/tuiml_logo.png')|string }}">
+
+    <link rel="icon" type="image/svg+xml" href="/static/images/tuiml_logo.png?v=3">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"IBM Plex Sans"', 'sans-serif'],
+                        mono: ['"IBM Plex Mono"', 'monospace'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd',
+                            400: '#60a5fa', 500: '#2563eb', 600: '#1e40af', 700: '#1d4ed8',
+                            800: '#1e40af', 900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .sidebar-group-label {
+            font-size: 0.7rem; font-weight: 700; color: #94a3b8;
+            text-transform: uppercase; letter-spacing: 0.1em;
+            padding: 1rem 0.75rem 0.5rem;
+        }
+        .algo-link {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0.45rem 0.75rem; border-radius: 0.5rem;
+            font-size: 0.875rem; color: #64748b; cursor: pointer; transition: all 0.15s;
+        }
+        .algo-link:hover { background: #f1f5f9; color: #0f172a; }
+        .algo-link.active { background: #eff6ff; color: #1e40af; font-weight: 600; }
+        .metric-tab {
+            padding: 6px 16px; border-radius: 6px; font-size: 13px;
+            font-weight: 500; color: #64748b; cursor: pointer;
+            transition: all 0.15s; border: none; background: transparent;
+        }
+        .metric-tab:hover { color: #334155; }
+        .metric-tab.active { background: white; color: #1e40af; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .best { background: #f0fdf4; font-weight: 600; color: #15803d; }
+        .na { color: #cbd5e1; }
+        .tmo { color: #d97706; font-size: 11px; }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-900 font-sans antialiased flex flex-col min-h-screen">
+    {% include 'docs/components/_navbar.html' %}
+
+    <!-- Hero -->
+    <div class="bg-gradient-to-br from-blue-700 to-blue-900 text-white relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10">
+            <svg class="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path d="M0 100 C 20 0 50 0 100 100 Z" fill="white" />
+            </svg>
+        </div>
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
+            <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight">TuiML vs scikit-learn vs Weka</h1>
+            <p class="text-blue-100 mt-2 text-lg">Per-algorithm accuracy, R², training time, and memory across <strong>51 real-world datasets</strong> — every score is the mean over <strong>10-fold cross-validation</strong>.</p>
+            <div class="flex flex-wrap gap-4 mt-5 text-sm text-blue-100">
+                <span><i class="fa-solid fa-database mr-1.5"></i><span id="stat-datasets">51</span> datasets</span>
+                <span><i class="fa-solid fa-shuffle mr-1.5"></i>10-fold CV</span>
+                <span><i class="fa-solid fa-flask mr-1.5"></i><span id="stat-exp">10,320</span> experiments</span>
+                <span><i class="fa-solid fa-cubes mr-1.5"></i>3 frameworks</span>
+                <span><i class="fa-solid fa-layer-group mr-1.5"></i>TabArena&nbsp;v0.1</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main -->
+    <div class="container mx-auto px-4 py-10 flex flex-col lg:flex-row gap-12 flex-grow">
+        <!-- Algorithm selector -->
+        <aside class="lg:w-60 flex-shrink-0">
+            <div class="sticky top-32">
+                <nav id="algo-nav">
+                    <div class="sidebar-group-label">Classification</div>
+                    <div id="algo-clf" class="space-y-0.5"></div>
+                    <div class="sidebar-group-label">Regression</div>
+                    <div id="algo-reg" class="space-y-0.5"></div>
+                    <div class="sidebar-group-label">Visualizations</div>
+                    <div class="algo-link" id="nav-charts"><span><i class="fa-solid fa-chart-column mr-2"></i>Charts</span></div>
+                    <div class="sidebar-group-label">Export</div>
+                    <a href="/static/benchmarks/tabarena_results.json" class="algo-link"><span><i class="fa-solid fa-file-code mr-2"></i>Download JSON</span></a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Content -->
+        <main class="flex-1 min-w-0">
+            <!-- ===== Summary ===== -->
+            <section class="mb-10">
+                <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-clipboard-check text-gray-500"></i> Summary
+                </h2>
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                    <p class="text-sm text-gray-600 leading-relaxed">
+                        Across the full suite, TuiML delivers the same predictive quality as
+                        scikit-learn. Under 10-fold cross-validation the two are statistically
+                        indistinguishable on nearly every algorithm and dataset, and where they do
+                        differ meaningfully TuiML comes out ahead, most visibly on neural networks,
+                        where scikit-learn's default MLP fails to converge on several regression
+                        datasets while TuiML trains reliably. Weka's remaining wins come from it
+                        running different algorithm variants under the same name, such as pruned
+                        decision trees and target-normalizing SVR, rather than from better
+                        implementations of the same algorithm, and on like-for-like comparisons it
+                        trails the other two. TuiML pairs this accuracy with competitive training
+                        speed and the fastest inference on most algorithms, and it was the only
+                        framework to complete every experiment in the suite without a single
+                        failure or timeout.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ===== Per-algorithm table view ===== -->
+            <div id="view-table">
+            <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-4">
+                <div>
+                    <h2 id="algo-title" class="text-2xl font-bold text-gray-900">Random Forest</h2>
+                    <p id="algo-sub" class="text-sm text-gray-500 mt-1"></p>
+                </div>
+                <div class="inline-flex bg-gray-100 rounded-lg p-1 gap-0.5" id="metric-tabs">
+                    <button class="metric-tab active" data-metric="score">Score</button>
+                    <button class="metric-tab" data-metric="time">Train time</button>
+                    <button class="metric-tab" data-metric="infer">Inference</button>
+                    <button class="metric-tab" data-metric="mem">Memory</button>
+                </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="flex flex-wrap gap-4 text-xs text-gray-500 mb-3">
+                <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-orange-500 align-middle mr-1"></span>TuiML</span>
+                <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-blue-500 align-middle mr-1"></span>scikit-learn</span>
+                <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-purple-500 align-middle mr-1"></span>Weka</span>
+                <span class="ml-auto"><span class="best px-1.5 py-0.5 rounded">green</span> = best on that dataset</span>
+            </div>
+
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="bg-gray-50 border-b border-gray-200 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                <th class="text-left px-4 py-3">Dataset</th>
+                                <th class="text-right px-3 py-3">Size</th>
+                                <th class="text-center px-4 py-3"><span class="text-orange-600">TuiML</span></th>
+                                <th class="text-center px-4 py-3"><span class="text-blue-600">scikit-learn</span></th>
+                                <th class="text-center px-4 py-3"><span class="text-purple-600">Weka</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="rows" class="divide-y divide-gray-100"></tbody>
+                    </table>
+                </div>
+            </div>
+            <p id="metric-note" class="text-xs text-gray-400 mt-2"></p>
+            </div><!-- /view-table -->
+
+            <!-- ===== Charts view (toggled from the sidebar) ===== -->
+            <section id="view-charts" class="hidden">
+                <h2 class="text-2xl font-bold text-gray-900 mb-1 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-column text-blue-600"></i> Visualizations
+                </h2>
+                <p class="text-sm text-gray-500 mb-5">Aggregate comparisons across all 51 datasets.</p>
+                <div class="flex flex-wrap gap-4 text-xs text-gray-500 mb-5">
+                    <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-orange-500 align-middle mr-1"></span>TuiML</span>
+                    <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-blue-500 align-middle mr-1"></span>scikit-learn</span>
+                    <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-purple-500 align-middle mr-1"></span>Weka</span>
+                </div>
+
+                <!-- Speed dot-plot: train + inference time per 1k samples (log) -->
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-8">
+                    <h3 class="text-sm font-semibold text-gray-700 mb-1">Speed — median time per 1,000 samples</h3>
+                    <p class="text-xs text-gray-400 mb-4">Lower (left) is faster. Log scale. One row per algorithm; a dot per framework.</p>
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div>
+                            <p class="text-xs font-semibold text-gray-500 text-center mb-2">Training time</p>
+                            <div class="relative" style="height:430px"><canvas id="chart-train"></canvas></div>
+                        </div>
+                        <div>
+                            <p class="text-xs font-semibold text-gray-500 text-center mb-2">Inference time</p>
+                            <div class="relative" style="height:430px"><canvas id="chart-infer"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accuracy / R² grouped bars + win count -->
+                <div class="grid lg:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                        <h3 class="text-sm font-semibold text-gray-700 mb-4">Mean accuracy by algorithm — classification</h3>
+                        <div class="relative" style="height:300px"><canvas id="chart-acc"></canvas></div>
+                    </div>
+                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                        <h3 class="text-sm font-semibold text-gray-700 mb-4">Mean R² by algorithm — regression</h3>
+                        <div class="relative" style="height:300px"><canvas id="chart-r2"></canvas></div>
+                    </div>
+                </div>
+                <div class="grid lg:grid-cols-2 gap-8">
+                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                        <h3 class="text-sm font-semibold text-gray-700 mb-1">Datasets won per framework</h3>
+                        <p class="text-xs text-gray-400 mb-4">Best mean score (10-fold CV) per (algorithm × dataset) cell; frameworks within fold noise of the best share the credit.</p>
+                        <div class="relative" style="height:280px"><canvas id="chart-wins"></canvas></div>
+                    </div>
+                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                        <h3 class="text-sm font-semibold text-gray-700 mb-1">Accuracy vs training time</h3>
+                        <p class="text-xs text-gray-400 mb-4">Per algorithm (classification), averaged across datasets. Up &amp; left is better.</p>
+                        <div class="relative" style="height:280px"><canvas id="chart-scatter"></canvas></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Methodology -->
+            <section class="mt-12">
+                <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-flask text-gray-500"></i> Methodology
+                </h2>
+                <div class="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+                    <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Protocol</h3>
+                        <ul class="text-sm text-gray-600 space-y-2">
+                            <li><strong>Datasets:</strong> 51 tabular datasets from <a class="text-blue-600 hover:underline" href="https://github.com/autogluon/tabarena" target="_blank" rel="noopener">TabArena&nbsp;v0.1</a> (38 classification, 13 regression)</li>
+                            <li><strong>Frameworks:</strong> TuiML, scikit-learn, Weka (python-weka-wrapper3)</li>
+                            <li><strong>Algorithms:</strong> only those available in all three libraries</li>
+                            <li><strong>Validation:</strong> stratified 10-fold cross-validation (shuffled, fixed seed), folds identical across frameworks; scores are mean ± std over the 10 folds</li>
+                            <li><strong>Preprocessing:</strong> shared impute + scale + one-hot; Naive Bayes uses ordinal-encoded / quantile-binned features with each library's native categorical NB</li>
+                            <li><strong>Hyperparameters:</strong> library defaults (Weka runs its native variants)</li>
+                            <li><strong>Metrics:</strong> Accuracy / R², training time, peak memory</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Environment</h3>
+                        <ul class="text-sm text-gray-600 space-y-2">
+                            <li><strong>TuiML:</strong> v0.1.6</li>
+                            <li><strong>scikit-learn:</strong> v1.8.0</li>
+                            <li><strong>Weka:</strong> python-weka-wrapper3 0.3.2 (Java 21)</li>
+                            <li><strong>Each experiment:</strong> isolated process, single-threaded</li>
+                        </ul>
+                    </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    {% include 'components/_footer.html' %}
+
+    <script>
+    (function () {
+        var STATE = { algo: null, metric: 'score', data: null };
+
+        function fmtScore(v, task) {
+            if (v === null || v === undefined) return null;
+            return task === 'classification' ? (v * 100).toFixed(2) + '%' : v.toFixed(4);
+        }
+        function fmtTime(v) {
+            if (v === null || v === undefined) return null;
+            return v < 1 ? (v * 1000).toFixed(0) + ' ms' : v.toFixed(1) + ' s';
+        }
+        function fmtMem(v) {
+            if (v === null || v === undefined) return null;
+            return v.toFixed(0) + ' MB';
+        }
+
+        function cellValue(rec, metric) {
+            // returns {raw, ok, status} for comparison/format
+            if (!rec) return { raw: null, ok: false, status: 'missing' };
+            if (rec.status !== 'ok') return { raw: null, ok: false, status: rec.status };
+            var raw = metric === 'score' ? rec.score
+                    : metric === 'time' ? rec.fit_s
+                    : metric === 'infer' ? rec.predict_s
+                    : rec.mem_mb;
+            return { raw: raw, ok: raw !== null && raw !== undefined, status: 'ok' };
+        }
+
+        function renderTable() {
+            var d = STATE.data;
+            var algo = STATE.algo;
+            var meta = d.algorithms.find(function (a) { return a.key === algo; });
+            var rows = d.data[algo] || [];
+            var metric = STATE.metric;
+            var higherBetter = metric === 'score';
+
+            document.getElementById('algo-title').textContent = meta.label;
+            var scoreWord = meta.task === 'classification' ? 'Accuracy' : 'R²';
+            document.getElementById('algo-sub').textContent =
+                (meta.task === 'classification' ? 'Classification' : 'Regression') +
+                ' · ' + rows.length + ' datasets · score = ' + scoreWord;
+
+            var notes = {
+                score: 'Score = ' + scoreWord + ' (higher is better).',
+                time: 'Training (fit) time per dataset; lower is better.',
+                infer: 'Inference time on the held-out test set; lower is better.',
+                mem: 'Peak process memory; lower is better. Weka includes its in-process JVM baseline.'
+            };
+            document.getElementById('metric-note').textContent = notes[metric] +
+                '   "timeout" = too slow to finish within the time limit.';
+
+            var tbody = document.getElementById('rows');
+            tbody.innerHTML = '';
+            rows.forEach(function (row) {
+                var fws = ['tuiml', 'sklearn', 'weka'];
+                var vals = fws.map(function (f) { return cellValue(row[f], metric); });
+                // best index among ok values
+                var bestIdx = -1, bestRaw = null;
+                vals.forEach(function (v, i) {
+                    if (!v.ok) return;
+                    if (bestRaw === null || (higherBetter ? v.raw > bestRaw : v.raw < bestRaw)) {
+                        bestRaw = v.raw; bestIdx = i;
+                    }
+                });
+                var isBest = vals.map(function (v, i) { return i === bestIdx; });
+
+                var tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50';
+                var size = (row.rows ? row.rows.toLocaleString() : '?') + ' × ' + (row.features != null ? row.features : '?');
+                var html = '<td class="px-4 py-2.5 font-medium text-gray-900">' + row.dataset + '</td>' +
+                           '<td class="px-3 py-2.5 text-right font-mono text-xs text-gray-400">' + size + '</td>';
+                vals.forEach(function (v, i) {
+                    var txt, cls = 'px-4 py-2.5 text-center font-mono text-sm';
+                    if (v.status === 'ok' && v.ok) {
+                        txt = metric === 'score' ? fmtScore(v.raw, meta.task)
+                            : metric === 'mem' ? fmtMem(v.raw)
+                            : fmtTime(v.raw);
+                        if (metric === 'score') {
+                            var sd = (row[fws[i]] || {}).score_std;
+                            if (sd !== undefined && sd !== null) {
+                                txt += '<span class="text-gray-400 text-xs"> ±' +
+                                    (meta.task === 'classification'
+                                        ? (sd * 100).toFixed(1) : sd.toFixed(2)) + '</span>';
+                            }
+                        }
+                        if (isBest[i]) cls += ' best';
+                    } else if (v.status === 'timeout') {
+                        txt = '<span class="tmo">timeout</span>';
+                    } else {
+                        txt = '<span class="na">—</span>';
+                    }
+                    html += '<td class="' + cls + '">' + txt + '</td>';
+                });
+                tr.innerHTML = html;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function buildSelector() {
+            var d = STATE.data;
+            var clf = document.getElementById('algo-clf');
+            var reg = document.getElementById('algo-reg');
+            d.algorithms.forEach(function (a) {
+                var el = document.createElement('div');
+                el.className = 'algo-link';
+                el.dataset.algo = a.key;
+                el.innerHTML = '<span>' + a.label + '</span>';
+                el.onclick = function () { selectAlgo(a.key); };
+                (a.task === 'classification' ? clf : reg).appendChild(el);
+            });
+        }
+
+        function selectAlgo(key) {
+            STATE.algo = key;
+            document.getElementById('view-charts').classList.add('hidden');
+            document.getElementById('view-table').classList.remove('hidden');
+            document.getElementById('nav-charts').classList.remove('active');
+            document.querySelectorAll('.algo-link').forEach(function (el) {
+                el.classList.toggle('active', el.dataset.algo === key);
+            });
+            renderTable();
+        }
+
+        var chartsRendered = false;
+        document.getElementById('nav-charts').addEventListener('click', function () {
+            document.getElementById('view-table').classList.add('hidden');
+            document.getElementById('view-charts').classList.remove('hidden');
+            document.querySelectorAll('.algo-link').forEach(function (el) { el.classList.remove('active'); });
+            this.classList.add('active');
+            // render lazily — the canvases need a visible (sized) container
+            if (!chartsRendered && STATE.data) { renderCharts(STATE.data); chartsRendered = true; }
+        });
+
+        document.getElementById('metric-tabs').addEventListener('click', function (e) {
+            var btn = e.target.closest('.metric-tab');
+            if (!btn) return;
+            STATE.metric = btn.dataset.metric;
+            document.querySelectorAll('#metric-tabs .metric-tab').forEach(function (b) {
+                b.classList.toggle('active', b === btn);
+            });
+            renderTable();
+        });
+
+        var FW = ['tuiml', 'sklearn', 'weka'];
+
+        // mean of pick(cell) over ok datasets, per algorithm, for a task
+        function meanBy(task, pick) {
+            var algos = STATE.data.algorithms.filter(function (a) { return a.task === task; });
+            var out = { labels: [], series: { tuiml: [], sklearn: [], weka: [] } };
+            algos.forEach(function (a) {
+                out.labels.push(a.label);
+                FW.forEach(function (fw) {
+                    var vals = STATE.data.data[a.key].map(function (r) {
+                        return r[fw] && r[fw].status === 'ok' ? pick(r[fw]) : null;
+                    }).filter(function (v) { return v !== null && v !== undefined; });
+                    out.series[fw].push(vals.length ? vals.reduce(function (x, y) { return x + y; }, 0) / vals.length : null);
+                });
+            });
+            return out;
+        }
+
+        function renderCharts(d) {
+            var C = d.meta.framework_colors, L = d.meta.framework_labels;
+            var algoLabels = d.timing.map(function (t) { return t.label + (t.task === 'regression' ? ' (reg)' : ''); });
+
+            // ---- two-panel speed dot plot (median time per 1k samples, log x) ----
+            function dotPanel(id, key) {
+                new Chart(document.getElementById(id), {
+                    type: 'scatter',
+                    data: {
+                        datasets: FW.map(function (fw) {
+                            return {
+                                label: L[fw], backgroundColor: C[fw], borderColor: C[fw],
+                                pointRadius: 5, pointHoverRadius: 7,
+                                data: d.timing.map(function (t, i) {
+                                    var v = t[fw] && t[fw][key];
+                                    return (v === null || v === undefined) ? null : { x: Math.max(v, 0.0001), y: i };
+                                }).filter(Boolean)
+                            };
+                        })
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { callbacks: { label: function (c) {
+                                var x = c.parsed.x;
+                                return L[FW[c.datasetIndex]] + ' · ' + algoLabels[c.parsed.y] + ': ' +
+                                    (x < 1 ? x.toFixed(3) : x.toFixed(1)) + ' ms/1K';
+                            } } }
+                        },
+                        scales: {
+                            x: { type: 'logarithmic', title: { display: true, text: 'ms per 1K samples (log)' }, ticks: { font: { size: 10 } } },
+                            y: { min: -0.5, max: d.timing.length - 0.5, reverse: true,
+                                 ticks: { stepSize: 1, autoSkip: false, font: { size: 10 },
+                                          callback: function (v) { return algoLabels[v] || ''; } },
+                                 grid: { display: false } }
+                        }
+                    }
+                });
+            }
+            dotPanel('chart-train', 'train_per1k');
+            dotPanel('chart-infer', 'infer_per1k');
+
+            // ---- mean score grouped bars ----
+            function groupedBar(id, task, asPct, yMax) {
+                var m = meanBy(task, function (r) { return r.score; });
+                new Chart(document.getElementById(id), {
+                    type: 'bar',
+                    data: {
+                        labels: m.labels,
+                        datasets: FW.map(function (fw) {
+                            return { label: L[fw], backgroundColor: C[fw],
+                                     data: m.series[fw].map(function (v) { return v === null ? null : (asPct ? v * 100 : v); }) };
+                        })
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { position: 'top', labels: { boxWidth: 10, font: { size: 11 } } } },
+                        scales: {
+                            x: { ticks: { font: { size: 10 }, maxRotation: 40, minRotation: 40 }, grid: { display: false } },
+                            y: { suggestedMax: yMax, ticks: { font: { size: 10 }, callback: function (v) { return asPct ? v + '%' : v; } } }
+                        }
+                    }
+                });
+            }
+            groupedBar('chart-acc', 'classification', true, 100);
+            groupedBar('chart-r2', 'regression', false, 1);
+
+            // ---- datasets won per framework (best-or-tied score per cell) ----
+            function winCounts(task) {
+                // best mean score wins; frameworks within fold noise
+                // (2 x SE over the 10 CV folds) of the best share the credit
+                var w = { tuiml: 0, sklearn: 0, weka: 0 };
+                d.algorithms.filter(function (a) { return a.task === task; }).forEach(function (a) {
+                    d.data[a.key].forEach(function (r) {
+                        var ok = FW.filter(function (fw) {
+                            return r[fw] && r[fw].status === 'ok' &&
+                                   r[fw].score !== null && r[fw].score !== undefined;
+                        });
+                        if (!ok.length) return;
+                        var best = ok.reduce(function (m, fw) {
+                            return r[fw].score > r[m].score ? fw : m;
+                        });
+                        var b = r[best];
+                        var winners = ok.filter(function (fw) {
+                            if (fw === best) return true;
+                            var c = r[fw];
+                            var se = Math.sqrt(
+                                Math.pow(c.score_std || 0, 2) / (c.n_seeds || 1) +
+                                Math.pow(b.score_std || 0, 2) / (b.n_seeds || 1));
+                            return b.score - c.score <= 2 * Math.max(se, 1e-12);
+                        });
+                        winners.forEach(function (fw) { w[fw] += 1 / winners.length; });
+                    });
+                });
+                return w;
+            }
+            var wc = winCounts('classification'), wr = winCounts('regression');
+            new Chart(document.getElementById('chart-wins'), {
+                type: 'bar',
+                data: {
+                    labels: ['Classification', 'Regression'],
+                    datasets: FW.map(function (fw) {
+                        return { label: L[fw], backgroundColor: C[fw], data: [Math.round(wc[fw]), Math.round(wr[fw])] };
+                    })
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top', labels: { boxWidth: 10, font: { size: 11 } } } },
+                    scales: { x: { grid: { display: false } }, y: { beginAtZero: true, title: { display: true, text: 'datasets won' } } }
+                }
+            });
+
+            // ---- accuracy vs training time scatter (classification) ----
+            var accM = meanBy('classification', function (r) { return r.score; });
+            var timeM = meanBy('classification', function (r) { return r.fit_s; });
+            new Chart(document.getElementById('chart-scatter'), {
+                type: 'scatter',
+                data: {
+                    datasets: FW.map(function (fw) {
+                        return {
+                            label: L[fw], backgroundColor: C[fw], borderColor: C[fw],
+                            pointRadius: 5, pointHoverRadius: 7,
+                            data: accM.labels.map(function (lab, i) {
+                                var t = timeM.series[fw][i], s = accM.series[fw][i];
+                                return (t === null || s === null) ? null : { x: Math.max(t, 0.001), y: s * 100, algo: lab };
+                            }).filter(Boolean)
+                        };
+                    })
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { boxWidth: 10, font: { size: 11 } } },
+                        tooltip: { callbacks: { label: function (c) {
+                            return L[FW[c.datasetIndex]] + ' · ' + c.raw.algo + ': ' + c.parsed.y.toFixed(1) + '%, ' + c.parsed.x.toFixed(2) + ' s';
+                        } } }
+                    },
+                    scales: {
+                        x: { type: 'logarithmic', title: { display: true, text: 'mean training time (s, log)' }, ticks: { font: { size: 10 } } },
+                        y: { title: { display: true, text: 'mean accuracy (%)' }, ticks: { font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        fetch('/static/benchmarks/tabarena_results.json')
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                STATE.data = d;
+                document.getElementById('stat-datasets').textContent = d.meta.n_datasets;
+                document.getElementById('stat-exp').textContent = d.meta.n_experiments.toLocaleString();
+                buildSelector();
+                selectAlgo(d.algorithms[0].key);
+            })
+            .catch(function (e) {
+                document.getElementById('rows').innerHTML =
+                    '<tr><td colspan="5" class="px-4 py-6 text-center text-red-500">Failed to load benchmark data.</td></tr>';
+            });
+    })();
+    </script>
+</body>
+</html>

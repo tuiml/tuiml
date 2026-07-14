@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'components/_head.html' %}
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body class="bg-white text-gray-900 font-sans antialiased flex flex-col min-h-screen">
+    <!-- Navigation -->
+    {% include 'components/_navbar.html' %}
+
+    <!-- Main Content -->
+    <main class="flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    {% include 'components/_footer.html' %}
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -113,6 +113,10 @@ cmake.version = ">=3.15"
 cmake.build-type = "Release"
 wheel.packages = ["tuiml"]
 build-dir = "build/{wheel_tag}"
+# The bundled landing/docs site (served via GitHub Pages) is not part of the
+# Python package. wheel.packages already keeps it out of the wheel; exclude it
+# from the sdist too so the source tarball stays lean.
+sdist.exclude = ["website"]
 
 [tool.scikit-build.cmake.define]
 USE_OPENMP = "ON"

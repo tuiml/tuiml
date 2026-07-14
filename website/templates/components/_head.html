@@ -1,0 +1,135 @@
+{#
+    Reusable <head> content component
+    Usage: {% include 'components/_head.html' %}
+
+    Variables:
+    - title: Page title (required)
+    - extra_css: Additional CSS block (optional)
+#}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}{{ title }}{% if config.app_name not in title %} - {{ config.app_name }}{% endif %}{% endblock %}</title>
+<meta name="description" content="{{ meta_description|default(config.default_meta_description) }}">
+{% if meta_keywords %}<meta name="keywords" content="{{ meta_keywords }}">{% endif %}
+<meta name="robots" content="{{ meta_robots|default('index,follow') }}">
+<meta name="author" content="{{ config.project_name }} Team, AI Institute, University of Waikato">
+<meta name="theme-color" content="#0b1628">
+<link rel="canonical" href="{{ canonical_url|default(request.url|string if request is defined else '') }}">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{ config.project_name }}">
+<meta property="og:title" content="{% block og_title %}{{ title }}{% if config.app_name not in title %} - {{ config.app_name }}{% endif %}{% endblock %}">
+<meta property="og:description" content="{{ meta_description|default(config.default_meta_description) }}">
+<meta property="og:url" content="{{ canonical_url|default(request.url|string if request is defined else '') }}">
+<meta property="og:image" content="{{ og_image_url|default(request.url_for('static', path='images/tuiml_logo.png')|string if request is defined else '') }}">
+<meta property="og:image:alt" content="{{ config.project_name }} logo">
+<meta property="og:locale" content="en_US">
+
+<!-- Twitter / X -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{% block twitter_title %}{{ title }}{% if config.app_name not in title %} - {{ config.app_name }}{% endif %}{% endblock %}">
+<meta name="twitter:description" content="{{ meta_description|default(config.default_meta_description) }}">
+<meta name="twitter:image" content="{{ og_image_url|default(request.url_for('static', path='images/tuiml_logo.png')|string if request is defined else '') }}">
+<meta name="twitter:image:alt" content="{{ config.project_name }} logo">
+
+<!-- Structured data: SoftwareApplication -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "{{ config.project_name }}",
+  "applicationCategory": "DeveloperApplication",
+  "applicationSubCategory": "Machine Learning",
+  "operatingSystem": "macOS, Linux, Windows",
+  "description": "{{ meta_description|default(config.default_meta_description) }}",
+  "url": "https://tuiml.ai",
+  "downloadUrl": "https://tuiml.ai/install.sh",
+  "softwareVersion": "{{ config.version }}",
+  "license": "https://github.com/tuiml/tuiml/blob/main/LICENSE",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Organization",
+    "name": "AI Institute, University of Waikato",
+    "url": "https://profiles.waikato.ac.nz/groups/artificial-intelligence-institute"
+  },
+  "sameAs": [
+    "https://github.com/tuiml/tuiml",
+    "https://pypi.org/project/tuiml/"
+  ]
+}
+</script>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- FontAwesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: {
+                    sans: ['"IBM Plex Sans"', 'sans-serif'],
+                    mono: ['"IBM Plex Mono"', 'monospace'],
+                },
+                colors: {
+                    primary: {
+                        50: '#eff6ff',
+                        100: '#dbeafe',
+                        200: '#bfdbfe',
+                        300: '#93c5fd',
+                        400: '#60a5fa',
+                        500: '#3b82f6',
+                        600: '#2563eb',
+                        700: '#1d4ed8',
+                        800: '#1e40af',
+                        900: '#1e3a8a',
+                    },
+                    gray: {
+                        50: '#f9fafb',
+                        100: '#f3f4f6',
+                        200: '#e5e7eb',
+                        300: '#d1d5db',
+                        400: '#9ca3af',
+                        500: '#6b7280',
+                        600: '#4b5563',
+                        700: '#374151',
+                        800: '#1f2937',
+                        900: '#111827',
+                    }
+                }
+            }
+        }
+    }
+</script>
+
+<!-- Base Styles -->
+<style>
+    /* Custom scrollbar */
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Inline code */
+    code:not(pre code) {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.875em;
+        background: #f1f5f9;
+        color: #ef4444;
+        padding: 0.125rem 0.375rem;
+        border-radius: 0.25rem;
+    }
+</style>
+
+<!-- Favicon -->
+<link rel="icon" type="image/svg+xml" href="/static/images/tuiml_logo.png?v=3">

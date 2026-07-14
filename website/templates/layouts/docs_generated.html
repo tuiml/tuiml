@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ config.project_name }} Documentation{% endblock %}</title>
+    <meta name="description" content="{{ meta_description|default(config.default_meta_description) }}">
+    <meta name="robots" content="{{ meta_robots|default('index,follow') }}">
+    <link rel="canonical" href="{{ canonical_url|default(request.url|string if request is defined else '') }}">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{{ config.project_name }}">
+    <meta property="og:title" content="{% block og_title %}{{ config.project_name }} Documentation{% endblock %}">
+    <meta property="og:description" content="{{ meta_description|default(config.default_meta_description) }}">
+    <meta property="og:url" content="{{ canonical_url|default(request.url|string if request is defined else '') }}">
+    <meta property="og:image" content="{{ og_image_url|default(request.url_for('static', path='images/tuiml_logo.png')|string if request is defined else '') }}">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{% block twitter_title %}{{ config.project_name }} Documentation{% endblock %}">
+    <meta name="twitter:description" content="{{ meta_description|default(config.default_meta_description) }}">
+    <meta name="twitter:image" content="{{ og_image_url|default(request.url_for('static', path='images/tuiml_logo.png')|string if request is defined else '') }}">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- KaTeX for Math Rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Highlight.js for Code Syntax Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"IBM Plex Sans"', 'sans-serif'],
+                        mono: ['"IBM Plex Mono"', 'monospace'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Code blocks */
+        .code-block-wrapper { background: #1e293b; border-radius: 0.75rem; overflow: hidden; margin: 1rem 0; border: 1px solid #334155; }
+        .code-block-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background: #0f172a; border-bottom: 1px solid #334155; }
+        .code-block-header span { font-size: 0.75rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; }
+        .code-block-wrapper pre { margin: 0; padding: 1rem; overflow-x: auto; }
+        .code-block-wrapper code { font-family: 'IBM Plex Mono', monospace; font-size: 0.875rem; line-height: 1.6; background: transparent !important; color: #e2e8f0; padding: 0; }
+        .copy-btn { background: transparent; border: none; color: #64748b; cursor: pointer; padding: 0.25rem; transition: color 0.15s; }
+        .copy-btn:hover { color: #e2e8f0; }
+        /* Inline code */
+        code { font-family: 'IBM Plex Mono', monospace; font-size: 0.875em; background: #f1f5f9; color: #ef4444; padding: 0.125rem 0.375rem; border-radius: 0.25rem; }
+        /* Doc sections */
+        .doc-section { margin-top: 4rem; }
+        .doc-section h2 { font-size: 1.75rem; font-weight: 800; color: #0f172a; margin-bottom: 1rem; }
+        .doc-section p { color: #475569; line-height: 1.7; margin-bottom: 1rem; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans antialiased flex flex-col min-h-screen">
+    <!-- Navigation -->
+    {% include 'docs/components/_navbar.html' %}
+
+    <!-- Hero Section -->
+    {% if hero_title %}
+    <div class="bg-gradient-to-br from-blue-700 to-blue-900 text-white relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10">
+            <svg class="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path d="M0 100 C 20 0 50 0 100 100 Z" fill="white" />
+            </svg>
+        </div>
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
+            <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight">{{ hero_title }}</h1>
+            {% if hero_subtitle %}
+            <p class="text-blue-100 mt-2 text-lg">{{ hero_subtitle }}</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="container mx-auto px-4 py-8 flex-grow">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Footer -->
+    {% include 'components/_footer.html' %}
+
+    <script>
+        // Copy Code Functionality
+        const copyButtons = document.querySelectorAll('.copy-btn');
+        copyButtons.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const wrapper = this.closest('.code-block-wrapper');
+                const codeBlock = wrapper.querySelector('code');
+                const code = codeBlock.innerText;
+
+                navigator.clipboard.writeText(code).then(() => {
+                    const icon = this.querySelector('i');
+                    const originalClass = icon.className;
+
+                    icon.className = 'fa-solid fa-check text-green-500';
+
+                    setTimeout(() => {
+                        icon.className = originalClass;
+                    }, 2000);
+                });
+            });
+        });
+
+        // Render KaTeX math when page loads
+        document.addEventListener("DOMContentLoaded", function() {
+            // Initialize syntax highlighting
+            hljs.highlightAll();
+
+            // Render display math
+            document.querySelectorAll('.katex-display').forEach(function(el) {
+                try {
+                    katex.render(el.textContent, el, {
+                        displayMode: true,
+                        throwOnError: false
+                    });
+                } catch (e) {
+                    console.error('KaTeX error:', e);
+                }
+            });
+
+            // Render inline math
+            document.querySelectorAll('.katex-inline').forEach(function(el) {
+                try {
+                    katex.render(el.textContent, el, {
+                        displayMode: false,
+                        throwOnError: false
+                    });
+                } catch (e) {
+                    console.error('KaTeX error:', e);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

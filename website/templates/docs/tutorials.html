@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutorials — TuiML Documentation</title>
+    <meta name="description" content="Hands-on TuiML tutorials and Jupyter notebooks: high-level APIs, workflow pipelines, MCP agent tools, model serving, and real-world case studies.">
+    <meta name="robots" content="index,follow">
+    <link rel="canonical" href="{{ request.url|string }}">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{{ config.project_name }}">
+    <meta property="og:title" content="Tutorials — TuiML Documentation">
+    <meta property="og:description" content="Hands-on TuiML tutorials and Jupyter notebooks: high-level APIs, workflow pipelines, MCP agent tools, model serving, and real-world case studies.">
+    <meta property="og:url" content="{{ request.url|string }}">
+    <meta property="og:image" content="{{ request.url_for('static', path='images/tuiml_logo.png')|string }}">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Tutorials — TuiML Documentation">
+    <meta name="twitter:description" content="Hands-on TuiML tutorials and Jupyter notebooks: high-level APIs, workflow pipelines, MCP agent tools, model serving, and real-world case studies.">
+    <meta name="twitter:image" content="{{ request.url_for('static', path='images/tuiml_logo.png')|string }}">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/static/images/tuiml_logo.png?v=3">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"IBM Plex Sans"', 'sans-serif'],
+                        mono: ['"IBM Plex Mono"', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-gray-50 text-gray-900 font-sans antialiased flex flex-col min-h-screen">
+    {% include 'docs/components/_navbar.html' %}
+
+    <!-- Hero Section -->
+    <div class="bg-gradient-to-br from-blue-700 to-blue-900 text-white relative overflow-hidden">
+        <!-- Abstract Background Pattern -->
+        <div class="absolute inset-0 opacity-10">
+            <svg class="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path d="M0 100 C 20 0 50 0 100 100 Z" fill="white" />
+            </svg>
+        </div>
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
+            <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight">Tutorials</h1>
+            <p class="text-blue-100 mt-2 text-lg">Three tracks. Pick the one that matches what you're trying to do.</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-12 flex-grow">
+
+        <!-- Track Chooser -->
+        <div class="mb-12">
+            <div class="grid md:grid-cols-3 gap-4">
+                <a href="#track-agents"
+                    class="bg-white rounded-xl border-2 border-blue-200 shadow-sm p-5 hover:border-blue-500 hover:shadow-md transition-all group">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="text-xs font-bold text-blue-600 uppercase tracking-wide">Track A</span>
+                        <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">Recommended</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 group-hover:text-blue-700">I have an agent</h3>
+                    <p class="text-gray-600 text-sm mt-1">Wire Claude, ChatGPT, or any MCP client to TuiML's 200+ tools.</p>
+                </a>
+                <a href="#track-python"
+                    class="bg-white rounded-xl border-2 border-gray-200 shadow-sm p-5 hover:border-gray-400 hover:shadow-md transition-all group">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="text-xs font-bold text-gray-500 uppercase tracking-wide">Track B</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 group-hover:text-gray-700">I want the Python API</h3>
+                    <p class="text-gray-600 text-sm mt-1">Use TuiML directly for data prep, modeling, and experiments.</p>
+                </a>
+                <a href="#track-ship"
+                    class="bg-white rounded-xl border-2 border-gray-200 shadow-sm p-5 hover:border-gray-400 hover:shadow-md transition-all group">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="text-xs font-bold text-gray-500 uppercase tracking-wide">Track C</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 group-hover:text-gray-700">I want to ship it</h3>
+                    <p class="text-gray-600 text-sm mt-1">CLI, REST serving, and full case studies from EDA to deployment.</p>
+                </a>
+            </div>
+        </div>
+
+        <!-- Start Here -->
+        <div class="mb-12">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                <i class="fa-solid fa-play text-green-500"></i>
+                Start Here
+            </h2>
+            <a href="/tutorials/quickstart/01_hello_tuiml.ipynb"
+                class="block bg-white rounded-xl border-2 border-fuchsia-300 shadow-md overflow-hidden hover:shadow-lg hover:border-fuchsia-500 transition-all group">
+                <div class="h-2 bg-gradient-to-r from-blue-700 via-fuchsia-500 to-amber-400"></div>
+                <div class="p-6">
+                    <div class="flex items-start gap-4">
+                        <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-fuchsia-500 to-blue-700 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                            <i class="fa-solid fa-stopwatch text-white text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <h3 class="text-lg font-bold text-gray-900 group-hover:text-fuchsia-700 transition-colors">Hello TuiML</h3>
+                                <span class="px-2 py-0.5 bg-fuchsia-100 text-fuchsia-700 rounded text-xs font-bold uppercase">Flagship</span>
+                            </div>
+                            <p class="text-gray-600 mt-1">Walk every clause of the homepage promise &mdash; <em>find &middot; train &middot; tune &middot; compare &middot; serve</em> &mdash; on a real medical dataset. Plus LangChain &amp; Pydantic-AI integrations.</p>
+                            <div class="flex items-center gap-4 mt-3 text-sm text-gray-500 flex-wrap">
+                                <span><i class="fa-regular fa-clock mr-1"></i> 10 min</span>
+                                <span><i class="fa-solid fa-signal mr-1"></i> Beginner &rarr; Intermediate</span>
+                                <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">Start Here</span>
+                                <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">tuiml_tune</span>
+                                <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">LangChain</span>
+                                <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">Pydantic-AI</span>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-gray-400 group-hover:text-fuchsia-700 transition-colors self-center"></i>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- TRACK A: I have an agent -->
+        <div id="track-agents" class="mb-12 scroll-mt-20">
+            <div class="flex items-center gap-3 mb-2">
+                <span class="text-xs font-bold text-blue-600 uppercase tracking-wide bg-blue-50 px-2 py-0.5 rounded">Track A</span>
+                <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                    <i class="fa-solid fa-robot text-blue-700"></i>
+                    I have an agent
+                </h2>
+            </div>
+            <p class="text-gray-500 mb-6 ml-1">Connect Claude, ChatGPT, Cursor, or any MCP client and have it run real ML for you. No glue code.</p>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <a href="/tutorials/llm_friendly/02_mcp_server.ipynb"
+                    class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md hover:border-blue-400 transition-all group">
+                    <div class="h-2 bg-gradient-to-r from-blue-700 to-blue-700"></div>
+                    <div class="p-5">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-bolt text-blue-800"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 group-hover:text-blue-800 transition-colors">1. Connect Your Agent</h3>
+                                <p class="text-gray-600 text-sm mt-1">MCP setup for Claude Desktop, Cursor, and Claude Code</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex flex-wrap gap-1.5">
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">MCP</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">5 min</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="/tutorials/llm_friendly/01_llm_tools.ipynb"
+                    class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md hover:border-blue-400 transition-all group">
+                    <div class="h-2 bg-gradient-to-r from-blue-700 to-blue-600"></div>
+                    <div class="p-5">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-robot text-blue-800"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 group-hover:text-blue-800 transition-colors">2. Tools an Agent Can Call</h3>
+                                <p class="text-gray-600 text-sm mt-1">200+ typed tools, schemas, and provider conversions</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex flex-wrap gap-1.5">
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">Claude</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">OpenAI</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">Gemini</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="/tutorials/llm_friendly/04_agent_doing_ml.ipynb"
+                    class="bg-white rounded-xl border-2 border-blue-300 shadow-sm overflow-hidden hover:shadow-md hover:border-blue-500 transition-all group">
+                    <div class="h-2 bg-gradient-to-r from-fuchsia-500 to-blue-600"></div>
+                    <div class="p-5">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-fuchsia-100 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-comments text-fuchsia-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 group-hover:text-blue-800 transition-colors">3. Watch an Agent Do ML</h3>
+                                <p class="text-gray-600 text-sm mt-1">Multi-turn transcript: agent picks, trains, and compares models</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex flex-wrap gap-1.5">
+                            <span class="px-2 py-0.5 bg-fuchsia-100 text-fuchsia-700 rounded text-xs font-medium">New</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">Multi-turn</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="/tutorials/llm_friendly/03_agentic_workflows.ipynb"
+                    class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md hover:border-blue-400 transition-all group">
+                    <div class="h-2 bg-gradient-to-r from-blue-600 to-fuchsia-500"></div>
+                    <div class="p-5">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-wand-sparkles text-blue-700"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 group-hover:text-blue-800 transition-colors">4. Build an Agentic Workflow</h3>
+                                <p class="text-gray-600 text-sm mt-1">Tool-use loops, config-driven runs, framework integrations</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex flex-wrap gap-1.5">
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">Agent Loop</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">Tool Use</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+
+        <!-- TRACK B: I want the Python API -->
+        <div id="track-python" class="mb-12 scroll-mt-20">
+            <div class="flex items-center gap-3 mb-2">
+                <span class="text-xs font-bold text-gray-500 uppercase tracking-wide bg-gray-100 px-2 py-0.5 rounded">Track B</span>
+                <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                    <i class="fa-solid fa-brain text-blue-600"></i>
+                    I want the Python API
+                </h2>
+            </div>
+            <p class="text-gray-500 mb-6 ml-1">Use TuiML directly from Python. Every notebook below shows the equivalent agent tool call too &mdash; same library, two interfaces.</p>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <a href="/tutorials/ml_simplified/01_high_level_api.ipynb"
+                    class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md hover:border-blue-400 transition-all group">
+                    <div class="h-2 bg-gradient-to-r from-blue-600 to-blue-500"></div>
+                    <div class="p-5">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-rocket text-blue-700"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 group-hover:text-blue-700 transition-colors">High-Level API</h3>
+                                <p class="text-gray-600 text-sm mt-1">One-liner train, predict, experiment</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex flex-wrap gap-1.5">
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">train()</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">run()</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">experiment()</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="/tutorials/ml_simplified/02_workflow_builder.ipynb"
+                    class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md hover:border-blue-400 transition-all group">
+                    <div class="h-2 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
+                    <div class="p-5">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-code text-blue-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 group-hover:text-blue-700 transition-colors">Workflow Builder</h3>
+                                <p class="text-gray-600 text-sm mt-1">Fluent pipeline chains</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex flex-wrap gap-1.5">
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">Workflow</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">pipeline()</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="/tutorials/ml_simplified/03_classification.ipynb"
+                    class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md hover:border-blue-400 transition-all group">
+                    <div class="h-2 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
+                    <div class="p-5">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-tags text-blue-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 group-hover:text-blue-700 transition-colors">Classification</h3>
+                                <p class="text-gray-600 text-sm mt-1">Trees, Bayesian, SVM, neural nets</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex flex-wrap gap-1.5">
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">C45</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">RF</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">NB</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">SVC</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="/tutorials/ml_simplified/04_regression.ipynb"
+                    class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md hover:border-blue-400 transition-all group">
+                    <div class="h-2 bg-gradient-to-r from-green-500 to-emerald-500"></div>
+                    <div class="p-5">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-chart-line text-green-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 group-hover:text-blue-700 transition-colors">Regression</h3>
+                                <p class="text-gray-600 text-sm mt-1">Linear, trees, SVR, boosting</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex flex-wrap gap-1.5">
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">Linear</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">M5P</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">XGBoost</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="/tutorials/ml_simplified/05_clustering.ipynb"
+                    class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md hover:border-blue-400 transition-all group">
+                    <div class="h-2 bg-gradient-to-r from-blue-600 to-pink-500"></div>
+                    <div class="p-5">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-circle-nodes text-blue-700"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 group-hover:text-blue-700 transition-colors">Clustering</h3>
+                                <p class="text-gray-600 text-sm mt-1">K-Means, DBSCAN, hierarchical</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex flex-wrap gap-1.5">
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">KMeans</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">DBSCAN</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">EM</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="/tutorials/ml_simplified/06_anomaly_detection.ipynb"
+                    class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md hover:border-blue-400 transition-all group">
+                    <div class="h-2 bg-gradient-to-r from-red-500 to-blue-600"></div>
+                    <div class="p-5">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-triangle-exclamation text-red-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 group-hover:text-blue-700 transition-colors">Anomaly Detection</h3>
+                                <p class="text-gray-600 text-sm mt-1">Outliers with IF, LOF, SVM</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex flex-wrap gap-1.5">
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">IsolationForest</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">LOF</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="/tutorials/ml_simplified/07_timeseries.ipynb"
+                    class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md hover:border-blue-400 transition-all group">
+                    <div class="h-2 bg-gradient-to-r from-cyan-500 to-blue-500"></div>
+                    <div class="p-5">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-cyan-100 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-chart-area text-cyan-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 group-hover:text-blue-700 transition-colors">Time Series</h3>
+                                <p class="text-gray-600 text-sm mt-1">ARIMA, Prophet, forecasting</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex flex-wrap gap-1.5">
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">ARIMA</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">Prophet</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">STL</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="/tutorials/ml_simplified/08_preprocessing.ipynb"
+                    class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md hover:border-blue-400 transition-all group">
+                    <div class="h-2 bg-gradient-to-r from-blue-600 to-amber-500"></div>
+                    <div class="p-5">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-blue-200 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-wand-magic-sparkles text-blue-700"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 group-hover:text-blue-700 transition-colors">Preprocessing</h3>
+                                <p class="text-gray-600 text-sm mt-1">Scaling, imputation, SMOTE</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex flex-wrap gap-1.5">
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">Standardize</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">SMOTE</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="/tutorials/ml_simplified/09_feature_engineering.ipynb"
+                    class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md hover:border-blue-400 transition-all group">
+                    <div class="h-2 bg-gradient-to-r from-rose-500 to-pink-500"></div>
+                    <div class="p-5">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-rose-100 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-filter text-rose-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 group-hover:text-blue-700 transition-colors">Feature Engineering</h3>
+                                <p class="text-gray-600 text-sm mt-1">Selection, PCA, generation</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex flex-wrap gap-1.5">
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">SelectKBest</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">PCA</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="/tutorials/ml_simplified/10_experiments.ipynb"
+                    class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md hover:border-blue-400 transition-all group">
+                    <div class="h-2 bg-gradient-to-r from-amber-500 to-blue-600"></div>
+                    <div class="p-5">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-flask text-amber-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 group-hover:text-blue-700 transition-colors">Experiments</h3>
+                                <p class="text-gray-600 text-sm mt-1">CD diagrams, ROC, comparison</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex flex-wrap gap-1.5">
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">CD Diagram</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">ROC</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- TRACK C: I want to ship it -->
+        <div id="track-ship" class="mb-12 scroll-mt-20">
+            <div class="flex items-center gap-3 mb-2">
+                <span class="text-xs font-bold text-gray-500 uppercase tracking-wide bg-gray-100 px-2 py-0.5 rounded">Track C</span>
+                <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                    <i class="fa-solid fa-rocket text-slate-500"></i>
+                    I want to ship it
+                </h2>
+            </div>
+            <p class="text-gray-500 mb-6 ml-1">CLI, REST serving, and complete case studies that go from raw data to deployed predictions.</p>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <a href="/tutorials/deploy/01_cli.ipynb"
+                    class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md hover:border-slate-300 transition-all group">
+                    <div class="h-2 bg-gradient-to-r from-slate-500 to-gray-600"></div>
+                    <div class="p-5">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-terminal text-slate-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 group-hover:text-slate-600 transition-colors">CLI</h3>
+                                <p class="text-gray-600 text-sm mt-1">Train, predict from terminal</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex flex-wrap gap-1.5">
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">Train</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">Predict</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">Upload</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="/tutorials/deploy/02_model_serving.ipynb"
+                    class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md hover:border-slate-300 transition-all group">
+                    <div class="h-2 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
+                    <div class="p-5">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-server text-emerald-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 group-hover:text-slate-600 transition-colors">Model Serving</h3>
+                                <p class="text-gray-600 text-sm mt-1">Serve as REST API</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex flex-wrap gap-1.5">
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">FastAPI</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">REST</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="/tutorials/case_studies/01_diabetes_prediction.ipynb"
+                    class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md hover:border-rose-300 transition-all group">
+                    <div class="h-2 bg-gradient-to-r from-rose-500 to-pink-500"></div>
+                    <div class="p-5">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-rose-100 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-heart-pulse text-rose-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 group-hover:text-rose-600 transition-colors">Case Study: Diabetes</h3>
+                                <p class="text-gray-600 text-sm mt-1">Agent transcript + Python walkthrough, end-to-end</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex flex-wrap gap-1.5">
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">SMOTE</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">Experiment</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">Serving</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="/tutorials/case_studies/02_credit_scoring.ipynb"
+                    class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md hover:border-rose-300 transition-all group">
+                    <div class="h-2 bg-gradient-to-r from-amber-500 to-blue-600"></div>
+                    <div class="p-5">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-credit-card text-amber-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 group-hover:text-rose-600 transition-colors">Case Study: Credit Scoring</h3>
+                                <p class="text-gray-600 text-sm mt-1">Risk classification: agent vs Python, side by side</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex flex-wrap gap-1.5">
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">XGBoost</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">Pipeline</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">REST API</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+            <h3 class="font-bold text-gray-900 mb-4">Quick Links</h3>
+            <div class="flex flex-wrap gap-3">
+                <a href="/docs/api-reference.html"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors">
+                    <i class="fa-solid fa-book"></i> API Reference
+                </a>
+                <a href="/docs/tutorials.html"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors">
+                    <i class="fa-solid fa-graduation-cap"></i> Tutorials
+                </a>
+                <a href="/docs/benchmarks.html"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors">
+                    <i class="fa-solid fa-chart-column"></i> Benchmarks
+                </a>
+                <a href="{{ config.github_url }}"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors">
+                    <i class="fa-brands fa-github"></i> GitHub
+                </a>
+                <a href="/browse"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 hover:bg-blue-300 rounded-lg text-sm font-medium text-blue-800 transition-colors">
+                    <i class="fa-solid fa-compass"></i> Explore Platform
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    {% include 'components/_footer.html' %}
+</body>
+
+</html>

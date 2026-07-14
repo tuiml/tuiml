@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contributing — TuiML Documentation</title>
+    <meta name="description" content="Contribute to TuiML: add new algorithms, improve docs, write tests, and help build the open-source ML ecosystem. Step-by-step contributor guide.">
+    <meta name="robots" content="index,follow">
+    <link rel="canonical" href="{{ request.url|string }}">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{{ config.project_name }}">
+    <meta property="og:title" content="Contributing — TuiML Documentation">
+    <meta property="og:description" content="Contribute to TuiML: add new algorithms, improve docs, write tests, and help build the open-source ML ecosystem. Step-by-step contributor guide.">
+    <meta property="og:url" content="{{ request.url|string }}">
+    <meta property="og:image" content="{{ request.url_for('static', path='images/tuiml_logo.png')|string }}">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Contributing — TuiML Documentation">
+    <meta name="twitter:description" content="Contribute to TuiML: add new algorithms, improve docs, write tests, and help build the open-source ML ecosystem. Step-by-step contributor guide.">
+    <meta name="twitter:image" content="{{ request.url_for('static', path='images/tuiml_logo.png')|string }}">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/static/images/tuiml_logo.png?v=3">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Highlight.js for Code Syntax Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/latex.min.js"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"IBM Plex Sans"', 'sans-serif'],
+                        mono: ['"IBM Plex Mono"', 'monospace'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#2563eb',
+                            600: '#1e40af',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Custom Styles -->
+    <style>
+        /* Sidebar styles */
+        .sidebar-group-label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #9ca3af;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+            padding-left: 0.5rem;
+        }
+
+        .sidebar-group-label:first-child {
+            margin-top: 0;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #4b5563;
+            border-radius: 0.5rem;
+            transition: all 0.15s ease;
+            text-decoration: none;
+        }
+
+        .sidebar-link:hover {
+            background-color: #f3f4f6;
+            color: #111827;
+        }
+
+        .sidebar-link.active {
+            background-color: #eff6ff;
+            color: #1e40af;
+        }
+
+        .sidebar-link i {
+            width: 1rem;
+            text-align: center;
+            font-size: 0.875rem;
+        }
+
+        /* Code blocks */
+        .code-block-wrapper {
+            background: #1e293b;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            margin: 1rem 0;
+            border: 1px solid #334155;
+        }
+
+        .code-block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: #0f172a;
+            border-bottom: 1px solid #334155;
+        }
+
+        .code-block-header span {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+        }
+
+        .code-block-wrapper pre {
+            margin: 0;
+            padding: 1rem;
+            overflow-x: auto;
+        }
+
+        .code-block-wrapper code {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            background: transparent !important;
+            color: #e2e8f0;
+            padding: 0;
+        }
+
+        .copy-btn {
+            background: transparent;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            padding: 0.25rem;
+            transition: color 0.15s;
+        }
+
+        .copy-btn:hover {
+            color: #e2e8f0;
+        }
+
+        /* Inline code */
+        code {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.875em;
+            background: #f1f5f9;
+            color: #ef4444;
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+        }
+
+        /* Premium cards */
+        .premium-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+
+        .premium-card.info {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+        }
+
+        /* TOC card */
+        .toc-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+
+        .toc-card h4 {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+
+        .toc-card a {
+            display: block;
+            color: #475569;
+            font-size: 0.875rem;
+            padding: 0.25rem 0;
+            transition: color 0.15s;
+        }
+
+        .toc-card a:hover {
+            color: #2563eb;
+        }
+
+        /* Doc sections */
+        .doc-section {
+            margin-top: 4rem;
+        }
+
+        .doc-section h2 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .doc-section h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-top: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .doc-section p {
+            color: #475569;
+            line-height: 1.7;
+        }
+
+        .doc-section ul,
+        .doc-section ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .doc-section li {
+            margin-bottom: 0.25rem;
+        }
+    </style>
+    <style>
+        .sidebar {
+            width: 280px;
+        }
+
+        .content-container {
+            max-width: 900px;
+        }
+
+        /* Step markers */
+        .step-marker {
+            @apply flex items-center justify-center w-8 h-8 rounded-full bg-gray-900 text-white text-sm font-bold;
+        }
+
+        /* Custom scroll behavior */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Glassmorphism effects */
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+
+<body class="bg-white text-gray-900 font-sans antialiased flex flex-col min-h-screen">
+
+    {% include 'docs/components/_navbar.html' %}
+
+    <!-- Hero Section -->
+    <div class="bg-gradient-to-br from-blue-700 to-blue-900 text-white relative overflow-hidden">
+        <!-- Abstract Background Pattern -->
+        <div class="absolute inset-0 opacity-10">
+            <svg class="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path d="M0 100 C 20 0 50 0 100 100 Z" fill="white" />
+            </svg>
+        </div>
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
+            <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight">Contributing to {{ config.project_name }}</h1>
+            <p class="text-blue-100 mt-2 text-lg">Add algorithms, fix bugs, improve docs — every contribution matters</p>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-10 flex flex-col lg:flex-row gap-16 flex-grow">
+
+        <!-- Sticky Sidebar -->
+        <aside class="hidden lg:block sidebar flex-shrink-0">
+            <div class="sticky top-32">
+                <nav class="space-y-1">
+                    <div class="sidebar-group-label">Getting Started</div>
+                    <a href="#overview" class="sidebar-link active">
+                        <i class="fa-solid fa-lightbulb"></i> Overview
+                    </a>
+                    <a href="#dev-setup" class="sidebar-link">
+                        <i class="fa-solid fa-terminal"></i> Dev Setup
+                    </a>
+
+                    <div class="sidebar-group-label">Algorithms</div>
+                    <a href="#base-classes" class="sidebar-link">
+                        <i class="fa-solid fa-layer-group"></i> Base Classes
+                    </a>
+                    <a href="#algorithm-structure" class="sidebar-link">
+                        <i class="fa-solid fa-code"></i> Structure
+                    </a>
+                    <a href="#step-by-step" class="sidebar-link">
+                        <i class="fa-solid fa-list-ol"></i> Step-by-Step
+                    </a>
+                    <a href="#registration" class="sidebar-link">
+                        <i class="fa-solid fa-registered"></i> Registration
+                    </a>
+
+                    <div class="sidebar-group-label">Integrations</div>
+                    <a href="#integrations" class="sidebar-link">
+                        <i class="fa-solid fa-plug"></i> External Libraries
+                    </a>
+
+                    <div class="sidebar-group-label">Quality</div>
+                    <a href="#testing" class="sidebar-link">
+                        <i class="fa-solid fa-vial"></i> Testing
+                    </a>
+                    <a href="#docstrings" class="sidebar-link">
+                        <i class="fa-solid fa-file-lines"></i> Documentation
+                    </a>
+                    <a href="#best-practices" class="sidebar-link">
+                        <i class="fa-solid fa-star"></i> Best Practices
+                    </a>
+
+                    <div class="sidebar-group-label">Submit</div>
+                    <a href="#submitting" class="sidebar-link">
+                        <i class="fa-solid fa-paper-plane"></i> Pull Requests
+                    </a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 min-w-0">
+            <div class="content-container">
+
+                <!-- Overview -->
+                <section id="overview" class="doc-section !mt-0">
+                    <p class="text-lg text-slate-600 mb-6 leading-relaxed">
+                        {{ config.project_name }} is open source and designed to be extensible. Whether you want to add a new
+                        algorithm, fix a bug, or improve documentation, this guide covers everything you need.
+                    </p>
+
+                    <div class="mb-8 p-6 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700 shadow-md">
+                        <h4 class="font-bold text-white mb-3 flex items-center gap-2 text-lg">
+                            <i class="fa-solid fa-compass text-lime-400"></i> Design philosophy: native implementations first
+                        </h4>
+                        <p class="!text-slate-300 text-sm leading-relaxed mb-3">
+                            {{ config.project_name }} ships its <strong class="!text-white">own implementations</strong> — with C++ hot paths for
+                            performance-critical code — rather than wrapping other libraries. That is what makes it a library
+                            rather than a facade, and it is the single most important thing to understand before you write code.
+                        </p>
+                        <p class="!text-slate-300 text-sm leading-relaxed">
+                            Bridges to external libraries are welcome, but they live in their own dedicated packages —
+                            <code class="!bg-white/10 !text-lime-300">tuiml.sklearn</code> and
+                            <code class="!bg-white/10 !text-lime-300">tuiml.capymoa</code> — as optional extras, never inside the core
+                            namespaces. See <a href="#integrations" class="!text-blue-300 hover:!text-blue-200 underline font-medium">External Libraries</a>
+                            for the full rules.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div
+                            class="group relative bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+                            <div
+                                class="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-bl-[4rem] transition-colors group-hover:bg-blue-500/10">
+                            </div>
+                            <div
+                                class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl mb-6 group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-code-branch"></i>
+                            </div>
+                            <h4 class="font-bold text-slate-900 mb-3 text-lg">New Algorithms</h4>
+                            <p class="text-slate-500 text-sm leading-relaxed">
+                                Implement a classifier, regressor, or clusterer using the base classes,
+                                add tests, and submit a PR.
+                            </p>
+                        </div>
+                        <div
+                            class="group relative bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+                            <div
+                                class="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-bl-[4rem] transition-colors group-hover:bg-amber-500/10">
+                            </div>
+                            <div
+                                class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl mb-6 group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-bug"></i>
+                            </div>
+                            <h4 class="font-bold text-slate-900 mb-3 text-lg">Bug Reports</h4>
+                            <p class="text-slate-500 text-sm leading-relaxed">
+                                Found an issue? Open a GitHub issue with a <strong>reproducible example</strong>
+                                and we will investigate.
+                            </p>
+                        </div>
+                        <div
+                            class="group relative bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+                            <div
+                                class="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-bl-[4rem] transition-colors group-hover:bg-emerald-500/10">
+                            </div>
+                            <div
+                                class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl mb-6 group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-book"></i>
+                            </div>
+                            <h4 class="font-bold text-slate-900 mb-3 text-lg">Documentation</h4>
+                            <p class="text-slate-500 text-sm leading-relaxed">
+                                Improve docstrings, tutorials, or examples. Every contribution counts
+                                toward a better library.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Dev Setup -->
+                <section id="dev-setup" class="doc-section">
+                    <h2><i class="fa-solid fa-terminal text-slate-600 mr-4"></i>Development Setup</h2>
+                    <p class="text-slate-600 mb-6">Clone the repository and set up your local environment.</p>
+
+                    <div
+                        class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+                        <div
+                            class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                            <div class="flex gap-1.5 opacity-60">
+                                <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span
+                                    class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">TERMINAL</span>
+                                <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1"><i
+                                        class="fa-regular fa-copy text-xs"></i></button>
+                            </div>
+                        </div>
+                        <div class="!p-4 overflow-x-auto">
+                            <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-bash"># Clone and install
+git clone https://github.com/tuiml/tuiml.git
+cd tuiml/tuiml
+uv sync
+
+# Run the test suite
+uv run pytest
+
+# Run with coverage
+uv run pytest --cov=tuiml</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 p-4 bg-blue-50 border border-blue-300 rounded-xl">
+                        <p class="text-sm text-slate-700">
+                            <i class="fa-solid fa-circle-info text-blue-600 mr-2"></i>
+                            Always use <code>uv run</code> to execute Python scripts and commands. Never use <code>python3</code> directly.
+                        </p>
+                    </div>
+                </section>
+
+                <!-- Base Classes -->
+                <section id="base-classes" class="doc-section">
+                    <h2><i class="fa-solid fa-layer-group text-blue-600 mr-4"></i>Base Classes</h2>
+                    <p class="text-slate-600 mb-8">All algorithms inherit from the <code>Algorithm</code> base class.
+                        Choose the appropriate subclass for your algorithm type.</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div
+                            class="group p-5 bg-white rounded-xl border border-blue-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-sm">
+                                    <i class="fa-solid fa-tags"></i>
+                                </div>
+                                <span class="font-bold text-slate-900">Classifier</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mb-3">For algorithms that predict categorical labels (classes).</p>
+                            <code class="text-xs">from tuiml.base.algorithms import Classifier</code>
+                        </div>
+
+                        <div
+                            class="group p-5 bg-white rounded-xl border border-emerald-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm">
+                                    <i class="fa-solid fa-chart-line"></i>
+                                </div>
+                                <span class="font-bold text-slate-900">Regressor</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mb-3">For algorithms that predict continuous values.</p>
+                            <code class="text-xs">from tuiml.base.algorithms import Regressor</code>
+                        </div>
+
+                        <div
+                            class="group p-5 bg-white rounded-xl border border-blue-300 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-blue-50 text-blue-700 flex items-center justify-center text-sm">
+                                    <i class="fa-solid fa-object-group"></i>
+                                </div>
+                                <span class="font-bold text-slate-900">Clusterer</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mb-3">For unsupervised grouping algorithms.</p>
+                            <code class="text-xs">from tuiml.base.algorithms import Clusterer</code>
+                        </div>
+
+                        <div
+                            class="group p-5 bg-white rounded-xl border border-blue-300 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-blue-50 text-blue-700 flex items-center justify-center text-sm">
+                                    <i class="fa-solid fa-link"></i>
+                                </div>
+                                <span class="font-bold text-slate-900">Associator</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mb-3">For association rule mining algorithms.</p>
+                            <code class="text-xs">from tuiml.base.algorithms import Associator</code>
+                        </div>
+                    </div>
+
+                    <h3>Required Methods</h3>
+                    <p class="text-slate-600 mb-4">Every algorithm must implement these abstract methods:</p>
+
+                    <div
+                        class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+                        <div
+                            class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                            <div class="flex gap-1.5 opacity-60">
+                                <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span
+                                    class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">PYTHON</span>
+                                <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1"><i
+                                        class="fa-regular fa-copy text-xs"></i></button>
+                            </div>
+                        </div>
+                        <div class="!p-4 overflow-x-auto">
+                            <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">@abstractmethod
+def fit(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> "Algorithm":
+    """Train the algorithm on data."""
+    pass
+
+@abstractmethod
+def predict(self, X: np.ndarray) -> np.ndarray:
+    """Make predictions on new data."""
+    pass</code></pre>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Algorithm Structure -->
+                <section id="algorithm-structure" class="doc-section">
+                    <h2><i class="fa-solid fa-code text-emerald-500 mr-4"></i>Algorithm Structure</h2>
+                    <p class="text-slate-600 mb-6">A complete example of a nearest-centroid classifier implementation.</p>
+
+                    <div
+                        class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+                        <div
+                            class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                            <div class="flex gap-1.5 opacity-60">
+                                <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span
+                                    class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">PYTHON</span>
+                                <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1"><i
+                                        class="fa-regular fa-copy text-xs"></i></button>
+                            </div>
+                        </div>
+                        <div class="!p-4 overflow-x-auto">
+                            <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">"""My Custom Classifier implementation."""
+
+import numpy as np
+from typing import Dict, List, Any, Optional
+
+from tuiml.base.algorithms import Classifier, classifier
+
+
+@classifier(tags=["custom", "example"], version="1.0.0")
+class MyCustomClassifier(Classifier):
+    """A custom classifier for demonstration purposes.
+
+    This is a simple nearest-centroid classifier that assigns each sample
+    to the class of the nearest cluster centroid.
+
+    Parameters
+    ----------
+    metric : str, default="euclidean"
+        Distance metric to use for computing distances to centroids.
+        Options: "euclidean", "manhattan"
+
+    Attributes
+    ----------
+    classes_ : np.ndarray
+        Unique class labels.
+    centroids_ : np.ndarray
+        Centroid for each class, shape (n_classes, n_features).
+    """
+
+    def __init__(self, metric: str = "euclidean"):
+        super().__init__()
+        self.metric = metric
+        self.classes_ = None
+        self.centroids_ = None
+
+    @classmethod
+    def get_parameter_schema(cls) -> Dict[str, Dict[str, Any]]:
+        """Return JSON schema for parameters."""
+        return {
+            "metric": {
+                "type": "string",
+                "default": "euclidean",
+                "enum": ["euclidean", "manhattan"],
+                "description": "Distance metric for centroid computation"
+            }
+        }
+
+    @classmethod
+    def get_capabilities(cls) -> List[str]:
+        """Return supported data capabilities."""
+        return ["numeric", "binary_class", "multiclass"]
+
+    def fit(self, X: np.ndarray, y: np.ndarray) -> "MyCustomClassifier":
+        """Fit the classifier to training data."""
+        X = np.asarray(X, dtype=float)
+        y = np.asarray(y)
+
+        if X.ndim == 1:
+            X = X.reshape(-1, 1)
+
+        self.classes_ = np.unique(y)
+        self.centroids_ = np.array([
+            X[y == c].mean(axis=0) for c in self.classes_
+        ])
+
+        self._is_fitted = True
+        return self
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        """Predict class labels for samples."""
+        self._check_is_fitted()
+        X = np.asarray(X, dtype=float)
+
+        if X.ndim == 1:
+            X = X.reshape(-1, 1)
+
+        distances = np.sqrt(
+            np.sum((X[:, np.newaxis, :] - self.centroids_) ** 2, axis=2)
+        )
+        return self.classes_[np.argmin(distances, axis=1)]</code></pre>
+                        </div>
+                    </div>
+
+                    <h3>Key Components</h3>
+                    <div class="space-y-4 mt-4">
+                        <div class="flex items-start gap-4">
+                            <div class="step-marker flex-shrink-0">1</div>
+                            <div>
+                                <h4 class="font-bold text-slate-900">Decorator</h4>
+                                <p class="text-sm text-slate-600">
+                                    <code>@classifier</code> registers your algorithm with the hub and provides metadata like tags and version.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="step-marker flex-shrink-0">2</div>
+                            <div>
+                                <h4 class="font-bold text-slate-900">NumPy Docstring</h4>
+                                <p class="text-sm text-slate-600">
+                                    Comprehensive docstrings following the NumPy style are required. They power documentation and LLM tool integration.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="step-marker flex-shrink-0">3</div>
+                            <div>
+                                <h4 class="font-bold text-slate-900">__init__ + super()</h4>
+                                <p class="text-sm text-slate-600">
+                                    Always call <code>super().__init__()</code> and set any attributes that will be accessed later.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="step-marker flex-shrink-0">4</div>
+                            <div>
+                                <h4 class="font-bold text-slate-900">Metadata Methods</h4>
+                                <p class="text-sm text-slate-600">
+                                    Implement <code>get_parameter_schema()</code>, <code>get_capabilities()</code>, and <code>get_complexity()</code> for hub integration.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Step-by-Step Guide -->
+                <section id="step-by-step" class="doc-section">
+                    <h2><i class="fa-solid fa-list-ol text-blue-600 mr-4"></i>Step-by-Step Guide</h2>
+                    <p class="text-slate-600 mb-8">Follow these steps to add a new algorithm to {{ config.project_name }}.</p>
+
+                    <div class="space-y-8">
+                        <!-- Step 1 -->
+                        <div class="relative pl-10 border-l-2 border-blue-300">
+                            <div class="absolute -left-3 top-0 w-6 h-6 rounded-full bg-blue-700 flex items-center justify-center">
+                                <span class="text-xs font-bold text-white">1</span>
+                            </div>
+                            <h3 class="!mt-0">Choose the Right Location</h3>
+                            <p class="text-slate-600 mb-3">
+                                Place your algorithm in the appropriate subdirectory under <code>tuiml/algorithms/</code>:
+                            </p>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mt-4">
+                                <div class="p-3 bg-slate-50 rounded-lg text-sm">
+                                    <code class="text-xs">bayesian/</code>
+                                    <p class="text-xs text-slate-500 mt-1">Probabilistic models</p>
+                                </div>
+                                <div class="p-3 bg-slate-50 rounded-lg text-sm">
+                                    <code class="text-xs">trees/</code>
+                                    <p class="text-xs text-slate-500 mt-1">Decision trees & forests</p>
+                                </div>
+                                <div class="p-3 bg-slate-50 rounded-lg text-sm">
+                                    <code class="text-xs">linear/</code>
+                                    <p class="text-xs text-slate-500 mt-1">Linear models</p>
+                                </div>
+                                <div class="p-3 bg-slate-50 rounded-lg text-sm">
+                                    <code class="text-xs">neural/</code>
+                                    <p class="text-xs text-slate-500 mt-1">Neural networks</p>
+                                </div>
+                                <div class="p-3 bg-slate-50 rounded-lg text-sm">
+                                    <code class="text-xs">ensemble/</code>
+                                    <p class="text-xs text-slate-500 mt-1">Meta-learners</p>
+                                </div>
+                                <div class="p-3 bg-slate-50 rounded-lg text-sm">
+                                    <code class="text-xs">clustering/</code>
+                                    <p class="text-xs text-slate-500 mt-1">Clustering algorithms</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div class="relative pl-10 border-l-2 border-blue-300">
+                            <div class="absolute -left-3 top-0 w-6 h-6 rounded-full bg-blue-700 flex items-center justify-center">
+                                <span class="text-xs font-bold text-white">2</span>
+                            </div>
+                            <h3 class="!mt-0">Create Your Algorithm File</h3>
+                            <p class="text-slate-600 mb-3">
+                                Create a new Python file with a descriptive name (e.g., <code>my_algorithm.py</code>).
+                            </p>
+                            <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-600">
+                                <strong class="text-slate-800">Naming conventions:</strong> lowercase with underscores, be descriptive
+                                (e.g., <code>gradient_boosting_classifier.py</code>), avoid abbreviations unless standard (e.g., <code>svm.py</code>).
+                            </div>
+                        </div>
+
+                        <!-- Step 3 -->
+                        <div class="relative pl-10 border-l-2 border-blue-300">
+                            <div class="absolute -left-3 top-0 w-6 h-6 rounded-full bg-blue-700 flex items-center justify-center">
+                                <span class="text-xs font-bold text-white">3</span>
+                            </div>
+                            <h3 class="!mt-0">Implement the Algorithm</h3>
+                            <p class="text-slate-600 mb-3">
+                                Follow the structure shown above. Your checklist:
+                            </p>
+                            <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                                <ul class="space-y-2 text-sm text-slate-700">
+                                    <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-xs"></i> Inherit from the correct base class</li>
+                                    <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-xs"></i> Use the appropriate decorator (<code>@classifier</code>, <code>@regressor</code>, etc.)</li>
+                                    <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-xs"></i> Implement <code>fit()</code> and <code>predict()</code> methods</li>
+                                    <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-xs"></i> Set <code>self._is_fitted = True</code> at the end of fit</li>
+                                    <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-xs"></i> Implement metadata methods for hub integration</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Step 4 -->
+                        <div class="relative pl-10 border-l-2 border-blue-300">
+                            <div class="absolute -left-3 top-0 w-6 h-6 rounded-full bg-blue-700 flex items-center justify-center">
+                                <span class="text-xs font-bold text-white">4</span>
+                            </div>
+                            <h3 class="!mt-0">Export from __init__.py</h3>
+                            <p class="text-slate-600 mb-3">
+                                Update both the category and main <code>__init__.py</code> files to export your class:
+                            </p>
+                            <div
+                                class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+                                <div
+                                    class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                                    <div class="flex gap-1.5 opacity-60">
+                                        <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                                        <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                                        <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span
+                                            class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">PYTHON</span>
+                                        <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1"><i
+                                                class="fa-regular fa-copy text-xs"></i></button>
+                                    </div>
+                                </div>
+                                <div class="!p-4 overflow-x-auto">
+                                    <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python"># tuiml/algorithms/your_category/__init__.py
+from .my_algorithm import MyCustomClassifier
+
+__all__ = [
+    # ... existing exports ...
+    "MyCustomClassifier",
+]
+
+# tuiml/algorithms/__init__.py
+from tuiml.algorithms.your_category import MyCustomClassifier</code></pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 5 -->
+                        <div class="relative pl-10">
+                            <div class="absolute -left-3 top-0 w-6 h-6 rounded-full bg-blue-700 flex items-center justify-center">
+                                <span class="text-xs font-bold text-white">5</span>
+                            </div>
+                            <h3 class="!mt-0">Write Tests and Submit</h3>
+                            <p class="text-slate-600">
+                                Add a test file in <code>tests/</code>, verify all tests pass with <code>uv run pytest</code>,
+                                then open a pull request.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Registration -->
+                <section id="registration" class="doc-section">
+                    <h2><i class="fa-solid fa-registered text-blue-500 mr-4"></i>Algorithm Registration</h2>
+                    <p class="text-slate-600 mb-6">
+                        The <code>@classifier</code>, <code>@regressor</code>, <code>@clusterer</code>, and <code>@associator</code>
+                        decorators handle automatic registration with the {{ config.project_name }} hub.
+                    </p>
+
+                    <h3>Decorator Parameters</h3>
+                    <div class="overflow-x-auto mt-4">
+                        <table class="min-w-full bg-white rounded-xl overflow-hidden border border-slate-200">
+                            <thead>
+                                <tr class="bg-slate-50">
+                                    <th class="px-5 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Parameter</th>
+                                    <th class="px-5 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Type</th>
+                                    <th class="px-5 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Description</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <tr>
+                                    <td class="px-5 py-3 text-sm font-medium text-slate-900">tags</td>
+                                    <td class="px-5 py-3 text-sm text-slate-600">List[str]</td>
+                                    <td class="px-5 py-3 text-sm text-slate-600">Categorization tags (e.g., "trees", "ensemble")</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-5 py-3 text-sm font-medium text-slate-900">version</td>
+                                    <td class="px-5 py-3 text-sm text-slate-600">str</td>
+                                    <td class="px-5 py-3 text-sm text-slate-600">Semantic versioning string (e.g., "1.0.0")</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-5 py-3 text-sm font-medium text-slate-900">author</td>
+                                    <td class="px-5 py-3 text-sm text-slate-600">str</td>
+                                    <td class="px-5 py-3 text-sm text-slate-600">Optional author name or organization</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div
+                        class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group mt-6">
+                        <div
+                            class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                            <div class="flex gap-1.5 opacity-60">
+                                <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span
+                                    class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">PYTHON</span>
+                                <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1"><i
+                                        class="fa-regular fa-copy text-xs"></i></button>
+                            </div>
+                        </div>
+                        <div class="!p-4 overflow-x-auto">
+                            <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python"># Examples of different decorators
+from tuiml.base.algorithms import (
+    classifier, regressor, clusterer, associator
+)
+
+@classifier(tags=["trees", "ensemble"], version="2.0.0")
+class RandomForestClassifier(Classifier):
+    """Random Forest classifier."""
+    pass
+
+@regressor(tags=["linear"], version="1.0.0")
+class RidgeRegressor(Regressor):
+    """Ridge regression with L2 regularization."""
+    pass
+
+@clusterer(tags=["partition", "centroid"], version="1.5.0")
+class KMeansClusterer(Clusterer):
+    """K-Means clustering algorithm."""
+    pass</code></pre>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Testing -->
+                <!-- External Integrations -->
+                <section id="integrations" class="doc-section">
+                    <h2><i class="fa-solid fa-plug text-blue-500 mr-4"></i>External Libraries</h2>
+
+                    <p class="text-slate-600 mb-6">
+                        {{ config.project_name }} has bridges to <strong>scikit-learn</strong> and <strong>CapyMOA</strong>, and we welcome
+                        contributions that extend them. But where that code lives is not a matter of taste — it is the rule
+                        that keeps the core library coherent.
+                    </p>
+
+                    <div class="p-5 bg-red-50 border border-red-300 rounded-xl mb-8">
+                        <h4 class="font-bold text-red-900 mb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-triangle-exclamation text-red-600"></i> The one rule
+                        </h4>
+                        <p class="text-sm text-slate-700 leading-relaxed">
+                            <strong>Never put wrapper files inside the core namespaces.</strong> A file named
+                            <code>sklearn_rf.py</code> does not belong in <code>tuiml/algorithms/trees/</code>. The core
+                            <code>algorithms/</code>, <code>preprocessing/</code>, and <code>features/</code> packages contain
+                            native {{ config.project_name }} implementations <em>only</em>. Wrappers go in
+                            <code>tuiml/sklearn/</code> or <code>tuiml/capymoa/</code>. Mixing them makes the library look like
+                            a thin shell over scikit-learn and leaves users unable to tell what is actually ours.
+                        </p>
+                    </div>
+
+                    <h3>Where does my contribution go?</h3>
+                    <div class="overflow-x-auto mt-4">
+                        <table class="w-full text-sm border border-slate-200 rounded-xl overflow-hidden">
+                            <thead class="bg-slate-50">
+                                <tr class="text-left">
+                                    <th class="p-3 font-semibold text-slate-700 border-b border-slate-200">What you are adding</th>
+                                    <th class="p-3 font-semibold text-slate-700 border-b border-slate-200">Where it goes</th>
+                                    <th class="p-3 font-semibold text-slate-700 border-b border-slate-200">Dependency</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-slate-600">
+                                <tr>
+                                    <td class="p-3 border-b border-slate-100">An algorithm implemented from scratch</td>
+                                    <td class="p-3 border-b border-slate-100"><code>tuiml/algorithms/&lt;family&gt;/</code></td>
+                                    <td class="p-3 border-b border-slate-100"><span class="text-emerald-600 font-medium">core</span> — no new deps</td>
+                                </tr>
+                                <tr class="bg-slate-50/50">
+                                    <td class="p-3 border-b border-slate-100">A scikit-learn estimator exposed to {{ config.project_name }}</td>
+                                    <td class="p-3 border-b border-slate-100"><code>tuiml/sklearn/</code></td>
+                                    <td class="p-3 border-b border-slate-100"><code>tuiml[sklearn]</code> extra</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 border-b border-slate-100">A CapyMOA streaming learner</td>
+                                    <td class="p-3 border-b border-slate-100"><code>tuiml/capymoa/</code></td>
+                                    <td class="p-3 border-b border-slate-100"><code>tuiml[capymoa]</code> extra</td>
+                                </tr>
+                                <tr class="bg-slate-50/50">
+                                    <td class="p-3">A bridge to some <em>other</em> library (JAX, PyTorch, cuML…)</td>
+                                    <td class="p-3">a new <code>tuiml/&lt;library&gt;/</code> package</td>
+                                    <td class="p-3">its own extra</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-slate-600 mt-4 text-sm">
+                        Name the package after <strong>the library it wraps</strong> (<code>sklearn</code>, <code>capymoa</code>) — not after the
+                        capability it provides (<code>streaming</code>). Capability names are reserved for native
+                        {{ config.project_name }} implementations, so <code>tuiml/algorithms/streaming/</code> stays free for streaming
+                        algorithms we write ourselves.
+                    </p>
+
+                    <h3>Why wrappers never collide with native algorithms</h3>
+                    <p class="text-slate-600 mb-4">
+                        Each bridge registers into the hub under a <strong>namespaced key</strong> — <code>sklearn.&lt;ClassName&gt;</code> or
+                        <code>capymoa.&lt;ClassName&gt;</code>. That is what lets a scikit-learn <code>RandomForestClassifier</code> and a native
+                        {{ config.project_name }} <code>RandomForestClassifier</code> coexist, and it lets users choose between them explicitly:
+                    </p>
+
+                    <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+                        <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                            <div class="flex gap-1.5 opacity-60">
+                                <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">PYTHON</span>
+                                <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1"><i class="fa-regular fa-copy text-xs"></i></button>
+                            </div>
+                        </div>
+                        <div class="!p-4 overflow-x-auto">
+                            <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">from tuiml.algorithms import RandomForestClassifier          # native TuiML
+from tuiml.sklearn    import RandomForestClassifier as SkRF   # sklearn-backed
+
+# ...or by hub key, which is what agents and the CLI use:
+tuiml.train("RandomForestClassifier", data)           # native
+tuiml.train("sklearn.RandomForestClassifier", data)   # sklearn
+
+# Any scikit-learn estimator is auto-wrapped — no curated class needed:
+from sklearn.svm import SVC
+tuiml.train(SVC(), data)</code></pre>
+                        </div>
+                    </div>
+
+                    <h3>Adding a curated wrapper</h3>
+                    <p class="text-slate-600 mb-4">
+                        A wrapper declares its constructor parameters and builds the backing estimator lazily. The
+                        <code>_build_estimator()</code> method is the only place the external library is ever imported — that is what
+                        keeps the dependency optional:
+                    </p>
+
+                    <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+                        <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                            <div class="flex gap-1.5 opacity-60">
+                                <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">tuiml/sklearn/algorithms.py</span>
+                                <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1"><i class="fa-regular fa-copy text-xs"></i></button>
+                            </div>
+                        </div>
+                        <div class="!p-4 overflow-x-auto">
+                            <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">from tuiml.base.algorithms import Classifier
+from tuiml.sklearn._base import _SklearnBackedMixin, sk_classifier
+
+
+@sk_classifier(tags=["ensemble", "tree"])
+class RandomForestClassifier(_SklearnBackedMixin, Classifier):
+    """scikit-learn RandomForestClassifier (hub key ``sklearn.RandomForestClassifier``)."""
+
+    def __init__(self, n_estimators: int = 100, random_state: int | None = None):
+        super().__init__()
+        self.n_estimators = n_estimators
+        self.random_state = random_state
+
+    def _build_estimator(self):
+        # The ONLY import of sklearn — lazy, so `import tuiml` never needs it.
+        from sklearn.ensemble import RandomForestClassifier as _Est
+        return _Est(n_estimators=self.n_estimators, random_state=self.random_state)
+
+    @classmethod
+    def get_parameter_schema(cls) -> dict:
+        return {"n_estimators": {"type": "integer", "default": 100}}
+
+    @classmethod
+    def get_capabilities(cls) -> list:
+        return ["numeric", "multiclass", "probabilities"]</code></pre>
+                        </div>
+                    </div>
+
+                    <p class="text-slate-600 mt-4 text-sm">
+                        You never write the <code>fit</code> / <code>predict</code> bridge yourself — the mixin does it, and it raises a clear
+                        <code>ImportError</code> pointing at <code>pip install 'tuiml[sklearn]'</code> if the library is missing. CapyMOA works the
+                        same way via <code>tuiml/capymoa/_base.py</code>, adapting its instance-at-a-time API to {{ config.project_name }}'s batch interface.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                        <div class="p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
+                            <h4 class="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                <i class="fa-solid fa-circle-check text-emerald-500"></i> Do
+                            </h4>
+                            <ul class="space-y-2 text-sm text-slate-600">
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 text-xs mt-1"></i> Keep every wrapper inside <code>tuiml/sklearn/</code> or <code>tuiml/capymoa/</code></li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 text-xs mt-1"></i> Import the external library lazily, inside <code>_build_estimator()</code></li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 text-xs mt-1"></i> Register the dependency as an extra in <code>pyproject.toml</code></li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 text-xs mt-1"></i> Prefer a native implementation when the algorithm is core to the library</li>
+                            </ul>
+                        </div>
+
+                        <div class="p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
+                            <h4 class="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                <i class="fa-solid fa-circle-xmark text-red-500"></i> Don't
+                            </h4>
+                            <ul class="space-y-2 text-sm text-slate-600">
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-xmark text-red-400 text-xs mt-1"></i> Add <code>sklearn_*.py</code> files to <code>algorithms/</code>, <code>preprocessing/</code>, or <code>features/</code></li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-xmark text-red-400 text-xs mt-1"></i> Import sklearn or capymoa at module top level</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-xmark text-red-400 text-xs mt-1"></i> Make a native algorithm depend on an external library</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-xmark text-red-400 text-xs mt-1"></i> Use sklearn for splitting or metrics — {{ config.project_name }} has <code>evaluation.splitting</code> and <code>evaluation.metrics</code></li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="testing" class="doc-section">
+                    <h2><i class="fa-solid fa-vial text-pink-500 mr-4"></i>Testing Your Algorithm</h2>
+                    <p class="text-slate-600 mb-6">
+                        Writing tests ensures your algorithm works correctly. {{ config.project_name }} uses pytest.
+                    </p>
+
+                    <div
+                        class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+                        <div
+                            class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                            <div class="flex gap-1.5 opacity-60">
+                                <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span
+                                    class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">PYTHON</span>
+                                <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1"><i
+                                        class="fa-regular fa-copy text-xs"></i></button>
+                            </div>
+                        </div>
+                        <div class="!p-4 overflow-x-auto">
+                            <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python"># tests/algorithms/your_category/test_my_algorithm.py
+
+import numpy as np
+import pytest
+from tuiml.algorithms.your_category import MyCustomClassifier
+
+
+class TestMyCustomClassifier:
+    """Test suite for MyCustomClassifier."""
+
+    def test_initialization(self):
+        """Test that classifier initializes correctly."""
+        clf = MyCustomClassifier(metric="euclidean")
+        assert clf.metric == "euclidean"
+        assert not clf._is_fitted
+
+    def test_fit(self):
+        """Test fitting on simple data."""
+        X = np.array([[1, 2], [2, 3], [3, 4], [6, 7], [7, 8]])
+        y = np.array([0, 0, 0, 1, 1])
+
+        clf = MyCustomClassifier()
+        clf.fit(X, y)
+
+        assert clf._is_fitted
+        assert hasattr(clf, 'classes_')
+        assert len(clf.classes_) == 2
+
+    def test_predict(self):
+        """Test predictions."""
+        X_train = np.array([[1, 2], [2, 3], [3, 4], [6, 7], [7, 8]])
+        y_train = np.array([0, 0, 0, 1, 1])
+        X_test = np.array([[1.5, 2.5], [6.5, 7.5]])
+
+        clf = MyCustomClassifier()
+        clf.fit(X_train, y_train)
+        predictions = clf.predict(X_test)
+
+        assert len(predictions) == 2
+        assert predictions[0] == 0
+        assert predictions[1] == 1
+
+    def test_parameter_schema(self):
+        """Test that parameter schema is returned."""
+        schema = MyCustomClassifier.get_parameter_schema()
+        assert "metric" in schema</code></pre>
+                        </div>
+                    </div>
+
+                    <h3>Running Tests</h3>
+                    <div
+                        class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+                        <div
+                            class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                            <div class="flex gap-1.5 opacity-60">
+                                <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span
+                                    class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">TERMINAL</span>
+                                <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1"><i
+                                        class="fa-regular fa-copy text-xs"></i></button>
+                            </div>
+                        </div>
+                        <div class="!p-4 overflow-x-auto">
+                            <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-bash"># Run all tests
+uv run pytest
+
+# Run tests for a specific algorithm
+uv run pytest tests/algorithms/your_category/test_my_algorithm.py -v
+
+# Run with coverage report
+uv run pytest --cov=tuiml</code></pre>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Docstrings -->
+                <section id="docstrings" class="doc-section">
+                    <h2><i class="fa-solid fa-file-lines text-teal-500 mr-4"></i>Documentation Convention</h2>
+                    <p class="text-slate-600 mb-4">
+                        {{ config.project_name }} uses <strong>NumPy/SciPy docstring style</strong>. Reference:
+                        <code>algorithms/anomaly/isolation_forest.py</code>.
+                    </p>
+
+                    <div class="p-4 bg-red-50 border border-red-200 rounded-xl mb-6">
+                        <p class="text-sm text-slate-700">
+                            <i class="fa-solid fa-triangle-exclamation text-red-500 mr-2"></i>
+                            <strong>Never use Google style</strong> (<code>Args:</code> / <code>Parameters:</code>).
+                            Headers must use dash underlines: <code>Parameters\n----------</code>
+                        </p>
+                    </div>
+
+                    <!-- Section Order -->
+                    <h3>Algorithm Docstring Sections</h3>
+                    <div class="grid grid-cols-3 md:grid-cols-9 gap-2 mt-4">
+                        <div class="p-2 bg-slate-50 rounded-lg text-center">
+                            <span class="block text-xs font-bold text-slate-900">1</span>
+                            <span class="text-[10px] text-slate-500">Summary</span>
+                        </div>
+                        <div class="p-2 bg-slate-50 rounded-lg text-center">
+                            <span class="block text-xs font-bold text-slate-900">2</span>
+                            <span class="text-[10px] text-slate-500">Overview</span>
+                        </div>
+                        <div class="p-2 bg-slate-50 rounded-lg text-center">
+                            <span class="block text-xs font-bold text-slate-900">3</span>
+                            <span class="text-[10px] text-slate-500">Theory</span>
+                        </div>
+                        <div class="p-2 bg-slate-50 rounded-lg text-center">
+                            <span class="block text-xs font-bold text-slate-900">4</span>
+                            <span class="text-[10px] text-slate-500">Params</span>
+                        </div>
+                        <div class="p-2 bg-slate-50 rounded-lg text-center">
+                            <span class="block text-xs font-bold text-slate-900">5</span>
+                            <span class="text-[10px] text-slate-500">Attrs</span>
+                        </div>
+                        <div class="p-2 bg-slate-50 rounded-lg text-center">
+                            <span class="block text-xs font-bold text-slate-900">6</span>
+                            <span class="text-[10px] text-slate-500">Notes</span>
+                        </div>
+                        <div class="p-2 bg-slate-50 rounded-lg text-center">
+                            <span class="block text-xs font-bold text-slate-900">7</span>
+                            <span class="text-[10px] text-slate-500">Refs</span>
+                        </div>
+                        <div class="p-2 bg-slate-50 rounded-lg text-center">
+                            <span class="block text-xs font-bold text-slate-900">8</span>
+                            <span class="text-[10px] text-slate-500">See Also</span>
+                        </div>
+                        <div class="p-2 bg-slate-50 rounded-lg text-center">
+                            <span class="block text-xs font-bold text-slate-900">9</span>
+                            <span class="text-[10px] text-slate-500">Examples</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                        <p class="text-sm text-slate-700">
+                            <i class="fa-solid fa-circle-info text-blue-500 mr-2"></i>
+                            For <code>datasets/</code> and <code>features/</code> folders, keep docs short: Summary + Parameters + Returns only.
+                        </p>
+                    </div>
+
+                    <!-- Math Notation -->
+                    <h3>Math Notation</h3>
+                    <p class="text-slate-600 mb-4">Use RST math (renders via KaTeX). Inline: <code>:math:`x^2`</code>. Display block: <code>.. math::</code></p>
+
+                    <!-- LaTeX Backslash Rules -->
+                    <h3>LaTeX Backslash Rules</h3>
+                    <p class="text-slate-600 mb-4">
+                        Python interprets <code>\t \a \b \f \n \r \v</code> as escape sequences in docstrings, mangling LaTeX. Use <code>\\</code> for affected commands.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-4 bg-white rounded-xl border border-red-200 shadow-sm">
+                            <h4 class="font-bold text-slate-900 text-sm mb-2 flex items-center gap-2">
+                                <i class="fa-solid fa-circle-exclamation text-red-500 text-xs"></i>
+                                Must Double-Escape
+                            </h4>
+                            <div class="flex flex-wrap gap-2">
+                                <code class="text-xs bg-red-50 !text-red-600 px-2 py-1 rounded">\\text</code>
+                                <code class="text-xs bg-red-50 !text-red-600 px-2 py-1 rounded">\\alpha</code>
+                                <code class="text-xs bg-red-50 !text-red-600 px-2 py-1 rounded">\\beta</code>
+                                <code class="text-xs bg-red-50 !text-red-600 px-2 py-1 rounded">\\frac</code>
+                                <code class="text-xs bg-red-50 !text-red-600 px-2 py-1 rounded">\\begin</code>
+                                <code class="text-xs bg-red-50 !text-red-600 px-2 py-1 rounded">\\nabla</code>
+                                <code class="text-xs bg-red-50 !text-red-600 px-2 py-1 rounded">\\right</code>
+                                <code class="text-xs bg-red-50 !text-red-600 px-2 py-1 rounded">\\varepsilon</code>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-white rounded-xl border border-emerald-200 shadow-sm">
+                            <h4 class="font-bold text-slate-900 text-sm mb-2 flex items-center gap-2">
+                                <i class="fa-solid fa-circle-check text-emerald-500 text-xs"></i>
+                                Safe Single-Backslash
+                            </h4>
+                            <div class="flex flex-wrap gap-2">
+                                <code class="text-xs bg-emerald-50 !text-emerald-700 px-2 py-1 rounded">\sigma</code>
+                                <code class="text-xs bg-emerald-50 !text-emerald-700 px-2 py-1 rounded">\sum</code>
+                                <code class="text-xs bg-emerald-50 !text-emerald-700 px-2 py-1 rounded">\sqrt</code>
+                                <code class="text-xs bg-emerald-50 !text-emerald-700 px-2 py-1 rounded">\lambda</code>
+                                <code class="text-xs bg-emerald-50 !text-emerald-700 px-2 py-1 rounded">\log</code>
+                                <code class="text-xs bg-emerald-50 !text-emerald-700 px-2 py-1 rounded">\pi</code>
+                                <code class="text-xs bg-emerald-50 !text-emerald-700 px-2 py-1 rounded">\mu</code>
+                                <code class="text-xs bg-emerald-50 !text-emerald-700 px-2 py-1 rounded">\infty</code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Regen + Pitfalls compact -->
+                    <h3>Quick Reference</h3>
+                    <div class="space-y-2 mt-4">
+                        <div class="flex items-start gap-3 p-3 bg-slate-50 rounded-xl text-sm text-slate-700">
+                            <i class="fa-solid fa-terminal text-slate-400 mt-0.5"></i>
+                            Run <code>uv run generate_docs.py</code> after docstring changes to regenerate HTML
+                        </div>
+                        <div class="flex items-start gap-3 p-3 bg-slate-50 rounded-xl text-sm text-slate-700">
+                            <i class="fa-solid fa-link text-slate-400 mt-0.5"></i>
+                            See Also: <code>:class:`~tuiml.algorithms.svm.SMOReg` : Description.</code>
+                        </div>
+                        <div class="flex items-start gap-3 p-3 bg-slate-50 rounded-xl text-sm text-slate-700">
+                            <i class="fa-solid fa-book text-slate-400 mt-0.5"></i>
+                            References: <code>[AuthorYear]</code> format with DOI links
+                        </div>
+                        <div class="flex items-start gap-3 p-3 bg-slate-50 rounded-xl text-sm text-slate-700">
+                            <i class="fa-solid fa-clock-rotate-left text-slate-400 mt-0.5"></i>
+                            Timeseries models use <code>Regressor</code> base, not <code>Classifier</code>
+                        </div>
+                        <div class="flex items-start gap-3 p-3 bg-slate-50 rounded-xl text-sm text-slate-700">
+                            <i class="fa-solid fa-tag text-slate-400 mt-0.5"></i>
+                            Fitted attributes use trailing <code>_</code> (scikit-learn convention)
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Best Practices -->
+                <section id="best-practices" class="doc-section">
+                    <h2><i class="fa-solid fa-star text-amber-500 mr-4"></i>Best Practices</h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <div class="p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
+                            <h4 class="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                <i class="fa-solid fa-circle-check text-emerald-500"></i> Do
+                            </h4>
+                            <ul class="space-y-2 text-sm text-slate-600">
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-xs"></i> Handle missing values (NaN) gracefully</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-xs"></i> Validate input shapes and types</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-xs"></i> Write comprehensive NumPy docstrings</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-xs"></i> Include usage examples in docstrings</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-xs"></i> Set <code>self._is_fitted</code> in fit()</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-xs"></i> Use type hints for all methods</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 text-xs"></i> Follow PEP 8 style guidelines</li>
+                            </ul>
+                        </div>
+
+                        <div class="p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
+                            <h4 class="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                <i class="fa-solid fa-circle-xmark text-red-500"></i> Don't
+                            </h4>
+                            <ul class="space-y-2 text-sm text-slate-600">
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-xmark text-red-400 text-xs"></i> Modify input arrays in-place</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-xmark text-red-400 text-xs"></i> Rely on global state</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-xmark text-red-400 text-xs"></i> Print to stdout (use logging)</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-xmark text-red-400 text-xs"></i> Skip parameter validation</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-xmark text-red-400 text-xs"></i> Return unexpected array shapes</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-xmark text-red-400 text-xs"></i> Forget to call <code>super().__init__()</code></li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-xmark text-red-400 text-xs"></i> Ignore edge cases (empty data, etc.)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Submitting -->
+                <section id="submitting" class="doc-section mb-20">
+                    <h2><i class="fa-solid fa-paper-plane text-blue-600 mr-4"></i>Submitting Your Contribution</h2>
+                    <p class="text-slate-600 mb-6">Once your algorithm is complete and tested, submit it to the library.</p>
+
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center text-lg flex-shrink-0">
+                                <i class="fa-brands fa-github"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900">Fork and Create a Pull Request</h4>
+                                <p class="text-sm text-slate-600">
+                                    Fork the repository, add your algorithm on a new branch, and create a PR with a clear description.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center text-lg flex-shrink-0">
+                                <i class="fa-solid fa-file-lines"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900">Include Documentation</h4>
+                                <p class="text-sm text-slate-600">
+                                    Make sure your docstrings are complete and include at least one usage example in the class docstring.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center text-lg flex-shrink-0">
+                                <i class="fa-solid fa-check-double"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900">Ensure Tests Pass</h4>
+                                <p class="text-sm text-slate-600">
+                                    All tests must pass, including existing ones. Run the full suite before submitting: <code>uv run pytest</code>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 p-5 bg-blue-50 border border-blue-300 rounded-xl">
+                        <p class="text-sm text-slate-700">
+                            <i class="fa-solid fa-circle-info text-blue-600 mr-2"></i>
+                            <strong>Need help?</strong> Join our community Discord or open an issue on GitHub.
+                            We are happy to help you get your algorithm integrated.
+                        </p>
+                    </div>
+                </section>
+
+                <!-- Footer CTA -->
+                <section
+                    class="mt-20 py-16 px-10 rounded-[2.5rem] bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden relative">
+                    <div
+                        class="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px] -mr-48 -mt-48">
+                    </div>
+                    <div
+                        class="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-[100px] -ml-48 -mb-48">
+                    </div>
+
+                    <div class="relative z-10 text-center max-w-2xl mx-auto">
+                        <h3 class="text-4xl font-bold text-white mb-6 tracking-tight">Ready to contribute?</h3>
+                        <p class="text-slate-400 text-lg mb-10 leading-relaxed">Every algorithm, bug fix, and documentation
+                            improvement helps build a better library for everyone.</p>
+                        <div class="flex items-center justify-center gap-4 flex-wrap">
+                            <a href="{{ config.github_url }}"
+                                class="px-8 py-4 bg-white text-slate-900 rounded-2xl font-bold hover:bg-slate-100 transition-all flex items-center gap-2 shadow-xl hover:-translate-y-1">
+                                <i class="fa-brands fa-github text-xl"></i> Fork on GitHub
+                            </a>
+                            <a href="/docs/getting_started.html"
+                                class="px-8 py-4 bg-white/10 text-white rounded-2xl font-bold border border-white/20 hover:bg-white/20 transition-all flex items-center gap-2 hover:-translate-y-1">
+                                <i class="fa-solid fa-book"></i> Read the Docs
+                            </a>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    {% include 'components/_footer.html' %}
+
+    <!-- Scripts -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Syntax highlighting
+            hljs.highlightAll();
+
+            // Copy Code Functionality
+            const copyButtons = document.querySelectorAll('.copy-btn');
+            copyButtons.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const codeBlock = this.closest('.code-block-wrapper').querySelector('code');
+                    const code = codeBlock.innerText;
+                    navigator.clipboard.writeText(code).then(() => {
+                        const icon = this.querySelector('i');
+                        icon.className = 'fa-solid fa-check text-green-500';
+                        setTimeout(() => {
+                            icon.className = 'fa-regular fa-copy';
+                        }, 2000);
+                    });
+                });
+            });
+
+            // Active sidebar link on scroll
+            const sections = document.querySelectorAll('.doc-section');
+            const sidebarLinks = document.querySelectorAll('.sidebar-link');
+
+            function updateActiveLink() {
+                let current = '';
+                const scrollPos = window.scrollY + 200;
+
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (scrollPos >= sectionTop) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                sidebarLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === '#' + current) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+
+            window.addEventListener('scroll', updateActiveLink);
+            updateActiveLink();
+        });
+    </script>
+</body>
+
+</html>

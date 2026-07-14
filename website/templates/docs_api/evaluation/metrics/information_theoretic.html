@@ -1,0 +1,342 @@
+{% extends 'layouts/docs_generated.html' %}
+
+{% set active_nav = 'api' %}
+{% set breadcrumb_html = '<a href="/docs/getting_started.html" class="hover:text-gray-900">Documentation</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="../../api-reference.html" class="hover:text-gray-900">API Reference</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="../index.html" class="hover:text-gray-900">evaluation</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="index.html" class="hover:text-gray-900">metrics</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">information_theoretic</span>' %}
+
+{% block title %}information_theoretic - API Documentation{% endblock %}
+
+{% block content %}
+<div class="flex flex-col lg:flex-row gap-8">
+<aside class="w-full lg:w-64 flex-shrink-0">
+<div class="sticky top-24 bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+<h3 class="font-bold text-gray-900 mb-4 border-b pb-2">On this page</h3>
+<ul class="space-y-2 text-sm">
+<li><a href="#func-entropy" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> entropy</a></li>
+<li><a href="#func-conditional_entropy" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> conditional_entropy</a></li>
+<li><a href="#func-mutual_information" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> mutual_information</a></li>
+<li><a href="#func-information_gain" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> information_gain</a></li>
+<li><a href="#func-gain_ratio" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> gain_ratio</a></li>
+<li><a href="#func-kullback_leibler_divergence" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> kullback_leibler_divergence</a></li>
+<li><a href="#func-jensen_shannon_divergence" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> jensen_shannon_divergence</a></li>
+<li><a href="#func-cross_entropy" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> cross_entropy</a></li>
+<li><a href="#func-symmetrical_uncertainty" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> symmetrical_uncertainty</a></li>
+<li><a href="#func-prior_entropy" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> prior_entropy</a></li>
+<li><a href="#func-scheme_entropy" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> scheme_entropy</a></li>
+<li><a href="#func-entropy_gain" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> entropy_gain</a></li>
+<li><a href="#func-kb_information" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> kb_information</a></li>
+<li><a href="#func-mean_kb_information" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> mean_kb_information</a></li>
+</ul></div>
+</aside>
+<main class="flex-1 min-w-0">
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary">Information-theoretic evaluation metrics.</p>
+<div class="doc-extended">These metrics are used by Weka for measuring information gain, entropy, etc. Equivalent to Weka&#x27;s information-theoretic evaluation methods.</div></div>
+<div class="mb-12">
+<h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-code text-indigo-500"></i> Functions</h2>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-entropy">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">entropy</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 12</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">entropy(labels: np.ndarray, base: Optional[float]=None) -&gt; float</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Calculate entropy of a label distribution.</p>
+<div class="doc-extended">
+<p class="mb-4">
+Equivalent to Weka&#x27;s information-theoretic calculations.
+</p>
+
+<p class="mb-4">
+Args:     labels: Array of class labels     base: Logarithm base (None for natural log, 2 for bits)      Returns:     Entropy value      Example:     &gt;&gt;&gt; entropy([0, 0, 1, 1])     0.693...  # ln(2)     &gt;&gt;&gt; entropy([0, 0, 1, 1], base=2)     1.0  # 1 bit
+</p>
+</div></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-conditional_entropy">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">conditional_entropy</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 46</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">conditional_entropy(y_true: np.ndarray, y_pred: np.ndarray, base: Optional[float]=None) -&gt; float</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Calculate conditional entropy H(Y|X).</p>
+<div class="doc-extended">Args:     y_true: True labels (Y)     y_pred: Predicted labels (X)     base: Logarithm base      Returns:     Conditional entropy H(Y|X)</div></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-mutual_information">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">mutual_information</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 77</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">mutual_information(y_true: np.ndarray, y_pred: np.ndarray, base: Optional[float]=None) -&gt; float</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Calculate mutual information I(Y;X) = H(Y) - H(Y|X).</p>
+<div class="doc-extended">Args:     y_true: True labels     y_pred: Predicted labels     base: Logarithm base      Returns:     Mutual information value</div></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-information_gain">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">information_gain</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 98</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">information_gain(y_true: np.ndarray, y_pred: np.ndarray, base: Optional[float]=2) -&gt; float</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Calculate information gain (same as mutual information).</p>
+<div class="doc-extended">
+<p class="mb-4">
+Equivalent to Weka&#x27;s information gain calculation.
+</p>
+
+<p class="mb-4">
+Args:     y_true: True labels     y_pred: Split/predicted labels     base: Logarithm base (default 2 for bits)      Returns:     Information gain in bits (if base=2)
+</p>
+</div></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-gain_ratio">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">gain_ratio</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 118</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">gain_ratio(y_true: np.ndarray, y_pred: np.ndarray, base: Optional[float]=2) -&gt; float</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Calculate gain ratio (information gain normalized by split information).</p>
+<div class="doc-extended">
+<p class="mb-4">
+Equivalent to Weka&#x27;s gain ratio used in C4.5/J48.
+</p>
+
+<p class="mb-4">
+Args:     y_true: True labels     y_pred: Split labels     base: Logarithm base      Returns:     Gain ratio value
+</p>
+</div></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-kullback_leibler_divergence">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">kullback_leibler_divergence</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 144</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">kullback_leibler_divergence(y_true_proba: np.ndarray, y_pred_proba: np.ndarray, base: Optional[float]=None) -&gt; float</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Calculate Kullback-Leibler divergence KL(P||Q).</p>
+<div class="doc-extended">
+<p class="mb-4">
+Equivalent to Weka&#x27;s KB Information metric.
+</p>
+
+<p class="mb-4">
+Args:     y_true_proba: True probability distribution (P)     y_pred_proba: Predicted probability distribution (Q)     base: Logarithm base      Returns:     KL divergence value      Example:     &gt;&gt;&gt; kullback_leibler_divergence([0.5, 0.5], [0.4, 0.6])     0.020...
+</p>
+</div></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-jensen_shannon_divergence">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">jensen_shannon_divergence</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 180</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">jensen_shannon_divergence(p: np.ndarray, q: np.ndarray, base: Optional[float]=None) -&gt; float</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Calculate Jensen-Shannon divergence (symmetric version of KL divergence).</p>
+<div class="doc-extended">Args:     p: First probability distribution     q: Second probability distribution     base: Logarithm base      Returns:     JS divergence value</div></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-cross_entropy">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">cross_entropy</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 206</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">cross_entropy(y_true_proba: np.ndarray, y_pred_proba: np.ndarray, base: Optional[float]=None) -&gt; float</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Calculate cross-entropy H(P,Q) = H(P) + KL(P||Q).</p>
+<div class="doc-extended">Args:     y_true_proba: True probability distribution     y_pred_proba: Predicted probability distribution     base: Logarithm base      Returns:     Cross-entropy value</div></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-symmetrical_uncertainty">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">symmetrical_uncertainty</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 235</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">symmetrical_uncertainty(y_true: np.ndarray, y_pred: np.ndarray, base: Optional[float]=2) -&gt; float</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Calculate symmetrical uncertainty (normalized mutual information).</p>
+<div class="doc-extended">
+<p class="mb-4">
+Equivalent to Weka&#x27;s SymmetricalUncertAttributeEval.
+</p>
+
+<p class="mb-4">
+SU(X,Y) = 2 * IG(Y|X) / (H(X) + H(Y))
+</p>
+
+<p class="mb-4">
+Args:     y_true: True labels     y_pred: Predicted/feature labels     base: Logarithm base      Returns:     Symmetrical uncertainty in range [0, 1]
+</p>
+</div></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-prior_entropy">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">prior_entropy</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 264</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">prior_entropy(y_true: np.ndarray, base: Optional[float]=2) -&gt; float</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Calculate prior entropy (entropy of class distribution).</p>
+<div class="doc-extended">
+<p class="mb-4">
+Equivalent to Weka&#x27;s Evaluation.SFPriorEntropy().
+</p>
+
+<p class="mb-4">
+Args:     y_true: Class labels     base: Logarithm base      Returns:     Prior entropy
+</p>
+</div></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-scheme_entropy">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">scheme_entropy</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 282</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">scheme_entropy(y_pred_proba: np.ndarray, base: Optional[float]=2) -&gt; float</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Calculate scheme entropy (average entropy of predicted distributions).</p>
+<div class="doc-extended">
+<p class="mb-4">
+Equivalent to Weka&#x27;s Evaluation.SFSchemeEntropy().
+</p>
+
+<p class="mb-4">
+Args:     y_pred_proba: Predicted probability distributions, shape (n_samples, n_classes)     base: Logarithm base      Returns:     Mean entropy of predictions
+</p>
+</div></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-entropy_gain">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">entropy_gain</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 317</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">entropy_gain(y_true: np.ndarray, y_pred_proba: np.ndarray, base: Optional[float]=2) -&gt; float</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Calculate entropy gain (prior entropy - scheme entropy).</p>
+<div class="doc-extended">
+<p class="mb-4">
+Equivalent to Weka&#x27;s Evaluation.SFEntropyGain().
+</p>
+
+<p class="mb-4">
+Args:     y_true: True class labels     y_pred_proba: Predicted probability distributions     base: Logarithm base      Returns:     Entropy gain
+</p>
+</div></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-kb_information">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">kb_information</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 340</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">kb_information(y_true: np.ndarray, y_pred_proba: np.ndarray, base: Optional[float]=2) -&gt; float</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Calculate KB information (Kullback-Leibler information).</p>
+<div class="doc-extended">
+<p class="mb-4">
+Equivalent to Weka&#x27;s Evaluation.KBInformation().
+</p>
+
+<p class="mb-4">
+This measures the information gain from using the learned model instead of the prior distribution.
+</p>
+
+<p class="mb-4">
+Args:     y_true: True class labels     y_pred_proba: Predicted probability distributions     base: Logarithm base      Returns:     KB information value
+</p>
+</div></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-mean_kb_information">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">mean_kb_information</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 390</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">mean_kb_information(y_true: np.ndarray, y_pred_proba: np.ndarray, base: Optional[float]=2) -&gt; float</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Calculate mean KB information per instance.</p>
+<div class="doc-extended">Equivalent to Weka&#x27;s Evaluation.SFMeanKBInformation().</div></div>
+</div></div>
+</div>
+</main>
+</div>
+{% endblock %}

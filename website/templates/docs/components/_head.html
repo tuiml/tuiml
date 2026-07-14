@@ -1,0 +1,160 @@
+{#
+    Documentation-specific head additions
+    Usage: Include after _head.html for docs pages
+
+    Adds:
+    - KaTeX for math rendering
+    - Highlight.js for code syntax highlighting
+    - Documentation-specific styles
+#}
+
+<!-- KaTeX for Math Rendering -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+<!-- Highlight.js for Code Syntax Highlighting -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
+
+<!-- Documentation Styles -->
+<style>
+    /* Code blocks */
+    .code-block-wrapper {
+        background: #1e293b;
+        border-radius: 0.75rem;
+        overflow: hidden;
+        margin: 1rem 0;
+        border: 1px solid #334155;
+    }
+    .code-block-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        background: #0f172a;
+        border-bottom: 1px solid #334155;
+    }
+    .code-block-header span {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #94a3b8;
+        text-transform: uppercase;
+    }
+    .code-block-wrapper pre {
+        margin: 0;
+        padding: 1rem;
+        overflow-x: auto;
+    }
+    .code-block-wrapper code {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.875rem;
+        line-height: 1.6;
+        background: transparent !important;
+        color: #e2e8f0;
+        padding: 0;
+    }
+    .copy-btn {
+        background: transparent;
+        border: none;
+        color: #64748b;
+        cursor: pointer;
+        padding: 0.25rem;
+        transition: color 0.15s;
+    }
+    .copy-btn:hover { color: #e2e8f0; }
+
+    /* Doc sections */
+    .doc-section { margin-top: 3rem; }
+    .doc-section h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .doc-section h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin-top: 2rem;
+        margin-bottom: 0.75rem;
+    }
+    .doc-section p {
+        color: #475569;
+        line-height: 1.7;
+        margin-bottom: 1rem;
+    }
+    .doc-section ul, .doc-section ol {
+        margin-bottom: 1rem;
+        padding-left: 1.5rem;
+    }
+    .doc-section li {
+        color: #475569;
+        line-height: 1.7;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Parameter tables */
+    .param-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0;
+        font-size: 0.875rem;
+    }
+    .param-table th {
+        text-align: left;
+        padding: 0.75rem;
+        background: #f8fafc;
+        border-bottom: 2px solid #e2e8f0;
+        font-weight: 600;
+        color: #374151;
+    }
+    .param-table td {
+        padding: 0.75rem;
+        border-bottom: 1px solid #e2e8f0;
+        color: #475569;
+    }
+    .param-table tr:hover { background: #f8fafc; }
+
+    /* Sidebar active state */
+    .sidebar-link.active {
+        background: #eff6ff;
+        color: #1e40af;
+        border-left: 3px solid #2563eb;
+    }
+</style>
+
+<script>
+    // Initialize syntax highlighting and math on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Syntax highlighting
+        hljs.highlightAll();
+
+        // Math rendering
+        if (typeof renderMathInElement !== 'undefined') {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\[', right: '\\]', display: true},
+                    {left: '\\(', right: '\\)', display: false}
+                ]
+            });
+        }
+    });
+
+    // Copy code button functionality
+    function copyCode(btn) {
+        const codeBlock = btn.closest('.code-block-wrapper').querySelector('code');
+        navigator.clipboard.writeText(codeBlock.textContent).then(() => {
+            const icon = btn.querySelector('i');
+            icon.className = 'fa-solid fa-check';
+            setTimeout(() => { icon.className = 'fa-regular fa-copy'; }, 2000);
+        });
+    }
+</script>

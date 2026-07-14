@@ -1,0 +1,117 @@
+{#
+    Documentation Navigation Bar Component
+    Usage: {% include 'docs/components/_navbar.html' %}
+
+    Variables:
+    - active_nav: Current nav item ('docs', 'api', 'tutorials', 'benchmarks', 'changelog', 'contributing')
+    - page_title: Current page title for breadcrumb (simple single-level)
+    - breadcrumb_html: Custom breadcrumb HTML (overrides page_title if set)
+    - show_version: Whether to show version badge (default: true)
+#}
+<nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
+    <div class="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
+        <a href="/docs/getting_started.html" class="flex items-center gap-2.5 flex-shrink-0 group">
+            <div class="text-3xl text-blue-700 transition-transform group-hover:scale-110 duration-300">
+                <img src="/static/images/tuiml_logo.png?v=3" alt="TuiML" class="w-8 h-8 rounded-full">
+            </div>
+            <div class="flex flex-col">
+                <div class="flex items-center gap-1.5">
+                    <span class="font-bold text-xl tracking-tight leading-none"><span class="text-gray-900">Tui</span><span class="text-[#0c3a94]">ML</span></span>
+                    <span class="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 rounded-full leading-none">Alpha</span>
+                </div>
+                <span class="text-gray-400 font-medium text-[10px] uppercase tracking-[0.2em] mt-0.5">Documentation</span>
+            </div>
+        </a>
+        <div class="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
+            <a href="/docs/getting_started.html"
+                class="{{ 'text-blue-700 px-3 py-1.5 rounded-full bg-blue-50' if active_nav == 'docs' else 'hover:text-gray-900 px-3 py-1.5 rounded-full hover:bg-gray-100' }} transition-colors">Documentation</a>
+            <a href="/docs/api-reference.html"
+                class="{{ 'text-blue-700 px-3 py-1.5 rounded-full bg-blue-50' if active_nav == 'api' else 'hover:text-gray-900 px-3 py-1.5 rounded-full hover:bg-gray-100' }} transition-colors">API Reference</a>
+            <a href="/docs/tutorials.html"
+                class="{{ 'text-blue-700 px-3 py-1.5 rounded-full bg-blue-50' if active_nav == 'tutorials' else 'hover:text-gray-900 px-3 py-1.5 rounded-full hover:bg-gray-100' }} transition-colors">Tutorials</a>
+            <a href="/docs/benchmarks.html"
+                class="{{ 'text-blue-700 px-3 py-1.5 rounded-full bg-blue-50' if active_nav == 'benchmarks' else 'hover:text-gray-900 px-3 py-1.5 rounded-full hover:bg-gray-100' }} transition-colors">Benchmarks</a>
+            <a href="/docs/changelog.html"
+                class="{{ 'text-blue-700 px-3 py-1.5 rounded-full bg-blue-50' if active_nav == 'changelog' else 'hover:text-gray-900 px-3 py-1.5 rounded-full hover:bg-gray-100' }} transition-colors">Changelog</a>
+            <a href="/docs/contributing.html"
+                class="{{ 'text-blue-700 px-3 py-1.5 rounded-full bg-blue-50' if active_nav == 'contributing' else 'hover:text-gray-900 px-3 py-1.5 rounded-full hover:bg-gray-100' }} transition-colors">Contributing</a>
+            <a href="/docs/about.html"
+                class="{{ 'text-blue-700 px-3 py-1.5 rounded-full bg-blue-50' if active_nav == 'about' else 'hover:text-gray-900 px-3 py-1.5 rounded-full hover:bg-gray-100' }} transition-colors">About</a>
+            <a href="{{ config.github_url }}"
+                class="hover:text-gray-900 transition-all hover:scale-110">
+                <i class="fa-brands fa-github text-xl"></i>
+            </a>
+        </div>
+
+        <!-- Mobile Menu Button -->
+        <button id="docs-mobile-menu-btn" class="md:hidden p-2 text-gray-500 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors">
+            <i class="fa-solid fa-bars text-xl"></i>
+        </button>
+    </div>
+
+    <!-- Mobile Menu Dropdown -->
+    <div id="docs-mobile-menu" class="hidden md:hidden border-t border-gray-200 bg-white">
+        <div class="px-4 py-3 space-y-1">
+            <a href="/docs/getting_started.html" class="block px-3 py-2 rounded-lg transition-colors {{ 'text-blue-700 bg-blue-50 font-semibold' if active_nav == 'docs' else 'text-gray-700 hover:bg-gray-50 hover:text-blue-700' }}">
+                <i class="fa-solid fa-book w-5 text-center mr-2"></i>Documentation
+            </a>
+            <a href="/docs/api-reference.html" class="block px-3 py-2 rounded-lg transition-colors {{ 'text-blue-700 bg-blue-50 font-semibold' if active_nav == 'api' else 'text-gray-700 hover:bg-gray-50 hover:text-blue-700' }}">
+                <i class="fa-solid fa-code w-5 text-center mr-2"></i>API Reference
+            </a>
+            <a href="/docs/tutorials.html" class="block px-3 py-2 rounded-lg transition-colors {{ 'text-blue-700 bg-blue-50 font-semibold' if active_nav == 'tutorials' else 'text-gray-700 hover:bg-gray-50 hover:text-blue-700' }}">
+                <i class="fa-solid fa-graduation-cap w-5 text-center mr-2"></i>Tutorials
+            </a>
+            <a href="/docs/benchmarks.html" class="block px-3 py-2 rounded-lg transition-colors {{ 'text-blue-700 bg-blue-50 font-semibold' if active_nav == 'benchmarks' else 'text-gray-700 hover:bg-gray-50 hover:text-blue-700' }}">
+                <i class="fa-solid fa-chart-bar w-5 text-center mr-2"></i>Benchmarks
+            </a>
+            <a href="/docs/changelog.html" class="block px-3 py-2 rounded-lg transition-colors {{ 'text-blue-700 bg-blue-50 font-semibold' if active_nav == 'changelog' else 'text-gray-700 hover:bg-gray-50 hover:text-blue-700' }}">
+                <i class="fa-solid fa-clock-rotate-left w-5 text-center mr-2"></i>Changelog
+            </a>
+            <a href="/docs/contributing.html" class="block px-3 py-2 rounded-lg transition-colors {{ 'text-blue-700 bg-blue-50 font-semibold' if active_nav == 'contributing' else 'text-gray-700 hover:bg-gray-50 hover:text-blue-700' }}">
+                <i class="fa-solid fa-hands-helping w-5 text-center mr-2"></i>Contributing
+            </a>
+            <a href="/docs/about.html" class="block px-3 py-2 rounded-lg transition-colors {{ 'text-blue-700 bg-blue-50 font-semibold' if active_nav == 'about' else 'text-gray-700 hover:bg-gray-50 hover:text-blue-700' }}">
+                <i class="fa-solid fa-circle-info w-5 text-center mr-2"></i>About
+            </a>
+            <hr class="my-2 border-gray-100">
+            <a href="/" class="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-700 transition-colors">
+                <i class="fa-solid fa-house w-5 text-center mr-2"></i>Home
+            </a>
+            <a href="{{ config.github_url }}" class="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-blue-700 transition-colors">
+                <i class="fa-brands fa-github w-5 text-center mr-2"></i>GitHub
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Sub-header / Breadcrumbs -->
+<div class="bg-gray-50 border-b border-gray-200 sticky top-16 z-40">
+    <div class="container mx-auto px-4 py-3 text-sm flex items-center justify-between">
+        <div class="flex items-center gap-2 text-gray-500 overflow-x-auto whitespace-nowrap">
+            {% if breadcrumb_html|default('') %}
+            {{ breadcrumb_html|safe }}
+            {% else %}
+            <a href="/docs/getting_started.html" class="hover:text-gray-900">Documentation</a>
+            {% if page_title %}
+            <i class="fa-solid fa-chevron-right text-[10px] text-gray-300"></i>
+            <span class="text-gray-900 font-semibold">{{ page_title }}</span>
+            {% endif %}
+            {% endif %}
+        </div>
+        <div class="flex items-center gap-3">
+            {% if show_version|default(true) %}
+            <span class="hidden sm:inline text-xs text-gray-400 uppercase font-bold tracking-widest">{{ config.version_label }}</span>
+            {% endif %}
+            <a href="{{ config.github_url }}/stargazers"
+                class="flex items-center gap-1.5 bg-white border border-gray-200 px-2.5 py-1 rounded text-xs font-medium hover:bg-gray-50 transition-colors">
+                <i class="fa-solid fa-star text-yellow-400"></i> Star
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('docs-mobile-menu-btn')?.addEventListener('click', function() {
+        document.getElementById('docs-mobile-menu')?.classList.toggle('hidden');
+    });
+</script>

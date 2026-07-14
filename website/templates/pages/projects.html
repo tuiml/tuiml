@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'components/_head.html' %}
+</head>
+<body class="landing-page bg-slate-950 text-slate-100 antialiased overflow-x-hidden">
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+    :root {
+        --surface-0: #0b1628;
+        --surface-1: #0f1c34;
+        --surface-2: #152742;
+        --accent: #60a5fa;
+        --green: #34d399;
+        --orange: #fb923c;
+    }
+    .font-display { font-family: 'Outfit', 'IBM Plex Sans', sans-serif; }
+    .font-code { font-family: 'JetBrains Mono', 'IBM Plex Mono', monospace; }
+    .landing-page {
+        font-family: 'Outfit', 'IBM Plex Sans', sans-serif;
+        color: #e2e8f0;
+        background: var(--surface-0);
+    }
+    .glow-line { height: 1px; background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: 0.22; }
+
+    /* ---- Filter bar ---- */
+    .filter-pill {
+        padding: 7px 15px; border-radius: 999px;
+        font-size: 12.5px; font-weight: 600;
+        color: #94a3b8; background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        cursor: pointer; transition: all 0.15s ease;
+        display: inline-flex; align-items: center; gap: 7px;
+        white-space: nowrap;
+    }
+    .filter-pill:hover { color: #e2e8f0; background: rgba(255,255,255,0.07); }
+    .filter-pill.active { color: #0f172a; background: #a3e635; border-color: transparent; }
+    .filter-pill .count {
+        font-size: 10px; padding: 1px 6px; border-radius: 999px;
+        background: rgba(255,255,255,0.08); color: inherit;
+    }
+    .filter-pill.active .count { background: rgba(15,23,42,0.18); }
+
+    .search-box {
+        display: flex; align-items: center; gap: 10px; width: 100%;
+        padding: 12px 18px; border-radius: 12px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        transition: border-color 0.15s;
+    }
+    .search-box:focus-within { border-color: rgba(96,165,250,0.45); }
+    .search-box input {
+        background: transparent; border: none; outline: none;
+        color: #e2e8f0; font-size: 14.5px; flex: 1; width: 100%;
+        font-family: 'Outfit', sans-serif;
+    }
+    .search-box input::placeholder { color: #64748b; }
+
+    /* ---- Project card ---- */
+    .proj-card {
+        display: flex; flex-direction: column;
+        background: linear-gradient(135deg, rgba(255,255,255,0.045), rgba(255,255,255,0.01));
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 1rem;
+        padding: 1.4rem;
+        transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+    }
+    .proj-card:hover {
+        border-color: rgba(96,165,250,0.35);
+        box-shadow: 0 0 40px rgba(96,165,250,0.08);
+        transform: translateY(-3px);
+    }
+    .proj-card .card-top {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 10px; margin-bottom: 0.9rem;
+    }
+    .cat-chip {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 4px 10px; border-radius: 8px;
+        font-size: 10.5px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .status-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 11px; font-weight: 600; color: #94a3b8;
+        white-space: nowrap;
+    }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .status-open   .status-dot { background: #34d399; box-shadow: 0 0 8px #34d399; }
+    .status-open   { color: #6ee7b7; }
+    .status-testing .status-dot { background: #22d3ee; box-shadow: 0 0 8px #22d3ee; }
+    .status-testing { color: #67e8f9; }
+    .status-progress .status-dot { background: #fbbf24; box-shadow: 0 0 8px #fbbf24; }
+    .status-progress { color: #fcd34d; }
+    .status-planned .status-dot { background: #64748b; }
+    .status-planned { color: #94a3b8; }
+
+    .proj-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.05rem; font-weight: 700; color: #ffffff;
+        line-height: 1.25; margin-bottom: 0.4rem;
+    }
+    .proj-sub { font-size: 0.82rem; color: #93c5fd; margin-bottom: 0.7rem; font-weight: 500; }
+    .proj-desc { font-size: 0.85rem; line-height: 1.65; color: #cbd5e1; flex: 1; }
+
+    .proj-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 1rem; }
+    .proj-tag {
+        font-size: 10.5px; font-weight: 500;
+        padding: 3px 9px; border-radius: 999px;
+        background: rgba(96,165,250,0.1);
+        border: 1px solid rgba(96,165,250,0.18);
+        color: #93c5fd;
+        font-family: 'JetBrains Mono', monospace;
+    }
+    .proj-foot {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 10px; margin-top: 1.1rem; padding-top: 1rem;
+        border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .diff-badge {
+        display: inline-flex; align-items: center; gap: 5px;
+        font-size: 10.5px; font-weight: 600;
+        padding: 3px 9px; border-radius: 999px;
+    }
+    .diff-first { background: rgba(52,211,153,0.12); color: #6ee7b7; border: 1px solid rgba(52,211,153,0.25); }
+    .diff-inter { background: rgba(96,165,250,0.12); color: #93c5fd; border: 1px solid rgba(96,165,250,0.25); }
+    .diff-adv   { background: rgba(244,114,182,0.12); color: #f9a8d4; border: 1px solid rgba(244,114,182,0.25); }
+
+    .claim-btn {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 12px; font-weight: 600; color: #cbd5e1;
+        padding: 6px 12px; border-radius: 8px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        transition: all 0.15s;
+    }
+    .claim-btn:hover { color: #fff; background: rgba(96,165,250,0.15); border-color: rgba(96,165,250,0.4); }
+
+    .no-results { display: none; text-align: center; padding: 4rem 1rem; color: #64748b; }
+
+    .proj-desc code {
+        font-family: 'JetBrains Mono', monospace; font-size: 0.78em;
+        padding: 1px 5px; border-radius: 4px;
+        background: rgba(255,255,255,0.07); color: #e2e8f0;
+    }
+
+    /* ---- Sync indicator ---- */
+    .sync-status {
+        display: inline-flex; align-items: center; gap: 7px;
+        font-size: 11.5px; font-weight: 500; color: #64748b;
+    }
+    .sync-status .sync-dot {
+        width: 6px; height: 6px; border-radius: 50%;
+        background: #34d399; box-shadow: 0 0 8px #34d399;
+    }
+    .sync-status.stale .sync-dot { background: #fb923c; box-shadow: 0 0 8px #fb923c; }
+    .sync-status a { color: #93c5fd; }
+    .sync-status a:hover { text-decoration: underline; }
+
+    /* ---- Skeleton loading ---- */
+    .skel {
+        height: 232px; border-radius: 1rem;
+        background: linear-gradient(100deg, rgba(255,255,255,0.03) 30%, rgba(255,255,255,0.07) 50%, rgba(255,255,255,0.03) 70%);
+        background-size: 200% 100%;
+        border: 1px solid rgba(255,255,255,0.06);
+        animation: shimmer 1.3s linear infinite;
+    }
+    @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+    @keyframes fade-up { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+<!-- ===================== HERO ===================== -->
+<div style="background: linear-gradient(165deg, #0b1628 0%, #0f1c34 55%, #152742 100%); position: relative; overflow: hidden;">
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 0%, rgba(96,165,250,0.1), transparent);pointer-events:none;"></div>
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse 40% 60% at 85% 100%, rgba(139,92,246,0.06), transparent);pointer-events:none;"></div>
+
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 relative z-10">
+        <div class="max-w-3xl mx-auto text-center">
+            <div class="flex justify-center mb-4 sm:mb-6" style="animation: fade-up 0.5s ease-out both;">
+                <a href="/" class="relative inline-block group">
+                    <img src="/static/images/tuiml_logo_full.png?v=3" alt="TuiML" class="h-20 sm:h-32 md:h-40 object-contain transition-transform group-hover:scale-105 duration-300" style="filter: drop-shadow(0 8px 32px rgba(96,165,250,0.35));">
+                    <span class="absolute -top-1 -right-2 sm:-right-4 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-amber-400/20 text-amber-300 rounded-full leading-none border border-amber-400/30 backdrop-blur">Alpha</span>
+                </a>
+            </div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lime-400/10 border border-lime-400/25 text-lime-300 text-[11px] font-bold uppercase tracking-[0.15em] mb-5" style="animation: fade-up 0.6s ease-out 0.05s both;">
+                <i class="fa-solid fa-hammer text-[10px]"></i> Open Build Board
+            </div>
+            <h1 class="font-display text-3xl sm:text-5xl md:text-6xl font-900 text-white tracking-tight leading-[1.1]" style="animation: fade-up 0.6s ease-out both;">
+                Build the missing<br>
+                <span style="background: linear-gradient(135deg, #a3e635, #60a5fa, #c084fc); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;">pieces of TuiML</span>
+            </h1>
+            <p class="mt-5 text-sm sm:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed font-display" style="animation: fade-up 0.6s ease-out 0.1s both;">
+                A living list of algorithms, integrations, and tools the community can build. Pick a card, read the scope, and ship it with TuiML. Perfect for students, contributors, and course projects.
+            </p>
+            <div class="mt-7 flex flex-wrap justify-center gap-3" style="animation: fade-up 0.6s ease-out 0.2s both;">
+                <a href="/docs/contributing.html" class="px-5 py-2.5 bg-white text-slate-900 rounded-lg font-bold text-sm hover:bg-slate-100 transition-colors">
+                    <i class="fa-solid fa-book-open mr-1.5"></i> How to contribute
+                </a>
+                <a href="https://github.com/tuiml/tuiml/issues" target="_blank" rel="noopener" class="px-5 py-2.5 bg-white/[0.06] text-white border border-white/15 rounded-lg font-bold text-sm hover:bg-white/10 transition-colors">
+                    <i class="fa-brands fa-github mr-1.5"></i> Browse issues
+                </a>
+            </div>
+
+            <!-- Stat strip -->
+            <div class="mt-10 flex flex-wrap justify-center gap-x-8 gap-y-3 text-center" style="animation: fade-up 0.6s ease-out 0.3s both;">
+                <div><div class="font-display text-2xl font-800 text-white" id="stat-total">0</div><div class="text-[11px] uppercase tracking-wider text-slate-500">Projects</div></div>
+                <div><div class="font-display text-2xl font-800 text-emerald-400" id="stat-open">0</div><div class="text-[11px] uppercase tracking-wider text-slate-500">Open now</div></div>
+                <div><div class="font-display text-2xl font-800 text-cyan-400" id="stat-testing">0</div><div class="text-[11px] uppercase tracking-wider text-slate-500">Needs testing</div></div>
+            </div>
+        </div>
+    </div>
+    <div class="glow-line"></div>
+</div>
+
+<!-- ===================== BOARD ===================== -->
+<div style="background: var(--surface-0);">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+        <div class="max-w-6xl mx-auto">
+
+            <!-- Filters: full-width search on top, all category tags below -->
+            <div class="mb-8">
+                <div class="search-box mb-4">
+                    <i class="fa-solid fa-magnifying-glass text-slate-500 text-sm"></i>
+                    <input type="text" id="search" placeholder="Search projects by name, tag, or keyword…" autocomplete="off">
+                </div>
+                <div id="cat-filters" class="flex flex-wrap gap-2"></div>
+                <div class="mt-4 flex justify-end">
+                    <span class="sync-status" id="sync-status">
+                        <span class="sync-dot"></span> Loading live board from GitHub…
+                    </span>
+                </div>
+            </div>
+
+            <!-- Cards grid -->
+            <div id="board" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+
+            <div id="no-results" class="no-results">
+                <i class="fa-solid fa-ghost text-3xl mb-3 block opacity-50"></i>
+                No projects match your filters.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== CTA ===================== -->
+<div style="background: var(--surface-1);">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
+        <div class="max-w-2xl mx-auto text-center">
+            <h3 class="font-display text-2xl sm:text-3xl font-800 text-white mb-4 tracking-tight">Have an idea not on the board?</h3>
+            <p class="text-slate-400 mb-8 font-display">Open a proposal issue on GitHub. Good proposals become cards here and mentored student projects.</p>
+            <div class="flex flex-wrap justify-center gap-4">
+                <a href="https://github.com/tuiml/tuiml/issues/new" target="_blank" rel="noopener" class="px-6 py-3 bg-white text-slate-900 rounded-lg font-bold hover:bg-slate-100 transition-colors">
+                    <i class="fa-solid fa-lightbulb mr-2"></i> Propose a project
+                </a>
+                <a href="/docs/contributing.html" class="px-6 py-3 bg-white/[0.06] text-white border border-white/15 rounded-lg font-bold hover:bg-white/10 transition-colors">
+                    <i class="fa-solid fa-book mr-2"></i> Contributor guide
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== FOOTER ===================== -->
+<footer style="background: var(--surface-0); border-top: 1px solid rgba(255,255,255,0.06);">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
+        <div class="flex flex-wrap items-center justify-center gap-x-2 sm:gap-x-3 gap-y-2 text-xs sm:text-sm font-display">
+            <a href="/docs/getting_started.html" class="text-slate-400 hover:text-white transition-colors">Documentation</a>
+            <span class="text-slate-700">&middot;</span>
+            <a href="/docs/api-reference.html" class="text-slate-400 hover:text-white transition-colors">API Reference</a>
+            <span class="text-slate-700">&middot;</span>
+            <a href="/docs/benchmarks.html" class="text-slate-400 hover:text-white transition-colors">Benchmarks</a>
+            <span class="text-slate-700">&middot;</span>
+            <a href="/docs/tutorials.html" class="text-slate-400 hover:text-white transition-colors">Tutorials</a>
+            <span class="text-slate-700">&middot;</span>
+            <a href="/projects" class="text-slate-400 hover:text-white transition-colors">Build Board</a>
+            <span class="text-slate-700">&middot;</span>
+            <a href="/docs/contributing.html" class="text-slate-400 hover:text-white transition-colors">Contribute</a>
+            <span class="text-slate-700">&middot;</span>
+            <a href="/docs/about.html" class="text-slate-400 hover:text-white transition-colors">About</a>
+            <span class="text-slate-700">&middot;</span>
+            <a href="https://github.com/tuiml/tuiml" class="text-slate-400 hover:text-white transition-colors">GitHub</a>
+            <span class="text-slate-700">&middot;</span>
+            <a href="/privacy" class="text-slate-400 hover:text-white transition-colors">Privacy</a>
+            <span class="text-slate-700">&middot;</span>
+            <a href="/terms" class="text-slate-400 hover:text-white transition-colors">Terms</a>
+        </div>
+        <div class="mt-4 sm:mt-5 text-center text-[11px] sm:text-xs font-display text-slate-500">
+            &copy; 2026 TuiML Team. All rights reserved.
+        </div>
+    </div>
+</footer>
+
+<!-- ===================== DATA + RENDER ===================== -->
+<script>
+/* ----------------------------------------------------------------------
+   PROJECT DATA — LIVE FROM GITHUB ISSUES
+
+   GitHub is the single source of truth. This board renders the OPEN issues
+   of github.com/tuiml/tuiml that carry an `area:*` label. Close an issue and
+   it disappears from the board automatically; assign someone and the card
+   shows as claimed.
+
+   Issue labels map onto card fields:
+     area:<x>   -> category   (integrations | algorithms | streaming | automl |
+                               deeplearning | research | docs)
+     status:<x> -> status     (open | testing | in-progress | planned)
+     level:<x>  -> difficulty (first | intermediate | advanced | testing)
+
+   The issue body is parsed for the one-liner (leading `> **...**` blockquote),
+   the description, and the `**Modules / skills:**` tag chips.
+
+   To add a project: open an issue and label it. Do NOT edit this file.
+
+   The FALLBACK array below is only rendered if the GitHub API is unreachable
+   or rate-limited, so the page never comes up empty.
+---------------------------------------------------------------------- */
+const CATEGORIES = {
+    integrations: { label: "Integrations",   icon: "fa-plug",            color: "#60a5fa", bg: "rgba(96,165,250,0.12)" },
+    algorithms:   { label: "Algorithms",     icon: "fa-shapes",          color: "#a3e635", bg: "rgba(163,230,53,0.12)" },
+    streaming:    { label: "Streaming",      icon: "fa-wave-square",     color: "#34d399", bg: "rgba(52,211,153,0.12)" },
+    automl:       { label: "AutoML",         icon: "fa-wand-magic-sparkles", color: "#fbbf24", bg: "rgba(251,191,36,0.12)" },
+    deeplearning: { label: "Deep Learning",  icon: "fa-brain",           color: "#f472b6", bg: "rgba(244,114,182,0.12)" },
+    research:     { label: "Auto-Research",  icon: "fa-flask",           color: "#c084fc", bg: "rgba(192,132,252,0.12)" },
+    docs:         { label: "Tutorials",      icon: "fa-graduation-cap",  color: "#38bdf8", bg: "rgba(56,189,248,0.12)" },
+};
+
+const STATUS = {
+    open:     { label: "Open · help wanted",   cls: "status-open" },
+    testing:  { label: "Built · needs testing", cls: "status-testing" },
+    progress: { label: "In progress",          cls: "status-progress" },
+    planned:  { label: "Planned",              cls: "status-planned" },
+};
+
+const DIFF = {
+    first: { label: "Good first issue", cls: "diff-first", icon: "fa-seedling" },
+    inter: { label: "Intermediate",     cls: "diff-inter", icon: "fa-code" },
+    adv:   { label: "Advanced",         cls: "diff-adv",   icon: "fa-fire" },
+    test:  { label: "Test & verify",    cls: "diff-inter", icon: "fa-vial" },
+};
+
+const REPO = "https://github.com/tuiml/tuiml/issues";
+
+const FALLBACK = [
+    // ---------------- INTEGRATIONS / BACKENDS ----------------
+    {
+        title: "RAPIDS / cuML GPU backend",
+        sub: "GPU-accelerated drop-in for hot algorithms",
+        desc: "Detect NVIDIA RAPIDS (cuML) in the user's environment and expose GPU-accelerated KMeans, RandomForest, and kNN through the same MCP tool schema. Optional dependency, graceful CPU fallback path is intentionally NOT used — route directly when GPU is present.",
+        category: "integrations", status: "open", difficulty: "adv",
+        tags: ["cuml", "gpu", "mcp-wrapper"],
+    },
+    {
+        title: "JAX backend",
+        sub: "JIT-compiled linear models & optimizers",
+        desc: "Add an optional JAX backend for the differentiable algorithms (linear/logistic regression, SGD, MLP). Use jax.jit + grad for the training loops and register the accelerated variants when jax is importable.",
+        category: "integrations", status: "open", difficulty: "adv",
+        tags: ["jax", "autodiff", "optional-dep"],
+    },
+    {
+        title: "Keras → TensorFlow wrapper",
+        sub: "Expose Keras models as TuiML estimators",
+        desc: "Wrap Keras/TensorFlow Sequential + functional models behind the Classifier/Regressor base classes so agents can train them via tuiml_train. Handle the fit/predict bridge, epochs/batch params in the schema, and lazy TF import.",
+        category: "integrations", status: "open", difficulty: "inter",
+        tags: ["keras", "tensorflow", "estimator-api"],
+    },
+    {
+        title: "CapyMOA streaming — verify & extend",
+        sub: "Base integration built · needs testing + more algorithms",
+        desc: "Already shipped: optional CapyMOA detection plus NaiveBayes, HoeffdingTree, AdaptiveRandomForest and FIMTDD wrapped as streaming estimators with drift tags. Needs end-to-end tests, more algorithms (OzaBag, drift detectors), and wiring into a prequential (test-then-train) evaluation mode.",
+        category: "streaming", status: "testing", difficulty: "test",
+        tags: ["capymoa", "prequential", "drift", "testing"],
+    },
+    {
+        title: "Live-stream background workers",
+        sub: "tuiml_stream_status / tuiml_stream_stop",
+        desc: "Spawn a background task for live stream URIs (e.g. kafka://). Return a stream_id immediately with metadata (last_updated, next_update), serialize the model on a poll_rate, and add tools to query current accuracy/drift and to stop + finalize the worker.",
+        category: "streaming", status: "planned", difficulty: "adv",
+        tags: ["async", "background-task", "serialization"],
+    },
+    {
+        title: "Active learning loop",
+        sub: "Uncertainty-based label querying",
+        desc: "Add evaluation=\"active\": train on a seed set, surface the most uncertain samples back to the agent (which can act as oracle or relay to the user), and iterate under a query budget. Support uncertainty / margin / entropy / committee strategies.",
+        category: "streaming", status: "planned", difficulty: "adv",
+        tags: ["active-learning", "query-strategy", "oracle"],
+    },
+
+    // ---------------- MISSING ALGORITHMS ----------------
+    {
+        title: "Native Lasso & ElasticNet estimators",
+        sub: "Dedicated coordinate-descent regressors",
+        desc: "Ridge is already available (OLS ridge term + SGD l1/l2/elasticnet penalties), and sklearn-backed Lasso/Ridge exist via the adapter. Missing are native, first-class Lasso and ElasticNet estimators via coordinate descent — no sklearn dependency.",
+        category: "algorithms", status: "open", difficulty: "inter",
+        tags: ["linear_model", "coordinate-descent"],
+    },
+    {
+        title: "Discriminant Analysis (LDA / QDA)",
+        sub: "Linear & Quadratic Discriminant Analysis",
+        desc: "Add LinearDiscriminantAnalysis and QuadraticDiscriminantAnalysis classifiers (also usable for dimensionality reduction). Estimate class means/covariances and expose the transform for LDA.",
+        category: "algorithms", status: "open", difficulty: "inter",
+        tags: ["discriminant", "classifier"],
+    },
+    {
+        title: "Extra Trees (classifier + regressor)",
+        sub: "Extremely Randomized Trees ensemble",
+        desc: "Build ExtraTreesClassifier / ExtraTreesRegressor on top of the existing tree infrastructure — random split thresholds instead of best-split. A splitting hot-path candidate for the C++ core.",
+        category: "algorithms", status: "open", difficulty: "first",
+        tags: ["ensemble", "trees", "cpp-candidate"],
+    },
+    {
+        title: "MLPRegressor",
+        sub: "Neural-net regression head",
+        desc: "TuiML has MLPClassifier but no MLPRegressor. Reuse the existing MLP core with a linear output layer and regression losses (MSE), wired into the Regressor base class.",
+        category: "algorithms", status: "open", difficulty: "first",
+        tags: ["neural-net", "regressor"],
+    },
+    {
+        title: "HDBSCAN clustering",
+        sub: "Density-based hierarchical clustering",
+        desc: "Add HDBSCAN — builds a cluster hierarchy from mutual-reachability distances and extracts stable clusters. Distance computation is a strong C++ hot-path candidate.",
+        category: "algorithms", status: "open", difficulty: "inter",
+        tags: ["clustering", "density", "cpp-candidate"],
+    },
+    {
+        title: "Manifold learning suite",
+        sub: "t-SNE · Isomap · LLE",
+        desc: "Add non-linear dimensionality reduction for visualization and embeddings. Start with t-SNE (Barnes-Hut), then Isomap and Locally Linear Embedding sharing a neighbors graph utility.",
+        category: "algorithms", status: "open", difficulty: "inter",
+        tags: ["manifold", "dim-reduction", "embedding"],
+    },
+    {
+        title: "Advanced scalers",
+        sub: "RobustScaler · PowerTransformer · QuantileTransformer",
+        desc: "Round out preprocessing with RobustScaler (median/IQR), PowerTransformer (Yeo-Johnson/Box-Cox), and QuantileTransformer. Short-format docstrings per the datasets/features convention.",
+        category: "algorithms", status: "open", difficulty: "first",
+        tags: ["preprocessing", "scaling"],
+    },
+    {
+        title: "Recursive Feature Elimination (RFE)",
+        sub: "Wrapper-based feature selection",
+        desc: "TuiML already has SelectKBest / SelectPercentile with f_classif / chi2 / mutual_info scorers. Missing is the wrapper-based RFE (and RFECV): repeatedly fit an estimator and drop the weakest features by importance.",
+        category: "algorithms", status: "open", difficulty: "inter",
+        tags: ["feature-selection", "rfe", "wrapper"],
+    },
+    {
+        title: "Imbalanced learning: SMOTENC + balanced ensembles",
+        sub: "Mixed-type resampling & balanced forests",
+        desc: "TuiML already ships SMOTE, Borderline-SMOTE, SVM-SMOTE, KMeans-SMOTE, over/under-sampling and a class balancer. Missing are SMOTENC (mixed continuous/categorical) and built-in-balancing ensembles — BalancedRandomForestClassifier / EasyEnsembleClassifier.",
+        category: "algorithms", status: "open", difficulty: "inter",
+        tags: ["imbalanced", "smote", "ensemble"],
+    },
+    {
+        title: "Successive-halving search",
+        sub: "HalvingGridSearchCV / HalvingRandomSearchCV",
+        desc: "Add successive-halving hyperparameter search on top of the existing tuning API — allocate more budget to promising configs each round. Much faster than full grid search.",
+        category: "algorithms", status: "open", difficulty: "inter",
+        tags: ["tuning", "hyperparameter"],
+    },
+    {
+        title: "Statsmodels-style summaries",
+        sub: "p-values, CIs & GLM family",
+        desc: "Expose deep statistical summaries for linear/logistic models (coefficient p-values, t-stats, confidence intervals) and add GLMs (Poisson, Gamma, Tweedie) plus time-series tests (ADF, Granger).",
+        category: "algorithms", status: "planned", difficulty: "adv",
+        tags: ["statistics", "glm", "inference"],
+    },
+
+    // ---------------- AUTOML ----------------
+    {
+        title: "AutoML — extend compare_models()",
+        sub: "Ranking built · grow into a full auto-pipeline",
+        desc: "Already shipped: experiment.compare_models() plus the CLI evaluate and rank multiple models on a dataset. Extend it into a PyCaret-style one-call auto-pipeline (preprocessing + feature selection + tuning) exposed as an MCP tool, and add coverage tests over diverse datasets.",
+        category: "automl", status: "testing", difficulty: "test",
+        tags: ["compare_models", "leaderboard", "pipeline", "testing"],
+    },
+    {
+        title: "Meta-learning & auto-stacking",
+        sub: "Automatically stack the top-N models",
+        desc: "After compare_models, automatically build a stacked ensemble of the best performers with a learned meta-model. Optional automated feature synthesis (featuretools-style).",
+        category: "automl", status: "planned", difficulty: "adv",
+        tags: ["stacking", "meta-learning"],
+    },
+
+    // ---------------- DEEP LEARNING ----------------
+    {
+        title: "PyTorch wrapper (deep learning)",
+        sub: "Optional tuiml[deep-learning] extra",
+        desc: "Expose MLPs / CNNs / LSTMs via a strictly optional PyTorch extra. Detect CUDA/MPS in tuiml_system_info so the agent knows if it's safe to spawn a training job or should stick to classic ML.",
+        category: "deeplearning", status: "planned", difficulty: "adv",
+        tags: ["pytorch", "cuda", "optional-dep"],
+    },
+    {
+        title: "Serverless GPU offloading",
+        sub: "backend=\"modal\" — ship training to the cloud",
+        desc: "Let the agent delegate heavy training to serverless GPU providers (Modal / Ray / RunPod) — ship the dataset, train remotely, return the weights to the local server, no DevOps friction. Good-to-have.",
+        category: "deeplearning", status: "planned", difficulty: "adv",
+        tags: ["modal", "serverless", "gpu"],
+    },
+
+    // ---------------- AUTO-RESEARCH ----------------
+    {
+        title: "AutoResearch agent loop — testing",
+        sub: "Bot is built · needs end-to-end verification",
+        desc: "The agent-driven research loop (hypothesis → experiment → research_log → report) is implemented. What it needs now: thorough end-to-end testing across datasets, edge-case handling, and polish on the generated report and statistical tests (paired t-test, Friedman, Nemenyi, CD diagrams).",
+        category: "research", status: "testing", difficulty: "test",
+        tags: ["auto-research", "research_log", "stat-tests", "testing"],
+    },
+
+    // ---------------- TUTORIALS / DOCS ----------------
+    {
+        title: "Tutorial notebooks",
+        sub: "End-to-end, agent-first walkthroughs",
+        desc: "Write runnable tutorial notebooks that teach a workflow end-to-end (classification, clustering, tuning, streaming) using only TuiML tools. Great first contribution — no core code required.",
+        category: "docs", status: "open", difficulty: "first",
+        tags: ["tutorial", "notebook", "docs"],
+    },
+];
+
+/* ---------------------- GitHub sync ---------------------- */
+const GH_OWNER = "tuiml", GH_NAME = "tuiml";
+const GH_API = `https://api.github.com/repos/${GH_OWNER}/${GH_NAME}/issues?state=open&per_page=100`;
+const CACHE_KEY = "tuiml_board_v2";  // shared with the landing-page marquee — keep the schema in sync
+const CACHE_TTL = 10 * 60 * 1000;   // 10 min — keeps repeat visits off the rate limit
+
+// label suffix -> card field value
+const LABEL_MAP = {
+    area:   { integrations: "integrations", algorithms: "algorithms", streaming: "streaming",
+              automl: "automl", deeplearning: "deeplearning", research: "research", docs: "docs" },
+    status: { open: "open", testing: "testing", "in-progress": "progress", planned: "planned" },
+    level:  { first: "first", intermediate: "inter", advanced: "adv", testing: "test" },
+};
+
+// Cards sort by how actionable they are: open first, planned last.
+const SORT_ORDER = { open: 0, testing: 1, progress: 2, planned: 3 };
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+// Minimal inline-markdown: `code` and **bold**. Escaped first, so issue bodies can't inject HTML.
+const mdLite = s => esc(s).replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+
+/** Turn a GitHub issue into a board card. Returns null if it isn't a board issue. */
+function parseIssue(issue) {
+    const names = (issue.labels || []).map(l => (typeof l === "string" ? l : l.name));
+    const pick = axis => {
+        for (const n of names) {
+            const [a, v] = n.split(":");
+            if (a === axis && LABEL_MAP[axis][v]) return LABEL_MAP[axis][v];
+        }
+        return null;
+    };
+
+    const category = pick("area");
+    if (!category) return null;   // no area:* label -> not part of the build board
+
+    const body = (issue.body || "").replace(/\r/g, "");
+    const subM = body.match(/^>\s*\*\*(.+?)\*\*/m);
+    const tagM = body.match(/\*\*Modules \/ skills:\*\*(.+)/);
+    const desc = body.split(/\*\*Modules \/ skills:\*\*/)[0]
+                     .replace(/^>\s*\*\*.+?\*\*/m, "")
+                     .trim();
+
+    return {
+        title: issue.title,
+        sub: subM ? subM[1] : "",
+        desc: desc || "See the issue for the full scope.",
+        category,
+        status: pick("status") || "open",
+        difficulty: pick("level") || "inter",
+        tags: tagM ? (tagM[1].match(/`([^`]+)`/g) || []).map(t => t.replace(/`/g, "")) : [],
+        issue: issue.html_url,
+        number: issue.number,
+        assignees: issue.assignees || [],
+    };
+}
+
+function setSync(html, live) {
+    const el = document.getElementById("sync-status");
+    el.className = "sync-status" + (live ? "" : " stale");
+    el.innerHTML = `<span class="sync-dot"></span> ${html}`;
+}
+
+/** Guard against a cache written by an older/other version of the schema. */
+const isValidCard = c => c && typeof c.issue === "string" && Array.isArray(c.tags);
+
+async function fetchBoard() {
+    try {
+        const cached = JSON.parse(sessionStorage.getItem(CACHE_KEY) || "null");
+        if (cached && Date.now() - cached.t < CACHE_TTL && cached.d.length && cached.d.every(isValidCard))
+            return cached.d;
+    } catch (_) { /* corrupt cache — just refetch */ }
+
+    const res = await fetch(GH_API, { headers: { Accept: "application/vnd.github+json" } });
+    if (!res.ok) throw new Error(`GitHub API ${res.status}`);
+
+    const data = (await res.json())
+        .filter(i => !i.pull_request)          // the issues endpoint also returns PRs
+        .map(parseIssue)
+        .filter(Boolean);
+
+    if (!data.length) throw new Error("no labelled board issues");
+    try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({ t: Date.now(), d: data })); } catch (_) {}
+    return data;
+}
+
+/* ---------------------- render ---------------------- */
+const board = document.getElementById("board");
+const catFilters = document.getElementById("cat-filters");
+const searchInput = document.getElementById("search");
+const noResults = document.getElementById("no-results");
+
+let PROJECTS = [];
+let activeCat = "all";
+
+function cardHTML(p, i) {
+    const cat = CATEGORIES[p.category];
+    const st = STATUS[p.status] || STATUS.open;
+    const df = DIFF[p.difficulty] || DIFF.inter;
+    const tags = p.tags.map(t => `<span class="proj-tag">${esc(t)}</span>`).join("");
+    const url = p.issue || REPO;
+    const claimed = p.assignees && p.assignees.length;
+
+    const action = claimed
+        ? `<a href="${esc(url)}" target="_blank" rel="noopener" class="claim-btn"
+              title="Claimed by ${esc(p.assignees.map(a => "@" + a.login).join(", "))}">
+               <img src="${esc(p.assignees[0].avatar_url)}" alt="" width="16" height="16" style="border-radius:50%;">
+               Claimed${p.assignees.length > 1 ? ` +${p.assignees.length - 1}` : ""}
+           </a>`
+        : `<a href="${esc(url)}" target="_blank" rel="noopener" class="claim-btn">
+               <i class="fa-brands fa-github"></i> Claim${p.number ? ` #${p.number}` : ""}
+           </a>`;
+
+    return `
+    <article class="proj-card" data-cat="${p.category}" data-status="${p.status}"
+             data-search="${esc((p.title + " " + p.sub + " " + p.desc + " " + p.tags.join(" ")).toLowerCase())}"
+             style="animation: fade-up 0.4s ease-out ${Math.min(i * 0.03, 0.3)}s both;">
+        <div class="card-top">
+            <span class="cat-chip" style="color:${cat.color}; background:${cat.bg};">
+                <i class="fa-solid ${cat.icon}"></i> ${cat.label}
+            </span>
+            <span class="status-badge ${st.cls}"><span class="status-dot"></span>${st.label}</span>
+        </div>
+        <h3 class="proj-title">${esc(p.title)}</h3>
+        <div class="proj-sub">${mdLite(p.sub)}</div>
+        <p class="proj-desc">${mdLite(p.desc)}</p>
+        <div class="proj-tags">${tags}</div>
+        <div class="proj-foot">
+            <span class="diff-badge ${df.cls}"><i class="fa-solid ${df.icon}"></i> ${df.label}</span>
+            ${action}
+        </div>
+    </article>`;
+}
+
+function renderFilters() {
+    const counts = { all: PROJECTS.length };
+    PROJECTS.forEach(p => counts[p.category] = (counts[p.category] || 0) + 1);
+    const pills = [`<button class="filter-pill active" data-cat="all">All <span class="count">${counts.all}</span></button>`];
+    Object.entries(CATEGORIES).forEach(([key, c]) => {
+        if (!counts[key]) return;
+        pills.push(`<button class="filter-pill" data-cat="${key}">
+            <i class="fa-solid ${c.icon}" style="font-size:11px;"></i> ${c.label} <span class="count">${counts[key]}</span>
+        </button>`);
+    });
+    catFilters.innerHTML = pills.join("");
+    catFilters.querySelectorAll(".filter-pill").forEach(btn => {
+        btn.addEventListener("click", () => {
+            catFilters.querySelectorAll(".filter-pill").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            activeCat = btn.dataset.cat;
+            applyFilters();
+        });
+    });
+}
+
+function renderBoard() {
+    board.innerHTML = PROJECTS.map(cardHTML).join("");
+}
+
+function applyFilters() {
+    const q = searchInput.value.trim().toLowerCase();
+    let visible = 0;
+    board.querySelectorAll(".proj-card").forEach(card => {
+        const matchCat = activeCat === "all" || card.dataset.cat === activeCat;
+        const matchQ = !q || card.dataset.search.includes(q);
+        const show = matchCat && matchQ;
+        card.style.display = show ? "" : "none";
+        if (show) visible++;
+    });
+    noResults.style.display = visible ? "none" : "block";
+}
+
+function renderStats() {
+    document.getElementById("stat-total").textContent = PROJECTS.length;
+    document.getElementById("stat-open").textContent = PROJECTS.filter(p => p.status === "open").length;
+    document.getElementById("stat-testing").textContent = PROJECTS.filter(p => p.status === "testing").length;
+}
+
+async function init() {
+    board.innerHTML = Array.from({ length: 6 }, () => `<div class="skel"></div>`).join("");
+
+    try {
+        PROJECTS = await fetchBoard();
+        const claimed = PROJECTS.filter(p => p.assignees.length).length;
+        setSync(
+            `Live from <a href="${REPO}" target="_blank" rel="noopener">GitHub issues</a> · ` +
+            `${PROJECTS.length} open${claimed ? ` · ${claimed} claimed` : ""}`, true);
+    } catch (err) {
+        PROJECTS = FALLBACK;
+        setSync(`Couldn't reach GitHub — showing the last known list. ` +
+                `<a href="${REPO}" target="_blank" rel="noopener">Browse issues</a>`, false);
+        console.warn("[build-board] falling back to static list:", err.message);
+    }
+
+    PROJECTS.sort((a, b) => (SORT_ORDER[a.status] ?? 9) - (SORT_ORDER[b.status] ?? 9));
+
+    renderFilters();
+    renderBoard();
+    renderStats();
+    applyFilters();
+}
+
+searchInput.addEventListener("input", applyFilters);
+init();
+</script>
+
+</body>
+</html>

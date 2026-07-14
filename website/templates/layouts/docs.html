@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'components/_head.html' %}
+    {% include 'docs/components/_head.html' %}
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body class="bg-gray-50 text-gray-900 font-sans antialiased flex flex-col min-h-screen">
+    <!-- Navigation -->
+    {% include 'docs/components/_navbar.html' %}
+
+    <!-- Main Content with Sidebar -->
+    <div class="flex-grow">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex gap-8">
+                <!-- Sidebar -->
+                {% include 'docs/components/_sidebar.html' %}
+
+                <!-- Main Content -->
+                <main class="flex-1 min-w-0">
+                    <article class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 lg:p-12">
+                        {% block content %}{% endblock %}
+                    </article>
+
+                    <!-- Page Navigation -->
+                    {% if prev_page or next_page %}
+                    <nav class="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
+                        {% if prev_page %}
+                        <a href="{{ prev_page.url }}" class="flex items-center gap-2 text-gray-600 hover:text-blue-700 transition-colors">
+                            <i class="fa-solid fa-arrow-left"></i>
+                            <span>{{ prev_page.title }}</span>
+                        </a>
+                        {% else %}
+                        <div></div>
+                        {% endif %}
+
+                        {% if next_page %}
+                        <a href="{{ next_page.url }}" class="flex items-center gap-2 text-gray-600 hover:text-blue-700 transition-colors">
+                            <span>{{ next_page.title }}</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                        {% endif %}
+                    </nav>
+                    {% endif %}
+                </main>
+
+                <!-- Table of Contents (right sidebar) -->
+                <aside class="w-56 flex-shrink-0 hidden xl:block">
+                    <nav class="sticky top-20">
+                        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">On this page</h4>
+                        <ul id="toc" class="space-y-2 text-sm text-gray-500">
+                            {% block toc %}{% endblock %}
+                        </ul>
+                    </nav>
+                </aside>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    {% set compact = true %}
+    {% include 'components/_footer.html' %}
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

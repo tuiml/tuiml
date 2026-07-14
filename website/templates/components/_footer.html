@@ -1,0 +1,46 @@
+{#
+    Reusable Footer Component
+    Usage: {% include 'components/_footer.html' %}
+
+    Variables:
+    - compact: Use compact footer for docs (default: false)
+#}
+{% if compact|default(false) %}
+<!-- Compact Footer (for documentation pages) -->
+<footer class="bg-white border-t border-gray-200 py-6 mt-auto">
+    <div class="container mx-auto px-4">
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-3 text-sm text-gray-500">
+            <div class="flex items-center gap-2">
+                <img src="/static/images/tuiml_logo.png?v=3" alt="TuiML" class="w-5 h-5 rounded-full">
+                <span class="font-semibold"><span class="text-gray-700">Tui</span><span class="text-[#0c3a94]">ML</span></span>
+                <span class="text-gray-400">|</span>
+                <span>Documentation</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <a href="/" class="hover:text-blue-700 transition-colors">Hub</a>
+                <a href="/browse" class="hover:text-blue-700 transition-colors">Algorithms</a>
+                <a href="{{ config.github_url }}" class="hover:text-blue-700 transition-colors">
+                    <i class="fa-brands fa-github"></i> GitHub
+                </a>
+            </div>
+            <p class="text-xs text-gray-400">&copy; {{ config.copyright_year }} {{ config.project_name }} Team. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+{% else %}
+<!-- Minimal Footer -->
+<footer class="bg-white border-t border-gray-200 mt-auto">
+    <div class="container mx-auto px-4 py-6">
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-400">
+            <p>&copy; {{ config.copyright_year }} {{ config.project_name }} Team. All rights reserved.</p>
+            <div class="flex items-center gap-5">
+                <a href="{{ config.github_url }}" class="hover:text-gray-600 transition-colors">
+                    <i class="fa-brands fa-github"></i> GitHub
+                </a>
+                <a href="/privacy" class="hover:text-gray-600 transition-colors">Privacy Policy</a>
+                <a href="/terms" class="hover:text-gray-600 transition-colors">Terms of Service</a>
+            </div>
+        </div>
+    </div>
+</footer>
+{% endif %}
