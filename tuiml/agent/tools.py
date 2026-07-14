@@ -495,9 +495,11 @@ WORKFLOW_TOOLS = {
                     "type": "string",
                     "description": (
                         "Algorithm class name. Examples:\n"
-                        "- Classifiers: 'RandomForestClassifier', 'SVM', 'NaiveBayesClassifier', 'C45TreeClassifier'\n"
-                        "- Regressors: 'LinearRegression', 'M5ModelTreeRegressor'\n"
-                        "- Clusterers: 'KMeansClusterer', 'GaussianMixtureClusterer', 'DBSCANClusterer'"
+                        "- Classifiers: 'RandomForestClassifier', 'SklearnHistGradientBoostingClassifier', 'SklearnGaussianNB', 'SklearnRidgeClassifier', 'SklearnExtraTreesClassifier', 'SklearnGaussianProcessClassifier'\n"
+                        "- Regressors: 'LinearRegression', 'SklearnLasso', 'SklearnHistGradientBoostingRegressor', 'SklearnMLPRegressor', 'SklearnGaussianProcessRegressor'\n"
+                        "- Streaming: 'OzaBagClassifier', 'HoeffdingTreeClassifier', 'CapyMOANaiveBayes', 'CapyMOASGDClassifier', 'CapyMOAAdaptiveRandomForestRegressor'\n"
+                        "- Clusterers: 'KMeansClusterer', 'GaussianMixtureClusterer', 'SklearnDBSCAN', 'SklearnGaussianMixture', 'SklearnAgglomerativeClustering'\n"
+                        "- Feature Selection/Extraction: Can be used in 'preprocessing' or 'feature_selection' e.g. 'SklearnSelectKBest', 'SklearnRFE', 'SklearnTSNE', 'SklearnIsomap'"
                     )
                 },
                 "data": {
@@ -531,7 +533,7 @@ WORKFLOW_TOOLS = {
                     },
                     "description": (
                         "Preprocessing steps as names or objects with params.\n"
-                        "Examples: ['SimpleImputer', 'StandardScaler'] or "
+                        "Examples: ['SklearnIterativeImputer', 'StandardScaler', 'SklearnGaussianRandomProjection'] or "
                         "[{'name': 'SimpleImputer', 'strategy': 'median'}, 'MinMaxScaler']"
                     )
                 },
@@ -1997,7 +1999,7 @@ def execute_train(**kwargs) -> Dict[str, Any]:
         model_path = None
         if result.model:
             model_id = uuid.uuid4().hex[:12]
-            model_path = _save_model_to_disk(result.model, model_id, save_path)
+            model_path = _save_model_to_disk(result, model_id, save_path)
             _MODEL_INDEX[model_id] = model_path
 
         return {
@@ -2043,10 +2045,11 @@ def execute_train(**kwargs) -> Dict[str, Any]:
 
 def _get_model_tags(model) -> List[str]:
     """Get tags from a model if available."""
-    tags = getattr(model, '_tags', [])
+    target = getattr(model, 'model', model)
+    tags = getattr(target, '_tags', [])
     if not tags:
         # Try class-level tags
-        tags = getattr(model.__class__, '_tags', [])
+        tags = getattr(target.__class__, '_tags', [])
     return tags or []
 
 
@@ -5637,20 +5640,22 @@ def get_workflow_tools() -> Dict[str, Dict]:
 def execute_tool(tool_name: str, **kwargs) -> Dict[str, Any]:
     """Execute a tool by name."""
     random_seed = kwargs.pop('random_seed', None)
-    if random_seed is not None:
-        from tuiml.utils.seed import set_global_seed
-        set_global_seed(random_seed)
-        if tool_name in ('tuiml_tune', 'tuiml_generate_data'):
-            kwargs['random_seed'] = random_seed
+    
+    if random_seed is None:
+        import random
+        random_seed = random.randint(0, 2**31 - 1)
+        
+    from tuiml.utils.seed import set_global_seed
+    set_global_seed(random_seed)
+    
+    if tool_name in ('tuiml_tune', 'tuiml_generate_data', 'tuiml_train', 'tuiml_experiment'):
+        kwargs['random_seed'] = random_seed
 
     # Check workflow tools first
     if tool_name in TOOL_EXECUTORS:
         result = TOOL_EXECUTORS[tool_name](**kwargs)
         if isinstance(result, dict) and result.get('status') == 'success':
-            from tuiml.utils.seed import get_global_seed
-            effective_seed = random_seed if random_seed is not None else get_global_seed()
-            if effective_seed is not None:
-                result['random_seed'] = effective_seed
+            result['random_seed'] = random_seed
         return result
 
     # For any component tool, ensure full registry is loaded

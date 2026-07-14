@@ -11,10 +11,10 @@ from tuiml.agent.tools import execute_tool
 @click.option('--n-classes', type=int, help='Number of classes (classification generators only)')
 @click.option('--n-clusters', type=int, help='Number of clusters (clustering generators only)')
 @click.option('--noise', type=float, help='Noise level (regression generators only)')
-@click.option('--random-state', type=int, help='Random seed for reproducibility')
+@click.option('--random-seed', type=int, help='Random seed for reproducibility')
 @click.option('--generator-params', type=str, help='Additional generator-specific parameters (pass as JSON string)')
 @click.option('--json-output', is_flag=True, help='Output raw JSON')
-def generate(generator, n_samples, n_features, n_classes, n_clusters, noise, random_state, generator_params, json_output):
+def generate(generator, n_samples, n_features, n_classes, n_clusters, noise, random_seed, generator_params, json_output):
     """Generate synthetic datasets for testing and demos. Supports classification (RandomRBF, Agrawal, LED, Hyperplane), regression (Friedman, MexicanHat, Sine), and clustering (Blobs, Moons, Circles, SwissRoll) generators."""
     kwargs = {
             'generator': generator,
@@ -23,7 +23,7 @@ def generate(generator, n_samples, n_features, n_classes, n_clusters, noise, ran
             'n_classes': n_classes,
             'n_clusters': n_clusters,
             'noise': noise,
-            'random_state': random_state,
+            'random_seed': random_seed,
             'generator_params': json.loads(generator_params) if generator_params is not None else None,
     }
     # Remove None values

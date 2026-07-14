@@ -14,9 +14,9 @@ from tuiml.agent.tools import execute_tool
 @click.option('--scoring', type=str, help="Scoring metric (e.g., 'accuracy', 'r2', 'neg_mse')")
 @click.option('--n-iter', type=int, help='Number of iterations for random search')
 @click.option('--n-iterations', type=int, help='Number of iterations for Bayesian search')
-@click.option('--random-state', type=int, help='Random seed for reproducibility')
+@click.option('--random-seed', type=int, help='Random seed for reproducibility')
 @click.option('--json-output', is_flag=True, help='Output raw JSON')
-def tune(algorithm, data, target, method, param_grid, cv, scoring, n_iter, n_iterations, random_state, json_output):
+def tune(algorithm, data, target, method, param_grid, cv, scoring, n_iter, n_iterations, random_seed, json_output):
     """Hyperparameter optimization for any algorithm. Supports grid search, random search, and Bayesian optimization. Returns best parameters, best score, and a trained model with optimal settings."""
     kwargs = {
             'algorithm': algorithm,
@@ -28,7 +28,7 @@ def tune(algorithm, data, target, method, param_grid, cv, scoring, n_iter, n_ite
             'scoring': scoring,
             'n_iter': n_iter,
             'n_iterations': n_iterations,
-            'random_state': random_state,
+            'random_seed': random_seed,
     }
     # Remove None values
     kwargs = {k: v for k, v in kwargs.items() if v is not None}

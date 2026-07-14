@@ -81,11 +81,28 @@ from tuiml.features.selection.subset import (
     WrapperSelector,
 )
 
+# Sklearn wrappers
+
 # Random selection
 from tuiml.features.selection.random_subset import (
     RandomSubsetSelector,
     BootstrapFeaturesSelector,
 )
+
+try:
+    import sklearn
+    SKLEARN_AVAILABLE = True
+except ImportError:
+    SKLEARN_AVAILABLE = False
+
+if SKLEARN_AVAILABLE:
+    from tuiml.features.selection.sklearn_selection import (
+        SklearnVarianceThreshold,
+        SklearnSelectKBest,
+        SklearnSelectPercentile,
+        SklearnRFE,
+        SklearnSelectFromModel,
+    )
 
 __all__ = [
     # Base
@@ -98,6 +115,7 @@ __all__ = [
     "SelectFprSelector",
     # Variance
     "VarianceThresholdSelector",
+    # Sklearn
     # Sequential
     "SequentialFeatureSelector",
     "BestFirstSelector",
@@ -108,3 +126,13 @@ __all__ = [
     "RandomSubsetSelector",
     "BootstrapFeaturesSelector",
 ]
+
+if SKLEARN_AVAILABLE:
+    __all__.extend([
+        "SklearnVarianceThreshold",
+        "SklearnSelectKBest",
+        "SklearnSelectPercentile",
+        "SklearnRFE",
+        "SklearnSelectFromModel",
+    ])
+

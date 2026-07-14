@@ -11,12 +11,13 @@ import tuiml
 @click.option('--target', '-t', required=True, help='Target column name')
 @click.option('--cv', type=int, default=10, help='Number of cross-validation folds (default: 10)')
 @click.option('--metrics', '-m', multiple=True, help='Metrics to compute (default: accuracy)')
+@click.option('--random-seed', type=int, help='Random seed for reproducibility')
 @click.option('--output', '-o', help='Output file for results (JSON/Markdown/LaTeX)')
 @click.option('--format', '-f', type=click.Choice(['json', 'markdown', 'latex', 'csv']),
               default='markdown', help='Output format (default: markdown)')
 @click.option('--plot', is_flag=True, help='Generate critical difference plot')
 @click.option('--verbose', '-v', is_flag=True, help='Verbose output')
-def experiment(algorithms, data, target, cv, metrics, output, format, plot, verbose):
+def experiment(algorithms, data, target, cv, metrics, random_seed, output, format, plot, verbose):
     """Run cross-validation experiments to compare multiple algorithms.
 
     This command benchmarks multiple algorithms on one or more datasets using 
@@ -35,6 +36,8 @@ def experiment(algorithms, data, target, cv, metrics, output, format, plot, verb
         Number of cross-validation folds.
     metrics : list of str, optional
         A list of metrics to compute for comparison.
+    random_seed : int, optional
+        Random seed for reproducibility.
     output : str, optional
         Path where the experiment results should be saved.
     format : {"json", "markdown", "latex", "csv"}, default="markdown"
@@ -86,15 +89,21 @@ def experiment(algorithms, data, target, cv, metrics, output, format, plot, verb
             click.echo(f"  Datasets: {', '.join(data)}")
             click.echo(f"  Cross-validation: {cv} folds")
             click.echo(f"  Metrics: {metrics_list or 'auto'}")
+            if random_seed is not None:
+                click.echo(f"  Random seed: {random_seed}")
 
         # Run experiment
-        exp = tuiml.experiment(
+        kwargs = dict(
             algorithms=algo_list,
             datasets=datasets_dict,
             cv=cv,
             metrics=metrics_list,
             verbose=1 if verbose else 0
         )
+        if random_seed is not None:
+            kwargs['random_seed'] = random_seed
+            
+        exp = tuiml.experiment(**kwargs)
 
         # Display results
         click.echo("\n" + "="*60)

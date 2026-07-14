@@ -6,6 +6,7 @@ Algorithms
 ----------
 - **SVC:** SVM classifier using Sequential Minimal Optimization.
 - **SVR:** SVM regressor for regression tasks.
+- **SklearnSVC:** Scikit-Learn SVC wrapper.
 
 Kernels
 -------
@@ -36,6 +37,16 @@ from tuiml.algorithms.svm.kernels import (
     PrecomputedKernel,
 )
 
+try:
+    import sklearn
+    SKLEARN_AVAILABLE = True
+except ImportError:
+    SKLEARN_AVAILABLE = False
+
+if SKLEARN_AVAILABLE:
+    from tuiml.algorithms.svm.sklearn_svc import SklearnSVC
+    from tuiml.algorithms.svm.sklearn_svr import SklearnSVR
+
 __all__ = [
     "SVC",
     "SVR",
@@ -51,3 +62,10 @@ __all__ = [
     "StringKernel",
     "PrecomputedKernel",
 ]
+
+if SKLEARN_AVAILABLE:
+    __all__.extend([
+        "SklearnSVC",
+        "SklearnSVR",
+    ])
+

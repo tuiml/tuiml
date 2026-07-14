@@ -60,6 +60,7 @@ def parse_extra_args(args):
 @click.option('--metrics', '-m', multiple=True, help='Metrics to compute')
 @click.option('--preset', help='Preprocessing preset (minimal, fast, standard, full, imbalanced)')
 @click.option('--params', '-P', help='Algorithm parameters as JSON dict')
+@click.option('--random-seed', type=int, help='Random seed for reproducibility')
 @click.option('--output', '-o', help='Output file for results (JSON)')
 @click.option('--save-path', help='Custom path to save the trained model file')
 @click.option('--stage', help="Atomic training stage: 'init', 'fit', 'partial_fit', 'cross_validate'")
@@ -69,7 +70,7 @@ def parse_extra_args(args):
 @click.option('--verbose', '-v', is_flag=True, help='Verbose output')
 @click.pass_context
 def train(ctx, algorithm, data, target, preprocessing, feature_selection, cv, test_size,
-          metrics, preset, params, output, save_path, stage, model_id, model_path, json_output, verbose):
+          metrics, preset, params, random_seed, output, save_path, stage, model_id, model_path, json_output, verbose):
     """Train a machine learning model with a complete workflow or an atomic stage.
 
     This command enables you to build and train models directly from the terminal,
@@ -121,6 +122,7 @@ def train(ctx, algorithm, data, target, preprocessing, feature_selection, cv, te
             'metrics': metrics_list,
             'preset': preset,
             'algorithm_params': algo_params,
+            'random_seed': random_seed,
             'save_path': save_path,
             'stage': stage,
             'model_id': model_id,

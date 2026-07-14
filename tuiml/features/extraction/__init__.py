@@ -36,8 +36,36 @@ from tuiml.features.extraction.random_projection import (
     SparseRandomProjectionExtractor,
 )
 
+try:
+    import sklearn
+    SKLEARN_AVAILABLE = True
+except ImportError:
+    SKLEARN_AVAILABLE = False
+
+if SKLEARN_AVAILABLE:
+    from tuiml.features.extraction.sklearn_pca import SklearnPCAExtractor
+    from tuiml.features.extraction.sklearn_random_projection import SklearnGaussianRandomProjection, SklearnSparseRandomProjection
+    from tuiml.features.extraction.sklearn_manifold import (
+        SklearnTSNE,
+        SklearnIsomap,
+        SklearnMDS,
+        SklearnLocallyLinearEmbedding,
+    )
+
 __all__ = [
     "PCAExtractor",
     "RandomProjectionExtractor",
     "SparseRandomProjectionExtractor",
 ]
+
+if SKLEARN_AVAILABLE:
+    __all__.extend([
+        "SklearnPCAExtractor",
+        "SklearnGaussianRandomProjection",
+        "SklearnSparseRandomProjection",
+        "SklearnTSNE",
+        "SklearnIsomap",
+        "SklearnMDS",
+        "SklearnLocallyLinearEmbedding",
+    ])
+
