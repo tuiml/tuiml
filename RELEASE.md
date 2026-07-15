@@ -71,17 +71,18 @@ is excluded from the package (`wheel.packages = ["tuiml"]` and
 
 ## Website deploy
 
-The site is static and served by **GitHub Pages**. The build is done by
-`website/build.py`, which renders the Jinja templates in `website/templates/`
-into static HTML:
+The site is static and served by **GitHub Pages** at https://tuiml.ai.
+`website/build.py` is the whole toolchain: it renders the Jinja templates in
+`website/templates/`, converts the root `tutorials/` notebooks, and parses the
+root `CHANGELOG.md` into static HTML:
 
 ```bash
 cd website
 uv run python build.py      # → website/_site/  (git-ignored build output)
 ```
 
-Once the Pages workflow is enabled, pushing to `main` rebuilds and deploys
-automatically — no manual step. Regenerate the API docs
+Pushing to `main` triggers the Pages workflow (`.github/workflows/pages.yml`)
+to rebuild and deploy automatically — no manual step. Regenerate the API docs
 (`scripts/generate_docs.py`) before a release so the published site matches
 the new version.
 

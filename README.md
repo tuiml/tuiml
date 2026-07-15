@@ -66,56 +66,23 @@ Your agent discovers algorithms, sets parameters from the schema, trains, evalua
 
 ## Use it from Python
 
-The same runtime agents call is a first-class Python library. Every component — the model, each preprocessing step, the feature selector — is described the same way: a **spec** of the form `{"name": ..., **params}`. The data is its own spec, `{"source": ..., "target": ...}`.
+The same runtime agents call is a first-class Python library. Every component &mdash; the model, each preprocessing step, the feature selector &mdash; is described the same way: a **spec** of the form `{"name": ..., **params}`. The data is its own spec, `{"source": ..., "target": ...}`.
 
 ```python
 import tuiml
 
-# Model spec + data spec. One call trains, evaluates, and returns metrics.
+# One call trains, evaluates, and returns metrics.
 result = tuiml.train(
     {"name": "RandomForestClassifier", "n_estimators": 100},   # model spec
-    {"source": "iris"},                                        # data spec (builtin)
+    {"source": "sales.csv", "target": "label"},                # data spec
+    preprocessing=[{"name": "MinMaxScaler"}],
+    cv=10,
 )
 print(result.metrics)          # {'accuracy_score': 0.97, 'f1_score': 0.96}
 preds = result.model.predict(X_new)
 ```
 
-Point it at a file and name the label column — everything about the data lives in one place:
-
-```python
-result = tuiml.train(
-    {"name": "RandomForestClassifier", "n_estimators": 100},
-    {"source": "sales.csv", "target": "label"},
-    preprocessing=[{"name": "MinMaxScaler"}],
-    feature_selection={"name": "SelectKBestSelector", "k": 10},
-    cv=10,
-)
-```
-
-Prefer editor autocomplete? Pass a configured instance instead of a spec dict:
-
-```python
-from tuiml.algorithms.trees import RandomForestClassifier
-result = tuiml.train(RandomForestClassifier(n_estimators=100), {"source": "iris"})
-```
-
-Compare many algorithms across many datasets in one benchmarking call:
-
-```python
-result = tuiml.experiment(
-    algorithms=["RandomForestClassifier", "SVC", "LogisticRegression"],
-    datasets=["iris", "breast-cancer"],
-    cv=10,
-)
-```
-
-Discover what's available &mdash; the same registry agents browse:
-
-```python
-tuiml.list_algorithms()                       # every registered algorithm
-tuiml.search_algorithms("gradient boosting")  # search by task or keyword
-tuiml.describe_algorithm("RandomForestClassifier")  # schema + parameters
-```
+Benchmark many algorithms across many datasets with `tuiml.experiment(...)`, and browse the same registry agents use with `tuiml.list_algorithms()` / `tuiml.search_algorithms(...)` / `tuiml.describe_algorithm(...)`. See the [tutorials](https://tuiml.ai/docs/tutorials.html) for the full tour.
 
 ---
 
@@ -123,25 +90,11 @@ tuiml.describe_algorithm("RandomForestClassifier")  # schema + parameters
 
 ## What's Included
 
-TuiML ships with 13 algorithm families, many originally from Weka, completely rewritten in Python with C++ acceleration for hot paths.
-
-| Category | Examples |
-|----------|----------|
-| **Trees** | RandomForestClassifier, C45TreeClassifier, HoeffdingTreeClassifier, M5ModelTreeRegressor |
-| **Bayesian** | NaiveBayesClassifier, BayesianNetworkClassifier, GaussianProcessesRegressor |
-| **Neighbors** | KNearestNeighborsClassifier, KStarClassifier |
-| **Linear** | LogisticRegression, LinearRegression, SGDClassifier |
-| **SVM** | SVC, SVR |
-| **Neural** | MultilayerPerceptronClassifier, VotedPerceptronClassifier |
-| **Rules** | ZeroRuleClassifier, OneRuleClassifier, RIPPERClassifier, PARTClassifier |
-| **Ensemble** | BaggingClassifier, AdaBoostClassifier, StackingClassifier, VotingClassifier |
-| **Gradient Boosting** | XGBoostClassifier, CatBoostClassifier, LightGBMClassifier |
-| **Clustering** | KMeansClusterer, DBSCANClusterer, AgglomerativeClusterer |
-| **Associations** | AprioriAssociator, FPGrowthAssociator |
-| **Anomaly Detection** | IsolationForestDetector, LocalOutlierFactorDetector |
-| **Time Series** | ARIMA, ExponentialSmoothing, Prophet |
+**13 algorithm families**, many originally from Weka, rewritten natively in Python with C++ acceleration for hot paths: trees and random forests, Bayesian methods, nearest neighbors, linear models, SVMs, neural networks, rule learners, ensembles, gradient boosting, clustering, association rules, anomaly detection, and time series.
 
 Plus preprocessing (scaling, encoding, imputation, SMOTE, text vectorization), feature engineering (selection, extraction, generation), evaluation (metrics, cross-validation, tuning, statistical tests), and 15+ built-in datasets.
+
+Optional backends live in their own extras and never affect the native core: `pip install tuiml[sklearn]` (scikit-learn estimators through the same interface) and `pip install tuiml[capymoa]` (CapyMOA streaming learners).
 
 ---
 
@@ -161,47 +114,13 @@ For manual setup, add this to your client's MCP config:
 }
 ```
 
-## Component Registry
-
-Browse all registered algorithms, transformers, and metrics from the local registry:
-
-```python
-from tuiml.hub import registry
-
-classifiers = registry.list("classifier")
-regressors = registry.list("regressor")
-```
-
-## Building Custom Components
-
-Register your own algorithms and they become instantly available through the Python API, CLI, and MCP server.
-
-```python
-from tuiml.base.algorithms import Classifier, classifier
-
-@classifier(tags=["custom"], version="1.0.0")
-class MyClassifier(Classifier):
-    def __init__(self, k=5):
-        super().__init__()
-        self.k = k
-
-    def fit(self, X, y):
-        self.classes_ = np.unique(y)
-        self._is_fitted = True
-        return self
-
-    def predict(self, X):
-        self._check_is_fitted()
-        return predictions
-```
-
 ---
 
 <a id="documentation"></a>
 
 ## Documentation
 
-Full documentation is available at [tuiml.ai/docs](https://tuiml.ai/docs/getting_started.html), including getting started guides, API reference, and tutorials.
+Full documentation is available at [tuiml.ai/docs](https://tuiml.ai/docs/getting_started.html), including getting started guides, API reference, and tutorials. Want to contribute? Pick something from the [Build Board](https://tuiml.ai/projects) &mdash; algorithms, integrations, and good first issues.
 
 ---
 
@@ -224,7 +143,7 @@ BSD 3-Clause License. See [LICENSE](LICENSE) for details.
 
 | | | |
 |---|---|---|
-| 🌐 [Website](https://tuiml.ai) | 📚 [Documentation](https://tuiml.ai/docs/getting_started.html) | 🔧 [API Reference](https://tuiml.ai/docs/api) |
+| 🌐 [Website](https://tuiml.ai) | 📚 [Documentation](https://tuiml.ai/docs/getting_started.html) | 🔧 [API Reference](https://tuiml.ai/docs/api-reference.html) |
 | 💻 [GitHub](https://github.com/tuiml/tuiml) | 📦 [PyPI](https://pypi.org/project/tuiml) | 📝 [Changelog](https://tuiml.ai/docs/changelog.html) |
 
 ---
