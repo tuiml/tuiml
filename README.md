@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/tuiml/tuiml/main/tuiml_logo.png" alt="TuiML Logo" width="320">
+  <img src="https://raw.githubusercontent.com/tuiml/tuiml/main/assets/tuiml_logo.png" alt="TuiML Logo" width="320">
 </p>
 <p align="center"><strong>Machine Learning for AI Agents.</strong></p>
 
@@ -120,8 +120,8 @@ Works with anything that speaks MCP &mdash; `tuiml setup` auto-detects Claude De
 Average across **3,318 matched runs** — 13 algorithms × 51 real-world [TabArena](https://tabarena.ai) datasets, 10-fold cross-validation, same data and folds for every framework:
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/tuiml/tuiml/main/benchmark_summary_dark.png">
-  <img src="https://raw.githubusercontent.com/tuiml/tuiml/main/benchmark_summary_light.png" alt="TuiML vs scikit-learn vs Weka: accuracy, training time, inference time, and peak memory averaged across 51 TabArena datasets">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/tuiml/tuiml/main/assets/benchmark_summary_dark.png">
+  <img src="https://raw.githubusercontent.com/tuiml/tuiml/main/assets/benchmark_summary_light.png" alt="TuiML vs scikit-learn vs Weka: accuracy, training time, inference time, and peak memory averaged across 51 TabArena datasets">
 </picture>
 
 <sub>Weka memory includes its in-process JVM baseline. Full per-algorithm and per-dataset results: [tuiml.ai/docs/benchmarks](https://tuiml.ai/docs/benchmarks.html).</sub>
