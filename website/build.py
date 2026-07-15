@@ -16,6 +16,8 @@ Then ``_site/`` is a self-contained static copy ready to publish.
 from __future__ import annotations
 
 import asyncio
+import os
+import re
 import shutil
 from pathlib import Path
 
@@ -29,6 +31,12 @@ STATIC_SRC = HERE / "static"
 DOCS_API = HERE / "templates" / "docs_api"
 TUTORIALS_DIR = webapp.TUTORIALS_DIR
 DOMAIN = "https://tuiml.ai"
+
+# Optional URL prefix for hosting under a subpath, e.g. a GitHub project page at
+# tuiml.github.io/tuiml/ needs BASE_PATH=/tuiml so the site's root-absolute links
+# (/static, /docs, …) resolve. Leave empty for root/custom-domain hosting, where
+# a CNAME is written instead. Set via the BASE_PATH env var.
+BASE = "/" + os.environ.get("BASE_PATH", "").strip("/") if os.environ.get("BASE_PATH", "").strip("/") else ""
 
 # Routes with no parameters — rendered verbatim. Redirect routes are handled
 # separately below (Pages can't issue a 301, so we emit a meta-refresh stub).
@@ -123,6 +131,23 @@ async def _render_all(urls: list[str]) -> int:
     return len(urls)
 
 
+def _apply_base_path() -> None:
+    """Rewrite root-absolute links (href/src/action="/...") to sit under BASE.
+
+    Only touches rendered HTML. Protocol-relative (``//``) and absolute URLs are
+    left alone. No-op when BASE is empty (root/custom-domain hosting).
+    """
+    if not BASE:
+        return
+    pat = re.compile(r'(href|src|action)="/(?!/)')
+    repl = r'\1="' + BASE + "/"
+    for html in OUT.rglob("*.html"):
+        text = html.read_text(encoding="utf-8")
+        new = pat.sub(repl, text)
+        if new != text:
+            html.write_text(new, encoding="utf-8")
+
+
 def freeze() -> None:
     if OUT.exists():
         shutil.rmtree(OUT)
@@ -130,28 +155,35 @@ def freeze() -> None:
 
     count = asyncio.run(_render_all(_collect_urls()))
 
-    # Redirect stubs
+    # Redirect stubs (dest prefixed with BASE so subpath hosting still lands right)
     for src, dest in REDIRECTS.items():
-        write(src, REDIRECT_STUB.format(dest=dest).encode())
+        write(src, REDIRECT_STUB.format(dest=BASE + dest).encode())
         count += 1
 
-    # 5. Static assets
+    # Static assets
     shutil.copytree(STATIC_SRC, OUT / "static")
 
-    # 6. Pages hygiene:
-    #    .nojekyll  — REQUIRED. Jekyll strips files/dirs beginning with "_"
-    #                 (docs_api has __init__.html and _cpp/), which would
-    #                 delete a chunk of the API docs otherwise.
-    #    CNAME      — keeps the tuiml.ai custom domain bound to the Pages site.
+    # Prefix root-absolute links for subpath hosting (no-op at root)
+    _apply_base_path()
+
+    # Pages hygiene:
+    #   .nojekyll  — REQUIRED. Jekyll strips files/dirs beginning with "_"
+    #                (docs_api has __init__.html and _cpp/), which would delete a
+    #                chunk of the API docs otherwise.
+    #   CNAME      — binds the tuiml.ai custom domain. Only written for ROOT
+    #                hosting; a subpath preview (BASE set) must NOT claim the
+    #                apex domain, so it's skipped there.
     (OUT / ".nojekyll").write_text("")
-    (OUT / "CNAME").write_text("tuiml.ai\n")
+    if not BASE:
+        (OUT / "CNAME").write_text("tuiml.ai\n")
 
     # 404 fallback so unknown paths render the site's own not-found styling.
     err = OUT / "docs" / "getting_started.html"
     if err.exists():
         shutil.copyfile(err, OUT / "404.html")
 
-    print(f"  ✓ froze {count} pages + static assets -> {OUT.relative_to(HERE)}/")
+    mode = f"subpath {BASE}" if BASE else "root (+ CNAME tuiml.ai)"
+    print(f"  ✓ froze {count} pages + static assets -> {OUT.relative_to(HERE)}/  [{mode}]")
 
 
 if __name__ == "__main__":
