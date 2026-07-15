@@ -1,10 +1,10 @@
 <p align="center">
   <img src="https://raw.githubusercontent.com/tuiml/tuiml/main/tuiml_logo.png" alt="TuiML Logo" width="320">
 </p>
-<p align="center"><strong>Machine Learning that agents can actually call.</strong></p>
+<p align="center"><strong>Machine Learning for AI Agents.</strong></p>
 
 <p align="center">
-TuiML is an agent-native ML runtime. Install, connect to your AI agent, and start running real ML workflows &mdash; classification, regression, clustering, experiments &mdash; all from one structured interface.
+Ask your agent to train a model, tune it, compare it to the last run, or find an algorithm that fits your data. It just does it. No code. No guesswork. No forgotten context.
 </p>
 
 <p align="center">
@@ -86,9 +86,21 @@ Benchmark many algorithms across many datasets with `tuiml.experiment(...)`, and
 
 ## MCP Tools
 
-The MCP server exposes 200+ tools agents can call directly. Key workflow tools include `tuiml_train`, `tuiml_predict`, `tuiml_evaluate`, `tuiml_experiment`, `tuiml_tune`, `tuiml_plot`, `tuiml_list`, `tuiml_describe`, and `tuiml_search`. Any component registered with `@classifier`, `@regressor`, or `@transformer` is automatically discoverable through these tools.
+Everything TuiML can do, your agent can do &mdash; the MCP server exposes **200+ typed tools** with JSON schemas the agent reads directly.
 
-For manual setup, add this to your client's MCP config:
+**Train &middot; Tune &middot; Compare** &mdash; fit a model, sweep hyperparameters, and rank runs in one conversation. No notebook, no glue code.
+
+**Algorithm Discovery** &mdash; the agent searches the catalog by task, data shape, or constraint and gets ranked recommendations with rationale, not a flat list of names.
+
+**Persistent Experiments** &mdash; every run is logged with lineage and metrics, so today's model can be compared against last week's without re-running anything.
+
+**One-Call Serving** &mdash; deploy a trained model to a local HTTP endpoint with a single tool call. Stop it the same way.
+
+**100% Local &amp; Private** &mdash; your data, your machine. No cloud, no API keys, no telemetry.
+
+Key workflow tools: `tuiml_train`, `tuiml_predict`, `tuiml_evaluate`, `tuiml_experiment`, `tuiml_tune`, `tuiml_plot`, `tuiml_list`, `tuiml_describe`, `tuiml_search`.
+
+Works with anything that speaks MCP &mdash; `tuiml setup` auto-detects Claude Desktop, Claude Code, Cursor, ChatGPT Desktop, Codex CLI, Zed, Continue, Windsurf, VS Code Copilot, Perplexity, Goose, and OpenClaw / NemoClaw. For manual setup, add this to your client's MCP config:
 
 ```json
 {
