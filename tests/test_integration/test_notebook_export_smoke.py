@@ -7,7 +7,9 @@ exports the notebook, then executes each generated code cell in a shared
 namespace — catching cases where the generated Python is invalid or raises
 (e.g. passing an MCP-only ``algorithm_params=`` kwarg to ``tuiml.train``).
 
-Run:  uv run --project tuiml python scripts/smoke_test_notebook_export.py
+Runs under pytest (collected via ``test_notebook_export_smoke``) or standalone:
+
+    uv run python tests/test_integration/test_notebook_export_smoke.py
 """
 import json
 import os
@@ -140,6 +142,15 @@ def run_cells(nb):
             tb = traceback.format_exc().strip().splitlines()[-1]
             results.append((last_header, "FAIL", tb))
     return results
+
+
+def test_notebook_export_smoke():
+    """Every generated code cell must execute without raising."""
+    results = run_cells(build_notebook())
+    fails = [(h, d) for h, s, d in results if s == "FAIL"]
+    assert not fails, "generated notebook cells failed: " + "; ".join(
+        f"{h} -> {d}" for h, d in fails
+    )
 
 
 def main():
