@@ -37,8 +37,9 @@ jobs:
 
       - name: Build static site
         working-directory: website
-        env:
-          BASE_PATH: /tuiml   # subpath preview; remove for the tuiml.ai cutover
+        # Root build (no BASE_PATH): build.py keeps root-absolute links and writes
+        # the CNAME (tuiml.ai), so the deploy binds the custom domain. For a
+        # subpath preview instead, set BASE_PATH: /tuiml here.
         run: |
           uv sync
           uv run python build.py
