@@ -40,10 +40,12 @@ carries one. Current tracked files:
 
 **Bundled website (`website/`):**
 - `website/pyproject.toml`
-- `website/core/config.py` (`APP_VERSION` — the site's single source of truth)
+- `website/build.py` (`APP_VERSION` — the site's single source of truth)
 - All `website/templates/docs/**/*.html` and `docs_api/**/*.html`
   (raw string replace of the old version)
-- `website/CHANGELOG.md` (mirrored from the root `CHANGELOG.md`)
+
+The site's changelog page is built from the root `CHANGELOG.md` directly —
+there is no website copy to keep in sync.
 
 If you add a new file with a hardcoded version, add it to the
 `VERSION_FILES` list in `scripts/bump_version.py` so future bumps catch

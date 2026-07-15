@@ -53,14 +53,13 @@ VERSION_FILES = [
         r'(^version\s*=\s*")[^"]+(")',
         r"\g<1>{version}\2",
     ),
-    # NOTE: app.py derives its version from settings.APP_VERSION (core/config.py),
-    # so it has no hardcoded version to bump. A previous `version="..."` rule here
-    # wrongly matched the sitemap's `<?xml version="...">` declaration and a
-    # `"version": "..."` rule matched nothing — both removed. Bump core/config.py
-    # (below) instead, which is app.py's single source of truth.
+    # build.py's APP_VERSION is the site's single source of truth (injected into
+    # every template as `settings`). A broad `version="..."` rule here once
+    # matched the sitemap's `<?xml version="...">` declaration — keep this
+    # anchored to APP_VERSION.
     (
-        HUB / "core" / "config.py",
-        r'(APP_VERSION:\s*str\s*=\s*")[^"]+(")',
+        HUB / "build.py",
+        r'(APP_VERSION\s*=\s*")[^"]+(")',
         r"\g<1>{version}\2",
     ),
 ]
@@ -188,14 +187,6 @@ def update_changelog(old_version: str, new_version: str) -> None:
 
     changelog.write_text(text)
     print(f"  OK   tuiml/CHANGELOG.md (new section for {new_version})")
-
-    # Mirror the canonical CHANGELOG into website/ so the live
-    # /docs/changelog.html page (which reads website/CHANGELOG.md)
-    # stays in sync. Without this, the site shows a stale history.
-    hub_changelog = HUB / "CHANGELOG.md"
-    if HUB.exists():
-        hub_changelog.write_text(text)
-        print(f"  OK   website/CHANGELOG.md (synced from tuiml/)")
 
 
 def main():
