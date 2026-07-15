@@ -23,7 +23,7 @@ import shutil
 from datetime import datetime
 from pathlib import Path
 
-from jinja2 import Environment, FileSystemLoader, Template
+from jinja2 import Environment, FileSystemLoader
 from markupsafe import Markup, escape
 
 HERE = Path(__file__).resolve().parent
@@ -420,7 +420,7 @@ TUTORIAL_LAYOUT_CSS = '''
 <link rel="shortcut icon" href="/static/images/tuiml_logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
@@ -428,8 +428,8 @@ tailwind.config = {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['"IBM Plex Sans"', 'sans-serif'],
-                mono: ['"IBM Plex Mono"', 'monospace'],
+                sans: ['Outfit', 'sans-serif'],
+                mono: ['"JetBrains Mono"', 'monospace'],
             }
         }
     }
@@ -485,33 +485,10 @@ tailwind.config = {
 </style>
 '''
 
-# Header HTML matching the docs navbar component
-TUTORIAL_HEADER_HTML = f'''
-<nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
-    <div class="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
-        <a href="/docs/getting_started.html" class="flex items-center gap-2.5 flex-shrink-0 group">
-            <div class="text-3xl text-blue-700 transition-transform group-hover:scale-110 duration-300">
-                <img src="/static/images/tuiml_logo.png" alt="TuiML" class="w-8 h-8 rounded-full">
-            </div>
-            <div class="flex flex-col">
-                <span class="font-bold text-xl tracking-tight text-gray-900 leading-none">{PROJECT_NAME}</span>
-                <span class="text-gray-400 font-medium text-[10px] uppercase tracking-[0.2em] mt-0.5">Documentation</span>
-            </div>
-        </a>
-        <div class="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
-            <a href="/docs/getting_started.html" class="hover:text-gray-900 px-3 py-1.5 rounded-full hover:bg-gray-100 transition-colors">Documentation</a>
-            <a href="/docs/api-reference.html" class="hover:text-gray-900 px-3 py-1.5 rounded-full hover:bg-gray-100 transition-colors">API Reference</a>
-            <a href="/docs/tutorials.html" class="text-blue-700 px-3 py-1.5 rounded-full bg-blue-50 transition-colors">Tutorials</a>
-            <a href="/docs/benchmarks.html" class="hover:text-gray-900 px-3 py-1.5 rounded-full hover:bg-gray-100 transition-colors">Benchmarks</a>
-            <a href="/docs/changelog.html" class="hover:text-gray-900 px-3 py-1.5 rounded-full hover:bg-gray-100 transition-colors">Changelog</a>
-            <a href="/browse" class="hover:text-gray-900 px-3 py-1.5 rounded-full hover:bg-gray-100 transition-colors">Platform</a>
-            <a href="{GITHUB_URL}" class="hover:text-gray-900 transition-all hover:scale-110">
-                <i class="fa-brands fa-github text-xl"></i>
-            </a>
-        </div>
-    </div>
-</nav>
-'''
+# Tutorial pages use the shared site navbar (rendered once, reused per page).
+def _tutorial_header_html() -> str:
+    """Render the shared dark site nav with Tutorials active."""
+    return env.get_template("components/_site_nav.html").render(active_nav="tutorials")
 
 
 def render_notebook(nb_file: Path) -> str:
@@ -572,9 +549,8 @@ def render_notebook(nb_file: Path) -> str:
 </aside>
 '''
 
-    # Shared footer component, rendered standalone
-    footer_template = (TEMPLATES / "components" / "_footer.html").read_text()
-    footer_html = Template(footer_template).render(compact=False, config=CONFIG)
+    # Shared footer component, rendered through the site env (config global)
+    footer_html = env.get_template("components/_footer.html").render()
 
     # Splice the layout into nbconvert's document
     head_end = full_html.find("</head>")
@@ -588,7 +564,7 @@ def render_notebook(nb_file: Path) -> str:
         + full_html[head_end:body_tag_end].replace(
             "<body", '<body class="bg-white text-gray-900 font-sans antialiased flex flex-col min-h-screen"'
         )
-        + TUTORIAL_HEADER_HTML
+        + _tutorial_header_html()
         + subheader_html
         + '<div class="container mx-auto px-4 py-10 flex flex-col lg:flex-row gap-16 flex-grow">'
         + sidebar_html

@@ -1,46 +1,34 @@
 {#
-    Reusable Footer Component
-    Usage: {% include 'components/_footer.html' %}
-
-    Variables:
-    - compact: Use compact footer for docs (default: false)
+    Shared site footer — the ONE footer, dark navy to match the site nav.
+    Used on the landing page, the build board, every docs page, and (via
+    build.py) every tutorial page.
 #}
-{% if compact|default(false) %}
-<!-- Compact Footer (for documentation pages) -->
-<footer class="bg-white border-t border-gray-200 py-6 mt-auto">
-    <div class="container mx-auto px-4">
-        <div class="flex flex-col sm:flex-row justify-between items-center gap-3 text-sm text-gray-500">
-            <div class="flex items-center gap-2">
-                <img src="/static/images/tuiml_logo.png?v=3" alt="TuiML" class="w-5 h-5 rounded-full">
-                <span class="font-semibold"><span class="text-gray-700">Tui</span><span class="text-[#0c3a94]">ML</span></span>
-                <span class="text-gray-400">|</span>
-                <span>Documentation</span>
-            </div>
-            <div class="flex items-center gap-6">
-                <a href="/" class="hover:text-blue-700 transition-colors">Hub</a>
-                <a href="/browse" class="hover:text-blue-700 transition-colors">Algorithms</a>
-                <a href="{{ config.github_url }}" class="hover:text-blue-700 transition-colors">
-                    <i class="fa-brands fa-github"></i> GitHub
-                </a>
-            </div>
-            <p class="text-xs text-gray-400">&copy; {{ config.copyright_year }} {{ config.project_name }} Team. All rights reserved.</p>
+<footer class="mt-auto border-t border-white/10" style="background: #0b1628;">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
+        <div class="flex flex-wrap items-center justify-center gap-x-2 sm:gap-x-3 gap-y-2 text-xs sm:text-sm">
+            <a href="/docs/getting_started.html" class="text-slate-400 hover:text-white transition-colors">Documentation</a>
+            <span class="text-slate-700">&middot;</span>
+            <a href="/docs/api-reference.html" class="text-slate-400 hover:text-white transition-colors">API Reference</a>
+            <span class="text-slate-700">&middot;</span>
+            <a href="/docs/benchmarks.html" class="text-slate-400 hover:text-white transition-colors">Benchmarks</a>
+            <span class="text-slate-700">&middot;</span>
+            <a href="/docs/tutorials.html" class="text-slate-400 hover:text-white transition-colors">Tutorials</a>
+            <span class="text-slate-700">&middot;</span>
+            <a href="/projects" class="text-slate-400 hover:text-white transition-colors">Build Board</a>
+            <span class="text-slate-700">&middot;</span>
+            <a href="/docs/contributing.html" class="text-slate-400 hover:text-white transition-colors">Contribute</a>
+            <span class="text-slate-700">&middot;</span>
+            <a href="/docs/about.html" class="text-slate-400 hover:text-white transition-colors">About</a>
+            <span class="text-slate-700">&middot;</span>
+            <a href="{{ config.github_url }}" class="text-slate-400 hover:text-white transition-colors">GitHub</a>
+            <span class="text-slate-700">&middot;</span>
+            <a href="/privacy" class="text-slate-400 hover:text-white transition-colors">Privacy</a>
+            <span class="text-slate-700">&middot;</span>
+            <a href="/terms" class="text-slate-400 hover:text-white transition-colors">Terms</a>
+        </div>
+
+        <div class="mt-4 sm:mt-5 text-center text-[11px] sm:text-xs text-slate-500">
+            &copy; {{ config.copyright_year }} {{ config.project_name }} Team. All rights reserved.
         </div>
     </div>
 </footer>
-{% else %}
-<!-- Minimal Footer -->
-<footer class="bg-white border-t border-gray-200 mt-auto">
-    <div class="container mx-auto px-4 py-6">
-        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-400">
-            <p>&copy; {{ config.copyright_year }} {{ config.project_name }} Team. All rights reserved.</p>
-            <div class="flex items-center gap-5">
-                <a href="{{ config.github_url }}" class="hover:text-gray-600 transition-colors">
-                    <i class="fa-brands fa-github"></i> GitHub
-                </a>
-                <a href="/privacy" class="hover:text-gray-600 transition-colors">Privacy Policy</a>
-                <a href="/terms" class="hover:text-gray-600 transition-colors">Terms of Service</a>
-            </div>
-        </div>
-    </div>
-</footer>
-{% endif %}

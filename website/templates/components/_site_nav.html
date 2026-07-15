@@ -1,0 +1,79 @@
+{#
+    Shared site navigation — the ONE navbar, used on the landing page, the
+    build board, every docs page, and (via build.py) every tutorial page.
+    Dark navy chrome on every surface so the site reads as one brand even
+    though docs content below stays light.
+
+    Variables:
+    - active_nav: 'docs' | 'api' | 'tutorials' | 'benchmarks' | 'projects'
+                  | 'changelog' | 'contributing' | 'about' (optional)
+#}
+<nav class="sticky top-0 z-50 border-b border-white/10"
+     style="background: rgba(11,22,40,0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
+    <div class="container mx-auto px-4 lg:px-6 h-16 flex items-center justify-between gap-4">
+        <!-- Logo -->
+        <a href="/" class="flex items-center gap-2.5 flex-shrink-0 group">
+            <img src="/static/images/tuiml_logo.png?v=3" alt="TuiML" class="w-8 h-8 rounded-full transition-transform group-hover:scale-110 duration-300">
+            <div class="flex items-center gap-1.5">
+                <span class="font-bold text-xl tracking-tight leading-none"><span class="text-white">Tui</span><span class="text-sky-400">ML</span></span>
+                <span class="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-amber-400/15 text-amber-300 border border-amber-400/25 rounded-full leading-none">Alpha</span>
+            </div>
+        </a>
+
+        <!-- Desktop links -->
+        <div class="hidden lg:flex items-center gap-1 text-sm font-medium">
+            {% for key, href, label in [
+                ('docs', '/docs/getting_started.html', 'Documentation'),
+                ('api', '/docs/api-reference.html', 'API Reference'),
+                ('tutorials', '/docs/tutorials.html', 'Tutorials'),
+                ('benchmarks', '/docs/benchmarks.html', 'Benchmarks'),
+                ('projects', '/projects', 'Build Board'),
+                ('changelog', '/docs/changelog.html', 'Changelog'),
+                ('about', '/docs/about.html', 'About'),
+            ] %}
+            <a href="{{ href }}"
+               class="px-3 py-1.5 rounded-full transition-colors {{ 'text-sky-300 bg-white/10' if active_nav == key else 'text-slate-300 hover:text-white hover:bg-white/5' }}">{{ label }}</a>
+            {% endfor %}
+            <a href="{{ config.github_url }}" target="_blank" rel="noopener"
+               class="ml-1 px-2 text-slate-300 hover:text-white transition-all hover:scale-110" aria-label="GitHub">
+                <i class="fa-brands fa-github text-xl"></i>
+            </a>
+        </div>
+
+        <!-- Mobile menu button -->
+        <button id="site-nav-menu-btn" class="lg:hidden p-2 text-slate-300 rounded-full hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/20 transition-colors" aria-label="Menu">
+            <i class="fa-solid fa-bars text-xl"></i>
+        </button>
+    </div>
+
+    <!-- Mobile dropdown -->
+    <div id="site-nav-menu" class="hidden lg:hidden border-t border-white/10" style="background: rgba(11,22,40,0.98);">
+        <div class="px-4 py-3 space-y-1 text-sm">
+            {% for key, href, icon, label in [
+                ('docs', '/docs/getting_started.html', 'fa-solid fa-book', 'Documentation'),
+                ('api', '/docs/api-reference.html', 'fa-solid fa-code', 'API Reference'),
+                ('tutorials', '/docs/tutorials.html', 'fa-solid fa-graduation-cap', 'Tutorials'),
+                ('benchmarks', '/docs/benchmarks.html', 'fa-solid fa-chart-bar', 'Benchmarks'),
+                ('projects', '/projects', 'fa-solid fa-hammer', 'Build Board'),
+                ('changelog', '/docs/changelog.html', 'fa-solid fa-clock-rotate-left', 'Changelog'),
+                ('contributing', '/docs/contributing.html', 'fa-solid fa-hands-helping', 'Contributing'),
+                ('about', '/docs/about.html', 'fa-solid fa-circle-info', 'About'),
+            ] %}
+            <a href="{{ href }}"
+               class="block px-3 py-2 rounded-lg transition-colors {{ 'text-sky-300 bg-white/10 font-semibold' if active_nav == key else 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                <i class="{{ icon }} w-5 text-center mr-2"></i>{{ label }}
+            </a>
+            {% endfor %}
+            <hr class="my-2 border-white/10">
+            <a href="{{ config.github_url }}" target="_blank" rel="noopener" class="block px-3 py-2 rounded-lg text-slate-300 hover:bg-white/5 hover:text-white transition-colors">
+                <i class="fa-brands fa-github w-5 text-center mr-2"></i>GitHub
+            </a>
+        </div>
+    </div>
+</nav>
+
+<script>
+    document.getElementById('site-nav-menu-btn')?.addEventListener('click', function () {
+        document.getElementById('site-nav-menu')?.classList.toggle('hidden');
+    });
+</script>
