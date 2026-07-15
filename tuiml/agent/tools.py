@@ -495,11 +495,10 @@ WORKFLOW_TOOLS = {
                     "type": "string",
                     "description": (
                         "Algorithm class name. Examples:\n"
-                        "- Classifiers: 'RandomForestClassifier', 'SklearnHistGradientBoostingClassifier', 'SklearnGaussianNB', 'SklearnRidgeClassifier', 'SklearnExtraTreesClassifier', 'SklearnGaussianProcessClassifier'\n"
-                        "- Regressors: 'LinearRegression', 'SklearnLasso', 'SklearnHistGradientBoostingRegressor', 'SklearnMLPRegressor', 'SklearnGaussianProcessRegressor'\n"
-                        "- Streaming: 'OzaBagClassifier', 'HoeffdingTreeClassifier', 'CapyMOANaiveBayes', 'CapyMOASGDClassifier', 'CapyMOAAdaptiveRandomForestRegressor'\n"
-                        "- Clusterers: 'KMeansClusterer', 'GaussianMixtureClusterer', 'SklearnDBSCAN', 'SklearnGaussianMixture', 'SklearnAgglomerativeClustering'\n"
-                        "- Feature Selection/Extraction: Can be used in 'preprocessing' or 'feature_selection' e.g. 'SklearnSelectKBest', 'SklearnRFE', 'SklearnTSNE', 'SklearnIsomap'"
+                        "- Classifiers: 'RandomForestClassifier', 'SVM', 'NaiveBayesClassifier', 'C45TreeClassifier'\n"
+                        "- Regressors: 'LinearRegression', 'M5ModelTreeRegressor'\n"
+                        "- Clusterers: 'KMeansClusterer', 'GaussianMixtureClusterer', 'DBSCANClusterer'\n"
+                        "- Optional sklearn backends (needs tuiml[sklearn]): 'sklearn.RandomForestClassifier', 'sklearn.SVC', 'sklearn.Lasso'"
                     )
                 },
                 "data": {
@@ -533,7 +532,7 @@ WORKFLOW_TOOLS = {
                     },
                     "description": (
                         "Preprocessing steps as names or objects with params.\n"
-                        "Examples: ['SklearnIterativeImputer', 'StandardScaler', 'SklearnGaussianRandomProjection'] or "
+                        "Examples: ['SimpleImputer', 'StandardScaler'] or "
                         "[{'name': 'SimpleImputer', 'strategy': 'median'}, 'MinMaxScaler']"
                     )
                 },

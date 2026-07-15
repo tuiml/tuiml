@@ -19,26 +19,6 @@ Estimators
 The module also provides pluggable probability estimators used by the
 above models for modeling continuous and discrete feature distributions.
 """
-"""Bayesian and probabilistic learning algorithms.
-
-This module provides classifiers and regressors based on Bayes' theorem,
-graphical models, and kernel-based probabilistic methods. It includes
-standard implementations of Naive Bayes, Bayesian Networks, and Gaussian
-Processes.
-
-Algorithms
-----------
-- **NaiveBayesClassifier:** Gaussian and kernel-indexed probabilistic classifier.
-- **NaiveBayesMultinomialClassifier:** Specialized for discrete/text classification.
-- **BayesianNetworkClassifier:** Graphical models with structure learning (TAN, K2).
-- **GaussianProcessesRegressor:** Bayesian non-parametric regression with
-  uncertainty estimation.
-
-Estimators
-----------
-The module also provides pluggable probability estimators used by the
-above models for modeling continuous and discrete feature distributions.
-"""
 
 from tuiml.algorithms.bayesian.naive_bayes import NaiveBayesClassifier
 from tuiml.algorithms.bayesian.naive_bayes_multinomial import NaiveBayesMultinomialClassifier
@@ -55,22 +35,6 @@ from tuiml.algorithms.bayesian.estimators import (
     KernelEstimator
 )
 
-try:
-    import sklearn
-    SKLEARN_AVAILABLE = True
-except ImportError:
-    SKLEARN_AVAILABLE = False
-
-if SKLEARN_AVAILABLE:
-    from tuiml.algorithms.bayesian.sklearn_naive_bayes import (
-        SklearnGaussianNB,
-        SklearnMultinomialNB,
-    )
-    from tuiml.algorithms.bayesian.sklearn_gaussian_process import (
-        SklearnGaussianProcessClassifier,
-        SklearnGaussianProcessRegressor,
-    )
-
 __all__ = [
     "NaiveBayesClassifier",
     "NaiveBayesMultinomialClassifier",
@@ -84,12 +48,3 @@ __all__ = [
     "DiscreteEstimator",
     "KernelEstimator",
 ]
-
-if SKLEARN_AVAILABLE:
-    __all__.extend([
-        "SklearnGaussianNB",
-        "SklearnMultinomialNB",
-        "SklearnGaussianProcessClassifier",
-        "SklearnGaussianProcessRegressor",
-    ])
-

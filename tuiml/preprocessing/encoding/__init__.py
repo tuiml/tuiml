@@ -27,26 +27,9 @@ from tuiml.preprocessing.encoding.ordinal_to_numeric import OrdinalEncoder
 from tuiml.preprocessing.encoding.string_to_nominal import LabelEncoder
 from tuiml.preprocessing.encoding.merge_infrequent import RareCategoryEncoder
 
-try:
-    import sklearn
-    SKLEARN_AVAILABLE = True
-except ImportError:
-    SKLEARN_AVAILABLE = False
-
-if SKLEARN_AVAILABLE:
-    from tuiml.preprocessing.encoding.sklearn_ohe import SklearnOneHotEncoder
-    from tuiml.preprocessing.encoding.sklearn_ordinal import SklearnOrdinalEncoder
-
 __all__ = [
     "OneHotEncoder",
     "OrdinalEncoder",
     "LabelEncoder",
     "RareCategoryEncoder",
 ]
-
-if SKLEARN_AVAILABLE:
-    __all__.extend([
-        "SklearnOneHotEncoder",
-        "SklearnOrdinalEncoder",
-    ])
-
