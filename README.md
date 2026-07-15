@@ -19,6 +19,7 @@ Ask your agent to train a model, tune it, compare it to the last run, or find an
   <a href="#quickstart">Quickstart</a> &nbsp;&bull;&nbsp;
   <a href="#python-api">Python API</a> &nbsp;&bull;&nbsp;
   <a href="#mcp-tools">MCP Tools</a> &nbsp;&bull;&nbsp;
+  <a href="#benchmarks">Benchmarks</a> &nbsp;&bull;&nbsp;
   <a href="#documentation">Docs</a>
 </p>
 
@@ -112,6 +113,21 @@ Works with anything that speaks MCP &mdash; `tuiml setup` auto-detects Claude De
 
 ---
 
+<a id="benchmarks"></a>
+
+## Benchmarks
+
+Average across **3,318 matched runs** — 13 algorithms × 51 real-world [TabArena](https://tabarena.ai) datasets, 10-fold cross-validation, same data and folds for every framework:
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/tuiml/tuiml/main/benchmark_summary_dark.png">
+  <img src="https://raw.githubusercontent.com/tuiml/tuiml/main/benchmark_summary_light.png" alt="TuiML vs scikit-learn vs Weka: training time, inference time, and peak memory averaged across 51 TabArena datasets">
+</picture>
+
+<sub>Weka memory includes its in-process JVM baseline. Full per-algorithm and per-dataset results: [tuiml.ai/docs/benchmarks](https://tuiml.ai/docs/benchmarks.html).</sub>
+
+---
+
 <a id="documentation"></a>
 
 ## Documentation
@@ -129,7 +145,7 @@ BSD 3-Clause License. See [LICENSE](LICENSE) for details.
 ```bibtex
 @software{tuiml2026,
     title={TuiML: Machine Learning that agents can actually call},
-    author={Verma, Nilesh and Bifet, Albert and Pfahringer, Bernhard},
+    author={Verma, Nilesh and Bifet, Albert and Pfahringer, Bernhard and Lim, Nick},
     year={2026},
     url={https://tuiml.ai}
 }
@@ -137,10 +153,14 @@ BSD 3-Clause License. See [LICENSE](LICENSE) for details.
 
 ## Links
 
+<div align="center">
+
 | | | |
 |---|---|---|
 | 🌐 [Website](https://tuiml.ai) | 📚 [Documentation](https://tuiml.ai/docs/getting_started.html) | 🔧 [API Reference](https://tuiml.ai/docs/api-reference.html) |
 | 💻 [GitHub](https://github.com/tuiml/tuiml) | 📦 [PyPI](https://pypi.org/project/tuiml) | 📝 [Changelog](https://tuiml.ai/docs/changelog.html) |
+
+</div>
 
 ---
 
