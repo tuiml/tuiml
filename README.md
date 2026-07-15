@@ -16,17 +16,13 @@ TuiML is an agent-native ML runtime. Install, connect to your AI agent, and star
 </p>
 
 <p align="center">
-  <a href="#why-tuiml">Why TuiML</a> &nbsp;&bull;&nbsp;
   <a href="#quickstart">Quickstart</a> &nbsp;&bull;&nbsp;
   <a href="#python-api">Python API</a> &nbsp;&bull;&nbsp;
-  <a href="#whats-included">What's Included</a> &nbsp;&bull;&nbsp;
   <a href="#mcp-tools">MCP Tools</a> &nbsp;&bull;&nbsp;
   <a href="#documentation">Docs</a>
 </p>
 
 ---
-
-## Why TuiML
 
 **Agents can call it** &mdash; Every algorithm, dataset, and metric ships with a JSON schema. Agents read the schema, call the tool, get structured results. No hallucinated parameters, no wrapper glue.
 
@@ -83,18 +79,6 @@ preds = result.model.predict(X_new)
 ```
 
 Benchmark many algorithms across many datasets with `tuiml.experiment(...)`, and browse the same registry agents use with `tuiml.list_algorithms()` / `tuiml.search_algorithms(...)` / `tuiml.describe_algorithm(...)`. See the [tutorials](https://tuiml.ai/docs/tutorials.html) for the full tour.
-
----
-
-<a id="whats-included"></a>
-
-## What's Included
-
-**13 algorithm families**, many originally from Weka, rewritten natively in Python with C++ acceleration for hot paths: trees and random forests, Bayesian methods, nearest neighbors, linear models, SVMs, neural networks, rule learners, ensembles, gradient boosting, clustering, association rules, anomaly detection, and time series.
-
-Plus preprocessing (scaling, encoding, imputation, SMOTE, text vectorization), feature engineering (selection, extraction, generation), evaluation (metrics, cross-validation, tuning, statistical tests), and 15+ built-in datasets.
-
-Optional backends live in their own extras and never affect the native core: `pip install tuiml[sklearn]` (scikit-learn estimators through the same interface) and `pip install tuiml[capymoa]` (CapyMOA streaming learners).
 
 ---
 
