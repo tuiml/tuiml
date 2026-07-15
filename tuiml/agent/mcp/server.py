@@ -385,17 +385,24 @@ async def run_server():
         )
         sys.exit(1)
 
-    # Pre-load component registry so discovery tools are fast
-    print("Loading TuiML components...", file=sys.stderr)
-    from tuiml.agent.registry import get_all_tools
-    get_all_tools()  # Trigger registry loading
+    # Pre-load the component registry in the background so the MCP
+    # handshake (initialize / tools/list) responds immediately. Clients
+    # like Claude Desktop index tools right after connecting; blocking
+    # here for seconds makes tools miss the client's first index pass.
+    def _preload_components():
+        try:
+            from tuiml.agent.tools import get_workflow_tools
+            from tuiml.agent.registry import get_all_tools
+            exposed = len(get_workflow_tools())
+            discoverable = len(get_all_tools())
+            print(f"✓ {exposed} MCP tools exposed, {discoverable} components discoverable", file=sys.stderr)
+        except Exception as e:
+            print(f"[tuiml] component preload failed: {e}", file=sys.stderr)
 
-    # Report counts
-    info = get_server_info()
-    exposed = info['tools']['exposed_tools']
-    discoverable = info['tools']['discoverable_components']
-    print(f"✓ {exposed} MCP tools exposed, {discoverable} components discoverable", file=sys.stderr)
+    threading.Thread(target=_preload_components, name="tuiml-preload", daemon=True).start()
+
     print("✓ TuiML MCP Server started (stdio transport, local only)", file=sys.stderr)
+    print("  Loading TuiML components in the background...", file=sys.stderr)
     print("  Remote/networked use: https://tuiml.ai/docs/remote-mcp.html", file=sys.stderr)
     print("  Waiting for client...", file=sys.stderr)
 

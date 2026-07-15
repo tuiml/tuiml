@@ -6,6 +6,7 @@ components (algorithms, preprocessors, datasets, features) so LLMs
 can call any TuiML component directly.
 """
 
+import threading
 from typing import Dict, List, Any, Optional, Callable
 from dataclasses import dataclass, field
 
@@ -381,10 +382,15 @@ def _load_dataset(name: str) -> Dict[str, Any]:
 # =============================================================================
 
 _TOOL_REGISTRY: Optional[Dict[str, ToolDefinition]] = None
+_REGISTRY_LOCK = threading.Lock()
 
 def get_all_tools() -> Dict[str, ToolDefinition]:
     """
     Get all registered tools.
+
+    Thread-safe: the registry may be preloaded from a background thread
+    (see ``tuiml.agent.mcp.server.run_server``) while tool calls arrive
+    concurrently, so the global is only assigned once fully built.
 
     Returns
     -------
@@ -394,12 +400,15 @@ def get_all_tools() -> Dict[str, ToolDefinition]:
     global _TOOL_REGISTRY
 
     if _TOOL_REGISTRY is None:
-        _TOOL_REGISTRY = {}
-        _TOOL_REGISTRY.update(_get_algorithm_tools())
-        _TOOL_REGISTRY.update(_get_preprocessing_tools())
-        _TOOL_REGISTRY.update(_get_dataset_tools())
-        _TOOL_REGISTRY.update(_get_feature_tools())
-        _TOOL_REGISTRY.update(_get_evaluation_tools())
+        with _REGISTRY_LOCK:
+            if _TOOL_REGISTRY is None:
+                registry: Dict[str, ToolDefinition] = {}
+                registry.update(_get_algorithm_tools())
+                registry.update(_get_preprocessing_tools())
+                registry.update(_get_dataset_tools())
+                registry.update(_get_feature_tools())
+                registry.update(_get_evaluation_tools())
+                _TOOL_REGISTRY = registry
 
     return _TOOL_REGISTRY
 
