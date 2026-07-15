@@ -121,7 +121,7 @@ Average across **3,318 matched runs** — 13 algorithms × 51 real-world [TabAre
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/tuiml/tuiml/main/benchmark_summary_dark.png">
-  <img src="https://raw.githubusercontent.com/tuiml/tuiml/main/benchmark_summary_light.png" alt="TuiML vs scikit-learn vs Weka: training time, inference time, and peak memory averaged across 51 TabArena datasets">
+  <img src="https://raw.githubusercontent.com/tuiml/tuiml/main/benchmark_summary_light.png" alt="TuiML vs scikit-learn vs Weka: accuracy, training time, inference time, and peak memory averaged across 51 TabArena datasets">
 </picture>
 
 <sub>Weka memory includes its in-process JVM baseline. Full per-algorithm and per-dataset results: [tuiml.ai/docs/benchmarks](https://tuiml.ai/docs/benchmarks.html).</sub>
