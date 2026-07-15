@@ -16,7 +16,7 @@
 </ul></div>
 </aside>
 <main class="flex-1 min-w-0">
-<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary">Stochastic Gradient Descent (SGD) for linear classification.</p></div>
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary">Stochastic Gradient Descent (SGD) for linear classification and regression.</p></div>
 <div class="mb-12">
 <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-cubes text-indigo-500"></i> Classes</h2>
 <div class="mb-12 scroll-mt-24" id="class-SGDClassifier">
@@ -45,10 +45,10 @@
     <span class="text-orange-300">learning_rate</span><span class="text-slate-400">:</span> <span class="text-cyan-400">float</span> <span class="text-slate-400">=</span> <span class="text-green-400">0.01</span><span class="text-slate-400">,</span>
     <span class="text-orange-300">regularization</span><span class="text-slate-400">:</span> <span class="text-cyan-400">str</span> <span class="text-slate-400">=</span> <span class="text-green-400">&#x27;l2&#x27;</span><span class="text-slate-400">,</span>
     <span class="text-orange-300">lambda_</span><span class="text-slate-400">:</span> <span class="text-cyan-400">float</span> <span class="text-slate-400">=</span> <span class="text-green-400">0.0001</span><span class="text-slate-400">,</span>
-    <span class="text-orange-300">n_epochs</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">500</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">n_epochs</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">100</span><span class="text-slate-400">,</span>
     <span class="text-orange-300">random_state</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Optional[int]</span> <span class="text-slate-400">=</span> <span class="text-green-400">None</span><span class="text-slate-400">,</span>
     <span class="text-orange-300">shuffle</span><span class="text-slate-400">:</span> <span class="text-cyan-400">bool</span> <span class="text-slate-400">=</span> <span class="text-green-400">True</span><span class="text-slate-400">,</span>
-    <span class="text-orange-300">batch_size</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">32</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">batch_size</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">256</span><span class="text-slate-400">,</span>
 <span class="text-slate-300">)</span></pre>
                 </div>
             </div>
@@ -222,7 +222,7 @@ The learning rate follows an <strong>inverse scaling</strong> schedule:
                 </div>
                 <div class="md:col-span-3 flex flex-wrap items-center gap-1">
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 500</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 100</span>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
                     Number of passes over the training data.
@@ -264,7 +264,7 @@ The learning rate follows an <strong>inverse scaling</strong> schedule:
                 </div>
                 <div class="md:col-span-3 flex flex-wrap items-center gap-1">
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 32</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 256</span>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
                     Mini-batch size for gradient updates. Larger batches enable better vectorization but may converge differently than pure SGD (batch_size=1).
@@ -483,7 +483,7 @@ array([1])</code></pre>
                         </span>
                         <div>
                             <code class="font-bold text-indigo-600 text-base">__init__</code>
-                            <span class="text-sm text-gray-400 font-mono ml-1">(self, loss: str=&#x27;hinge&#x27;, learning_rate: float=0.01, regularization: str=&#x27;l2&#x27;, lambda_: float=0.0001, n_epochs: int=500, random_state: Optional[int]=None, shuffle: bool=True, batch_size: int=32)</span>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, loss: str=&#x27;hinge&#x27;, learning_rate: float=0.01, regularization: str=&#x27;l2&#x27;, lambda_: float=0.0001, n_epochs: int=100, random_state: Optional[int]=None, shuffle: bool=True, batch_size: int=256)</span>
                         </div>
                     </div>
                     <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
@@ -559,7 +559,7 @@ array([1])</code></pre>
                 </div>
                 <div class="md:col-span-3 flex flex-wrap items-center gap-1">
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 500</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 100</span>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
                     Number of training epochs.
@@ -601,7 +601,7 @@ array([1])</code></pre>
                 </div>
                 <div class="md:col-span-3 flex flex-wrap items-center gap-1">
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 32</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 256</span>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
                     Mini-batch size for gradient updates.
@@ -975,11 +975,11 @@ array([1])</code></pre>
     <span class="text-orange-300">learning_rate</span><span class="text-slate-400">:</span> <span class="text-cyan-400">float</span> <span class="text-slate-400">=</span> <span class="text-green-400">0.01</span><span class="text-slate-400">,</span>
     <span class="text-orange-300">regularization</span><span class="text-slate-400">:</span> <span class="text-cyan-400">str</span> <span class="text-slate-400">=</span> <span class="text-green-400">&#x27;l2&#x27;</span><span class="text-slate-400">,</span>
     <span class="text-orange-300">lambda_</span><span class="text-slate-400">:</span> <span class="text-cyan-400">float</span> <span class="text-slate-400">=</span> <span class="text-green-400">0.0001</span><span class="text-slate-400">,</span>
-    <span class="text-orange-300">n_epochs</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">500</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">n_epochs</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">100</span><span class="text-slate-400">,</span>
     <span class="text-orange-300">epsilon</span><span class="text-slate-400">:</span> <span class="text-cyan-400">float</span> <span class="text-slate-400">=</span> <span class="text-green-400">0.1</span><span class="text-slate-400">,</span>
     <span class="text-orange-300">random_state</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Optional[int]</span> <span class="text-slate-400">=</span> <span class="text-green-400">None</span><span class="text-slate-400">,</span>
     <span class="text-orange-300">shuffle</span><span class="text-slate-400">:</span> <span class="text-cyan-400">bool</span> <span class="text-slate-400">=</span> <span class="text-green-400">True</span><span class="text-slate-400">,</span>
-    <span class="text-orange-300">batch_size</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">32</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">batch_size</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">256</span><span class="text-slate-400">,</span>
 <span class="text-slate-300">)</span></pre>
                 </div>
             </div>
@@ -1151,7 +1151,7 @@ with the inverse scaling learning rate schedule <span class="katex-inline">\eta_
                 </div>
                 <div class="md:col-span-3 flex flex-wrap items-center gap-1">
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 500</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 100</span>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
                     Number of passes over the training data.
@@ -1207,7 +1207,7 @@ with the inverse scaling learning rate schedule <span class="katex-inline">\eta_
                 </div>
                 <div class="md:col-span-3 flex flex-wrap items-center gap-1">
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 32</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 256</span>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
                     Mini-batch size for gradient updates. Larger batches enable better vectorization but may converge differently than pure SGD (batch_size=1).
@@ -1424,7 +1424,7 @@ When L1 regularization (sparse solutions) is desired
                         </span>
                         <div>
                             <code class="font-bold text-indigo-600 text-base">__init__</code>
-                            <span class="text-sm text-gray-400 font-mono ml-1">(self, loss: str=&#x27;squared_error&#x27;, learning_rate: float=0.01, regularization: str=&#x27;l2&#x27;, lambda_: float=0.0001, n_epochs: int=500, epsilon: float=0.1, random_state: Optional[int]=None, shuffle: bool=True, batch_size: int=32)</span>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, loss: str=&#x27;squared_error&#x27;, learning_rate: float=0.01, regularization: str=&#x27;l2&#x27;, lambda_: float=0.0001, n_epochs: int=100, epsilon: float=0.1, random_state: Optional[int]=None, shuffle: bool=True, batch_size: int=256)</span>
                         </div>
                     </div>
                     <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
@@ -1500,7 +1500,7 @@ When L1 regularization (sparse solutions) is desired
                 </div>
                 <div class="md:col-span-3 flex flex-wrap items-center gap-1">
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 500</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 100</span>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
                     Number of training epochs.
@@ -1556,7 +1556,7 @@ When L1 regularization (sparse solutions) is desired
                 </div>
                 <div class="md:col-span-3 flex flex-wrap items-center gap-1">
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 32</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 256</span>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
                     Mini-batch size for gradient updates.

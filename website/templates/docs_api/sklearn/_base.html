@@ -1,0 +1,400 @@
+{% extends 'layouts/docs_generated.html' %}
+
+{% set active_nav = 'api' %}
+{% set breadcrumb_html = '<a href="/docs/getting_started.html" class="hover:text-gray-900">Documentation</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="../api-reference.html" class="hover:text-gray-900">API Reference</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="index.html" class="hover:text-gray-900">sklearn</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">_base</span>' %}
+
+{% block title %}_base - API Documentation{% endblock %}
+
+{% block content %}
+<div class="flex flex-col lg:flex-row gap-8">
+<aside class="w-full lg:w-64 flex-shrink-0">
+<div class="sticky top-24 bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+<h3 class="font-bold text-gray-900 mb-4 border-b pb-2">On this page</h3>
+<ul class="space-y-2 text-sm">
+<li><a href="#class-_SklearnBackedMixin" class="text-indigo-600 hover:text-indigo-800 font-medium block truncate"><i class="fa-solid fa-cube mr-1 text-xs text-gray-400"></i> _SklearnBackedMixin</a></li>
+<li><a href="#class-_SklearnClustererMixin" class="text-indigo-600 hover:text-indigo-800 font-medium block truncate"><i class="fa-solid fa-cube mr-1 text-xs text-gray-400"></i> _SklearnClustererMixin</a></li>
+<li><a href="#class-_SklearnTransformerMixin" class="text-indigo-600 hover:text-indigo-800 font-medium block truncate"><i class="fa-solid fa-cube mr-1 text-xs text-gray-400"></i> _SklearnTransformerMixin</a></li>
+<li><a href="#class-_SklearnExtractorMixin" class="text-indigo-600 hover:text-indigo-800 font-medium block truncate"><i class="fa-solid fa-cube mr-1 text-xs text-gray-400"></i> _SklearnExtractorMixin</a></li>
+<li><a href="#class-_SklearnSelectorMixin" class="text-indigo-600 hover:text-indigo-800 font-medium block truncate"><i class="fa-solid fa-cube mr-1 text-xs text-gray-400"></i> _SklearnSelectorMixin</a></li>
+<li><a href="#func-_ensure_sklearn" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> _ensure_sklearn</a></li>
+<li><a href="#func-_namespaced" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> _namespaced</a></li>
+</ul></div>
+</aside>
+<main class="flex-1 min-w-0">
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary">Shared machinery for the scikit-learn bridge.</p>
+<div class="doc-extended">
+<p class="mb-4">
+This module centralizes everything the <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml.sklearn</code> wrappers need:
+</p>
+
+<p class="mb-4">
+<em> <strong>Namespaced registration decorators</strong> (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">sk_classifier</code> etc.) that register   each wrapper into the hub under a <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">sklearn.<ClassName></code> key. The namespaced   key keeps the wrappers from colliding with the native algorithms of the same   name (e.g. <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">RandomForestClassifier</code>), so the wrapper classes themselves can   use clean, prefix-free names. </em> <strong>Wrapper mixins</strong> that implement <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">fit</code> / <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">predict</code> / <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">transform</code> by   delegating to a lazily-built scikit-learn estimator. Each concrete wrapper   only needs to implement <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">_build_estimator()</code> and declare its constructor   parameters.
+</p>
+
+<p class="mb-4">
+scikit-learn is an <em>optional</em> dependency: importing this module never requires it. The dependency is checked once, at <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">fit</code> time, and a clear, actionable <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ImportError</code> is raised if it is missing.
+</p>
+</div></div>
+<div class="mb-12">
+<h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-cubes text-indigo-500"></i> Classes</h2>
+<div class="mb-12 scroll-mt-24" id="class-_SklearnBackedMixin">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">_SklearnBackedMixin</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">sklearn._base._SklearnBackedMixin</span></p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed">Implements ``fit`` / ``predict`` by delegating to a scikit-learn model.</p>
+<div class="text-gray-600 mb-8 leading-relaxed">Concrete subclasses must implement :meth:<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">_build_estimator</code>, which returns a fresh (unfitted) scikit-learn estimator configured from the wrapper&#x27;s constructor parameters.</div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-_SklearnBackedMixin-fit">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">fit</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray, y: Optional[np.ndarray]=None) -&gt; &#x27;Any&#x27;</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Fit the backing scikit-learn estimator.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-_SklearnBackedMixin-predict">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">predict</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray) -&gt; np.ndarray</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Predict with the backing estimator.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-_SklearnBackedMixin-predict_proba">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">predict_proba</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray) -&gt; np.ndarray</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Predict class probabilities when the backing estimator supports it.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-_SklearnBackedMixin-get_params">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_params</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, deep: bool=True) -&gt; Dict[str, Any]</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return constructor parameters (scikit-learn ``clone`` compatible).</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+</div></div>
+</div>
+<div class="mb-12 scroll-mt-24" id="class-_SklearnClustererMixin">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">_SklearnClustererMixin</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">sklearn._base._SklearnClustererMixin</span>(<span class="text-cyan-400">_SklearnBackedMixin</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed">Clustering variant: populates ``labels_`` and handles transductive models.</p>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-_SklearnClustererMixin-fit">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">fit</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray, y: Optional[np.ndarray]=None) -&gt; &#x27;Any&#x27;</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Fit and capture cluster labels.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-_SklearnClustererMixin-predict">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">predict</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray) -&gt; np.ndarray</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Assign clusters to ``X`` (re-fits transductive models).</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+</div></div>
+</div>
+<div class="mb-12 scroll-mt-24" id="class-_SklearnTransformerMixin">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">_SklearnTransformerMixin</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">sklearn._base._SklearnTransformerMixin</span>(<span class="text-cyan-400">_SklearnBackedMixin</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed">Transformer variant: delegates ``transform`` to the backing estimator.</p>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-_SklearnTransformerMixin-transform">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">transform</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray) -&gt; np.ndarray</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Transform ``X`` with the fitted estimator.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+</div></div>
+</div>
+<div class="mb-12 scroll-mt-24" id="class-_SklearnExtractorMixin">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">_SklearnExtractorMixin</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">sklearn._base._SklearnExtractorMixin</span>(<span class="text-cyan-400">_SklearnTransformerMixin</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed">Feature-extractor variant (same surface as the transformer mixin).</p>
+</div>
+<div class="mb-12 scroll-mt-24" id="class-_SklearnSelectorMixin">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">_SklearnSelectorMixin</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">sklearn._base._SklearnSelectorMixin</span>(<span class="text-cyan-400">_SklearnBackedMixin</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed">Feature-selector variant: populates the base selector&#x27;s index state.</p>
+<div class="text-gray-600 mb-8 leading-relaxed">Overrides <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">fit</code> to run the backing scikit-learn selector and record <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">_selected_indices</code> / <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">_feature_scores</code> so the base class&#x27;s <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">transform</code> and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">get_support</code> work unchanged.</div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-_SklearnSelectorMixin-fit">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">fit</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray, y: Optional[np.ndarray]=None) -&gt; &#x27;Any&#x27;</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Fit the backing selector and capture selected feature indices.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+</div></div>
+</div>
+</div>
+<div class="mb-12">
+<h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-code text-indigo-500"></i> Functions</h2>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-_ensure_sklearn">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">_ensure_sklearn</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 36</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">_ensure_sklearn(cls_name: str) -&gt; None</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Raise an actionable error if scikit-learn is not importable.</p>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">cls_name</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">str</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Name of the wrapper class, used in the error message.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        </div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-_namespaced">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">_namespaced</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 57</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">_namespaced(base_decorator)</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Wrap a base tuiml decorator so it registers under ``sklearn.&lt;ClassName&gt;``.</p>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">base_decorator</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">callable</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    One of the tuiml registration decorators (<code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">classifier</code>, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">regressor</code>, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">transformer</code>, ...).
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-arrow-right-from-bracket text-green-500 mr-2"></i>Returns</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">callable</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    A decorator factory mirroring the base decorator&#x27;s keyword arguments.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        </div>
+</div></div>
+</div>
+</main>
+</div>
+{% endblock %}

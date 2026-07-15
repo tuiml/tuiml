@@ -12,6 +12,7 @@
 <h3 class="font-bold text-gray-900 mb-4 border-b pb-2">On this page</h3>
 <ul class="space-y-2 text-sm">
 <li><a href="#func-get_api_info" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> get_api_info</a></li>
+<li><a href="#func-_resolve_data_spec" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> _resolve_data_spec</a></li>
 <li><a href="#func-train" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> train</a></li>
 <li><a href="#func-run" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> run</a></li>
 <li><a href="#func-predict" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> predict</a></li>
@@ -120,21 +121,41 @@
         </div>
         </div>
 </div></div>
-<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-train">
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-_resolve_data_spec">
 
         <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
             
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
-                <h3 class="text-lg font-bold text-gray-900 font-mono">train</h3>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">_resolve_data_spec</h3>
             </div>
             <div class="text-xs text-gray-400 mt-1 font-mono">Line 286</div>
         </div>
         
 <div class="p-6">
-<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">train(algorithm: Union[str, Dict]=None, data: Union[str, pd.DataFrame, np.ndarray]=None, target: Union[str, np.ndarray]=None, *, preprocessing: Optional[Union[str, List[Union[str, Dict]]]]=None, feature_selection: Optional[Union[str, Dict]]=None, test_size: float=0.2, stratify: bool=True, random_state: Optional[int]=42, cv: Optional[int]=None, metrics: Union[List[str], str]=&#x27;auto&#x27;, return_model: bool=True, return_predictions: bool=False, return_probabilities: bool=False, preset: Optional[str]=None, verbose: bool=False, **kwargs) -&gt; WorkflowResult</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary">Train a machine learning model with a complete workflow.</p>
-<div class="doc-extended">This is the <strong>main high-level function</strong> for training models in TuiML. It supports multiple flexible input formats for maximum convenience and is designed to be LLM-friendly for automated ML workflows.</div>
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">_resolve_data_spec(data, target, features)</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Normalize the ``data`` argument into ``(source, target, features)``.</p>
+<div class="doc-extended">
+<p class="mb-4">
+The <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">data</code> argument may be a <strong>data spec</strong> dict or a bare source. A spec dict groups everything about the data in one place:
+</p>
+
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">{&amp;quot;source&amp;quot;: &amp;quot;sales.csv&amp;quot;, &amp;quot;target&amp;quot;: &amp;quot;label&amp;quot;, &amp;quot;features&amp;quot;: [...]}</code> — a file
+</li>
+
+</ul>
+path or builtin name plus its target column (and optional feature subset).   <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&quot;path&quot;</code> and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&quot;data&quot;</code> are accepted as aliases for <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&quot;source&quot;</code>.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">{&amp;quot;X&amp;quot;: X_array, &amp;quot;y&amp;quot;: y_array}</code> — in-memory arrays, already split.
+</li>
+
+</ul>
+Anything that is not such a dict (a path string, builtin name, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">DataFrame</code>, or <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ndarray</code>) is returned unchanged, paired with the separately supplied <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">target</code>/<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">features</code> arguments.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -144,26 +165,153 @@
 
             <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
                 <div class="md:col-span-3">
-                    <code class="font-bold text-indigo-600 text-sm">algorithm</code>
+                    <code class="font-bold text-indigo-600 text-sm">data</code>
                 </div>
                 <div class="md:col-span-3 flex flex-wrap items-center gap-1">
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">str or dict</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">str, DataFrame, ndarray, or dict</span>
                     
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
-                    <p class="mb-2">Algorithm specification. Accepts flexible formats:</p><ul class="mt-2 space-y-1">
+                    The raw <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">data</code> argument passed to :func:`train`.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">target</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">str, ndarray, or None</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    The separately supplied target (used only for bare-<code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">data</code> forms).
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">features</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">list of str or None</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    The separately supplied feature subset.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-arrow-right-from-bracket text-green-500 mr-2"></i>Returns</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">source</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">object</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    The data source to hand to :class:`~tuiml.workflow.Workflow`.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">target</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">object</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    The resolved target column name / array (or <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">None</code>).
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">features</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">list of str or None</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    The resolved feature subset.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        </div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-train">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">train</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 335</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">train(model: Union[str, Dict, Any]=None, data: Union[str, pd.DataFrame, np.ndarray, Dict]=None, target: Union[str, np.ndarray]=None, *, features: Optional[List[str]]=None, preprocessing: Optional[Union[str, List[Union[str, Dict]]]]=None, feature_selection: Optional[Union[str, Dict]]=None, test_size: float=0.2, stratify: bool=True, random_seed: Optional[int]=None, cv: Optional[int]=None, metrics: Union[List[str], str]=&#x27;auto&#x27;, return_model: bool=True, return_predictions: bool=False, return_probabilities: bool=False, preset: Optional[str]=None, verbose: bool=False, algorithm: Union[str, Dict, Any]=None, **kwargs) -&gt; WorkflowResult</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Train a machine learning model with a complete workflow.</p>
+<div class="doc-extended">This is the <strong>main high-level function</strong> for training models in TuiML. Every ML component — the model, each preprocessing step, and the feature selector — is described the same way: a <strong>spec</strong> of the form <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">{&quot;name&quot;: ..., <strong>params}</code>. The data is described by its own </strong>data spec** <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">{&quot;source&quot;: ..., &quot;target&quot;: ..., &quot;features&quot;: ...}</code>. This keeps each component&#x27;s parameters grouped with that component instead of scattered across loose keyword arguments, and is designed to be LLM-friendly.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">model</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">str, dict, class, or instance</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    <p class="mb-2">Model specification. Accepts flexible formats:</p><ul class="mt-2 space-y-1">
+
+                    <li class="flex items-start gap-2">
+                        <code class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-xs font-mono flex-shrink-0">{&quot;name&quot;: &quot;RandomForestClassifier&quot;, &quot;n_estimators&quot;: 100}</code>
+                        <span class="text-gray-600">**spec</span>
+                    </li>
+                
+</ul><p class="mb-2">dict** (recommended): the class name plus its hyperparameters.</p><ul class="mt-2 space-y-1">
 
                     <li class="flex items-start gap-2">
                         <code class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-xs font-mono flex-shrink-0">&quot;RandomForestClassifier&quot;</code>
-                        <span class="text-gray-600">Class name as string</span>
+                        <span class="text-gray-600">class name only, default params.</span>
                     </li>
                 
 
                     <li class="flex items-start gap-2">
-                        <code class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-xs font-mono flex-shrink-0">{&quot;name&quot;: &quot;RandomForestClassifier&quot;, &quot;n_trees&quot;: 100}</code>
-                        <span class="text-gray-600">Dict with params</span>
+                        <code class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-xs font-mono flex-shrink-0">RandomForestClassifier(n_estimators=100)</code>
+                        <span class="text-gray-600">a configured instance</span>
                     </li>
                 
+</ul><p class="mb-2">(opt into an import for editor autocomplete / type-checking).</p><ul class="mt-2 space-y-1">
+<li class="flex items-start gap-2"><span class="text-gray-400">•</span><span>a class object — instantiated with the resolved parameters.</span></li>
 </ul>
                 </div>
             </div>
@@ -174,29 +322,27 @@
                     <code class="font-bold text-indigo-600 text-sm">data</code>
                 </div>
                 <div class="md:col-span-3 flex flex-wrap items-center gap-1">
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">str, DataFrame, or ndarray</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">str, DataFrame, ndarray, or dict</span>
                     
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
-                    <p class="mb-2">Training data source:</p><ul class="mt-2 space-y-1">
+                    <p class="mb-2">Training data. Accepts:</p><ul class="mt-2 space-y-1">
 
                     <li class="flex items-start gap-2">
-                        <code class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-xs font-mono flex-shrink-0">&quot;path/to/file.csv&quot;</code>
-                        <span class="text-gray-600">Path to data file</span>
+                        <code class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-xs font-mono flex-shrink-0">{&quot;source&quot;: &quot;sales.csv&quot;, &quot;target&quot;: &quot;label&quot;}</code>
+                        <span class="text-gray-600">**data spec**</span>
                     </li>
                 
+</ul><p class="mb-2">(recommended for files): file path or builtin name plus the target column. Optional <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;features&quot;: [...]</code> restricts the input columns.</p><ul class="mt-2 space-y-1">
 
                     <li class="flex items-start gap-2">
-                        <code class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-xs font-mono flex-shrink-0">DataFrame</code>
-                        <span class="text-gray-600">Pandas DataFrame</span>
+                        <code class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-xs font-mono flex-shrink-0">{&quot;X&quot;: X_array, &quot;y&quot;: y_array}</code>
+                        <span class="text-gray-600">in-memory arrays, already split.</span>
                     </li>
                 
-
-                    <li class="flex items-start gap-2">
-                        <code class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-xs font-mono flex-shrink-0">ndarray</code>
-                        <span class="text-gray-600">Numpy array</span>
-                    </li>
-                
+<li class="flex items-start gap-2"><span class="text-gray-400">•</span><span><code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;path/to/file.csv&quot;</code> / <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;iris&quot;</code> — a bare file path or builtin</span></li>
+</ul><p class="mb-2">name (use the <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">target</code> argument to name the label column).</p><ul class="mt-2 space-y-1">
+<li class="flex items-start gap-2"><span class="text-gray-400">•</span><span><code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">DataFrame</code> / <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">ndarray</code> — in-memory data (with <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">target</code>).</span></li>
 </ul>
                 </div>
             </div>
@@ -211,20 +357,34 @@
                     
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
-                    <p class="mb-2">Target specification:</p><ul class="mt-2 space-y-1">
+                    <p class="mb-2">Target for the bare-<code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">data</code> forms (ignored when <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">data</code> is a spec dict that already carries <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;target&quot;</code>/<code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;y&quot;</code>):</p><ul class="mt-2 space-y-1">
 
                     <li class="flex items-start gap-2">
                         <code class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-xs font-mono flex-shrink-0">&quot;column_name&quot;</code>
-                        <span class="text-gray-600">Column name in DataFrame</span>
+                        <span class="text-gray-600">the label column in a file/DataFrame.</span>
                     </li>
                 
 
                     <li class="flex items-start gap-2">
                         <code class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-xs font-mono flex-shrink-0">ndarray</code>
-                        <span class="text-gray-600">Target array</span>
+                        <span class="text-gray-600">a separate target array.</span>
                     </li>
                 
 </ul>
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">features</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">list of str</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Restrict the feature matrix to these named columns. When <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">None</code> (default), every non-target column is used. May also be supplied inside the data spec as <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;features&quot;</code>.
                 </div>
             </div>
             
@@ -337,14 +497,14 @@
 
             <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
                 <div class="md:col-span-3">
-                    <code class="font-bold text-indigo-600 text-sm">random_state</code>
+                    <code class="font-bold text-indigo-600 text-sm">random_seed</code>
                 </div>
                 <div class="md:col-span-3 flex flex-wrap items-center gap-1">
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int or None</span>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 42</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= None</span>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
-                    Random seed for reproducibility.
+                    Random seed for reproducibility. Falls back to the global seed, then 42.
                 </div>
             </div>
             
@@ -499,6 +659,20 @@
 
             <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
                 <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">algorithm</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">str, dict, class, or instance</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Deprecated alias for <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">model</code>, kept for backward compatibility. If both are given, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">model</code> wins.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
                     <code class="font-bold text-indigo-600 text-sm">**kwargs</code>
                 </div>
                 <div class="md:col-span-3 flex flex-wrap items-center gap-1">
@@ -506,7 +680,7 @@
                     
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
-                    Additional algorithm parameters passed directly to the model (e.g., <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">n_trees=100</code>, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">max_depth=10</code>).
+                    Deprecated: loose model hyperparameters (e.g. <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">n_estimators=100</code>). Prefer putting them inside the model spec — <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">{&quot;name&quot;: &quot;RandomForestClassifier&quot;, &quot;n_estimators&quot;: 100}</code>. Still accepted and merged into the model params for backward compatibility.
                 </div>
             </div>
             
@@ -572,7 +746,7 @@
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
                 <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-code text-purple-500 mr-2"></i>Examples</h4>
             </div>
-            <div class="p-4"><p class="text-gray-600 my-2">Simplest usage with just algorithm and data:</p>
+            <div class="p-4"><p class="text-gray-600 my-2">Quick — model name and a data spec:</p>
 
         <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
             <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
@@ -589,11 +763,11 @@
                 </div>
             </div>
             <div class="!p-4 overflow-x-auto">
-                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; result = tuiml.train(&quot;RandomForestClassifier&quot;, &quot;iris.csv&quot;, &quot;class&quot;)</code></pre>
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; result = tuiml.train(&quot;RandomForestClassifier&quot;, {&quot;source&quot;: &quot;iris&quot;})</code></pre>
             </div>
         </div>
         
-<p class="text-gray-600 my-2">With algorithm parameters as kwargs:</p>
+<p class="text-gray-600 my-2">Configured — model spec with params + file data spec, no import:</p>
 
         <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
             <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
@@ -611,16 +785,13 @@
             </div>
             <div class="!p-4 overflow-x-auto">
                 <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; result = tuiml.train(
-...     &quot;RandomForestClassifier&quot;,
-...     &quot;iris.csv&quot;,
-...     &quot;class&quot;,
-...     n_trees=100,
-...     max_depth=10
+...     {&quot;name&quot;: &quot;RandomForestClassifier&quot;, &quot;n_estimators&quot;: 100},
+...     {&quot;source&quot;: &quot;sales.csv&quot;, &quot;target&quot;: &quot;label&quot;},
 ... )</code></pre>
             </div>
         </div>
         
-<p class="text-gray-600 my-2">Using a preprocessing preset:</p>
+<p class="text-gray-600 my-2">Full pipeline — every component uses the same ``{&quot;name&quot;: ..., **params}`` shape:</p>
 
         <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
             <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
@@ -638,69 +809,61 @@
             </div>
             <div class="!p-4 overflow-x-auto">
                 <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; result = tuiml.train(
-...     &quot;RandomForestClassifier&quot;,
-...     &quot;iris.csv&quot;,
-...     &quot;class&quot;,
-...     preset=&quot;standard&quot;,
-...     n_trees=100
-... )</code></pre>
-            </div>
-        </div>
-        
-<p class="text-gray-600 my-2">With explicit preprocessing pipeline:</p>
-
-        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
-            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
-                <div class="flex gap-1.5 opacity-60">
-                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
-                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
-                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">PYTHON</span>
-                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
-                        <i class="fa-regular fa-copy text-xs"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="!p-4 overflow-x-auto">
-                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; result = tuiml.train(
-...     &quot;RandomForestClassifier&quot;,
-...     &quot;iris.csv&quot;,
-...     &quot;class&quot;,
-...     preprocessing=[&quot;SimpleImputer&quot;, &quot;MinMaxScaler&quot;],
-...     feature_selection=&quot;SelectKBestSelector&quot;,
-...     n_trees=100
-... )</code></pre>
-            </div>
-        </div>
-        
-<p class="text-gray-600 my-2">Cross-validation:</p>
-
-        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
-            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
-                <div class="flex gap-1.5 opacity-60">
-                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
-                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
-                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">PYTHON</span>
-                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
-                        <i class="fa-regular fa-copy text-xs"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="!p-4 overflow-x-auto">
-                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; result = tuiml.train(
-...     &quot;SVM&quot;,
-...     &quot;data.csv&quot;,
-...     &quot;label&quot;,
-...     preprocessing=&quot;standard&quot;,
+...     {&quot;name&quot;: &quot;RandomForestClassifier&quot;, &quot;n_estimators&quot;: 100},
+...     {&quot;source&quot;: &quot;sales.csv&quot;, &quot;target&quot;: &quot;label&quot;},
+...     preprocessing=[
+...         {&quot;name&quot;: &quot;SimpleImputer&quot;, &quot;strategy&quot;: &quot;mean&quot;},
+...         {&quot;name&quot;: &quot;MinMaxScaler&quot;},
+...     ],
+...     feature_selection={&quot;name&quot;: &quot;SelectKBestSelector&quot;, &quot;k&quot;: 10},
 ...     cv=10,
-...     kernel=&quot;rbf&quot;,
-...     C=1.0
 ... )</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">In-memory arrays, already split:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">PYTHON</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; result = tuiml.train(
+...     {&quot;name&quot;: &quot;SVC&quot;, &quot;kernel&quot;: &quot;rbf&quot;, &quot;C&quot;: 1.0},
+...     {&quot;X&quot;: X, &quot;y&quot;: y},
+... )</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">Type-safe — pass a configured instance (opt into an import for autocomplete):</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">PYTHON</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.algorithms.trees import RandomForestClassifier
+&gt;&gt;&gt; result = tuiml.train(RandomForestClassifier(n_estimators=100), {&quot;source&quot;: &quot;iris&quot;})</code></pre>
             </div>
         </div>
         </div>
@@ -715,7 +878,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">run</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 536</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 632</div>
         </div>
         
 <div class="p-6">
@@ -738,20 +901,37 @@
                     
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
-                    <p class="mb-2">Configuration specification:</p><ul class="mt-2 space-y-1">
+                    <p class="mb-2">A single declarative **experiment spec**, using the same <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">{&quot;name&quot;: ..., **params}</code> component convention as :func:`train`:</p><ul class="mt-2 space-y-1">
 
                     <li class="flex items-start gap-2">
                         <code class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-xs font-mono flex-shrink-0">dict</code>
-                        <span class="text-gray-600">Configuration dictionary</span>
+                        <span class="text-gray-600">the spec itself.</span>
                     </li>
                 
 
                     <li class="flex items-start gap-2">
                         <code class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-xs font-mono flex-shrink-0">str</code>
-                        <span class="text-gray-600">Path to JSON configuration file</span>
+                        <span class="text-gray-600">path to a JSON file containing the spec.</span>
                     </li>
                 
-</ul>Required keys: <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">algorithm</code>, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">data</code>, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">target</code> Optional keys: <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">preprocessing</code>, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">feature_selection</code>, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">cv</code>, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">metrics</code>, etc.
+</ul><p class="mb-2">Keys:</p><ul class="mt-2 space-y-1">
+
+                    <li class="flex items-start gap-2">
+                        <code class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-xs font-mono flex-shrink-0">model</code>
+                        <span class="text-gray-600">model spec, e.g. ``{&quot;name&quot;: &quot;RandomForestClassifier&quot;,</span>
+                    </li>
+                
+</ul><p class="mb-2">&quot;n_estimators&quot;: 100}`` (or a bare name string).</p><ul class="mt-2 space-y-1">
+
+                    <li class="flex items-start gap-2">
+                        <code class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-xs font-mono flex-shrink-0">data</code>
+                        <span class="text-gray-600">data spec, e.g. ``{&quot;source&quot;: &quot;sales.csv&quot;, &quot;target&quot;:</span>
+                    </li>
+                
+</ul><p class="mb-2">&quot;label&quot;}`` (or a bare path/builtin name).</p><ul class="mt-2 space-y-1">
+<li class="flex items-start gap-2"><span class="text-gray-400">•</span><span><code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">preprocessing</code> / <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">feature_selection</code> — optional component specs.</span></li>
+<li class="flex items-start gap-2"><span class="text-gray-400">•</span><span><code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">cv</code> / <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">metrics</code> / <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">test_size</code> / <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">preset</code> / ... — run options.</span></li>
+</ul>The legacy flat schema (<code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">algorithm</code> + top-level <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">data</code>/<code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">target</code> + loose hyperparameters) is still accepted for backward compatibility.
                 </div>
             </div>
             
@@ -786,7 +966,7 @@
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
                 <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-code text-purple-500 mr-2"></i>Examples</h4>
             </div>
-            <div class="p-4"><p class="text-gray-600 my-2">From a configuration dictionary:</p>
+            <div class="p-4"><p class="text-gray-600 my-2">A declarative experiment spec — one serializable object, ideal for agents:</p>
 
         <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
             <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
@@ -803,15 +983,14 @@
                 </div>
             </div>
             <div class="!p-4 overflow-x-auto">
-                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; config = {
-...     &quot;algorithm&quot;: &quot;RandomForestClassifier&quot;,
-...     &quot;data&quot;: &quot;iris.csv&quot;,
-...     &quot;target&quot;: &quot;class&quot;,
-...     &quot;preprocessing&quot;: &quot;standard&quot;,
-...     &quot;n_trees&quot;: 100,
-...     &quot;cv&quot;: 10
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; spec = {
+...     &quot;model&quot;: {&quot;name&quot;: &quot;RandomForestClassifier&quot;, &quot;n_estimators&quot;: 100},
+...     &quot;data&quot;: {&quot;source&quot;: &quot;sales.csv&quot;, &quot;target&quot;: &quot;label&quot;},
+...     &quot;preprocessing&quot;: [{&quot;name&quot;: &quot;MinMaxScaler&quot;}],
+...     &quot;feature_selection&quot;: {&quot;name&quot;: &quot;SelectKBestSelector&quot;, &quot;k&quot;: 10},
+...     &quot;cv&quot;: 10,
 ... }
-&gt;&gt;&gt; result = tuiml.run(config)</code></pre>
+&gt;&gt;&gt; result = tuiml.run(spec)</code></pre>
             </div>
         </div>
         
@@ -835,35 +1014,6 @@
                 <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; result = tuiml.run(&quot;config.json&quot;)</code></pre>
             </div>
         </div>
-        
-<p class="text-gray-600 my-2">LLM-generated configuration:</p>
-
-        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
-            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
-                <div class="flex gap-1.5 opacity-60">
-                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
-                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
-                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">PYTHON</span>
-                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
-                        <i class="fa-regular fa-copy text-xs"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="!p-4 overflow-x-auto">
-                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; llm_config = {
-...     &quot;algorithm&quot;: {&quot;name&quot;: &quot;RandomForestClassifier&quot;, &quot;n_trees&quot;: 100},
-...     &quot;data&quot;: &quot;data.csv&quot;,
-...     &quot;target&quot;: &quot;label&quot;,
-...     &quot;preprocessing&quot;: [&quot;SimpleImputer&quot;, &quot;Normalize&quot;],
-...     &quot;feature_selection&quot;: {&quot;name&quot;: &quot;SelectKBestSelector&quot;, &quot;k&quot;: 10},
-...     &quot;cv&quot;: 5
-... }
-&gt;&gt;&gt; result = tuiml.run(llm_config)</code></pre>
-            </div>
-        </div>
         </div>
         </div>
         </div>
@@ -876,7 +1026,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">predict</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 599</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 694</div>
         </div>
         
 <div class="p-6">
@@ -978,7 +1128,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">evaluate</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 624</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 719</div>
         </div>
         
 <div class="p-6">
@@ -1122,11 +1272,11 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">experiment</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 699</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 794</div>
         </div>
         
 <div class="p-6">
-<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">experiment(algorithms: Union[Dict[str, Any], List[Union[str, tuple, Any]]], datasets: Union[Dict[str, tuple], List[Union[str, Dict]]], *, preprocessing: Optional[Union[List[Dict], str]]=None, cv: int=10, metrics: List[str]=None, n_jobs: int=1, verbose: int=0, progress_callback: Optional[Callable]=None)</div>
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">experiment(algorithms: Union[Dict[str, Any], List[Union[str, tuple, Any]]], datasets: Union[Dict[str, tuple], List[Union[str, Dict]]], *, preprocessing: Optional[Union[List[Dict], str]]=None, cv: int=10, metrics: List[str]=None, n_jobs: int=1, verbose: int=0, random_seed: Optional[int]=None, progress_callback: Optional[Callable]=None, **kwargs)</div>
 <div class="prose max-w-none text-gray-600"><p class="doc-summary">Run experiments to compare multiple algorithms on multiple datasets.</p>
 <div class="doc-extended">This function facilitates large-scale benchmarking by executing multiple  algorithms across various datasets using cross-validation. It uses exact  class names for maximum scalability and transparency.</div>
 
@@ -1154,7 +1304,7 @@
                 
 
                     <li class="flex items-start gap-2">
-                        <code class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-xs font-mono flex-shrink-0">[&quot;RandomForestClassifier&quot;, &quot;SVM&quot;]</code>
+                        <code class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-xs font-mono flex-shrink-0">[&quot;RandomForestClassifier&quot;, &quot;SVC&quot;]</code>
                         <span class="text-gray-600">List of class names (uses defaults)</span>
                     </li>
                 
@@ -1320,7 +1470,7 @@
             </div>
             <div class="!p-4 overflow-x-auto">
                 <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; exp = tuiml.experiment(
-...     algorithms=[&quot;RandomForestClassifier&quot;, &quot;SVM&quot;, &quot;NaiveBayesClassifier&quot;],
+...     algorithms=[&quot;RandomForestClassifier&quot;, &quot;SVC&quot;, &quot;NaiveBayesClassifier&quot;],
 ...     datasets=[&quot;iris&quot;, &quot;wine&quot;],
 ...     cv=10
 ... )</code></pre>
@@ -1367,7 +1517,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">save</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 889</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 1009</div>
         </div>
         
 <div class="p-6">
@@ -1460,7 +1610,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">load</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 910</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 1030</div>
         </div>
         
 <div class="p-6">
@@ -1548,7 +1698,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">list_algorithms</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 930</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 1050</div>
         </div>
         
 <div class="p-6">
@@ -1663,7 +1813,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">describe_algorithm</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 976</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 1096</div>
         </div>
         
 <div class="p-6">
@@ -1771,7 +1921,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">search_algorithms</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 1014</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 1134</div>
         </div>
         
 <div class="p-6">
@@ -1861,7 +2011,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">serve</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 1075</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 1195</div>
         </div>
         
 <div class="p-6">
@@ -2006,7 +2156,7 @@
                 </div>
             </div>
             <div class="!p-4 overflow-x-auto">
-                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; result = tuiml.train(&quot;NaiveBayesClassifier&quot;, &quot;iris&quot;, &quot;class&quot;)
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; result = tuiml.train(&quot;NaiveBayesClassifier&quot;, {&quot;source&quot;: &quot;iris&quot;, &quot;target&quot;: &quot;class&quot;})
 &gt;&gt;&gt; info = tuiml.serve(result, port=9999)
 &gt;&gt;&gt; print(info[&quot;url&quot;])
 http://127.0.0.1:9999</code></pre>
@@ -2066,7 +2216,7 @@ http://127.0.0.1:9999</code></pre>
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">stop_server</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 1229</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 1349</div>
         </div>
         
 <div class="p-6">
@@ -2153,7 +2303,7 @@ http://127.0.0.1:9999</code></pre>
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">server_status</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 1259</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 1379</div>
         </div>
         
 <div class="p-6">

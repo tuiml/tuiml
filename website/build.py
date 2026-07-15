@@ -131,6 +131,23 @@ async def _render_all(urls: list[str]) -> int:
     return len(urls)
 
 
+def _normalize_tutorial_links() -> None:
+    """Strip the ``.ipynb`` suffix from in-page ``/tutorials/...`` links.
+
+    The FastAPI app served notebooks at both ``/tutorials/x`` and
+    ``/tutorials/x.ipynb`` (its route appended the extension). The static freeze
+    only writes ``/tutorials/x.html``, so links that carry ``.ipynb`` 404. Rewrite
+    them to the extensionless form, which GitHub Pages serves back as the ``.html``
+    page. Must run BEFORE _apply_base_path (matches the un-prefixed path).
+    """
+    pat = re.compile(r'(/tutorials/[A-Za-z0-9_/\-]+)\.ipynb')
+    for html in OUT.rglob("*.html"):
+        text = html.read_text(encoding="utf-8")
+        new = pat.sub(r"\1", text)
+        if new != text:
+            html.write_text(new, encoding="utf-8")
+
+
 def _apply_base_path() -> None:
     """Rewrite root-absolute links (href/src/action="/...") to sit under BASE.
 
@@ -163,8 +180,9 @@ def freeze() -> None:
     # Static assets
     shutil.copytree(STATIC_SRC, OUT / "static")
 
-    # Prefix root-absolute links for subpath hosting (no-op at root)
-    _apply_base_path()
+    # Static-hosting link fixes
+    _normalize_tutorial_links()   # /tutorials/x.ipynb -> /tutorials/x (served as .html)
+    _apply_base_path()            # prefix root-absolute links for subpath hosting (no-op at root)
 
     # Pages hygiene:
     #   .nojekyll  — REQUIRED. Jekyll strips files/dirs beginning with "_"

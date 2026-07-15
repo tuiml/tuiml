@@ -14,6 +14,7 @@
 <li><a href="#func-get_mcp_server" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> get_mcp_server</a></li>
 <li><a href="#func-run_mcp_server" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> run_mcp_server</a></li>
 <li><a href="#func-get_tools_for_llm" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> get_tools_for_llm</a></li>
+<li><a href="#func-agent" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> agent</a></li>
 </ul></div>
 </aside>
 <main class="flex-1 min-w-0">
@@ -198,13 +199,38 @@ Example Usage ------------- &gt;&gt;&gt; from tuiml.agent import execute_tool &g
             </div>
             <div class="!p-4 overflow-x-auto">
                 <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; tools = get_tools_for_llm()
-&gt;&gt;&gt; len(tools) &gt; 0
+&gt;&gt;&gt; len(tools)
+len(tools) &gt; 0
 True</code></pre>
             </div>
         </div>
         </div>
         </div>
         </div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-agent">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">agent</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 140</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">agent(model: &#x27;Optional[str]&#x27;=None, **kwargs)</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Return a ready-to-run Pydantic-AI ``Agent`` pre-loaded with every TuiML tool and the canonical ``SKILL.md`` system prompt.</p>
+<div class="doc-extended">
+<p class="mb-4">
+Requires <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">pip install tuiml[pydantic-ai]</code>.
+</p>
+
+<p class="mb-4">
+Example ------- &gt;&gt;&gt; import tuiml &gt;&gt;&gt; result = tuiml.agent().run_sync( ...     &quot;Train RandomForestClassifier on iris and report accuracy.&quot; ... ) &gt;&gt;&gt; print(result.output)
+</p>
+</div></div>
 </div></div>
 </div>
 </main>

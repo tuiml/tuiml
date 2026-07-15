@@ -46,7 +46,7 @@
     <span class="text-orange-300">degree</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">3</span><span class="text-slate-400">,</span>
     <span class="text-orange-300">coef0</span><span class="text-slate-400">:</span> <span class="text-cyan-400">float</span> <span class="text-slate-400">=</span> <span class="text-green-400">0.0</span><span class="text-slate-400">,</span>
     <span class="text-orange-300">tol</span><span class="text-slate-400">:</span> <span class="text-cyan-400">float</span> <span class="text-slate-400">=</span> <span class="text-green-400">0.001</span><span class="text-slate-400">,</span>
-    <span class="text-orange-300">max_iter</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">1000</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">max_iter</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">...</span><span class="text-slate-400">,</span>
 <span class="text-slate-300">)</span></pre>
                 </div>
             </div>
@@ -594,7 +594,7 @@ SVC(...)</code></pre>
                         </span>
                         <div>
                             <code class="font-bold text-indigo-600 text-base">__init__</code>
-                            <span class="text-sm text-gray-400 font-mono ml-1">(self, C: float=1.0, kernel: Union[str, &#x27;Kernel&#x27;]=&#x27;rbf&#x27;, gamma: Any=&#x27;scale&#x27;, degree: int=3, coef0: float=0.0, tol: float=0.001, max_iter: int=1000)</span>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, C: float=1.0, kernel: Union[str, &#x27;Kernel&#x27;]=&#x27;rbf&#x27;, gamma: Any=&#x27;scale&#x27;, degree: int=3, coef0: float=0.0, tol: float=0.001, max_iter: int=...)</span>
                         </div>
                     </div>
                     <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
@@ -698,10 +698,10 @@ SVC(...)</code></pre>
                 </div>
                 <div class="md:col-span-3 flex flex-wrap items-center gap-1">
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 1000</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= -1</span>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
-                    Maximum iterations.
+                    Hard cap on SMO iterations. <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">-1</code> (default) auto-scales the cap to <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">max(10000, n_samples)</code> so the solver actually converges on larger datasets — a small fixed cap silently returns an under-trained (degenerate) model on data with more than a few thousand rows.
                 </div>
             </div>
             

@@ -13,6 +13,8 @@
 <ul class="space-y-2 text-sm">
 <li><a href="#class-WorkflowResult" class="text-indigo-600 hover:text-indigo-800 font-medium block truncate"><i class="fa-solid fa-cube mr-1 text-xs text-gray-400"></i> WorkflowResult</a></li>
 <li><a href="#class-Workflow" class="text-indigo-600 hover:text-indigo-800 font-medium block truncate"><i class="fa-solid fa-cube mr-1 text-xs text-gray-400"></i> Workflow</a></li>
+<li><a href="#func-_clone_estimator" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> _clone_estimator</a></li>
+<li><a href="#func-_inject_seed_to_algorithm" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> _inject_seed_to_algorithm</a></li>
 </ul></div>
 </aside>
 <main class="flex-1 min-w-0">
@@ -655,6 +657,7 @@
     <span class="text-red-400">self</span><span class="text-slate-400">,</span>
     <span class="text-orange-300">data</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Union[str, pd.DataFrame, np.ndarray]</span> <span class="text-slate-400">=</span> <span class="text-green-400">None</span><span class="text-slate-400">,</span>
     <span class="text-orange-300">target</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Optional[str]</span> <span class="text-slate-400">=</span> <span class="text-green-400">None</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">features</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Optional[List[str]]</span> <span class="text-slate-400">=</span> <span class="text-green-400">None</span><span class="text-slate-400">,</span>
 <span class="text-slate-300">)</span></pre>
                 </div>
             </div>
@@ -988,7 +991,7 @@ Execute with <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">run
                         </span>
                         <div>
                             <code class="font-bold text-indigo-600 text-base">__init__</code>
-                            <span class="text-sm text-gray-400 font-mono ml-1">(self, data: Union[str, pd.DataFrame, np.ndarray]=None, target: Optional[str]=None)</span>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, data: Union[str, pd.DataFrame, np.ndarray]=None, target: Optional[str]=None, features: Optional[List[str]]=None)</span>
                         </div>
                     </div>
                     <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
@@ -1026,6 +1029,20 @@ Execute with <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">run
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
                     Target column name (if data is DataFrame/file).
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">features</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">list of str</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Restrict the feature matrix to these named columns. When <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">None</code> (default), every non-target column is used as a feature.
                 </div>
             </div>
             
@@ -2340,6 +2357,86 @@ Execute with <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">run
             
 </div></div>
 </div>
+</div>
+<div class="mb-12">
+<h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-code text-indigo-500"></i> Functions</h2>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-_clone_estimator">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">_clone_estimator</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 217</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">_clone_estimator(prototype)</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Return a fresh, unfitted copy of an estimator instance.</p>
+<div class="doc-extended">Used when an already-built estimator instance is handed to the workflow (e.g. a raw scikit-learn estimator wrapped via <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">wrap_sklearn</code>), because cross-validation re-instantiates the model once per fold.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">prototype</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">object</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    An estimator instance to clone.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-arrow-right-from-bracket text-green-500 mr-2"></i>Returns</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">object</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    A fresh copy in the same configuration as <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">prototype</code>.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        </div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-_inject_seed_to_algorithm">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">_inject_seed_to_algorithm</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 250</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">_inject_seed_to_algorithm(model_cls, model_params: dict, seed: int | None) -&gt; dict</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Inject seed into model parameters if supported and not already explicitly set.</p></div>
+</div></div>
 </div>
 </main>
 </div>

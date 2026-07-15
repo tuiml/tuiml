@@ -1,0 +1,455 @@
+{% extends 'layouts/docs_generated.html' %}
+
+{% set active_nav = 'api' %}
+{% set breadcrumb_html = '<a href="/docs/getting_started.html" class="hover:text-gray-900">Documentation</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="../api-reference.html" class="hover:text-gray-900">API Reference</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="index.html" class="hover:text-gray-900">agent</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">user_algorithms</span>' %}
+
+{% block title %}user_algorithms - API Documentation{% endblock %}
+
+{% block content %}
+<div class="flex flex-col lg:flex-row gap-8">
+<aside class="w-full lg:w-64 flex-shrink-0">
+<div class="sticky top-24 bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+<h3 class="font-bold text-gray-900 mb-4 border-b pb-2">On this page</h3>
+<ul class="space-y-2 text-sm">
+<li><a href="#func-skeleton" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> skeleton</a></li>
+<li><a href="#func-_ast_validate" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> _ast_validate</a></li>
+<li><a href="#func-_validate_name" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> _validate_name</a></li>
+<li><a href="#func-_validate_version" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> _validate_version</a></li>
+<li><a href="#func-_alg_dir" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> _alg_dir</a></li>
+<li><a href="#func-_algorithm_file" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> _algorithm_file</a></li>
+<li><a href="#func-_source_hash" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> _source_hash</a></li>
+<li><a href="#func-_versioned_alias_name" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> _versioned_alias_name</a></li>
+<li><a href="#func-_import_and_register" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> _import_and_register</a></li>
+<li><a href="#func-_write_metadata" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> _write_metadata</a></li>
+<li><a href="#func-_read_metadata" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> _read_metadata</a></li>
+<li><a href="#func-create" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> create</a></li>
+<li><a href="#func-list_all" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> list_all</a></li>
+<li><a href="#func-delete" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> delete</a></li>
+<li><a href="#func-_resolve_user_algorithm" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> _resolve_user_algorithm</a></li>
+<li><a href="#func-_best_metric" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> _best_metric</a></li>
+<li><a href="#func-record_experiment_runs" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> record_experiment_runs</a></li>
+<li><a href="#func-research_log" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> research_log</a></li>
+<li><a href="#func-read_source" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> read_source</a></li>
+<li><a href="#func-_read_builtin_source" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> _read_builtin_source</a></li>
+<li><a href="#func-list_algorithm_files" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> list_algorithm_files</a></li>
+<li><a href="#func-search_source" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> search_source</a></li>
+<li><a href="#func-edit_algorithm" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> edit_algorithm</a></li>
+<li><a href="#func-load_all" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> load_all</a></li>
+</ul></div>
+</aside>
+<main class="flex-1 min-w-0">
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary">Agent-authored algorithms — persistence, safety checks, and registry bootstrap.</p>
+<div class="doc-extended">
+<p class="mb-4">
+Agents can call <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_create_algorithm</code> with raw Python source describing a new <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">@classifier</code> / <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">@regressor</code> class. This module:
+</p>
+
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+AST-validates the source against a conservative denylist (no network,
+</li>
+
+</ol>
+subprocess, or filesystem escape hatches).
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+Saves each accepted submission under
+</li>
+
+</ol>
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">~/.tuiml/user_algorithms/<Name>/<version>/algorithm.py</code>.
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+Imports the file and registers both the <em>versioned</em> alias
+</li>
+
+</ol>
+(<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">MyAlg_v1_0_0</code>) and the bare latest-alias (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">MyAlg</code>) into the TuiML    registry, so every existing MCP tool (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_train</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_experiment</code>,    <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_describe</code>) works on user algorithms unchanged.
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+On <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">load_all()</code> scans the directory and re-registers everything,
+</li>
+
+</ol>
+preserving agent work across MCP server restarts.</div></div>
+<div class="mb-12">
+<h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-code text-indigo-500"></i> Functions</h2>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-skeleton">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">skeleton</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 123</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">skeleton(kind: str, class_name: str=&#x27;MyAlgorithm&#x27;, version: str=&#x27;1.0.0&#x27;, description: str=&#x27;Describe what your algorithm does.&#x27;) -&gt; Dict[str, Any]</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Return a ready-to-fill template for a new algorithm.</p></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-_ast_validate">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">_ast_validate</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 174</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">_ast_validate(source: str) -&gt; Tuple[bool, str]</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Walk the AST and reject source that uses denylisted modules / calls.</p>
+<div class="doc-extended">Returns <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">(ok, reason)</code>. <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">reason</code> is empty on success.</div></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-_validate_name">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">_validate_name</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 231</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">_validate_name(name: str) -&gt; Optional[str]</div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-_validate_version">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">_validate_version</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 237</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">_validate_version(version: str) -&gt; Optional[str]</div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-_alg_dir">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">_alg_dir</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 243</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">_alg_dir(name: str, version: str) -&gt; Path</div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-_algorithm_file">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">_algorithm_file</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 247</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">_algorithm_file(name: str, version: str) -&gt; Path</div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-_source_hash">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">_source_hash</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 251</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">_source_hash(source: str) -&gt; str</div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-_versioned_alias_name">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">_versioned_alias_name</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 259</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">_versioned_alias_name(name: str, version: str) -&gt; str</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Return a valid Python identifier encoding the version, e.g. MyGBM_v1_0_0.</p></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-_import_and_register">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">_import_and_register</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 264</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">_import_and_register(file_path: Path, name: str, version: str) -&gt; Tuple[Any, str]</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Import ``algorithm.py`` and register both a versioned alias and a latest alias.</p>
+<div class="doc-extended">Returns <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">(class_obj, kind)</code> where kind is <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&#x27;classifier&#x27;</code> / <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&#x27;regressor&#x27;</code>. Raises <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">RuntimeError</code> on failure.</div></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-_write_metadata">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">_write_metadata</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 325</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">_write_metadata(dir_path: Path, metadata: Dict[str, Any]) -&gt; None</div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-_read_metadata">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">_read_metadata</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 330</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">_read_metadata(dir_path: Path) -&gt; Dict[str, Any]</div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-create">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">create</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 345</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">create(name: str, kind: str, code: str, version: str=&#x27;1.0.0&#x27;, description: Optional[str]=None, force: bool=False) -&gt; Dict[str, Any]</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Persist, validate, and register a new user algorithm.</p>
+<div class="doc-extended">Returns a dict with <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">status</code> and, on success, the registered aliases and source hash.</div></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-list_all">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">list_all</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 420</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">list_all() -&gt; Dict[str, Any]</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">List every user-authored algorithm on disk.</p></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-delete">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">delete</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 449</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">delete(name: str, version: Optional[str]=None) -&gt; Dict[str, Any]</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Delete one version (or every version when ``version`` is None).</p></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-_resolve_user_algorithm">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">_resolve_user_algorithm</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 492</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">_resolve_user_algorithm(name: str) -&gt; Optional[Dict[str, Any]]</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Map an experiment algorithm name back to a user-algorithm directory.</p>
+<div class="doc-extended">Accepts both the bare class name (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">WeightedTreeBag</code> — resolves to the newest on-disk version) and a pinned alias (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">WeightedTreeBag_v1_0_1</code>). Returns a dict <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">{name, version, dir}</code> or <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">None</code> if this name doesn&#x27;t correspond to a user algorithm.</div></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-_best_metric">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">_best_metric</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 523</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">_best_metric(scores_block: Dict[str, Any]) -&gt; Optional[Tuple[str, float]]</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Pick a representative metric: prefer accuracy_score, then first available.</p></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-record_experiment_runs">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">record_experiment_runs</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 537</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">record_experiment_runs(experiment_result: Dict[str, Any]) -&gt; List[Dict[str, Any]]</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Scan a ``tuiml_experiment`` result and append entries to the matching user algorithms&#x27; ``runs.jsonl`` files.</p>
+<div class="doc-extended">Returns the list of appended entries (empty if none matched or the feature is disabled). Never raises — logging failures are swallowed so the caller&#x27;s experiment result is not affected.</div></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-research_log">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">research_log</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 587</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">research_log(name: Optional[str]=None) -&gt; Dict[str, Any]</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Return the aggregated research view for one (or all) user algorithms.</p>
+<div class="doc-extended">Combines <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">metadata.json</code> (static: class, kind, version, source hash) with <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">runs.jsonl</code> (dynamic: every recorded experiment run) and computes: best primary score per version, run count per version, and the most recent timestamp. Agents use this as the equivalent of the landing-page &quot;research log&quot; panel.</div></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-read_source">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">read_source</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 682</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">read_source(name: str, version: Optional[str]=None, builtin: bool=False) -&gt; Dict[str, Any]</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Return the full source code of a user or built-in algorithm.</p>
+<div class="doc-extended">For user algorithms, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">name</code> is the directory name under USER_ALGS_DIR. For built-in algorithms, set <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">builtin=True</code> and pass the class name or file stem (e.g. <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&#x27;RandomForestClassifier&#x27;</code> or <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&#x27;random_forest&#x27;</code>).</div></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-_read_builtin_source">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">_read_builtin_source</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 725</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">_read_builtin_source(name: str) -&gt; Dict[str, Any]</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Locate and return source for a built-in tuiml algorithm file.</p></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-list_algorithm_files">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">list_algorithm_files</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 767</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">list_algorithm_files(builtin: bool=True, user: bool=True) -&gt; Dict[str, Any]</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">List all algorithm source files — built-in and/or user-authored.</p></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-search_source">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">search_source</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 806</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">search_source(query: str, name: Optional[str]=None, builtin: bool=True, user: bool=True) -&gt; Dict[str, Any]</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Grep for ``query`` across algorithm source files.</p>
+<div class="doc-extended">Pass <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">name</code> to scope the search to one user algorithm. Returns matching lines with file path and line number — same pattern as grep.</div></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-edit_algorithm">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">edit_algorithm</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 851</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">edit_algorithm(name: str, old_string: str, new_string: str, version: Optional[str]=None, bump_version: bool=False) -&gt; Dict[str, Any]</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Apply a str_replace edit to a user algorithm source.</p>
+<div class="doc-extended">
+<p class="mb-4">
+Replaces exactly one occurrence of <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">old_string</code> with <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">new_string</code>. Fails if <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">old_string</code> is not found, or if it appears more than once (ambiguous — make the search string more specific in that case).
+</p>
+
+<p class="mb-4">
+After the edit the source is AST-validated and re-registered. Optionally bumps the patch version and saves as a new file.
+</p>
+</div></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-load_all">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">load_all</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 944</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">load_all() -&gt; Dict[str, Any]</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Scan ``USER_ALGS_DIR`` and register every algorithm found.</p>
+<div class="doc-extended">Called once at MCP server startup. Failures on individual files are logged but do not abort the whole load.</div></div>
+</div></div>
+</div>
+</main>
+</div>
+{% endblock %}

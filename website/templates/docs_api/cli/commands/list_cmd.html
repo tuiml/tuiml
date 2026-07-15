@@ -21,18 +21,18 @@
 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-list_algorithms">
 
         <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
-            <div class="mb-2"><span class="text-amber-600 font-mono text-xs">@click.command</span> <span class="text-amber-600 font-mono text-xs">@click.option</span> <span class="text-amber-600 font-mono text-xs">@click.option</span> <span class="text-amber-600 font-mono text-xs">@click.option</span> <span class="text-amber-600 font-mono text-xs">@click.option</span></div>
+            <div class="mb-2"><span class="text-amber-600 font-mono text-xs">@click.command</span> <span class="text-amber-600 font-mono text-xs">@click.option</span> <span class="text-amber-600 font-mono text-xs">@click.option</span> <span class="text-amber-600 font-mono text-xs">@click.option</span> <span class="text-amber-600 font-mono text-xs">@click.option</span> <span class="text-amber-600 font-mono text-xs">@click.option</span> <span class="text-amber-600 font-mono text-xs">@click.option</span> <span class="text-amber-600 font-mono text-xs">@click.option</span> <span class="text-amber-600 font-mono text-xs">@click.option</span></div>
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">list_algorithms</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 15</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 20</div>
         </div>
         
 <div class="p-6">
-<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">list_algorithms(type, search, format, verbose)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary">Browse and search for available algorithms in the registry.</p>
-<div class="doc-extended">This command lists all registered algorithms, allowing you to filter by  type or search by keywords. It supports multiple output formats for  both human readability and scripting purposes.</div>
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">list_algorithms(category, type, search, include_runs, limit, offset, format, verbose)</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Browse and search for available components in the registry.</p>
+<div class="doc-extended">This command lists registered components (algorithms, datasets, preprocessing), allowing you to filter by category, type, or search keywords.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -42,14 +42,28 @@
 
             <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
                 <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">category</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">{&quot;algorithm&quot;, &quot;preprocessing&quot;, &quot;dataset&quot;, &quot;feature&quot;, &quot;splitting&quot;, &quot;custom&quot;, &quot;all&quot;}</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Filter by component category.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
                     <code class="font-bold text-indigo-600 text-sm">type</code>
                 </div>
                 <div class="md:col-span-3 flex flex-wrap items-center gap-1">
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">{&quot;classifier&quot;, &quot;regressor&quot;, &quot;clusterer&quot;, &quot;all&quot;}</span>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= &quot;all&quot;</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">{&quot;classifier&quot;, &quot;regressor&quot;, &quot;clusterer&quot;, &quot;anomaly&quot;, &quot;timeseries&quot;, &quot;all&quot;}</span>
+                    
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
-                    Filter the list to a specific category of algorithms.
+                    Filter by algorithm type.
                 </div>
             </div>
             
@@ -63,7 +77,49 @@
                     
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
-                    A search query to filter algorithms by name or description.
+                    A search query to filter by name or description.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">include_runs</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">bool</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Include run history for custom algorithms.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">limit</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Maximum results to return.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">offset</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Number of results to skip.
                 </div>
             </div>
             
@@ -77,7 +133,7 @@
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= &quot;table&quot;</span>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
-                    The desired output format for the results list.
+                    The desired output format.
                 </div>
             </div>
             
@@ -91,102 +147,11 @@
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= False</span>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
-                    Whether to show detailed metadata for each algorithm.
+                    Whether to show detailed metadata.
                 </div>
             </div>
             
 </div></div>
-        </div>
-        
-
-        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-code text-purple-500 mr-2"></i>Examples</h4>
-            </div>
-            <div class="p-4"><p class="text-gray-600 my-2">List all registered algorithms in a table:</p>
-
-        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
-            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
-                <div class="flex gap-1.5 opacity-60">
-                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
-                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
-                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">PYTHON</span>
-                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
-                        <i class="fa-regular fa-copy text-xs"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="!p-4 overflow-x-auto">
-                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; tuiml list</code></pre>
-            </div>
-        </div>
-        
-<p class="text-gray-600 my-2">Filter and show only classification algorithms:</p>
-
-        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
-            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
-                <div class="flex gap-1.5 opacity-60">
-                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
-                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
-                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">PYTHON</span>
-                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
-                        <i class="fa-regular fa-copy text-xs"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="!p-4 overflow-x-auto">
-                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; tuiml list --type classifier</code></pre>
-            </div>
-        </div>
-        
-<p class="text-gray-600 my-2">Search for algorithms related to &quot;forest&quot;:</p>
-
-        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
-            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
-                <div class="flex gap-1.5 opacity-60">
-                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
-                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
-                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">PYTHON</span>
-                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
-                        <i class="fa-regular fa-copy text-xs"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="!p-4 overflow-x-auto">
-                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; tuiml list --search forest</code></pre>
-            </div>
-        </div>
-        
-<p class="text-gray-600 my-2">Output just the names for use in shell scripts:</p>
-
-        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
-            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
-                <div class="flex gap-1.5 opacity-60">
-                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
-                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
-                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">PYTHON</span>
-                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
-                        <i class="fa-regular fa-copy text-xs"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="!p-4 overflow-x-auto">
-                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; tuiml list --format names</code></pre>
-            </div>
-        </div>
-        </div>
         </div>
         </div>
 </div></div>

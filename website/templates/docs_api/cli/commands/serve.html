@@ -21,37 +21,29 @@
 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-serve">
 
         <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
-            <div class="mb-2"><span class="text-amber-600 font-mono text-xs">@click.command</span> <span class="text-amber-600 font-mono text-xs">@click.argument</span> <span class="text-amber-600 font-mono text-xs">@click.option</span> <span class="text-amber-600 font-mono text-xs">@click.option</span> <span class="text-amber-600 font-mono text-xs">@click.option</span> <span class="text-amber-600 font-mono text-xs">@click.option</span> <span class="text-amber-600 font-mono text-xs">@click.option</span></div>
+            <div class="mb-2"><span class="text-amber-600 font-mono text-xs">@click.command</span> <span class="text-amber-600 font-mono text-xs">@click.option</span> <span class="text-amber-600 font-mono text-xs">@click.option</span> <span class="text-amber-600 font-mono text-xs">@click.option</span> <span class="text-amber-600 font-mono text-xs">@click.option</span> <span class="text-amber-600 font-mono text-xs">@click.option</span> <span class="text-amber-600 font-mono text-xs">@click.option</span></div>
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">serve</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 18</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 17</div>
         </div>
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">serve(model_path, model_id, host, port, workers, reload)</div>
 <div class="prose max-w-none text-gray-600"><p class="doc-summary">Start a REST API server for model predictions.</p>
-<div class="doc-extended">
-<p class="mb-4">
-Load a trained model and serve predictions via HTTP endpoints. The server provides OpenAPI documentation at /docs.
-</p>
-
-<p class="mb-4">
-MODEL_PATH is the path to a saved model file (e.g., model.pkl).
-</p>
-</div>
+<div class="doc-extended">Load a trained model and serve predictions via HTTP endpoints. The server provides OpenAPI documentation at /docs.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
                 <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-code text-purple-500 mr-2"></i>Examples</h4>
             </div>
             <div class="p-4"><p class="text-gray-600 my-2">Serve a model on the default port:</p>
-<p class="text-gray-600 my-2">    $ tuiml serve model.pkl</p>
+<p class="text-gray-600 my-2">    $ tuiml serve --model-path model.pkl</p>
 <p class="text-gray-600 my-2">Serve on a custom port with a specific model ID:</p>
-<p class="text-gray-600 my-2">    $ tuiml serve classifier.pkl -m my_classifier -p 9000</p>
+<p class="text-gray-600 my-2">    $ tuiml serve --model-path classifier.pkl -m my_classifier -p 9000</p>
 <p class="text-gray-600 my-2">Serve with multiple workers for production:</p>
-<p class="text-gray-600 my-2">    $ tuiml serve model.pkl -w 4 -H 0.0.0.0</p>
+<p class="text-gray-600 my-2">    $ tuiml serve --model-path model.pkl -w 4 -H 0.0.0.0</p>
 <p class="text-gray-600 my-2">Endpoints</p>
 <p class="text-gray-600 my-2">---------</p>
 <p class="text-gray-600 my-2">- GET  /health - Health check</p>

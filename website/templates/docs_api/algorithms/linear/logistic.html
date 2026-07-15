@@ -40,10 +40,11 @@
                 <div class="p-4 overflow-x-auto" id="init-LogisticRegression">
                     <pre class="font-mono text-sm leading-relaxed"><span class="text-purple-400">__init__</span><span class="text-slate-300">(</span>
     <span class="text-red-400">self</span><span class="text-slate-400">,</span>
-    <span class="text-orange-300">max_iter</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">100</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">max_iter</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">1000</span><span class="text-slate-400">,</span>
     <span class="text-orange-300">learning_rate</span><span class="text-slate-400">:</span> <span class="text-cyan-400">float</span> <span class="text-slate-400">=</span> <span class="text-green-400">1.0</span><span class="text-slate-400">,</span>
-    <span class="text-orange-300">ridge</span><span class="text-slate-400">:</span> <span class="text-cyan-400">float</span> <span class="text-slate-400">=</span> <span class="text-green-400">1e-08</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">ridge</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Union[float, str]</span> <span class="text-slate-400">=</span> <span class="text-green-400">&#x27;auto&#x27;</span><span class="text-slate-400">,</span>
     <span class="text-orange-300">tol</span><span class="text-slate-400">:</span> <span class="text-cyan-400">float</span> <span class="text-slate-400">=</span> <span class="text-green-400">0.0001</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">solver</span><span class="text-slate-400">:</span> <span class="text-cyan-400">str</span> <span class="text-slate-400">=</span> <span class="text-green-400">&#x27;lbfgs&#x27;</span><span class="text-slate-400">,</span>
 <span class="text-slate-300">)</span></pre>
                 </div>
             </div>
@@ -74,8 +75,12 @@ Compute the cross-entropy loss with L2 regularization penalty
 </li>
 
 <li class="text-gray-700">
-Update weights via batch gradient descent
+Update weights with the selected solver (<strong>L-BFGS</strong> quasi-Newton by
 </li>
+
+</ol>
+default, or batch gradient descent with <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">solver=&quot;gd&quot;</code>)
+<ol class="list-decimal list-inside my-3 space-y-1">
 
 <li class="text-gray-700">
 Repeat until convergence or <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">max_iter</code> is reached
@@ -134,10 +139,10 @@ where <span class="katex-inline">\lambda</span> is the ridge regularization para
                 </div>
                 <div class="md:col-span-3 flex flex-wrap items-center gap-1">
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 100</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 1000</span>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
-                    Maximum number of iterations for the gradient descent solver.
+                    Maximum number of solver iterations.
                 </div>
             </div>
             
@@ -151,7 +156,7 @@ where <span class="katex-inline">\lambda</span> is the ridge regularization para
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 1.0</span>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
-                    Step size for weight updates.
+                    Step size for weight updates. Only used by <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">solver=&quot;gd&quot;</code>; L-BFGS performs its own line search.
                 </div>
             </div>
             
@@ -161,11 +166,11 @@ where <span class="katex-inline">\lambda</span> is the ridge regularization para
                     <code class="font-bold text-indigo-600 text-sm">ridge</code>
                 </div>
                 <div class="md:col-span-3 flex flex-wrap items-center gap-1">
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 1e-8</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float or &quot;auto&quot;</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= &quot;auto&quot;</span>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
-                    L2 regularization parameter (penalty) to prevent overfitting.
+                    L2 regularization parameter (penalty) to prevent overfitting. <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;auto&quot;</code> resolves to <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">1 / n_samples</code> at fit time, which is equivalent to scikit-learn&#x27;s default <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">C=1.0</code>.
                 </div>
             </div>
             
@@ -179,7 +184,21 @@ where <span class="katex-inline">\lambda</span> is the ridge regularization para
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 1e-4</span>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
-                    Convergence tolerance. Training stops when the improvement in loss is less than this value.
+                    Convergence tolerance. For <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;lbfgs&quot;</code> this bounds the projected gradient norm; for <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;gd&quot;</code> training stops when the improvement in loss is less than this value.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">solver</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">{&quot;lbfgs&quot;, &quot;gd&quot;}</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= &quot;lbfgs&quot;</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Optimization algorithm. <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;lbfgs&quot;</code> (quasi-Newton with line search, via SciPy) converges reliably without tuning; <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;gd&quot;</code> is the legacy fixed-step batch gradient descent.
                 </div>
             </div>
             
@@ -387,7 +406,7 @@ As a baseline before trying more complex nonlinear models
 &gt;&gt;&gt; clf.fit(X, y)
 &gt;&gt;&gt;
 &gt;&gt;&gt; # Predict classes
-&gt;&gt;&gt; clf.predict([[1.5, 1.5], [4, 4]])
+&gt;&gt;&gt; clf.predict([[0.5, 0.5], [4, 4]])
 array([0, 1])
 &gt;&gt;&gt;
 &gt;&gt;&gt; # Get probabilities
@@ -415,7 +434,7 @@ array([[0.5, 0.5]])</code></pre>
                         </span>
                         <div>
                             <code class="font-bold text-indigo-600 text-base">__init__</code>
-                            <span class="text-sm text-gray-400 font-mono ml-1">(self, max_iter: int=100, learning_rate: float=1.0, ridge: float=1e-08, tol: float=0.0001)</span>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, max_iter: int=1000, learning_rate: float=1.0, ridge: Union[float, str]=&#x27;auto&#x27;, tol: float=0.0001, solver: str=&#x27;lbfgs&#x27;)</span>
                         </div>
                     </div>
                     <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
@@ -435,7 +454,7 @@ array([[0.5, 0.5]])</code></pre>
                 </div>
                 <div class="md:col-span-3 flex flex-wrap items-center gap-1">
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 100</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 1000</span>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
                     Maximum number of iterations.
@@ -452,7 +471,7 @@ array([[0.5, 0.5]])</code></pre>
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 1.0</span>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
-                    Step size for gradient descent.
+                    Step size for gradient descent (<code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">solver=&quot;gd&quot;</code> only).
                 </div>
             </div>
             
@@ -462,11 +481,11 @@ array([[0.5, 0.5]])</code></pre>
                     <code class="font-bold text-indigo-600 text-sm">ridge</code>
                 </div>
                 <div class="md:col-span-3 flex flex-wrap items-center gap-1">
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 1e-8</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float or &quot;auto&quot;</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= &quot;auto&quot;</span>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
-                    L2 regularization strength.
+                    L2 regularization strength; &quot;auto&quot; = 1 / n_samples.
                 </div>
             </div>
             
@@ -481,6 +500,20 @@ array([[0.5, 0.5]])</code></pre>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
                     Convergence threshold.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">solver</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">{&quot;lbfgs&quot;, &quot;gd&quot;}</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= &quot;lbfgs&quot;</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Optimization algorithm.
                 </div>
             </div>
             

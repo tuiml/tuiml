@@ -23,6 +23,7 @@
 <li><a href="#func-false_positive_rate" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> false_positive_rate</a></li>
 <li><a href="#func-matthews_corrcoef" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> matthews_corrcoef</a></li>
 <li><a href="#func-cohen_kappa_score" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> cohen_kappa_score</a></li>
+<li><a href="#func-_binary_roc_curve" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> _binary_roc_curve</a></li>
 <li><a href="#func-roc_auc_score" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> roc_auc_score</a></li>
 <li><a href="#func-precision_recall_fscore_support" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> precision_recall_fscore_support</a></li>
 <li><a href="#func-classification_report" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> classification_report</a></li>
@@ -236,6 +237,21 @@ Args:     y_true: Ground truth labels     y_pred: Predicted labels     labels: L
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">cohen_kappa_score(y_true, y_pred)</div>
 <div class="prose max-w-none text-gray-600"><p class="doc-summary">Compute Kappa. Equivalent to Weka&#x27;s Evaluation.kappa().</p></div>
 </div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-_binary_roc_curve">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">_binary_roc_curve</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 240</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">_binary_roc_curve(y_true, y_score, pos_label=1)</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Compute binary ROC coordinates for score thresholds.</p></div>
+</div></div>
 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-roc_auc_score">
 
         <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
@@ -244,12 +260,13 @@ Args:     y_true: Ground truth labels     y_pred: Predicted labels     labels: L
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">roc_auc_score</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 240</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 275</div>
         </div>
         
 <div class="p-6">
-<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">roc_auc_score(y_true, y_score, average=&#x27;macro&#x27;)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary">Compute AUC. Equivalent to Weka&#x27;s Evaluation.areaUnderROC(classIndex).</p></div>
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">roc_auc_score(y_true, y_score, average=&#x27;macro&#x27;, labels=None)</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary">Compute ROC AUC.</p>
+<div class="doc-extended">Binary input accepts a 1-D score vector for the positive class. Multiclass input accepts a probability/score matrix of shape <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">(n_samples, n_classes)</code> and computes one-vs-rest AUC for each class.</div></div>
 </div></div>
 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-precision_recall_fscore_support">
 
@@ -259,7 +276,7 @@ Args:     y_true: Ground truth labels     y_pred: Predicted labels     labels: L
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">precision_recall_fscore_support</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 255</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 325</div>
         </div>
         
 <div class="p-6">
@@ -274,7 +291,7 @@ Args:     y_true: Ground truth labels     y_pred: Predicted labels     labels: L
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">classification_report</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 265</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 335</div>
         </div>
         
 <div class="p-6">
@@ -289,7 +306,7 @@ Args:     y_true: Ground truth labels     y_pred: Predicted labels     labels: L
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">fbeta_score</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 282</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 352</div>
         </div>
         
 <div class="p-6">
@@ -304,7 +321,7 @@ Args:     y_true: Ground truth labels     y_pred: Predicted labels     labels: L
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">true_negative_rate</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 286</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 356</div>
         </div>
         
 <div class="p-6">
@@ -319,7 +336,7 @@ Args:     y_true: Ground truth labels     y_pred: Predicted labels     labels: L
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">false_negative_rate</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 293</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 363</div>
         </div>
         
 <div class="p-6">
@@ -334,7 +351,7 @@ Args:     y_true: Ground truth labels     y_pred: Predicted labels     labels: L
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">sensitivity_score</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 297</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 367</div>
         </div>
         
 <div class="p-6">
@@ -349,7 +366,7 @@ Args:     y_true: Ground truth labels     y_pred: Predicted labels     labels: L
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">specificity_score</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 301</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 371</div>
         </div>
         
 <div class="p-6">
@@ -364,7 +381,7 @@ Args:     y_true: Ground truth labels     y_pred: Predicted labels     labels: L
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">num_true_positives</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 305</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 375</div>
         </div>
         
 <div class="p-6">
@@ -378,7 +395,7 @@ Args:     y_true: Ground truth labels     y_pred: Predicted labels     labels: L
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">num_true_negatives</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 308</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 378</div>
         </div>
         
 <div class="p-6">
@@ -392,7 +409,7 @@ Args:     y_true: Ground truth labels     y_pred: Predicted labels     labels: L
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">num_false_positives</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 311</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 381</div>
         </div>
         
 <div class="p-6">
@@ -406,7 +423,7 @@ Args:     y_true: Ground truth labels     y_pred: Predicted labels     labels: L
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">num_false_negatives</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 314</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 384</div>
         </div>
         
 <div class="p-6">
@@ -420,7 +437,7 @@ Args:     y_true: Ground truth labels     y_pred: Predicted labels     labels: L
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">roc_curve</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 317</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 387</div>
         </div>
         
 <div class="p-6">
@@ -435,7 +452,7 @@ Args:     y_true: Ground truth labels     y_pred: Predicted labels     labels: L
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">auc</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 328</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 391</div>
         </div>
         
 <div class="p-6">
@@ -450,7 +467,7 @@ Args:     y_true: Ground truth labels     y_pred: Predicted labels     labels: L
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">precision_recall_curve</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 332</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 395</div>
         </div>
         
 <div class="p-6">
@@ -465,7 +482,7 @@ Args:     y_true: Ground truth labels     y_pred: Predicted labels     labels: L
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">average_precision_score</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 343</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 406</div>
         </div>
         
 <div class="p-6">
@@ -480,7 +497,7 @@ Args:     y_true: Ground truth labels     y_pred: Predicted labels     labels: L
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">log_loss</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 348</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 411</div>
         </div>
         
 <div class="p-6">
@@ -495,7 +512,7 @@ Args:     y_true: Ground truth labels     y_pred: Predicted labels     labels: L
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">hamming_loss</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 360</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 423</div>
         </div>
         
 <div class="p-6">
@@ -510,7 +527,7 @@ Args:     y_true: Ground truth labels     y_pred: Predicted labels     labels: L
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">zero_one_loss</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 364</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 427</div>
         </div>
         
 <div class="p-6">
