@@ -165,7 +165,7 @@ PAGES: dict[str, tuple[str, dict]] = {
             "About TuiML: agent-native ML runtime developed at the AI Institute, "
             "University of Waikato. Meet the team."
         ),
-        "active_nav": "docs",
+        "active_nav": "docs", "page_title": "About",
     }),
     # /docs/changelog.html is rendered separately (needs the parsed CHANGELOG).
 }
