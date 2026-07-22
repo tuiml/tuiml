@@ -6,12 +6,19 @@
 #   1. Detects your OS (macOS or Linux)
 #   2. Verifies a C/C++ compiler is available (TuiML has C++ extensions)
 #   3. Installs uv if missing (Python package manager)
-#   4. Installs tuiml from the latest source on GitHub
+#   4. Asks whether to include the optional integrations
+#      (scikit-learn wrappers, CapyMOA streaming wrappers)
+#   5. Installs tuiml from the latest source on GitHub
 #      (always the freshest fixes, not just the last PyPI release)
-#   5. Verifies the install
-#   6. Prompts you to run `tuiml setup` to wire up your AI agent
+#   6. Verifies the install
+#   7. Prompts you to run `tuiml setup` to wire up your AI agent
 #
 # This script is idempotent and safe to re-run.
+#
+# Non-interactive / automation:
+#   Set TUIML_EXTRAS to skip the prompts, e.g.
+#     curl -fsSL https://tuiml.ai/install.sh | TUIML_EXTRAS="sklearn,capymoa" bash
+#     curl -fsSL https://tuiml.ai/install.sh | TUIML_EXTRAS="none" bash   # core only
 
 set -euo pipefail
 
@@ -144,17 +151,74 @@ ensure_uv() {
 }
 
 # ---------------------------------------------------------------------------
+# Optional integrations — ask the user which extras to include.
+#
+# TuiML core is always installed. sklearn and capymoa are optional extras
+# (see pyproject.toml). We prompt for each, reading from /dev/tty so this works
+# even under `curl | bash` (where stdin is the script, not the keyboard).
+# Sets the global EXTRAS to a comma-separated list, e.g. "sklearn,capymoa".
+# ---------------------------------------------------------------------------
+select_extras() {
+    EXTRAS=""
+
+    # Explicit env var wins — non-interactive override for automation/CI.
+    if [[ -n "${TUIML_EXTRAS:-}" ]]; then
+        if [[ "$TUIML_EXTRAS" == "none" ]]; then
+            info "TUIML_EXTRAS=none — installing core TuiML only."
+        else
+            EXTRAS="$TUIML_EXTRAS"
+            info "Optional extras from TUIML_EXTRAS: ${BOLD}${EXTRAS}${NC}"
+        fi
+        return 0
+    fi
+
+    # Need a real terminal to prompt. Under `curl | bash`, stdin is the script,
+    # so read from /dev/tty. If there's no terminal (CI, Docker), default core.
+    if [[ ! -t 1 ]] || [[ ! -r /dev/tty ]]; then
+        info "Non-interactive install — core TuiML only."
+        info "Add wrappers later: ${DIM}TUIML_EXTRAS=sklearn,capymoa${NC} and re-run."
+        return 0
+    fi
+
+    local ans
+    echo
+    echo "  ${BOLD}Optional integrations${NC} ${DIM}(you can always add these later)${NC}"
+    echo
+
+    printf "  Install scikit-learn wrappers? ${DIM}tuiml[sklearn]${NC} [y/N] "
+    read -r ans < /dev/tty || ans=""
+    [[ "$ans" =~ ^[Yy] ]] && EXTRAS="sklearn"
+
+    printf "  Install CapyMOA streaming wrappers? ${DIM}tuiml[capymoa], needs Java${NC} [y/N] "
+    read -r ans < /dev/tty || ans=""
+    [[ "$ans" =~ ^[Yy] ]] && EXTRAS="${EXTRAS:+$EXTRAS,}capymoa"
+
+    if [[ -n "$EXTRAS" ]]; then
+        success "Will include extras: ${BOLD}${EXTRAS}${NC}"
+    else
+        info "No extras selected — installing core TuiML."
+    fi
+}
+
+# ---------------------------------------------------------------------------
 # Install tuiml from GitHub source (latest main branch)
 # ---------------------------------------------------------------------------
 install_tuiml() {
-    info "Installing TuiML from latest source: ${DIM}${TUIML_GIT_URL}${NC}"
+    # Build the install spec, folding in any selected extras (PEP 508 form:
+    # "tuiml[sklearn,capymoa] @ git+https://...").
+    local spec="$TUIML_GIT_URL"
+    if [[ -n "${EXTRAS:-}" ]]; then
+        spec="tuiml[${EXTRAS}] @ ${TUIML_GIT_URL}"
+    fi
+
+    info "Installing TuiML from latest source: ${DIM}${spec}${NC}"
     info "This builds C++ extensions and may take a minute the first time."
 
     if command -v tuiml >/dev/null 2>&1; then
         # Reinstall to pull the latest commits (uv tool upgrade only checks PyPI)
-        uv tool install --reinstall --force "$TUIML_GIT_URL"
+        uv tool install --reinstall --force "$spec"
     else
-        uv tool install "$TUIML_GIT_URL"
+        uv tool install "$spec"
     fi
 
     if ! command -v tuiml >/dev/null 2>&1; then
@@ -195,5 +259,6 @@ detect_os
 ensure_compiler
 ensure_git
 ensure_uv
+select_extras
 install_tuiml
 print_next_steps
