@@ -68,11 +68,11 @@ def experiment(algorithms, data, target, cv, metrics, random_seed, output, forma
                 click.echo(f"Loading data from: {d}")
             try:
                 if os.path.exists(d):
-                    dataset = load(d)
+                    dataset = load(d, target_column=target) if target else load(d)
                 else:
                     dataset = load_dataset(d)
                 X = dataset.X
-                y = dataset.get_target(target)
+                y = dataset.y
                 datasets_dict[d] = (X, y)
             except Exception as ex:
                 raise click.ClickException(f"Failed to load dataset '{d}': {ex}")

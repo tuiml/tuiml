@@ -7,7 +7,7 @@ with proper hub integration.
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Any, Type, FrozenSet
+from typing import Dict, List, Optional, Any, Type, FrozenSet, Union
 from dataclasses import dataclass
 import numpy as np
 import threading
@@ -15,6 +15,52 @@ import time
 import asyncio
 
 from tuiml.hub import registry, ComponentType, Registrable
+
+def call_metric(metric_func, y_true, y_pred):
+    """Call a metric function, choosing macro averaging for multiclass data.
+
+    TuiML's ``f1_score``/``precision_score``/``recall_score`` default to
+    binary averaging, which on multiclass labels silently reports only the
+    score of class 1. Whenever the metric accepts an ``average`` argument and
+    the data has more than two classes, macro averaging is used instead.
+
+    Parameters
+    ----------
+    metric_func : callable
+        A metric function from ``tuiml.evaluation.metrics``.
+    y_true : array-like of shape (n_samples,)
+        True labels or target values.
+    y_pred : array-like of shape (n_samples,)
+        Predicted labels or values.
+
+    Returns
+    -------
+    float or np.ndarray
+        The metric value.
+    """
+    import inspect
+
+    try:
+        parameters = inspect.signature(metric_func).parameters.values()
+        # Metrics declare ``average`` either as a named parameter or behind
+        # ``**kwargs`` (as TuiML's f1_score does).
+        may_take_average = any(
+            p.name == "average" or p.kind is inspect.Parameter.VAR_KEYWORD
+            for p in parameters
+        )
+    except (TypeError, ValueError):
+        may_take_average = False
+
+    # Multiclass is decided by the union of true and predicted labels: a
+    # fold whose truths span two classes is still multiclass when the model
+    # predicts a third.
+    if may_take_average and len(np.union1d(np.unique(y_true), np.unique(y_pred))) > 2:
+        try:
+            return metric_func(y_true, y_pred, average="macro")
+        except TypeError:
+            pass  # took **kwargs but not ``average`` — use the plain call
+    return metric_func(y_true, y_pred)
+
 
 # =============================================================================
 # Algorithm Base Class
@@ -171,6 +217,130 @@ class Algorithm(Registrable, ABC):
         self.fit(X, y)
         return self.predict(X)
 
+    def score(self, X: np.ndarray, y: np.ndarray) -> float:
+        """Return the default score of the model on the given data.
+
+        Classifiers return **accuracy**, regressors return **R²**. Other
+        component types (clusterers, associators) have no single default
+        score and must use :meth:`evaluate` with explicit metrics.
+
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Test features.
+        y : np.ndarray of shape (n_samples,)
+            True labels or target values.
+
+        Returns
+        -------
+        score : float
+            Accuracy for classifiers, R² for regressors.
+        """
+        from tuiml.evaluation import metrics as metrics_module
+
+        y_pred = self.predict(X)
+        if self._component_type == ComponentType.CLASSIFIER:
+            return float(metrics_module.accuracy_score(y, y_pred))
+        if self._component_type == ComponentType.REGRESSOR:
+            return float(metrics_module.r2_score(y, y_pred))
+        raise NotImplementedError(
+            f"{self.__class__.__name__} has no default score; use "
+            f"evaluate(X, y, metrics=[...]) with explicit metric names."
+        )
+
+    def evaluate(
+        self, X: np.ndarray, y: np.ndarray,
+        metrics: Union[str, List[str]] = "auto",
+    ) -> Dict[str, float]:
+        """Evaluate the model on test data with one or more metrics.
+
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Test features.
+        y : np.ndarray of shape (n_samples,)
+            True labels or target values.
+        metrics : str or list of str, default="auto"
+            Metric function names from ``tuiml.evaluation.metrics``
+            (e.g., ``["accuracy_score", "f1_score"]``). ``"auto"`` selects
+            accuracy/F1 for classifiers and MSE/R² for regressors.
+
+        Returns
+        -------
+        results : dict
+            Mapping of metric names to computed values.
+        """
+        from tuiml.evaluation import metrics as metrics_module
+
+        y_pred = self.predict(X)
+
+        if metrics == "auto":
+            if self._component_type == ComponentType.CLASSIFIER:
+                metrics = ["accuracy_score", "f1_score"]
+            elif self._component_type == ComponentType.REGRESSOR:
+                metrics = ["mean_squared_error", "r2_score"]
+            else:
+                raise NotImplementedError(
+                    f"{self.__class__.__name__} has no auto metrics; pass "
+                    f"explicit metric names."
+                )
+        elif isinstance(metrics, str):
+            metrics = [metrics]
+
+        results = {}
+        for metric_name in metrics:
+            metric_func = getattr(metrics_module, metric_name, None)
+            if metric_func is None:
+                raise ValueError(
+                    f"Unknown metric '{metric_name}'. Use a function name "
+                    f"from tuiml.evaluation.metrics."
+                )
+            results[metric_name] = call_metric(metric_func, y, y_pred)
+        return results
+
+    def save(self, path: str, metadata: Optional[Dict[str, Any]] = None) -> None:
+        """Save the model to disk.
+
+        Parameters
+        ----------
+        path : str
+            Target file path (e.g., ``"model.pkl"``).
+        metadata : dict, optional
+            Additional metadata stored alongside the model.
+        """
+        from tuiml.utils.serialization import save_model
+        save_model(self, path, metadata=metadata)
+
+    @classmethod
+    def load(cls, path: str) -> "Algorithm":
+        """Load a saved model from disk.
+
+        Parameters
+        ----------
+        path : str
+            Path to a file written by :meth:`save`.
+
+        Returns
+        -------
+        model : Algorithm
+            The loaded model instance.
+
+        Raises
+        ------
+        TypeError
+            If called on a subclass and the file contains a different type
+            (``Algorithm.load(path)`` accepts any saved model).
+        """
+        from tuiml.utils.serialization import load_model
+        model = load_model(path)
+        if cls is not Algorithm and not isinstance(model, cls):
+            raise TypeError(
+                f"{path!r} contains a {type(model).__name__}, not a "
+                f"{cls.__name__}. Use {type(model).__name__}.load() or "
+                f"Algorithm.load()."
+            )
+        return model
+
     def partial_fit(self, X: np.ndarray, y: Optional[np.ndarray] = None, classes: Optional[np.ndarray] = None) -> "Algorithm":
         """
         Incrementally fit the model on a batch of samples.
@@ -205,19 +375,31 @@ class Algorithm(Registrable, ABC):
         self.fit(self._history_X, self._history_y)
         return self
 
-    def get_params(self) -> Dict[str, Any]:
-        """
-        Get algorithm parameters.
+    def get_params(self, deep: bool = True) -> Dict[str, Any]:
+        """Return the algorithm's constructor parameters.
 
-        Returns:
-            Dictionary of current parameters
+        Fitted attributes are excluded: by convention they carry a trailing
+        underscore (``classes_``, ``estimators_``), marking them as learned
+        state rather than configuration. Keeping them out is what lets a
+        fitted estimator be cloned back to an unfitted copy of itself.
+
+        Parameters
+        ----------
+        deep : bool, default=True
+            Accepted for API symmetry with composite estimators, which use it
+            to include their children's parameters. Plain algorithms have no
+            nested components, so it makes no difference here.
+
+        Returns
+        -------
+        params : dict
+            Parameter names mapped to their current values.
         """
-        # Get all attributes that don't start with underscore
-        params = {}
-        for key, value in self.__dict__.items():
-            if not key.startswith("_"):
-                params[key] = value
-        return params
+        return {
+            key: value
+            for key, value in self.__dict__.items()
+            if not key.startswith("_") and not key.endswith("_")
+        }
 
     def set_params(self, **params) -> "Algorithm":
         """
@@ -248,123 +430,64 @@ class Algorithm(Registrable, ABC):
         port: int = 8000,
         host: str = "127.0.0.1",
         model_id: Optional[str] = None,
-        background: bool = False,
-        **kwargs
+        background: Optional[bool] = None,
     ):
-        """
-        Serve this model via REST API.
+        """Serve this fitted model behind a REST API.
 
-        Starts a FastAPI server to serve predictions from this model.
-        The model must be fitted before calling serve().
+        Delegates to :func:`tuiml.serve`, so the server is tracked and can be
+        shut down with :func:`tuiml.stop_server`.
 
-        Args:
-            port: Port to listen on (default: 8000)
-            host: Host to bind to (default: '127.0.0.1')
-            model_id: Identifier for the model (default: class name)
-            background: If True, run in a background thread (default: False)
-            **kwargs: Additional arguments passed to uvicorn
+        Parameters
+        ----------
+        port : int, default=8000
+            Port to listen on.
+        host : str, default="127.0.0.1"
+            Host to bind to.
+        model_id : str, optional
+            Identifier for the model in the server. Defaults to the class name.
+        background : bool, optional
+            Whether to run the server on a background thread. The default
+            adapts to the caller: ``True`` inside a notebook, where blocking
+            would freeze the cell, and ``False`` in a plain script, where the
+            process should stay up to serve requests.
 
-        Example::
+        Returns
+        -------
+        dict or None
+            Server details (``server_id``, ``url``, ``endpoints``) when
+            running in the background; ``None`` when blocking.
 
-            nb = NaiveBayesClassifier()
-            nb.fit(X_train, y_train)
-            nb.serve(port=8000)
-            # Server running at http://127.0.0.1:8000
-            # API docs at http://127.0.0.1:8000/docs
+        Raises
+        ------
+        RuntimeError
+            If the model is not fitted, or the server cannot start (most often
+            because the port is already in use).
 
-        Endpoints:
-            - POST /predict - Make predictions
-            - POST /predict_proba - Get class probabilities (if supported)
-            - GET /health - Health check
-            - GET /models/{model_id} - Model info
+        Examples
+        --------
+        >>> model = NaiveBayesClassifier().fit(X_train, y_train)   # doctest: +SKIP
+        >>> info = model.serve(port=8000)                          # doctest: +SKIP
+        >>> info["endpoints"]["predict"]                           # doctest: +SKIP
+        'http://127.0.0.1:8000/models/NaiveBayesClassifier/predict'
         """
         self._check_is_fitted()
 
-        try:
-            from tuiml.serving import ModelServer
-        except ImportError:
-            raise ImportError(
-                "FastAPI is required for model serving. "
-                "Install with: pip install fastapi uvicorn"
-            )
+        if background is None:
+            try:
+                asyncio.get_running_loop()
+                background = True
+            except RuntimeError:
+                background = False
 
-        try:
-            import uvicorn
-        except ImportError:
-            raise ImportError(
-                "uvicorn is required for model serving. "
-                "Install with: pip install uvicorn"
-            )
+        from tuiml.api import serve as _serve
 
-        # Use class name as default model_id
-        if model_id is None:
-            model_id = self.__class__.__name__
-
-        # Create server and add this model directly
-        server = ModelServer()
-
-        # Directly add model to manager (bypassing file load)
-        from datetime import datetime
-        server.manager._models[model_id] = {
-            "model": self,
-            "path": "<in-memory>",
-            "info": {
-                "model_class": self.__class__.__name__,
-                "model_module": self.__class__.__module__,
-                "params": self.get_params(),
-            },
-            "metadata": {},
-            "loaded_at": datetime.now().isoformat(),
-            "prediction_count": 0,
-        }
-
-        app = server.create_app()
-
-        # Handle existing event loops (e.g. Jupyter Notebooks)
-        try:
-            asyncio.get_running_loop()
-            in_running_loop = True
-        except RuntimeError:
-            in_running_loop = False
-
-        if in_running_loop and not background:
-            background = True
-            print("Detected running event loop (e.g., Jupyter). Running server in background thread.")
-
-        print(f"Starting TuiML Model Server...")
-        print(f"  Model: {self.__class__.__name__}")
-        print(f"  Model ID: {model_id}")
-        print(f"  Server: http://{host}:{port}")
-        print(f"  API Docs: http://{host}:{port}/docs")
-        print()
-
-        if background:
-            config = uvicorn.Config(app, host=host, port=port, log_level="warning", **kwargs)
-            uvicorn_server = uvicorn.Server(config)
-            
-            def run_server():
-                # Create a new event loop for this thread
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                try:
-                    loop.run_until_complete(uvicorn_server.serve())
-                finally:
-                    loop.close()
-            
-            thread = threading.Thread(target=run_server, daemon=True)
-            thread.start()
-            
-            # Wait briefly for server to start
-            time.sleep(0.5)
-            return {
-                "server_id": f"{host}:{port}",
-                "url": f"http://{host}:{port}",
-                "thread": thread,
-                "server": uvicorn_server
-            }
-        else:
-            uvicorn.run(app, host=host, port=port, **kwargs)
-
+        return _serve(
+            self,
+            host=host,
+            port=port,
+            model_id=model_id or type(self).__name__,
+            background=background,
+        )
 
 # =============================================================================
 # Classifier Base Class
