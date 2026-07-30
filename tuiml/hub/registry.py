@@ -1,10 +1,64 @@
 """Local registry for TuiML components."""
 
+import re
 import sys
 from contextlib import contextmanager
 from typing import Dict, List, Optional, Any, Type, Callable, Union
 
 from tuiml.hub.types import ComponentType, Registrable
+
+#: Splits CamelCase boundaries so ``RandomForestClassifier`` tokenizes into
+#: ``random forest classifier`` and multi-word queries can match it.
+_CAMEL_BOUNDARY = re.compile(r"(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])")
+
+#: Only the leading slice of a description is indexed. Full algorithm
+#: docstrings run to thousands of words and otherwise swamp search with
+#: incidental matches (e.g. "forest" hitting DecisionStumpClassifier).
+_DESCRIPTION_INDEX_CHARS = 400
+
+#: Field weights for ranking: a name hit beats a tag hit beats a prose hit.
+_WEIGHT_NAME = 3
+_WEIGHT_TAGS = 2
+_WEIGHT_DESCRIPTION = 1
+
+
+def _tokenize(text: str) -> List[str]:
+    """Split text into lowercase search tokens, breaking CamelCase.
+
+    Parameters
+    ----------
+    text : str
+        The text to tokenize.
+
+    Returns
+    -------
+    tokens : List[str]
+        Lowercase alphanumeric tokens.
+    """
+    return [
+        token
+        for token in re.split(r"[^a-z0-9]+", _CAMEL_BOUNDARY.sub(" ", text).lower())
+        if token
+    ]
+
+
+def _squash(text: str) -> str:
+    """Reduce text to bare lowercase alphanumerics.
+
+    Lets a squashed query such as ``"kmeans"`` still match ``KMeansClusterer``,
+    whose tokens are ``k`` and ``means``.
+
+    Parameters
+    ----------
+    text : str
+        The text to squash.
+
+    Returns
+    -------
+    squashed : str
+        Lowercase text with all non-alphanumeric characters removed.
+    """
+    return re.sub(r"[^a-z0-9]", "", text.lower())
 
 
 class Registry:
@@ -326,35 +380,81 @@ class Registry:
             return list(self._type_index[component_type])
         return list(self._components.keys())
 
-    def search(self, query: str) -> List[Dict[str, Any]]:
-        """Search components by keyword.
+    def search(
+        self,
+        query: str,
+        limit: Optional[int] = None,
+    ) -> List[Dict[str, Any]]:
+        """Search components by keyword, ranked by relevance.
+
+        The query is tokenized and matched against the component name (with
+        CamelCase split apart), its tags, and the leading portion of its
+        description. A component matches only if *every* query token hits at
+        least one of those fields, so multi-word queries such as
+        ``"random forest"`` work against names like ``RandomForestClassifier``
+        and namespaced keys like ``sklearn.RandomForestClassifier``.
 
         Parameters
         ----------
         query : str
-            Search query string. Matches against component name, description, 
-            and tags.
+            Search query string.
+        limit : int, optional, default=None
+            Maximum number of results to return. ``None`` returns all matches.
 
         Returns
         -------
         results : List[dict]
-            A list of matching component metadata dictionaries.
+            Matching component metadata dictionaries, best match first.
+
+        Examples
+        --------
+        >>> from tuiml.hub import registry
+        >>> [c["name"] for c in registry.search("random forest", limit=3)]
+        ['RandomForestClassifier', 'RandomForestRegressor', 'capymoa.AdaptiveRandomForest']
         """
-        query = query.lower()
-        results = []
+        query_tokens = _tokenize(query)
+        if not query_tokens:
+            return []
+
+        scored = []
 
         for component in self._components.values():
             info = component["info"]
-            searchable = (
-                f"{info['name']} "
-                f"{info['description']} "
-                f"{' '.join(info.get('tags', []))}"
-            ).lower()
+            name = info["name"]
+            name_tokens = set(_tokenize(name))
+            squashed_name = _squash(name)
+            tag_tokens = set(_tokenize(" ".join(info.get("tags", []))))
+            description_tokens = set(
+                _tokenize((info.get("description") or "")[:_DESCRIPTION_INDEX_CHARS])
+            )
 
-            if query in searchable:
-                results.append(info)
+            def hits_name(token: str) -> bool:
+                return token in name_tokens or token in squashed_name
 
-        return results
+            if not all(
+                hits_name(token)
+                or token in tag_tokens
+                or token in description_tokens
+                for token in query_tokens
+            ):
+                continue
+
+            score = (
+                _WEIGHT_NAME * sum(hits_name(t) for t in query_tokens)
+                + _WEIGHT_TAGS * sum(t in tag_tokens for t in query_tokens)
+                + _WEIGHT_DESCRIPTION * sum(t in description_tokens for t in query_tokens)
+            )
+            scored.append((score, name, info))
+
+        # Descending score, then name for a stable, deterministic ordering.
+        scored.sort(key=lambda entry: (-entry[0], entry[1]))
+        results = [info for _, _, info in scored]
+
+        if limit is None:
+            return results
+        # Clamp so a negative limit returns nothing instead of silently
+        # slicing off the tail (results[:-1] drops the last match).
+        return results[: max(limit, 0)]
 
     def add_hook(self, event: str, callback: Callable) -> None:
         """Add a hook to be called on registry events.

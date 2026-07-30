@@ -125,9 +125,14 @@ def load_csv(
                 for v in target_raw
             ], dtype=float)
 
-    # Parse features (numeric only)
+    # Parse features. Numeric values become floats; a value that is not a
+    # number keeps its string, so categorical columns survive loading (as an
+    # object-dtype matrix) and can be encoded downstream — e.g. with
+    # ``On("category", "OneHotEncoder")``. Silently replacing strings with
+    # NaN would destroy those columns without any warning.
     feature_idx = [i for i in range(n_cols) if i != target_idx]
     features = []
+    has_strings = False
     for row in raw_rows:
         feat_values = []
         for i in feature_idx:
@@ -138,10 +143,11 @@ def load_csv(
                 try:
                     feat_values.append(float(val))
                 except ValueError:
-                    feat_values.append(np.nan)
+                    feat_values.append(val)
+                    has_strings = True
         features.append(feat_values)
 
-    X = np.array(features, dtype=float)
+    X = np.array(features, dtype=object if has_strings else float)
     names = [feature_names[i] for i in feature_idx]
 
     return Dataset(

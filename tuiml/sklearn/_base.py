@@ -50,6 +50,36 @@ def _ensure_sklearn(cls_name: str) -> None:
         ) from exc
 
 
+def _prepare(X: Any) -> Any:
+    """Prepare ``X`` for the backing estimator without destroying its dtype.
+
+    Numeric input is cast to float, which is what the numeric scikit-learn
+    estimators expect. Anything else is passed through untouched so that
+    scikit-learn's own validation applies: a blanket ``astype(float)`` breaks
+    text pipelines (``CountVectorizer``) and mixed-dtype frames
+    (``ColumnTransformer``), both of which scikit-learn handles natively.
+
+    Parameters
+    ----------
+    X : array-like
+        Input data.
+
+    Returns
+    -------
+    prepared : array-like
+        ``X`` as a float array when numeric, otherwise unchanged.
+    """
+    # pandas objects go through as-is so column names survive for estimators
+    # that use them (ColumnTransformer, feature_names_in_).
+    if hasattr(X, "iloc"):
+        return X
+    arr = np.asarray(X)
+    # bool / int / uint / float / complex -> safe to cast
+    if arr.dtype.kind in "biufc":
+        return arr.astype(float, copy=False)
+    return arr
+
+
 # =============================================================================
 # Namespaced registration decorators
 # =============================================================================
@@ -113,7 +143,7 @@ class _SklearnBackedMixin:
         """Fit the backing scikit-learn estimator."""
         _ensure_sklearn(type(self).__name__)
         self.model_ = self._build_estimator()
-        X = np.asarray(X, dtype=float)
+        X = _prepare(X)
         if y is not None:
             self.model_.fit(X, y)
         else:
@@ -128,7 +158,7 @@ class _SklearnBackedMixin:
     def predict(self, X: np.ndarray) -> np.ndarray:
         """Predict with the backing estimator."""
         self._check_is_fitted()
-        return self.model_.predict(np.asarray(X, dtype=float))
+        return self.model_.predict(_prepare(X))
 
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
         """Predict class probabilities when the backing estimator supports it.
@@ -137,7 +167,7 @@ class _SklearnBackedMixin:
         """
         self._check_is_fitted()
         if hasattr(self.model_, "predict_proba"):
-            return self.model_.predict_proba(np.asarray(X, dtype=float))
+            return self.model_.predict_proba(_prepare(X))
         return super().predict_proba(X)
 
     def get_params(self, deep: bool = True) -> Dict[str, Any]:
@@ -159,7 +189,7 @@ class _SklearnClustererMixin(_SklearnBackedMixin):
         """Fit and capture cluster labels."""
         _ensure_sklearn(type(self).__name__)
         self.model_ = self._build_estimator()
-        X = np.asarray(X, dtype=float)
+        X = _prepare(X)
         if hasattr(self.model_, "fit_predict"):
             labels = self.model_.fit_predict(X)
         else:
@@ -173,7 +203,7 @@ class _SklearnClustererMixin(_SklearnBackedMixin):
     def predict(self, X: np.ndarray) -> np.ndarray:
         """Assign clusters to ``X`` (re-fits transductive models)."""
         self._check_is_fitted()
-        X = np.asarray(X, dtype=float)
+        X = _prepare(X)
         if hasattr(self.model_, "predict"):
             return self.model_.predict(X)
         # Transductive estimators (DBSCAN, Agglomerative) cannot assign new
@@ -187,7 +217,7 @@ class _SklearnTransformerMixin(_SklearnBackedMixin):
     def transform(self, X: np.ndarray) -> np.ndarray:
         """Transform ``X`` with the fitted estimator."""
         self._check_is_fitted()
-        return self.model_.transform(np.asarray(X, dtype=float))
+        return self.model_.transform(_prepare(X))
 
 
 class _SklearnExtractorMixin(_SklearnTransformerMixin):
@@ -210,7 +240,7 @@ class _SklearnSelectorMixin(_SklearnBackedMixin):
         """Fit the backing selector and capture selected feature indices."""
         _ensure_sklearn(type(self).__name__)
         self.model_ = self._build_estimator()
-        X = np.asarray(X, dtype=float)
+        X = _prepare(X)
         self.model_.fit(X, y)
         support = self.model_.get_support(indices=True)
         self._selected_indices = np.sort(np.asarray(support))

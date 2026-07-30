@@ -6,282 +6,64 @@ import threading
 import numpy as np
 import pandas as pd
 
-from tuiml.workflow import WorkflowResult
+from tuiml.workflow import Workflow
 
 # Module-level state for tracking running servers
 _SERVERS: Dict[str, Dict] = {}
 
-# =============================================================================
-# API Registry - LLM-friendly function discovery
-# =============================================================================
+# ===== Main API Functions =====
 
-API_REGISTRY = {
-    "train": {
-        "description": "Train a machine learning model with a complete workflow",
-        "parameters": {
-            "algorithm": {
-                "type": ["string", "object"],
-                "required": True,
-                "description": "Algorithm name or dict with name and params"
-            },
-            "data": {
-                "type": ["string", "object", "array"],
-                "required": True,
-                "description": "File path, DataFrame, or numpy array"
-            },
-            "target": {
-                "type": ["string", "array"],
-                "required": True,
-                "description": "Target column name or array"
-            },
-            "preprocessing": {
-                "type": ["string", "array", "null"],
-                "default": None,
-                "description": "Preprocessing steps or preset name"
-            },
-            "feature_selection": {
-                "type": ["string", "object", "null"],
-                "default": None,
-                "description": "Feature selector name or config dict"
-            },
-            "test_size": {
-                "type": "number",
-                "default": 0.2,
-                "description": "Proportion of data for testing"
-            },
-            "cv": {
-                "type": ["integer", "null"],
-                "default": None,
-                "description": "Number of cross-validation folds"
-            },
-            "metrics": {
-                "type": ["string", "array"],
-                "default": "auto",
-                "description": "Metrics to compute"
-            },
-            "preset": {
-                "type": ["string", "null"],
-                "default": None,
-                "enum": ["minimal", "fast", "standard", "full", "imbalanced"],
-                "description": "Preprocessing preset name"
-            }
-        },
-        "returns": "WorkflowResult with model, metrics, predictions"
-    },
-    "run": {
-        "description": "Execute workflow from configuration dict or JSON file",
-        "parameters": {
-            "config": {
-                "type": ["object", "string"],
-                "required": True,
-                "description": "Config dict or path to JSON file"
-            }
-        },
-        "returns": "WorkflowResult"
-    },
-    "predict": {
-        "description": "Make predictions with a trained model",
-        "parameters": {
-            "model": {
-                "type": "object",
-                "required": True,
-                "description": "Trained model instance"
-            },
-            "data": {
-                "type": ["object", "array"],
-                "required": True,
-                "description": "Data to predict on"
-            }
-        },
-        "returns": "numpy array of predictions"
-    },
-    "evaluate": {
-        "description": "Evaluate model performance on test data",
-        "parameters": {
-            "model": {
-                "type": "object",
-                "required": True,
-                "description": "Trained model instance"
-            },
-            "X": {
-                "type": ["object", "array"],
-                "required": True,
-                "description": "Test features"
-            },
-            "y": {
-                "type": "array",
-                "required": True,
-                "description": "True labels"
-            },
-            "metrics": {
-                "type": ["string", "array"],
-                "default": "auto",
-                "description": "Metrics to compute"
-            }
-        },
-        "returns": "Dict of metric names to values"
-    },
-    "experiment": {
-        "description": "Compare multiple algorithms on multiple datasets",
-        "parameters": {
-            "algorithms": {
-                "type": ["object", "array"],
-                "required": True,
-                "description": "Dict or list of algorithms to compare"
-            },
-            "datasets": {
-                "type": ["object", "array"],
-                "required": True,
-                "description": "Dict or list of datasets"
-            },
-            "cv": {
-                "type": "integer",
-                "default": 10,
-                "description": "Number of CV folds"
-            },
-            "metrics": {
-                "type": ["array", "null"],
-                "default": None,
-                "description": "Metrics to compute"
-            }
-        },
-        "returns": "Experiment object with results and statistics"
-    },
-    "list_algorithms": {
-        "description": "List available algorithms in registry",
-        "parameters": {
-            "type": {
-                "type": ["string", "null"],
-                "default": None,
-                "enum": ["classifier", "regressor", "clusterer", None],
-                "description": "Filter by algorithm type"
-            }
-        },
-        "returns": "List of algorithm metadata dicts"
-    },
-    "describe_algorithm": {
-        "description": "Get detailed info and parameter schema for an algorithm",
-        "parameters": {
-            "name": {
-                "type": "string",
-                "required": True,
-                "description": "Algorithm name (e.g., 'RandomForestClassifier')"
-            }
-        },
-        "returns": "Dict with description, parameters schema, type"
-    },
-    "search_algorithms": {
-        "description": "Search algorithms by keyword",
-        "parameters": {
-            "query": {
-                "type": "string",
-                "required": True,
-                "description": "Search keyword"
-            }
-        },
-        "returns": "List of matching algorithm metadata"
-    },
-    "save": {
-        "description": "Save trained model to disk",
-        "parameters": {
-            "model": {
-                "type": "object",
-                "required": True,
-                "description": "Model to save"
-            },
-            "path": {
-                "type": "string",
-                "required": True,
-                "description": "File path"
-            }
-        },
-        "returns": "None"
-    },
-    "load": {
-        "description": "Load trained model from disk",
-        "parameters": {
-            "path": {
-                "type": "string",
-                "required": True,
-                "description": "File path"
-            }
-        },
-        "returns": "Loaded model instance"
-    },
-    "serve": {
-        "description": "Serve a trained model via REST API",
-        "parameters": {
-            "model_or_path": {
-                "type": ["string", "object"],
-                "required": True,
-                "description": "File path, WorkflowResult, or model object"
-            },
-            "host": {
-                "type": "string",
-                "default": "127.0.0.1",
-                "description": "Host to bind the server to"
-            },
-            "port": {
-                "type": "integer",
-                "default": 8000,
-                "description": "Port to listen on"
-            },
-            "model_id": {
-                "type": "string",
-                "default": "default",
-                "description": "Identifier for the model"
-            },
-            "background": {
-                "type": "boolean",
-                "default": True,
-                "description": "Run server in background thread"
-            }
-        },
-        "returns": "Dict with server_id, url, endpoints (background) or None (blocking)"
-    },
-    "stop_server": {
-        "description": "Stop running model server(s)",
-        "parameters": {
-            "server_id": {
-                "type": ["string", "null"],
-                "default": None,
-                "description": "Server ID to stop, or None to stop all"
-            }
-        },
-        "returns": "None"
-    },
-    "server_status": {
-        "description": "Get status of running model servers",
-        "parameters": {},
-        "returns": "List of server info dicts"
-    }
-}
+def _reject_foreign_estimator(model: Any) -> None:
+    """Raise if ``model`` is a foreign estimator object rather than a TuiML one.
 
-def get_api_info(function_name: str = None) -> dict:
-    """Get API function schemas for LLM discovery.
+    TuiML is native-first: algorithms are addressed by registry name, and
+    external libraries are reached through curated wrappers registered under a
+    namespaced key (``sklearn.SVC``, ``capymoa.HoeffdingTree``). Passing a raw
+    third-party estimator *instance* is not supported, so this fails early with
+    a message naming the wrapper to use instead of failing obscurely later.
 
     Parameters
     ----------
-    function_name : str, optional
-        Specific function name. If None, returns all API schemas.
+    model : Any
+        The value passed as the ``model`` / algorithm argument.
 
-    Returns
-    -------
-    dict
-        API function schema(s) with parameters, types, and descriptions.
-
-    Examples
-    --------
-    >>> get_api_info("train")
-    >>> get_api_info()  # All functions
+    Raises
+    ------
+    TypeError
+        If ``model`` looks like a non-TuiML estimator object.
     """
-    if function_name:
-        if function_name not in API_REGISTRY:
-            raise ValueError(f"Unknown function: {function_name}. Available: {list(API_REGISTRY.keys())}")
-        return API_REGISTRY[function_name]
-    return API_REGISTRY
+    from tuiml.base.algorithms import Algorithm
 
-# ===== Main API Functions =====
+    if isinstance(model, (str, dict, type)) or isinstance(model, Algorithm):
+        return
+    # Duck-typed foreign estimator: has fit(), but is not a TuiML Algorithm.
+    if not callable(getattr(model, "fit", None)):
+        return
+
+    cls_name = type(model).__name__
+    from tuiml.hub import registry
+
+    candidates = [
+        name for name in registry.list_names()
+        if "." in name and name.split(".", 1)[1] == cls_name
+    ]
+    if candidates:
+        hint = (
+            f"Use the registered wrapper instead:  "
+            f'tuiml.train("{candidates[0]}", ...)'
+        )
+    else:
+        hint = (
+            f"No wrapper is registered for {cls_name}. Use a native TuiML "
+            f"algorithm (tuiml.list_algorithms()), or add a wrapper under "
+            f"tuiml/sklearn/ or tuiml/capymoa/."
+        )
+    raise TypeError(
+        f"{cls_name} is not a TuiML algorithm. TuiML addresses algorithms by "
+        f"registry name; raw third-party estimator objects are not accepted. "
+        f"{hint}"
+    )
+
 
 def _resolve_data_spec(data, target, features):
     """Normalize the ``data`` argument into ``(source, target, features)``.
@@ -291,7 +73,6 @@ def _resolve_data_spec(data, target, features):
 
     - ``{"source": "sales.csv", "target": "label", "features": [...]}`` — a file
       path or builtin name plus its target column (and optional feature subset).
-      ``"path"`` and ``"data"`` are accepted as aliases for ``"source"``.
     - ``{"X": X_array, "y": y_array}`` — in-memory arrays, already split.
 
     Anything that is not such a dict (a path string, builtin name, ``DataFrame``,
@@ -327,9 +108,63 @@ def _resolve_data_spec(data, target, features):
         return spec["X"], spec.get("y", target), features
 
     # File path / builtin name / DataFrame reference.
-    source = spec.get("source", spec.get("path", spec.get("data")))
+    source = spec.get("source")
+    if source is None and ("path" in spec or "data" in spec):
+        raise ValueError(
+            'Data specs use the key "source" for the file path or builtin '
+            'name, e.g. {"source": "sales.csv", "target": "label"}.'
+        )
     target = spec.get("target", target)
     return source, target, features
+
+
+def _parse_component_spec(spec, kind: str):
+    """Split a component spec into ``(name, params)``.
+
+    Components — the model and each pipeline step — share one shape:
+    ``{"name": "<ClassName>", "params": {...}}``. A bare string means the
+    class name with default params. Any other key in the dict is rejected so
+    that misplaced hyperparameters fail loudly instead of being ignored.
+
+    Parameters
+    ----------
+    spec : str, dict, class, or instance
+        The component specification.
+    kind : str
+        Label used in error messages (e.g., ``"model"``, ``"pipeline step"``).
+
+    Returns
+    -------
+    name : str, class, or instance
+        The component name (or the class/instance itself, passed through).
+    params : dict
+        The component's constructor parameters.
+    """
+    if isinstance(spec, str):
+        return spec, {}
+    if isinstance(spec, dict):
+        name = spec.get("name")
+        if not name:
+            raise ValueError(
+                f'A {kind} spec dict needs a "name" key, e.g. '
+                f'{{"name": "RandomForestClassifier", "params": {{...}}}}.'
+            )
+        params = spec.get("params") or {}
+        if not isinstance(params, dict):
+            raise ValueError(f'The {kind} "params" value must be a dict.')
+        extra = set(spec) - {"name", "params"}
+        if extra:
+            raise ValueError(
+                f"Unexpected keys {sorted(extra)} in {kind} spec for "
+                f"'{name}'. Hyperparameters go inside \"params\": "
+                f'{{"name": "{name}", "params": {{...}}}}.'
+            )
+        return name, params
+    # Class object or configured instance — passed through as-is.
+    return spec, {}
+
+
+_EVALUATION_KEYS = {"cv", "test_size", "stratify", "metrics"}
 
 
 def train(
@@ -339,60 +174,52 @@ def train(
     *,
     # Restrict the feature matrix to these named columns
     features: Optional[List[str]] = None,
-    # Preprocessing (flexible formats)
-    preprocessing: Optional[Union[str, List[Union[str, Dict]]]] = None,
-    # Feature selection (flexible formats)
-    feature_selection: Optional[Union[str, Dict]] = None,
-    # Data splitting
-    test_size: float = 0.2,
-    stratify: bool = True,
+    # Ordered preprocessing / feature-engineering steps (or a preset name)
+    pipeline: Optional[Union[str, List[Union[str, Dict]]]] = None,
+    # Grouped evaluation options: cv OR test_size/stratify, plus metrics
+    evaluation: Optional[Dict[str, Any]] = None,
+    # Reproducibility
     random_seed: Optional[int] = None,
-    # Cross-validation
-    cv: Optional[int] = None,
-    # Metrics
-    metrics: Union[List[str], str] = "auto",
-    # Output options
-    return_model: bool = True,
-    return_predictions: bool = False,
-    return_probabilities: bool = False,
-    # Presets
-    preset: Optional[str] = None,
-    # Verbosity
-    verbose: bool = False,
-    # Deprecated positional alias for ``model`` (kept for backward compatibility)
-    algorithm: Union[str, Dict, Any] = None,
-    # Accept any algorithm parameters as kwargs (deprecated — put them in the
-    # model spec instead, e.g. {"name": "RandomForestClassifier", "n_estimators": 100})
-    **kwargs
-) -> WorkflowResult:
+) -> Workflow:
     """Train a machine learning model with a complete workflow.
 
     This is the **main high-level function** for training models in TuiML.
-    Every ML component — the model, each preprocessing step, and the feature
-    selector — is described the same way: a **spec** of the form
-    ``{"name": ..., **params}``. The data is described by its own **data spec**
-    ``{"source": ..., "target": ..., "features": ...}``. This keeps each
-    component's parameters grouped with that component instead of scattered
-    across loose keyword arguments, and is designed to be LLM-friendly.
+    A training run is described by four self-contained specs:
+
+    - ``model`` — what to train: ``{"name": ..., "params": {...}}``
+    - ``data`` — what to train on: ``{"source": ..., "target": ...}``
+    - ``pipeline`` — ordered feature-engineering steps applied before the
+      model (imputation, scaling, encoding, feature generation, extraction,
+      selection, resampling), each ``{"name": ..., "params": {...}}``
+    - ``evaluation`` — how to score it: ``{"cv": ...}`` or
+      ``{"test_size": ..., "stratify": ...}``, plus ``"metrics"``
+
+    The whole run can also be passed as **one declarative spec**: a single
+    dict with those keys, or the path to a ``.json`` file containing it.
 
     Parameters
     ----------
     model : str, dict, class, or instance
-        Model specification. Accepts flexible formats:
+        Model specification — or the full experiment spec. Accepts:
 
-        - ``{"name": "RandomForestClassifier", "n_estimators": 100}`` — **spec
-          dict** (recommended): the class name plus its hyperparameters.
+        - ``{"name": "RandomForestClassifier", "params": {"n_estimators":
+          100}}`` — **component spec** (recommended): class name plus its
+          hyperparameters under ``"params"``.
         - ``"RandomForestClassifier"`` — class name only, default params.
-        - ``RandomForestClassifier(n_estimators=100)`` — a configured instance
-          (opt into an import for editor autocomplete / type-checking).
-        - a class object — instantiated with the resolved parameters.
+        - ``RandomForestClassifier(n_estimators=100)`` — a configured
+          instance (opt into an import for editor autocomplete).
+        - a class object — instantiated with default parameters.
+        - ``{"model": ..., "data": ..., ...}`` — a **full experiment spec**;
+          every other argument comes from the dict itself.
+        - ``"experiment.json"`` — path to a JSON file with a full spec.
 
     data : str, DataFrame, ndarray, or dict
         Training data. Accepts:
 
         - ``{"source": "sales.csv", "target": "label"}`` — **data spec**
-          (recommended for files): file path or builtin name plus the target
-          column. Optional ``"features": [...]`` restricts the input columns.
+          (recommended for files): file path (csv, arff, parquet, json,
+          excel — auto-detected) or builtin dataset name, plus the target
+          column. Optional ``"features": [...]`` restricts input columns.
         - ``{"X": X_array, "y": y_array}`` — in-memory arrays, already split.
         - ``"path/to/file.csv"`` / ``"iris"`` — a bare file path or builtin
           name (use the ``target`` argument to name the label column).
@@ -407,85 +234,48 @@ def train(
 
     features : list of str, optional
         Restrict the feature matrix to these named columns. When ``None``
-        (default), every non-target column is used. May also be supplied inside
-        the data spec as ``"features"``.
+        (default), every non-target column is used. May also be supplied
+        inside the data spec as ``"features"``.
 
-    preprocessing : str, list, or None, default=None
-        Preprocessing pipeline specification:
-        
-        - ``"MinMaxScaler"`` — Single preprocessor name
-        - ``["SimpleImputer", "MinMaxScaler"]`` — List of names
-        - ``[{"name": "SimpleImputer", "strategy": "mean"}]`` — List of dicts
-        - ``"standard"`` — Preset name
-        - ``None`` — No preprocessing
+    pipeline : str, list, or None, default=None
+        Ordered feature-engineering steps applied before the model. Every
+        kind of transform is a step — imputation, scaling, encoding,
+        feature generation, feature extraction, feature selection, and
+        resampling — resolved by name from the hub:
 
-    feature_selection : str, dict, or None, default=None
-        Feature selection specification:
-        
-        - ``"SelectKBestSelector"`` — Class name
-        - ``{"name": "SelectKBestSelector", "k": 10}`` — Dict with params
-        - ``None`` — No feature selection
+        - ``[{"name": "SimpleImputer", "params": {"strategy": "mean"}},
+          {"name": "StandardScaler"},
+          {"name": "PCAExtractor", "params": {"n_components": 5}},
+          {"name": "SelectKBestSelector", "params": {"k": 3}}]``
+        - ``["SimpleImputer", "MinMaxScaler"]`` — bare names, default params
+        - ``"minimal"`` / ``"fast"`` / ``"standard"`` / ``"full"`` /
+          ``"imbalanced"`` — preset name (see :data:`PRESETS`)
+        - ``None`` — no pipeline
 
-    test_size : float, default=0.2
-        Proportion of data reserved for testing.
+    evaluation : dict, optional
+        Grouped evaluation options. Keys:
 
-    stratify : bool, default=True
-        Whether to maintain class distribution in train/test split.
+        - ``"cv"`` — number of cross-validation folds. When present, k-fold
+          CV is used and the holdout keys are ignored.
+        - ``"test_size"`` — holdout test proportion (default 0.2).
+        - ``"stratify"`` — keep class balance in the split (default True).
+        - ``"metrics"`` — ``"auto"`` (default) or a list of metric function
+          names from ``tuiml.evaluation.metrics``.
+
+        ``None`` means a stratified 80/20 holdout with auto metrics.
 
     random_seed : int or None, default=None
-        Random seed for reproducibility. Falls back to the global seed, then 42.
-
-    cv : int or None, default=None
-        Number of cross-validation folds. If set, uses CV instead of holdout.
-
-    metrics : str or list, default="auto"
-        Metrics to compute:
-        
-        - ``"auto"`` — Automatically select based on task type
-        - ``["accuracy", "f1", "roc_auc"]`` — List of metric names
-        - ``"accuracy"`` — Single metric name
-
-    return_model : bool, default=True
-        Whether to include the trained model in the result.
-
-    return_predictions : bool, default=False
-        Whether to include test set predictions in the result.
-
-    return_probabilities : bool, default=False
-        Whether to include prediction probabilities in the result.
-
-    preset : str or None, default=None
-        Preprocessing preset name:
-        
-        - ``"minimal"`` — No preprocessing
-        - ``"fast"`` — Basic imputation only
-        - ``"standard"`` — Impute + Normalize + Encode
-        - ``"full"`` — All preprocessing + feature selection
-        - ``"imbalanced"`` — Standard + SMOTESampler
-
-    verbose : bool, default=False
-        Whether to print progress information.
-
-    algorithm : str, dict, class, or instance, optional
-        Deprecated alias for ``model``, kept for backward compatibility. If both
-        are given, ``model`` wins.
-
-    **kwargs
-        Deprecated: loose model hyperparameters (e.g. ``n_estimators=100``).
-        Prefer putting them inside the model spec —
-        ``{"name": "RandomForestClassifier", "n_estimators": 100}``. Still
-        accepted and merged into the model params for backward compatibility.
+        Random seed for reproducibility. Falls back to the global seed,
+        then 42.
 
     Returns
     -------
-    WorkflowResult
-        Result object containing:
-        
-        - ``model`` — Trained model instance
-        - ``metrics`` — Dict of computed metrics
-        - ``predictions`` — Test predictions (if requested)
-        - ``probabilities`` — Prediction probabilities (if requested)
-        - ``metadata`` — Additional workflow metadata
+    Workflow
+        The fitted pipeline, which behaves like a model:
+
+        - ``model_`` — the fitted final model
+        - ``metrics_`` — the computed metrics
+        - ``predict(X)`` / ``score(X, y)`` / ``save(path)``
 
     Examples
     --------
@@ -493,48 +283,56 @@ def train(
 
     >>> result = tuiml.train("RandomForestClassifier", {"source": "iris"})
 
-    Configured — model spec with params + file data spec, no import:
+    One declarative spec — a single serializable dict, ideal for agents:
 
-    >>> result = tuiml.train(
-    ...     {"name": "RandomForestClassifier", "n_estimators": 100},
-    ...     {"source": "sales.csv", "target": "label"},
-    ... )
-
-    Full pipeline — every component uses the same ``{"name": ..., **params}`` shape:
-
-    >>> result = tuiml.train(
-    ...     {"name": "RandomForestClassifier", "n_estimators": 100},
-    ...     {"source": "sales.csv", "target": "label"},
-    ...     preprocessing=[
-    ...         {"name": "SimpleImputer", "strategy": "mean"},
-    ...         {"name": "MinMaxScaler"},
+    >>> result = tuiml.train({
+    ...     "model": {"name": "RandomForestClassifier",
+    ...               "params": {"n_estimators": 100}},
+    ...     "data": {"source": "sales.csv", "target": "label"},
+    ...     "pipeline": [
+    ...         {"name": "SimpleImputer", "params": {"strategy": "mean"}},
+    ...         {"name": "StandardScaler"},
+    ...         {"name": "SelectKBestSelector", "params": {"k": 10}},
     ...     ],
-    ...     feature_selection={"name": "SelectKBestSelector", "k": 10},
-    ...     cv=10,
-    ... )
+    ...     "evaluation": {"cv": 10, "metrics": ["accuracy_score"]},
+    ... })
+
+    The same spec from a JSON file:
+
+    >>> result = tuiml.train("experiment.json")
 
     In-memory arrays, already split:
 
     >>> result = tuiml.train(
-    ...     {"name": "SVC", "kernel": "rbf", "C": 1.0},
+    ...     {"name": "SVC", "params": {"kernel": "rbf", "C": 1.0}},
     ...     {"X": X, "y": y},
     ... )
 
-    Type-safe — pass a configured instance (opt into an import for autocomplete):
+    Type-safe — pass a configured instance (opt into an import for
+    autocomplete):
 
     >>> from tuiml.algorithms.trees import RandomForestClassifier
-    >>> result = tuiml.train(RandomForestClassifier(n_estimators=100), {"source": "iris"})
+    >>> result = tuiml.train(RandomForestClassifier(n_estimators=100),
+    ...                      {"source": "iris"})
     """
-    # Resolve the deprecated ``algorithm`` alias — ``model`` wins if both given.
-    if model is None:
-        model = algorithm
+    # A full experiment spec may arrive as the first argument: a dict whose
+    # keys mirror this function's parameters, or the path to a .json file
+    # containing that dict. A *component* spec dict has a "name" key instead,
+    # so the two dict forms cannot collide.
+    if data is None:
+        spec = None
+        if isinstance(model, str) and model.endswith(".json"):
+            import json
+            with open(model, "r") as f:
+                spec = json.load(f)
+        elif isinstance(model, dict) and "name" not in model:
+            spec = dict(model)
+        if spec is not None:
+            return train(**spec)
 
-    # A legacy seed passed as a loose kwarg is a run option, not a model param.
-    legacy_random_state = kwargs.pop('random_state', None)
-
-    # Resolve the data spec: {"source"/"path": ..., "target": ..., "features": ...}
-    # or {"X": ..., "y": ...}. Bare paths / DataFrames / arrays pass through with
-    # the separate ``target``/``features`` arguments.
+    # Resolve the data spec: {"source": ..., "target": ..., "features": ...}
+    # or {"X": ..., "y": ...}. Bare paths / DataFrames / arrays pass through
+    # with the separate ``target``/``features`` arguments.
     data, target, features = _resolve_data_spec(data, target, features)
 
     # Validate required params
@@ -544,265 +342,60 @@ def train(
         raise ValueError("Data must be provided.")
 
     # Extract model name and params (handles str / spec dict / class / instance)
-    from tuiml.sklearn.adapter import is_sklearn_estimator, wrap_sklearn
+    _reject_foreign_estimator(model)
+    algo_name, algo_params = _parse_component_spec(model, "model")
 
-    if is_sklearn_estimator(model):
-        # A raw scikit-learn-compatible estimator object — wrap it so it speaks
-        # the TuiML interface, and pass the instance straight to the workflow.
-        algo_name = wrap_sklearn(model)
-        algo_params = dict(kwargs)
-    elif isinstance(model, dict):
-        algo_dict = model.copy()
-        algo_name = algo_dict.pop("name", None)
-        algo_params = {**algo_dict, **kwargs}  # spec params + any legacy kwargs
-    else:
-        # String name, class object, or native instance.
-        algo_name = model
-        algo_params = dict(kwargs)
+    # Unpack the evaluation spec
+    evaluation = dict(evaluation or {})
+    unknown = set(evaluation) - _EVALUATION_KEYS
+    if unknown:
+        raise ValueError(
+            f"Unexpected evaluation keys {sorted(unknown)}. "
+            f"Allowed: {sorted(_EVALUATION_KEYS)}."
+        )
+    cv = evaluation.get("cv")
+    test_size = evaluation.get("test_size", 0.2)
+    stratify = evaluation.get("stratify", True)
+    metrics = evaluation.get("metrics", "auto")
 
-    # Handle preprocessing preset
-    if preset and preset in PRESETS:
-        preset_config = PRESETS[preset]
-        preprocessing = preset_config.get("preprocessing", [])
-        if feature_selection is None and preset_config.get("feature_selection"):
-            feature_selection = preset_config["feature_selection"]
-    elif isinstance(preprocessing, str) and preprocessing in PRESETS:
-        preset_config = PRESETS[preprocessing]
-        preprocessing = preset_config.get("preprocessing", [])
-        if feature_selection is None and preset_config.get("feature_selection"):
-            feature_selection = preset_config["feature_selection"]
+    # Resolve a pipeline preset name to its step list
+    if isinstance(pipeline, str):
+        if pipeline not in PRESETS:
+            raise ValueError(
+                f"Unknown pipeline preset '{pipeline}'. "
+                f"Available presets: {sorted(PRESETS)}."
+            )
+        pipeline = PRESETS[pipeline]
 
-    # Use Workflow to execute the training
-    from tuiml.workflow import Workflow
+    # A spec is just a Workflow written as data: the pipeline steps followed by
+    # the model as the final step.
+    steps = list(pipeline or [])
+    steps.append({"name": algo_name, "params": algo_params}
+                 if isinstance(algo_name, str) else algo_name)
 
-    workflow = Workflow(data=data, target=target, features=features)
-
-    # Add preprocessing steps
-    if preprocessing:
-        if isinstance(preprocessing, list):
-            for step in preprocessing:
-                if isinstance(step, dict):
-                    workflow.preprocess(**step)
-                else:
-                    workflow.preprocess(step)
-        elif isinstance(preprocessing, str):
-            # Assume it's a preprocessor class name
-            workflow.preprocess(preprocessing)
-
-    # Add feature selection
-    if feature_selection:
-        if isinstance(feature_selection, dict):
-            workflow._feature_selection = feature_selection
-        elif isinstance(feature_selection, str):
-            workflow._feature_selection = {"name": feature_selection}
-
-    # Resolve seed (legacy random_state kwarg was popped near the top)
-    if random_seed is None:
-        random_seed = legacy_random_state
-    if random_seed is None:
-        from tuiml.utils.seed import get_global_seed
-        random_seed = get_global_seed()
-    if random_seed is None:
-        random_seed = 42
-
-    # Configure data splitting
-    if cv is None:
-        workflow.split(test_size=test_size, stratify=stratify, random_state=random_seed)
-
-    # Set the model
-    workflow.train(algo_name, **algo_params)
-
-    # Resolve metrics: pass through user-specified metrics, or None for auto
-    if metrics == "auto" or metrics is None:
-        resolved_metrics = None  # Workflow._execute() auto-resolves based on algo type
-    elif isinstance(metrics, str):
-        resolved_metrics = [metrics]
-    else:
-        resolved_metrics = metrics
-
-    # Configure evaluation
-    if cv:
-        workflow.cross_validate(cv=cv, metrics=resolved_metrics)
-    else:
-        workflow.evaluate(metrics=resolved_metrics)
-
-    # Execute and return results
-    return workflow.run()
-
-def run(config: Union[Dict, str]) -> WorkflowResult:
-    """Run a complete workflow from a configuration dict or JSON file.
-
-    This function enables you to load and execute ML workflows from
-    configuration dictionaries or JSON files, making it ideal for
-    programmatic workflows and LLM-generated configurations.
-
-    Parameters
-    ----------
-    config : dict or str
-        A single declarative **experiment spec**, using the same
-        ``{"name": ..., **params}`` component convention as :func:`train`:
-
-        - ``dict`` — the spec itself.
-        - ``str`` — path to a JSON file containing the spec.
-
-        Keys:
-
-        - ``model`` — model spec, e.g. ``{"name": "RandomForestClassifier",
-          "n_estimators": 100}`` (or a bare name string).
-        - ``data`` — data spec, e.g. ``{"source": "sales.csv", "target":
-          "label"}`` (or a bare path/builtin name).
-        - ``preprocessing`` / ``feature_selection`` — optional component specs.
-        - ``cv`` / ``metrics`` / ``test_size`` / ``preset`` / ... — run options.
-
-        The legacy flat schema (``algorithm`` + top-level ``data``/``target`` +
-        loose hyperparameters) is still accepted for backward compatibility.
-
-    Returns
-    -------
-    WorkflowResult
-        Result object with model, metrics, and metadata.
-
-    Examples
-    --------
-    A declarative experiment spec — one serializable object, ideal for agents:
-
-    >>> spec = {
-    ...     "model": {"name": "RandomForestClassifier", "n_estimators": 100},
-    ...     "data": {"source": "sales.csv", "target": "label"},
-    ...     "preprocessing": [{"name": "MinMaxScaler"}],
-    ...     "feature_selection": {"name": "SelectKBestSelector", "k": 10},
-    ...     "cv": 10,
-    ... }
-    >>> result = tuiml.run(spec)
-
-    From a JSON file:
-
-    >>> result = tuiml.run("config.json")
-    """
-    if isinstance(config, str):
-        # Load from JSON file
-        import json
-        with open(config, 'r') as f:
-            config = json.load(f)
-
-    # The spec keys map 1:1 onto train()'s parameters (model, data,
-    # preprocessing, feature_selection, cv, ...). Legacy configs using
-    # ``algorithm`` + flat ``target``/hyperparameters also flow through, since
-    # train() still accepts them.
-    return train(**config)
-
-def predict(model, data: Union[pd.DataFrame, np.ndarray]) -> np.ndarray:
-    """Make predictions with a trained model.
-
-    Parameters
-    ----------
-    model : object
-        Trained model instance with a ``predict()`` method.
-        
-    data : DataFrame or ndarray
-        Data to make predictions on.
-
-    Returns
-    -------
-    predictions : ndarray
-        Array of predictions.
-
-    Examples
-    --------
-    >>> predictions = tuiml.predict(model, X_new)
-    """
-    if hasattr(model, 'predict'):
-        return model.predict(data)
-    else:
-        raise ValueError("Model does not have a predict() method")
-
-def evaluate(
-    model,
-    X: Union[pd.DataFrame, np.ndarray],
-    y: np.ndarray,
-    metrics: Union[List[str], str] = "auto"
-) -> Dict[str, float]:
-    """Evaluate a model on test data.
-
-    Parameters
-    ----------
-    model : object
-        Trained model instance.
-        
-    X : DataFrame or ndarray
-        Test features.
-        
-    y : ndarray
-        True labels.
-        
-    metrics : str or list, default="auto"
-        Metrics to compute:
-
-        - ``"auto"`` — Automatically select based on task type
-        - ``list`` — List of metric function names from
-          ``tuiml.evaluation.metrics`` (e.g.,
-          ``["accuracy_score", "f1_score"]``)
-
-    Returns
-    -------
-    results : dict
-        Dictionary mapping metric names to computed values.
-
-    Examples
-    --------
-    >>> metrics = tuiml.evaluate(model, X_test, y_test)
-    >>> print(metrics["accuracy_score"])
-    """
-    from tuiml.evaluation import metrics as metrics_module
-
-    # Get predictions
-    y_pred = model.predict(X)
-
-    # Determine metrics to compute
-    if metrics == "auto":
-        # Try to detect task type
-        if hasattr(model, '_estimator_type'):
-            if model._estimator_type == 'classifier':
-                metrics = ['accuracy_score', 'f1_score']
-            elif model._estimator_type == 'regressor':
-                metrics = ['mean_squared_error', 'r2_score']
-            else:
-                metrics = ['accuracy_score']
-        else:
-            # Default to classification
-            metrics = ['accuracy_score']
-    elif isinstance(metrics, str):
-        metrics = [metrics]
-
-    # Compute metrics directly from the metrics module
-    results = {}
-    for metric_name in metrics:
-        metric_func = getattr(metrics_module, metric_name, None)
-        if metric_func is None:
-            continue
-        try:
-            results[metric_name] = metric_func(y, y_pred)
-        except TypeError:
-            # Some metrics may need extra args (e.g., average for f1_score)
-            try:
-                results[metric_name] = metric_func(y, y_pred, average='macro')
-            except TypeError:
-                continue
-
-    return results
+    return Workflow(steps).fit(
+        data,
+        target=target,
+        features=features,
+        cv=cv,
+        test_size=None if cv else test_size,
+        stratify=stratify,
+        metrics=metrics,
+        random_seed=random_seed,
+    )
 
 def experiment(
     algorithms: Union[Dict[str, Any], List[Union[str, tuple, Any]]],
     datasets: Union[Dict[str, tuple], List[Union[str, Dict]]],
     *,
-    preprocessing: Optional[Union[List[Dict], str]] = None,
+    pipeline: Optional[Union[List[Dict], str]] = None,
     cv: int = 10,
     metrics: List[str] = None,
     n_jobs: int = 1,
     verbose: int = 0,
     random_seed: Optional[int] = None,
     progress_callback: Optional[Callable] = None,
-    **kwargs
+    experiment_type: Optional[str] = None,
 ):
     """Run experiments to compare multiple algorithms on multiple datasets.
 
@@ -817,30 +410,41 @@ def experiment(
 
         - ``{"RF": RandomForestClassifier(), "SVM": SVM()}`` — Dict of name to instance
         - ``["RandomForestClassifier", "SVC"]`` — List of class names (uses defaults)
-        - ``[("RF", {"n_trees": 100}), ...]`` — List of (name, params) tuples
+        - ``[{"name": "RandomForestClassifier", "params": {...}}, ...]`` —
+          List of component specs (same shape as :func:`train`)
+        - ``[("RF", {"name": "RandomForestClassifier", "params": {...}}), ...]``
+          — ``(label, component)`` tuples when you want a custom display name;
+          the component uses any of the forms above
 
     datasets : dict or list
         Dataset specifications:
         
         - ``{"iris": (X, y)}`` — Dict of name to (features, target) tuples
         - ``["iris", "wine"]`` — List of dataset names (loads from registry)
-        - ``[{"path": "data.csv", "target": "class"}, ...]`` — List of config dicts
+        - ``[{"source": "data.csv", "target": "class"}, ...]`` — List of data specs
 
-    preprocessing : str, list, or None, default=None
-        Preprocessing config or preset name to apply to all datasets.
+    pipeline : str, list, or None, default=None
+        Pipeline steps (same ``{"name": ..., "params": {...}}`` shape as
+        :func:`train`) or a preset name, applied to all datasets.
 
     cv : int, default=10
         Number of cross-validation folds.
 
     metrics : list of str, optional
         Metrics to compute for each algorithm/dataset pair. 
-        Defaults to ``["accuracy"]`` for classification.
+        Exact function names from ``tuiml.evaluation.metrics`` (e.g.,
+        ``"accuracy_score"``). Defaults are chosen per task type.
 
     n_jobs : int, default=1
         Number of parallel jobs to run. Use ``-1`` for all available CPUs.
 
     verbose : int, default=0
         Verbosity level for progress reporting.
+
+    experiment_type : str, optional
+        ``"classification"``, ``"regression"``, or ``"clustering"``. When
+        omitted, the type is inferred from the models; set it explicitly for
+        mixed or ambiguous collections.
 
     Returns
     -------
@@ -866,24 +470,20 @@ def experiment(
     ...         "SVM_RBF": SVM(kernel="rbf")
     ...     },
     ...     datasets={"iris": (X_iris, y_iris)},
-    ...     metrics=["accuracy", "f1_macro"]
+    ...     metrics=["accuracy_score", "f1_score"]
     ... )
     >>> print(exp.summary())
     """
     from tuiml.evaluation import run_experiment
     from tuiml.hub import registry
-    from tuiml.sklearn.adapter import is_sklearn_estimator, wrap_sklearn
     import tuiml.algorithms  # noqa: F401 - trigger registration
 
     # Convert algorithms to dict format
     models_dict = {}
     if isinstance(algorithms, dict):
-        # Auto-wrap any raw scikit-learn-compatible estimators so they speak
-        # the TuiML interface inside run_experiment.
-        models_dict = {
-            name: (wrap_sklearn(m) if is_sklearn_estimator(m) else m)
-            for name, m in algorithms.items()
-        }
+        for m in algorithms.values():
+            _reject_foreign_estimator(m)
+        models_dict = dict(algorithms)
     elif isinstance(algorithms, list):
         for item in algorithms:
             if isinstance(item, str):
@@ -895,27 +495,48 @@ def experiment(
                         f"Use list_algorithms() to see available options."
                     )
                 models_dict[item] = model_class()
+            elif isinstance(item, dict):
+                # The same {"name": ..., "params": {...}} spec train() takes.
+                name, params = _parse_component_spec(item, "algorithm")
+                try:
+                    model_class = registry.get(name)
+                except KeyError:
+                    raise ValueError(
+                        f"Algorithm '{name}' not found in hub. "
+                        f"Use list_algorithms() to see available options."
+                    )
+                models_dict[name] = model_class(**params)
             elif isinstance(item, tuple):
-                if len(item) == 2:
-                    name, params_or_model = item
-                    if isinstance(params_or_model, dict):
-                        try:
-                            model_class = registry.get(name)
-                        except KeyError:
-                            raise ValueError(
-                                f"Algorithm '{name}' not found in hub. "
-                                f"Use list_algorithms() to see available options."
-                            )
-                        models_dict[name] = model_class(**params_or_model)
-                    else:
-                        models_dict[name] = (
-                            wrap_sklearn(params_or_model)
-                            if is_sklearn_estimator(params_or_model)
-                            else params_or_model
+                if len(item) != 2:
+                    raise ValueError(
+                        "Algorithm tuples are (label, component), e.g. "
+                        '("RF", {"name": "RandomForestClassifier", '
+                        '"params": {"n_estimators": 100}}).'
+                    )
+                label, component = item
+                if isinstance(component, dict) and "name" not in component:
+                    raise ValueError(
+                        f'The component for "{label}" needs the '
+                        f'{{"name": ..., "params": {{...}}}} shape; a bare '
+                        f"params dict does not say which algorithm to build."
+                    )
+                if isinstance(component, (str, dict)):
+                    spec_name, spec_params = _parse_component_spec(
+                        component, "algorithm"
+                    )
+                    try:
+                        model_class = registry.get(spec_name)
+                    except KeyError:
+                        raise ValueError(
+                            f"Algorithm '{spec_name}' not found in hub. "
+                            f"Use list_algorithms() to see available options."
                         )
+                    models_dict[label] = model_class(**spec_params)
+                else:
+                    _reject_foreign_estimator(component)
+                    models_dict[label] = component
             else:
-                if is_sklearn_estimator(item):
-                    item = wrap_sklearn(item)
+                _reject_foreign_estimator(item)
                 model_name = item.__class__.__name__
                 models_dict[model_name] = item
 
@@ -946,51 +567,47 @@ def experiment(
                     ds = load_dataset(item)
                 datasets_dict[item] = (ds.X, ds.y)
             elif isinstance(item, dict):
-                path = item.get('path') or item.get('data')
+                source = item.get('source')
+                if source is None:
+                    raise ValueError(
+                        'Dataset specs use the key "source" for the file '
+                        'path, e.g. {"source": "data.csv", "target": "class"}.'
+                    )
                 target = item.get('target')
-                name = item.get('name', path)
+                name = item.get('name', source)
                 # load() auto-detects format and returns Dataset
-                ds = load_file(path, target_column=target)
+                ds = load_file(source, target_column=target)
                 datasets_dict[name] = (ds.X, ds.y)
             elif isinstance(item, tuple) and len(item) == 2:
                 datasets_dict[f"dataset_{len(datasets_dict)}"] = item
 
-    # Apply preprocessing to all datasets if specified
-    if preprocessing:
-        from tuiml.workflow import Workflow
-
-        # Resolve preset name to step list
-        if isinstance(preprocessing, str) and preprocessing in PRESETS:
-            steps = PRESETS[preprocessing].get("preprocessing", [])
-        elif isinstance(preprocessing, str):
-            steps = [{"name": preprocessing}]
-        else:
-            steps = preprocessing
-
-        for ds_name, (X_ds, y_ds) in list(datasets_dict.items()):
-            for step in steps:
-                if isinstance(step, str):
-                    name, params = step, {}
-                elif isinstance(step, dict):
-                    name = step.get('name')
-                    params = {k: v for k, v in step.items() if k != 'name'}
-                else:
-                    continue
-                pp_cls = Workflow._resolve_component(name, 'preprocessing')
-                if pp_cls is not None:
-                    pp = pp_cls(**params)
-                    X_ds = pp.fit_transform(X_ds)
-            datasets_dict[ds_name] = (X_ds, y_ds)
-
-    # Resolve seed
-    legacy_random_state = kwargs.pop('random_state', None)
-    if random_seed is None:
-        random_seed = legacy_random_state
+    # Resolve seed: explicit argument, then global seed, then 42
     if random_seed is None:
         from tuiml.utils.seed import get_global_seed
         random_seed = get_global_seed()
     if random_seed is None:
         random_seed = 42
+
+    # A shared pipeline becomes part of each model: wrapping every model in a
+    # Workflow means the steps are re-fitted inside each CV fold on that
+    # fold's training data only. Transforming the datasets up front would let
+    # every validation fold leak into the preprocessing (and resampling
+    # would fabricate synthetic points that then land in validation folds).
+    if pipeline:
+        if isinstance(pipeline, str):
+            if pipeline not in PRESETS:
+                raise ValueError(
+                    f"Unknown pipeline preset '{pipeline}'. "
+                    f"Available presets: {sorted(PRESETS)}."
+                )
+            steps = PRESETS[pipeline]
+        else:
+            steps = list(pipeline)
+
+        models_dict = {
+            name: Workflow(steps + [model])
+            for name, model in models_dict.items()
+        }
 
     # Run experiment
     exp = run_experiment(
@@ -1001,51 +618,11 @@ def experiment(
         random_state=random_seed,
         n_jobs=n_jobs,
         verbose=verbose,
-        progress_callback=progress_callback
+        progress_callback=progress_callback,
+        experiment_type=experiment_type,
     )
 
     return exp
-
-def save(model, path: str, metadata: Optional[Dict] = None) -> None:
-    """Save a trained model to disk.
-
-    Parameters
-    ----------
-    model : object
-        Trained model instance to save.
-        
-    path : str
-        Target file path (e.g., ``"model.pkl"``).
-
-    metadata : dict, optional
-        Additional metadata to store with the model.
-
-    Examples
-    --------
-    >>> tuiml.save(model, "my_model.pkl", metadata={"accuracy": 0.95})
-    """
-    from tuiml.utils.serialization import save_model
-    save_model(model, path, metadata=metadata)
-
-def load(path: str):
-    """Load a trained model from disk.
-
-    Parameters
-    ----------
-    path : str
-        Path to the saved model file.
-
-    Returns
-    -------
-    object
-        Loaded model instance.
-
-    Examples
-    --------
-    >>> model = tuiml.load("my_model.pkl")
-    """
-    from tuiml.utils.serialization import load_model
-    return load_model(path)
 
 def list_algorithms(type: Optional[str] = None) -> List[Dict]:
     """List available algorithms in the registry.
@@ -1131,63 +708,63 @@ def describe_algorithm(name: str) -> Dict:
         "type": getattr(component, "_component_type", None),
     }
 
-def search_algorithms(query: str) -> List[Dict]:
-    """Search for algorithms by keyword in name or tags.
+def search_algorithms(query: str, limit: Optional[int] = None) -> List[Dict]:
+    """Search for components by keyword in name, tags, or description.
+
+    Results are ranked by relevance, best match first. Multi-word queries are
+    matched token-wise, so ``"random forest"`` finds ``RandomForestClassifier``
+    as well as namespaced wrappers such as ``sklearn.RandomForestClassifier``.
 
     Parameters
     ----------
     query : str
-        Search query (e.g., ``"forest"``, ``"linear"``).
+        Search query (e.g., ``"random forest"``, ``"linear"``).
+    limit : int, optional, default=None
+        Maximum number of results to return. ``None`` returns all matches.
 
     Returns
     -------
     list of dict
-        Metadata for matching algorithms.
+        Metadata for matching components, best match first.
+
+    Notes
+    -----
+    This searches every registered component type, not just algorithms —
+    transformers and feature selectors are included in the results.
 
     Examples
     --------
-    >>> results = tuiml.search_algorithms("forest")
+    >>> results = tuiml.search_algorithms("random forest", limit=3)
     >>> [algo["name"] for algo in results]
-    ['RandomForestClassifier', 'ExtraTrees']
+    ['RandomForestClassifier', 'RandomForestRegressor', 'capymoa.AdaptiveRandomForest']
     """
     from tuiml.hub import registry
 
-    return registry.search(query)
+    return registry.search(query, limit=limit)
 
-# Preset configurations
+# Pipeline presets — each maps a name to an ordered step list in the same
+# {"name": ..., "params": {...}} shape as an explicit pipeline.
 PRESETS = {
-    "minimal": {
-        "preprocessing": [],
-        "feature_selection": None,
-    },
-    "fast": {
-        "preprocessing": [{"name": "SimpleImputer", "strategy": "most_frequent"}],
-        "feature_selection": None,
-    },
-    "standard": {
-        "preprocessing": [
-            {"name": "SimpleImputer", "strategy": "mean"},
-            {"name": "MinMaxScaler"},
-            {"name": "OneHotEncoder"},
-        ],
-        "feature_selection": None,
-    },
-    "full": {
-        "preprocessing": [
-            {"name": "SimpleImputer", "strategy": "median"},
-            {"name": "StandardScaler"},
-            {"name": "OneHotEncoder"},
-        ],
-        "feature_selection": {"name": "SelectKBestSelector", "k": 10},
-    },
-    "imbalanced": {
-        "preprocessing": [
-            {"name": "SimpleImputer", "strategy": "mean"},
-            {"name": "MinMaxScaler"},
-            {"name": "SMOTESampler"},
-        ],
-        "feature_selection": None,
-    },
+    "minimal": [],
+    "fast": [
+        {"name": "SimpleImputer", "params": {"strategy": "most_frequent"}},
+    ],
+    "standard": [
+        {"name": "SimpleImputer", "params": {"strategy": "mean"}},
+        {"name": "MinMaxScaler"},
+        {"name": "OneHotEncoder"},
+    ],
+    "full": [
+        {"name": "SimpleImputer", "params": {"strategy": "median"}},
+        {"name": "StandardScaler"},
+        {"name": "OneHotEncoder"},
+        {"name": "SelectKBestSelector", "params": {"k": 10}},
+    ],
+    "imbalanced": [
+        {"name": "SimpleImputer", "params": {"strategy": "mean"}},
+        {"name": "MinMaxScaler"},
+        {"name": "SMOTESampler"},
+    ],
 }
 
 # ===== Model Serving Functions =====
@@ -1201,16 +778,16 @@ def serve(
 ):
     """Serve a trained model via REST API.
 
-    Accepts a file path, a ``WorkflowResult``, or a model object and starts
+    Accepts a file path, a fitted ``Workflow``, or a model object and starts
     a uvicorn server exposing prediction endpoints.
 
     Parameters
     ----------
-    model_or_path : str, WorkflowResult, or model object
+    model_or_path : str, Workflow, or model object
         The model to serve:
 
         - ``str`` — Path to a saved model file
-        - ``WorkflowResult`` — Result from ``Workflow.run()`` or ``train()``
+        - ``Workflow`` — a fitted pipeline from ``train()`` or ``Workflow.fit()``
         - model object — Any object with a ``predict()`` method
 
     host : str, default="127.0.0.1"
@@ -1234,10 +811,10 @@ def serve(
 
     Examples
     --------
-    Serve from a WorkflowResult:
+    Serve from a fitted Workflow:
 
-    >>> result = tuiml.train("NaiveBayesClassifier", {"source": "iris", "target": "class"})
-    >>> info = tuiml.serve(result, port=9999)
+    >>> model = tuiml.train("NaiveBayesClassifier", {"source": "iris"})
+    >>> info = tuiml.serve(model, port=9999)
     >>> print(info["url"])
     http://127.0.0.1:9999
 
@@ -1259,13 +836,14 @@ def serve(
     if isinstance(model_or_path, str):
         # File path — load directly
         server.load_model(model_id, model_or_path)
-    elif isinstance(model_or_path, WorkflowResult):
-        # WorkflowResult — save model to temp file using TuiML serializer
-        if model_or_path.model is None:
-            raise RuntimeError("WorkflowResult has no trained model.")
+    elif isinstance(model_or_path, Workflow):
+        # Fitted Workflow — serialize the whole pipeline so the served model
+        # applies its transformations too.
+        if not model_or_path._is_fitted:
+            raise RuntimeError("This Workflow is not fitted yet. Call fit() first.")
         tmp = tempfile.NamedTemporaryFile(suffix=".pkl", delete=False)
         tmp.close()
-        save_model(model_or_path.model, tmp.name)
+        save_model(model_or_path, tmp.name)
         server.load_model(model_id, tmp.name)
     else:
         # Assume it's a model object with predict()
@@ -1315,8 +893,26 @@ def serve(
     thread = threading.Thread(target=run_server, daemon=True)
     thread.start()
 
-    # Wait briefly for server to start
-    time.sleep(1.0)
+    # Wait for uvicorn to actually bind before reporting success. Without this
+    # a failure in the background thread — most often the port already being in
+    # use — would go unnoticed and this call would hand back a URL for a server
+    # that never started.
+    deadline = time.monotonic() + 10.0
+    while time.monotonic() < deadline:
+        if getattr(uvicorn_server, "started", False):
+            break
+        if not thread.is_alive():
+            raise RuntimeError(
+                f"The server failed to start on {host}:{port}. The port is "
+                f"most likely already in use — pick another port, or call "
+                f"tuiml.stop_server() to shut down servers started earlier."
+            )
+        time.sleep(0.05)
+    else:
+        uvicorn_server.should_exit = True
+        raise RuntimeError(
+            f"The server did not become ready on {host}:{port} within 10s."
+        )
 
     info = {
         "server_id": server_id,

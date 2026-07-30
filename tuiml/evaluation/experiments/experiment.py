@@ -50,7 +50,8 @@ class Experiment(BaseExperiment):
         Experiment configuration.
     metrics : list of str or dict, optional
         Metrics to compute. Can be:
-        - List of metric names: ['accuracy', 'f1']
+        - List of exact function names from ``tuiml.evaluation.metrics``:
+          ``['accuracy_score', 'f1_score']``
         - Dict of {name: function}: {'custom': my_metric_func}
     experiment_type : ExperimentType
         Type of experiment (classification, regression, clustering).
@@ -75,7 +76,7 @@ class Experiment(BaseExperiment):
     >>>
     >>> # Run experiment
     >>> config = ExperimentConfig(n_folds=10, n_repeats=1)
-    >>> exp = Experiment(config, metrics=['accuracy', 'f1_macro'])
+    >>> exp = Experiment(config, metrics=['accuracy_score', 'f1_score'])
     >>> results = exp.run(models, datasets)
     >>>
     >>> # Print results
@@ -320,16 +321,26 @@ class Experiment(BaseExperiment):
         model_types = {}
         for model_name, model in models.items():
             try:
-                # Try to get component info from registry
+                # Try to get component info from registry. Prefer the key the
+                # component was registered under: the namespaced backend
+                # wrappers register as ``sklearn.SVC`` while their class name is
+                # just ``SVC``, which would otherwise resolve to the unrelated
+                # native algorithm of the same name.
+                registered_name = getattr(model, '_component_name', None)
                 model_class_name = model.__class__.__name__
-                if model_class_name in registry:
-                    info = registry.get_info(model_class_name)
+                lookup = (
+                    registered_name
+                    if registered_name in registry
+                    else model_class_name
+                )
+                if lookup in registry:
+                    info = registry.get_info(lookup)
                     model_types[model_name] = info.get('type', 'unknown')
                 elif getattr(model, '_estimator_type', None) in (
                     'classifier', 'regressor', 'clusterer'
                 ):
-                    # Wrapped estimators (e.g. SklearnAdapter) declare their task
-                    # type directly rather than registering by class name.
+                    # Estimators that declare their task type directly rather
+                    # than registering by name.
                     model_types[model_name] = model._estimator_type
                 else:
                     # Fallback: check if model has fit(X, y) or fit(X) signature
@@ -784,7 +795,7 @@ class Experiment(BaseExperiment):
         Examples
         --------
         >>> exp = run_experiment(models, datasets)
-        >>> exp.plot_critical_difference(metric='accuracy')
+        >>> exp.plot_critical_difference(metric='accuracy_score')
         >>> exp.plot_critical_difference(metric='error', lower_better=True)
         """
         scores, model_names, dataset_names = self.get_scores_matrix(metric)
@@ -861,6 +872,45 @@ class Experiment(BaseExperiment):
             **kwargs
         )
 
+def _infer_experiment_type(models: Dict[str, Any]) -> ExperimentType:
+    """Infer the experiment type from the models being compared.
+
+    Looks at each model's component type (unwrapping pipelines to their final
+    step) so regressors get regression metrics and unstratified folds, and
+    clusterers get clustering metrics — instead of everything defaulting to
+    classification.
+
+    Parameters
+    ----------
+    models : dict
+        Mapping of display name to model instance.
+
+    Returns
+    -------
+    ExperimentType
+        The inferred type. Classification wins ties, matching the historical
+        default.
+    """
+    from tuiml.hub import ComponentType
+
+    kinds = set()
+    for model in models.values():
+        # A pipeline's task is decided by its final step.
+        final = getattr(model, "model", model)
+        component_type = getattr(final, "_component_type", None)
+        estimator_type = getattr(final, "_estimator_type", None)
+        if component_type == ComponentType.REGRESSOR or estimator_type == "regressor":
+            kinds.add(ExperimentType.REGRESSION)
+        elif component_type == ComponentType.CLUSTERER or estimator_type == "clusterer":
+            kinds.add(ExperimentType.CLUSTERING)
+        else:
+            kinds.add(ExperimentType.CLASSIFICATION)
+
+    if len(kinds) == 1:
+        return kinds.pop()
+    return ExperimentType.CLASSIFICATION
+
+
 def run_experiment(
     models: Dict[str, Any],
     datasets: Dict[str, Tuple[np.ndarray, np.ndarray]],
@@ -870,6 +920,7 @@ def run_experiment(
     n_jobs: int = 1,
     verbose: int = 0,
     progress_callback: Optional[Callable] = None,
+    experiment_type: Optional[ExperimentType] = None,
     **kwargs
 ) -> Experiment:
     """
@@ -912,14 +963,21 @@ def run_experiment(
     if random_seed is None:
         random_seed = legacy_random_state
 
+    if experiment_type is None:
+        experiment_type = _infer_experiment_type(models)
+    elif isinstance(experiment_type, str):
+        experiment_type = ExperimentType(experiment_type)
+
     config = ExperimentConfig(
         n_folds=n_folds,
         random_seed=random_seed,
         n_jobs=n_jobs,
-        verbose=verbose
+        verbose=verbose,
+        # Stratified folds only make sense over discrete class labels.
+        stratify=experiment_type == ExperimentType.CLASSIFICATION,
     )
 
-    exp = Experiment(config, metrics=metrics)
+    exp = Experiment(config, metrics=metrics, experiment_type=experiment_type)
     exp.run(models, datasets, progress_callback=progress_callback)
 
     return exp
@@ -959,19 +1017,16 @@ def _run_single_fold(
         except Exception:
             pass
 
-    # Compute metrics — retry with average='macro' on TypeError
-    # (same pattern as api.evaluate for multi-class metrics like f1_score)
+    # Compute metrics. call_metric() switches to macro averaging on
+    # multiclass data for metrics that take an ``average`` argument —
+    # f1_score's binary default would otherwise silently report only the
+    # score of class 1.
+    from tuiml.base.algorithms import call_metric
+
     metrics = {}
     for metric_name, metric_func in metric_funcs.items():
         try:
-            metrics[metric_name] = metric_func(y_test, y_pred)
-        except TypeError:
-            try:
-                metrics[metric_name] = metric_func(y_test, y_pred, average='macro')
-            except Exception as e:
-                if verbose > 1:
-                    print(f"    Warning: Could not compute {metric_name}: {e}")
-                metrics[metric_name] = np.nan
+            metrics[metric_name] = call_metric(metric_func, y_test, y_pred)
         except Exception as e:
             if verbose > 1:
                 print(f"    Warning: Could not compute {metric_name}: {e}")

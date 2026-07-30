@@ -1,8 +1,27 @@
-"""Complete ML Workflow - Fluent chainable API for building ML pipelines."""
+"""Pipelines — an ordered list of steps ending in a model.
 
-from typing import Optional, List, Dict, Any, Union
+A :class:`Workflow` chains transformation steps and a final model into one
+object that behaves like a model itself: ``fit``, ``predict``, ``score``,
+``save``. Because the whole pipeline is a single estimator, the fitted
+transformations always travel with the model, so inference can never
+accidentally skip them.
+
+Steps may be written three ways — a class name, a spec dict, or a configured
+instance — and the three can be mixed freely::
+
+    Workflow(["StandardScaler", "NaiveBayesClassifier"])
+    Workflow([{"name": "PCAExtractor", "params": {"n_components": 5}}, "SVC"])
+    Workflow([StandardScaler(), RandomForestClassifier(n_estimators=100)])
+
+This is what lets :func:`tuiml.train` accept a JSON spec and this module accept
+imported classes while sharing one execution path.
+"""
+
+from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
+
+from tuiml.base.algorithms import Algorithm, call_metric
 
 # Tabular file formats whose loaders accept a target column and otherwise fall
 # back to the *last* column. ARFF is intentionally excluded: it declares its
@@ -13,1344 +32,1697 @@ _TABULAR_TARGET_FORMATS = {
     ".json", ".jsonl", ".ndjson",
 }
 
-class WorkflowResult:
-    """Result object returned by ``Workflow.run()``.
 
-    Contains the trained model, evaluation metrics, predictions, and
-    additional metadata from the workflow execution.
-
-    Attributes
-    ----------
-    model : object
-        The trained model instance.
-
-    model_id : str or None
-        Unique identifier for the model (if registered).
-
-    metrics : dict
-        Dictionary of computed evaluation metrics.
-
-    cv_results : dict or None
-        Cross-validation results (if CV was used).
-
-    predictions : ndarray or None
-        Test set predictions (if requested).
-
-    probabilities : ndarray or None
-        Prediction probabilities (if requested).
-
-    feature_importance : dict or None
-        Feature importance scores (if available).
-
-    preprocessing_pipeline : object or None
-        Fitted preprocessing pipeline.
-
-    metadata : dict
-        Additional workflow metadata.
-    """
-
-    def __init__(
-        self,
-        model=None,
-        model_id: Optional[str] = None,
-        metrics: Optional[Dict[str, float]] = None,
-        cv_results: Optional[Dict] = None,
-        predictions: Optional[np.ndarray] = None,
-        probabilities: Optional[np.ndarray] = None,
-        feature_importance: Optional[Dict[str, float]] = None,
-        preprocessing_pipeline: Optional[Any] = None,
-        metadata: Optional[Dict] = None,
-    ):
-        self.model = model
-        self.model_id = model_id
-        self.metrics = metrics or {}
-        self.cv_results = cv_results
-        self.predictions = predictions
-        self.probabilities = probabilities
-        self.feature_importance = feature_importance
-        self.preprocessing_pipeline = preprocessing_pipeline
-        self.metadata = metadata or {}
-
-    def __repr__(self):
-        return f"WorkflowResult(metrics={self.metrics})"
-
-    def _transform_for_inference(self, X):
-        """Apply any fitted preprocessing/feature-selection pipeline."""
-        X_transformed = np.asarray(X)
-        pipeline = self.preprocessing_pipeline
-        if not pipeline:
-            return X_transformed
-
-        steps = pipeline.get('preprocessing_steps', []) if isinstance(pipeline, dict) else pipeline
-        selector = pipeline.get('feature_selector') if isinstance(pipeline, dict) else None
-
-        for step in steps:
-            if hasattr(step, 'fit_resample'):
-                # Resamplers are training-only; applying them at inference would
-                # change the number of rows and break prediction semantics.
-                continue
-            transformed = step.transform(X_transformed)
-            if isinstance(transformed, tuple):
-                X_transformed = transformed[0]
-            else:
-                X_transformed = transformed
-
-        if selector is not None:
-            X_transformed = selector.transform(X_transformed)
-
-        return X_transformed
-
-    def predict(self, X) -> np.ndarray:
-        """Make predictions using the trained model.
-
-        Parameters
-        ----------
-        X : array-like of shape (n_samples, n_features)
-            Input data to predict on.
-
-        Returns
-        -------
-        predictions : np.ndarray
-            Predicted values or class labels.
-
-        Raises
-        ------
-        RuntimeError
-            If no trained model is available.
-        """
-        if self.model is None:
-            raise RuntimeError("No trained model available. Run the workflow first.")
-        X_transformed = self._transform_for_inference(X)
-        return self.model.predict(X_transformed)
-
-    def predict_proba(self, X) -> np.ndarray:
-        """Predict class probabilities using the trained model.
-
-        Parameters
-        ----------
-        X : array-like of shape (n_samples, n_features)
-            Input data to predict on.
-
-        Returns
-        -------
-        probabilities : np.ndarray of shape (n_samples, n_classes)
-            Predicted class probabilities.
-
-        Raises
-        ------
-        RuntimeError
-            If no trained model is available.
-        AttributeError
-            If the model does not support probability predictions.
-        """
-        if self.model is None:
-            raise RuntimeError("No trained model available. Run the workflow first.")
-        if not hasattr(self.model, 'predict_proba'):
-            raise AttributeError(
-                f"{self.model.__class__.__name__} does not support predict_proba()."
-            )
-        X_transformed = self._transform_for_inference(X)
-        return self.model.predict_proba(X_transformed)
-
-    def save(self, path: str) -> None:
-        """Save the entire workflow result (model + metrics + metadata) to disk.
-
-        Parameters
-        ----------
-        path : str
-            File path to save to (e.g., ``"result.joblib"``).
-        """
-        import joblib
-        joblib.dump(self, path)
-
-    @classmethod
-    def load(cls, path: str) -> "WorkflowResult":
-        """Load a saved workflow result from disk.
-
-        Parameters
-        ----------
-        path : str
-            Path to the saved result file.
-
-        Returns
-        -------
-        WorkflowResult
-            The loaded workflow result.
-        """
-        import joblib
-        return joblib.load(path)
-
-    def serve(self, port: int = 8000, host: str = "127.0.0.1", model_id: str = None):
-        """Serve the trained model via a REST API.
-
-        Parameters
-        ----------
-        port : int, default=8000
-            Port to listen on.
-        host : str, default="127.0.0.1"
-            Host to bind the server to.
-        model_id : str, optional
-            Identifier for the model. Defaults to the algorithm name
-            from metadata or ``"default"``.
-
-        Returns
-        -------
-        dict
-            Server info dict with url and endpoints (if background),
-            or None (if blocking).
-
-        Raises
-        ------
-        RuntimeError
-            If no trained model is available.
-        """
-        if self.model is None:
-            raise RuntimeError("No trained model available. Run the workflow first.")
-
-        if model_id is None:
-            model_id = self.metadata.get('algorithm', 'default')
-
-        from tuiml.api import serve as api_serve
-        return api_serve(self, host=host, port=port, model_id=model_id)
-
+# =============================================================================
+# Helpers
+# =============================================================================
 
 def _clone_estimator(prototype):
     """Return a fresh, unfitted copy of an estimator instance.
 
-    Used when an already-built estimator instance is handed to the workflow
-    (e.g. a raw scikit-learn estimator wrapped via ``wrap_sklearn``), because
-    cross-validation re-instantiates the model once per fold.
+    Every fit gets its own copy, so a cross-validation fold can never inherit
+    state from a previous one and the instance the caller passed in is never
+    itself mutated.
 
     Parameters
     ----------
     prototype : object
-        An estimator instance to clone.
+        An estimator or transformer instance to clone.
 
     Returns
     -------
     object
         A fresh copy in the same configuration as ``prototype``.
+
+    Raises
+    ------
+    TypeError
+        If the copy cannot be built. This is deliberately loud: silently
+        returning the original would make every fold share one fitted
+        object, quietly invalidating the scores.
     """
-    # scikit-learn-backed adapter: clone the wrapped estimator properly.
-    inner = getattr(prototype, "estimator", None)
-    if inner is not None:
-        try:
-            from sklearn.base import clone as _sk_clone
-            from tuiml.sklearn.adapter import wrap_sklearn
-            return wrap_sklearn(_sk_clone(inner))
-        except Exception:
-            pass
-    # Generic fallback: rebuild from the class and its constructor params.
-    try:
-        return type(prototype)(**prototype.get_params())
-    except Exception:
+    if not hasattr(prototype, "get_params"):
+        # Custom components need only fit/transform; without get_params there
+        # is nothing to copy from, so reuse it and let the caller's own
+        # convention govern state.
         return prototype
 
-
-def _inject_seed_to_algorithm(model_cls, model_params: dict, seed: int | None) -> dict:
-    """Inject seed into model parameters if supported and not already explicitly set."""
-    if seed is None:
-        return model_params
-    
     import inspect
-    params = model_params.copy()
-    
+
     try:
-        sig = inspect.signature(model_cls.__init__)
-        parameters = sig.parameters
-    except Exception:
-        return params
+        # Composites (a nested Workflow, On) expose nested ``a__b`` keys in
+        # their deep params, which are not constructor arguments.
+        params = prototype.get_params(deep=False)
+    except TypeError:
+        params = prototype.get_params()
 
-    if 'random_seed' in parameters:
-        if 'random_seed' not in params:
-            params['random_seed'] = seed
-    elif 'random_state' in parameters:
-        if 'random_state' not in params:
-            params['random_state'] = seed
-            
-    return params
+    cls = type(prototype)
+    try:
+        signature = inspect.signature(cls.__init__)
+        accepts_kwargs = any(
+            p.kind is inspect.Parameter.VAR_KEYWORD
+            for p in signature.parameters.values()
+        )
+        if not accepts_kwargs:
+            params = {k: v for k, v in params.items() if k in signature.parameters}
+    except (TypeError, ValueError):
+        pass
+
+    try:
+        return cls(**params)
+    except Exception as exc:
+        raise TypeError(
+            f"Could not create a fresh copy of {cls.__name__}: {exc}. Its "
+            f"__init__ must accept the parameters reported by get_params(), so "
+            f"each fit can start from a clean instance."
+        ) from exc
 
 
-class Workflow:
-    """Complete ML workflow with a fluent chainable API.
-
-    The Workflow class provides a convenient way to build end-to-end 
-    machine learning pipelines using method chaining. Each method returns 
-    ``self``, allowing you to chain operations together.
-
-    Overview
-    --------
-    A typical workflow consists of:
-
-    1. Initialize with data and target
-    2. Add preprocessing steps (impute, normalize, encode)
-    3. Optionally add feature selection
-    4. Configure the model
-    5. Set evaluation method
-    6. Execute with ``run()``
+def _inject_seed(model_cls, params: dict, seed: Optional[int]) -> dict:
+    """Add ``random_seed``/``random_state`` to ``params`` when the class takes one.
 
     Parameters
     ----------
-    data : str, Dataset, DataFrame, or ndarray, optional
-        Training data source:
+    model_cls : type
+        The class about to be instantiated.
+    params : dict
+        Constructor parameters collected so far.
+    seed : int or None
+        Seed to inject. ``None`` leaves ``params`` untouched.
 
-        - ``"iris"`` — Built-in dataset name
-        - ``"path/to/file.csv"`` — File path (csv, arff, parquet, json, excel, numpy)
-        - ``Dataset`` — TuiML Dataset object
-        - ``DataFrame`` — Pandas DataFrame
-        - ``ndarray`` — Numpy array
+    Returns
+    -------
+    dict
+        Parameters, with a seed added only if the constructor accepts one and
+        the caller did not already choose one.
 
-    target : str, optional
-        Target column name (when data is a file path or DataFrame).
+    Notes
+    -----
+    A parameter present but set to ``None`` counts as unset — that is the
+    default for seed arguments, and ``get_params()`` reports every constructor
+    parameter, not only the ones the caller passed.
+    """
+    if seed is None:
+        return params
+
+    import inspect
+    params = dict(params)
+    try:
+        accepted = inspect.signature(model_cls.__init__).parameters
+    except Exception:
+        return params
+
+    for key in ("random_seed", "random_state"):
+        if key in accepted:
+            if params.get(key) is None:
+                params[key] = seed
+            break
+    return params
+
+
+_MISSING = object()
+
+
+def _same_value(a, b) -> bool:
+    """Compare two parameter values, tolerating arrays.
+
+    ``==`` on a numpy array yields an array rather than a bool, so a plain
+    comparison would raise when a component takes an array parameter.
+
+    Parameters
+    ----------
+    a, b : object
+        Values to compare.
+
+    Returns
+    -------
+    bool
+        Whether the two values are equal.
+    """
+    if b is _MISSING:
+        return False
+    try:
+        return bool(np.asarray(a == b).all())
+    except Exception:
+        return a is b
+
+
+def _is_serializable(value) -> bool:
+    """Whether a parameter value survives a round-trip through JSON.
+
+    :meth:`Workflow.to_config` promises a spec that can be written to disk and
+    replayed, so callables, class objects, and estimator instances are dropped
+    rather than embedded.
+
+    Parameters
+    ----------
+    value : object
+        A parameter value.
+
+    Returns
+    -------
+    bool
+        Whether the value is JSON-serializable.
+    """
+    import json
+
+    try:
+        json.dumps(value)
+    except (TypeError, ValueError):
+        return False
+    return True
+
+
+def _resolve_component(name: str):
+    """Look up a component class by name.
+
+    Parameters
+    ----------
+    name : str
+        Class name, e.g. ``"StandardScaler"`` or ``"sklearn.SVC"``.
+
+    Returns
+    -------
+    type
+        The component class.
+
+    Raises
+    ------
+    ValueError
+        If no component with that name is registered or importable.
+    """
+    from tuiml.hub import registry
+
+    try:
+        return registry.get(name)
+    except KeyError:
+        pass
+
+    # Modules that register lazily may not have been imported yet.
+    for module_name in ("tuiml.algorithms", "tuiml.preprocessing", "tuiml.features"):
+        __import__(module_name)
+    try:
+        return registry.get(name)
+    except KeyError:
+        pass
+
+    from tuiml import preprocessing
+    from tuiml.features import selection, extraction, generation
+    for module in (preprocessing, selection, extraction, generation):
+        cls = getattr(module, name, None)
+        if cls is not None:
+            return cls
+
+    raise ValueError(
+        f"Unknown component '{name}'. Use tuiml.search_algorithms('{name}') to "
+        f"find the right name, or pass the class/instance directly."
+    )
+
+
+def _build_step(spec: Any, seed: Optional[int] = None):
+    """Turn a step spec into a component instance.
+
+    Parameters
+    ----------
+    spec : str, dict, type, or object
+        ``"StandardScaler"``, ``{"name": ..., "params": {...}}``, a class, or
+        an already-configured instance (returned as-is).
+    seed : int, optional
+        Seed to inject when the component accepts one.
+
+    Returns
+    -------
+    object
+        A component instance.
+
+    Raises
+    ------
+    ValueError
+        If a dict spec has no ``"name"``, or carries unexpected keys.
+    """
+    if isinstance(spec, str):
+        cls, params = _resolve_component(spec), {}
+    elif isinstance(spec, dict):
+        name = spec.get("name")
+        if not name:
+            raise ValueError(
+                'A step spec dict needs a "name" key, e.g. '
+                '{"name": "StandardScaler", "params": {...}}.'
+            )
+        extra = set(spec) - {"name", "params"}
+        if extra:
+            raise ValueError(
+                f"Unexpected keys {sorted(extra)} in the spec for '{name}'. "
+                f'Parameters belong inside "params": '
+                f'{{"name": "{name}", "params": {{...}}}}.'
+            )
+        params = spec.get("params") or {}
+        if not isinstance(params, dict):
+            raise ValueError(f'The "params" value for \'{name}\' must be a dict.')
+        cls = _resolve_component(name)
+    elif isinstance(spec, type):
+        cls, params = spec, {}
+    else:
+        return spec  # already an instance
+
+    return cls(**_inject_seed(cls, params, seed))
+
+
+def _fit_transform(step, X, y):
+    """Fit a transformer on ``(X, y)`` and return the transformed data.
+
+    Components may implement ``fit_transform`` directly, or the plain
+    ``fit`` + ``transform`` pair — both are accepted as steps.
+
+    Parameters
+    ----------
+    step : object
+        The transformer to fit.
+    X : array-like of shape (n_samples, n_features)
+        Input data.
+    y : array-like of shape (n_samples,) or None
+        Target values, forwarded when available.
+
+    Returns
+    -------
+    array-like
+        The transformed data (or an ``(X, y)`` tuple for steps that reshape
+        both).
+    """
+    if hasattr(step, "fit_transform"):
+        return step.fit_transform(X, y)
+    step.fit(X, y)
+    return step.transform(X)
+
+
+def _auto_name(component: Any, taken: Dict[str, int]) -> str:
+    """Derive a step name from a component's class name.
+
+    Follows the ``make_pipeline`` convention — the lowercased class name, with
+    a numeric suffix when the same class appears more than once.
+
+    Parameters
+    ----------
+    component : object
+        The component to name.
+    taken : dict
+        Counter of names already used, mutated in place.
+
+    Returns
+    -------
+    str
+        A unique step name, e.g. ``"standardscaler"`` or ``"on-2"``.
+    """
+    base = type(component).__name__.lower()
+    count = taken.get(base, 0)
+    taken[base] = count + 1
+    return base if count == 0 else f"{base}-{count + 1}"
+
+
+def _numeric_mask(X: np.ndarray) -> np.ndarray:
+    """Return a boolean mask marking which columns hold numbers.
+
+    Parameters
+    ----------
+    X : np.ndarray of shape (n_samples, n_features)
+        Feature matrix, possibly of ``object`` dtype with mixed columns.
+
+    Returns
+    -------
+    np.ndarray of shape (n_features,)
+        ``True`` where the column is numeric.
+    """
+    X = np.asarray(X)
+    if X.ndim == 1:
+        X = X.reshape(-1, 1)
+    if np.issubdtype(X.dtype, np.number):
+        return np.ones(X.shape[1], dtype=bool)
+
+    mask = np.zeros(X.shape[1], dtype=bool)
+    for j in range(X.shape[1]):
+        column = X[:, j]
+        try:
+            # A column counts as numeric only if every non-missing value casts.
+            values = column[~pd.isna(column)]
+            values.astype(float)
+            mask[j] = True
+        except (TypeError, ValueError):
+            mask[j] = False
+    return mask
+
+
+# =============================================================================
+# Column routing
+# =============================================================================
+
+class On:
+    """Apply a transformer to a subset of columns.
+
+    Mixed-type tables need different treatment per column — scale the numbers,
+    encode the categories. ``On`` wraps a transformer so it sees only the
+    columns you name, and is itself an ordinary pipeline step::
+
+        Workflow([
+            On("number", StandardScaler()),
+            On("category", OneHotEncoder()),
+            RandomForestClassifier(),
+        ])
+
+    Transformed columns come first in the output, followed by any columns not
+    selected (unless ``remainder="drop"``).
+
+    Parameters
+    ----------
+    columns : str, list of str, list of int, or callable
+        Which columns to route:
+
+        - ``"number"`` — every numeric column, detected from the data
+        - ``"category"`` — every non-numeric column
+        - ``["age", "income"]`` — these named columns
+        - ``[0, 3]`` — these column positions
+        - a callable taking the feature-name list and returning names/indices
+
+    transformer : object
+        Any component with ``fit_transform``/``transform``, given as an
+        instance, class name, or spec dict.
+    remainder : {"passthrough", "drop"}, default="passthrough"
+        What to do with the columns that were not selected.
 
     Attributes
     ----------
-    _preprocessing_steps : list
-        List of preprocessing step configurations.
+    columns_ : list of int
+        Positions of the selected columns, resolved at fit time.
+    transformer_ : object
+        The fitted transformer.
 
-    _feature_selection : dict or None
-        Feature selection configuration.
-
-    _split_config : dict or None
-        Train/test split configuration.
-
-    _model : str or None
-        Algorithm name to train.
-
-    _model_params : dict
-        Model hyperparameters.
-
-    _evaluation_config : dict
-        Evaluation configuration (holdout or CV).
+    Notes
+    -----
+    Selecting by *name* requires the incoming column names, which are known
+    only for the pipeline's original input. Put name-based ``On`` steps first,
+    before anything that changes the column layout; positional and
+    type-based selection work anywhere.
 
     Examples
     --------
-    Basic classification workflow:
-
-    >>> result = (
-    ...     Workflow("iris.csv", target="class")
-    ...     .impute(strategy="mean")
-    ...     .normalize()
-    ...     .train("RandomForestClassifier", n_trees=100)
-    ...     .cross_validate(cv=10)
-    ...     .run()
-    ... )
-
-    Complete workflow with feature selection:
-
-    >>> result = (
-    ...     Workflow("data.csv", target="label")
-    ...     .impute(strategy="knn")
-    ...     .standardize()
-    ...     .encode_categorical(method="onehot")
-    ...     .select_features(k=20)
-    ...     .train("SVM", kernel="rbf", C=1.0)
-    ...     .evaluate()
-    ...     .run()
-    ... )
-
-    Export configuration:
-
-    >>> workflow = Workflow("data.csv", target="class")
-    >>> workflow.train("NaiveBayesClassifier")
-    >>> config = workflow.to_config()
+    >>> On("number", StandardScaler())                      # doctest: +SKIP
+    >>> On(["age", "fare"], "SimpleImputer")                # doctest: +SKIP
     """
 
-    @classmethod
-    def get_parameter_schema(cls) -> dict:
-        """Return JSON Schema for parameters."""
-        return {
-            "data": {
-                "type": ["string", "object", "array", "null"],
-                "default": None,
-                "description": "Training data: file path, DataFrame, or numpy array"
-            },
-            "target": {
-                "type": ["string", "null"],
-                "default": None,
-                "description": "Target column name (for DataFrame/file data)"
-            }
-        }
-
-    def __init__(self, data: Union[str, pd.DataFrame, np.ndarray] = None,
-                 target: Optional[str] = None,
-                 features: Optional[List[str]] = None):
-        """Initialize workflow.
-
-        Parameters
-        ----------
-        data : str, DataFrame, or ndarray, optional
-            Path to data file, DataFrame, or numpy array.
-
-        target : str, optional
-            Target column name (if data is DataFrame/file).
-
-        features : list of str, optional
-            Restrict the feature matrix to these named columns. When ``None``
-            (default), every non-target column is used as a feature.
-        """
-        self._data = data
-        self._target = target
-        self._features = features
-        self._preprocessing_steps = []
-        self._feature_selection = None
-        self._split_config = None
-        self._model = None
-        self._model_params = {}
-        self._evaluation_config = {}
-
-    # ===== Data Loading =====
-
-    def load(self, data: Union[str, pd.DataFrame, np.ndarray]) -> "Workflow":
-        """Load data.
-
-        Parameters
-        ----------
-        data : str, DataFrame, or ndarray
-            Path to file, DataFrame, or array.
-
-        Returns
-        -------
-        self : Workflow
-            Self for chaining.
-        """
-        self._data = data
-        return self
-
-    # ===== Preprocessing Methods =====
-
-    def impute(self, strategy: str = "mean", **kwargs) -> "Workflow":
-        """Add imputation step for missing values.
-
-        Parameters
-        ----------
-        strategy : str, default="mean"
-            Imputation strategy:
-            
-            - ``"mean"`` — Mean imputation
-            - ``"median"`` — Median imputation
-            - ``"mode"`` — Mode imputation
-            - ``"knn"`` — K-nearest neighbors imputation
-            
-        **kwargs
-            Additional parameters for the imputer.
-
-        Returns
-        -------
-        self : Workflow
-            Self for chaining.
-        """
-        if strategy == "knn":
-            self._preprocessing_steps.append({"name": "KNNImputer", **kwargs})
-        else:
-            self._preprocessing_steps.append(
-                {"name": "SimpleImputer", "strategy": strategy, **kwargs}
+    def __init__(self, columns, transformer, remainder: str = "passthrough"):
+        if remainder not in ("passthrough", "drop"):
+            raise ValueError(
+                f'remainder must be "passthrough" or "drop", got {remainder!r}.'
             )
-        return self
+        self.columns = columns
+        self.transformer = transformer
+        self.remainder = remainder
+        self._feature_names: Optional[List[str]] = None
 
-    def normalize(self, method: str = "minmax") -> "Workflow":
-        """Add normalization step.
-
-        Parameters
-        ----------
-        method : str, default="minmax"
-            Normalization method:
-            
-            - ``"minmax"`` — Scale features to [0, 1] range
-            - ``"zscore"`` — Scale features to zero mean and unit variance
-
-        Returns
-        -------
-        self : Workflow
-            Self for chaining.
-        """
-        if method == "zscore":
-            self._preprocessing_steps.append({"name": "StandardScaler"})
-        else:
-            self._preprocessing_steps.append({"name": "MinMaxScaler"})
-        return self
-
-    def standardize(self) -> "Workflow":
-        """Add standardization step (z-score normalization).
-
-        Returns
-        -------
-        self : Workflow
-            Self for chaining.
-        """
-        self._preprocessing_steps.append({"name": "StandardScaler"})
-        return self
-
-    def encode_categorical(self, method: str = "onehot") -> "Workflow":
-        """Encode categorical variables.
+    def get_params(self, deep: bool = True) -> Dict[str, Any]:
+        """Return the constructor parameters.
 
         Parameters
         ----------
-        method : str, default="onehot"
-            Encoding method:
-            
-            - ``"onehot"`` — Create binary columns for each category
-            - ``"ordinal"`` — Map categories to integers
-
-        Returns
-        -------
-        self : Workflow
-            Self for chaining.
-        """
-        if method == "onehot":
-            self._preprocessing_steps.append({"name": "OneHotEncoder"})
-        else:
-            self._preprocessing_steps.append({"name": "OrdinalEncoder"})
-        return self
-
-    def handle_missing(self, strategy: str = "mean") -> "Workflow":
-        """Alias for ``impute()``.
-
-        Parameters
-        ----------
-        strategy : str, default="mean"
-            Imputation strategy.
-
-        Returns
-        -------
-        self : Workflow
-            Self for chaining.
-        """
-        return self.impute(strategy)
-
-    def resample(self, method: str = "smote", **kwargs) -> "Workflow":
-        """Add resampling for imbalanced datasets.
-
-        Parameters
-        ----------
-        method : str, default="smote"
-            Resampling method:
-            
-            - ``"smote"`` — Synthetic Minority Over-sampling Technique
-            - ``"adasyn"`` — Adaptive Synthetic sampling
-            - ``"random_over"`` — Random over-sampling
-            - ``"random_under"`` — Random under-sampling
-            
-        **kwargs
-            Additional parameters for the resampler.
-
-        Returns
-        -------
-        self : Workflow
-            Self for chaining.
-        """
-        method_map = {
-            "smote": "SMOTESampler",
-            "adasyn": "ADASYNSampler",
-            "random_over": "RandomOverSampler",
-            "random_under": "RandomUnderSampler",
-        }
-        self._preprocessing_steps.append(
-            {"name": method_map.get(method, method.upper()), **kwargs}
-        )
-        return self
-
-    def preprocess(self, name: str, **kwargs) -> "Workflow":
-        """Add any preprocessing step by name.
-
-        Parameters
-        ----------
-        name : str
-            Preprocessor class name (e.g., ``"SimpleImputer"``, ``"MinMaxScaler"``).
-            
-        **kwargs
-            Parameters passed to the preprocessor.
-
-        Returns
-        -------
-        self : Workflow
-            Self for chaining.
-        """
-        self._preprocessing_steps.append({"name": name, **kwargs})
-        return self
-
-    # ===== Feature Engineering Methods =====
-
-    def select_features(
-        self, k: int = 10, **kwargs
-    ) -> "Workflow":
-        """Add feature selection step.
-
-        Parameters
-        ----------
-        k : int, default=10
-            Number of top features to select.
-            
-        **kwargs
-            Additional parameters for the selector (e.g., ``score_func``).
-
-        Returns
-        -------
-        self : Workflow
-            Self for chaining.
-        """
-        self._feature_selection = {
-            "name": "SelectKBestSelector",
-            "k": k,
-            **kwargs,
-        }
-        return self
-
-    def pca(self, n_components: Union[int, float] = 0.95) -> "Workflow":
-        """Add PCAExtractor dimensionality reduction.
-
-        Parameters
-        ----------
-        n_components : int or float, default=0.95
-            Number of components to keep. If float, it represents the
-            proportion of variance to be explained.
-
-        Returns
-        -------
-        self : Workflow
-            Self for chaining.
-        """
-        self._feature_selection = {"name": "PCAExtractor", "n_components": n_components}
-        return self
-
-    # ===== Data Splitting =====
-
-    def split(
-        self,
-        test_size: float = 0.2,
-        stratify: bool = True,
-        random_state: Optional[int] = 42,
-    ) -> "Workflow":
-        """Configure train/test split.
-
-        Parameters
-        ----------
-        test_size : float, default=0.2
-            Proportion of data reserved for testing.
-            
-        stratify : bool, default=True
-            Whether to maintain class distribution in the split.
-            
-        random_state : int or None, default=42
-            Random seed for reproducibility.
-
-        Returns
-        -------
-        self : Workflow
-            Self for chaining.
-        """
-        self._split_config = {
-            "test_size": test_size,
-            "stratify": stratify,
-            "random_state": random_state,
-        }
-        return self
-
-    # ===== Model Training =====
-
-    def train(self, algorithm: str, **params) -> "Workflow":
-        """Set the model algorithm to train.
-
-        Parameters
-        ----------
-        algorithm : str
-            Algorithm class name (e.g., ``"RandomForest"``, ``"SVM"``).
-            
-        **params
-            Model hyperparameters.
-
-        Returns
-        -------
-        self : Workflow
-            Self for chaining.
-        """
-        self._model = algorithm
-        self._model_params = params
-        return self
-
-    def model(self, algorithm: str, **params) -> "Workflow":
-        """Alias for ``train()``.
-
-        Parameters
-        ----------
-        algorithm : str
-            Algorithm class name.
-            
-        **params
-            Model hyperparameters.
-
-        Returns
-        -------
-        self : Workflow
-            Self for chaining.
-        """
-        return self.train(algorithm, **params)
-
-    # ===== Evaluation Methods =====
-
-    def evaluate(
-        self, metrics: Optional[List[str]] = None, test_size: float = 0.2
-    ) -> "Workflow":
-        """Configure holdout evaluation.
-
-        Parameters
-        ----------
-        metrics : list of str, optional
-            List of metrics to compute (e.g., ``["accuracy", "f1"]``).
-            
-        test_size : float, default=0.2
-            Test set size if split was not configured.
-
-        Returns
-        -------
-        self : Workflow
-            Self for chaining.
-        """
-        self._evaluation_config = {
-            "method": "holdout",
-            "metrics": metrics,
-            "test_size": test_size,
-        }
-        return self
-
-    def cross_validate(
-        self, cv: int = 10, metrics: Optional[List[str]] = None
-    ) -> "Workflow":
-        """Configure cross-validation evaluation.
-
-        Parameters
-        ----------
-        cv : int, default=10
-            Number of cross-validation folds.
-            
-        metrics : list of str, optional
-            List of metrics to compute.
-
-        Returns
-        -------
-        self : Workflow
-            Self for chaining.
-        """
-        self._evaluation_config = {
-            "method": "cross_validate",
-            "cv": cv,
-            "metrics": metrics,
-        }
-        return self
-
-    # ===== Data-loading helpers =====
-
-    def _loader_target_kwargs(self, path: str) -> Dict[str, Any]:
-        """Build loader kwargs so a file loader extracts the right target column.
-
-        Only forwards ``target_column`` when a target column name/index is set.
-        The ARFF loader declares its class in the file metadata and accepts an
-        integer index only, so a *string* target name is ignored for ``.arff``
-        (with a warning) and the file's own class attribute is used instead.
-
-        Parameters
-        ----------
-        path : str
-            Path to the data file about to be loaded.
+        deep : bool, default=True
+            Included for API symmetry; ``On`` has no nested params to expose.
 
         Returns
         -------
         dict
-            Keyword arguments to pass to :func:`tuiml.datasets.load`.
+            The ``columns``, ``transformer``, and ``remainder`` parameters.
         """
-        import os
-        import warnings
+        return {
+            "columns": self.columns,
+            "transformer": self.transformer,
+            "remainder": self.remainder,
+        }
 
-        target = self._target
-        # Array-like targets are applied after loading, not by the loader.
-        if target is None or isinstance(target, (np.ndarray, pd.Series, list)):
-            return {}
+    def _bind_feature_names(self, names: Optional[List[str]]) -> None:
+        """Record the incoming column names so names can be resolved to positions.
 
-        suffix = os.path.splitext(path)[1].lower()
-        if suffix == ".arff":
-            if isinstance(target, str):
-                warnings.warn(
-                    f"ARFF files declare their class column in the file metadata; "
-                    f"the string target {target!r} is ignored for {path!r}.",
-                    stacklevel=3,
-                )
-                return {}
-            return {"target_column": target}  # integer index
-        return {"target_column": target}
+        Parameters
+        ----------
+        names : list of str or None
+            Column names of the data this step will receive.
+        """
+        self._feature_names = list(names) if names is not None else None
 
-    def _apply_feature_subset(self, X, feature_names):
-        """Select only the columns named in ``self._features`` from ``X``.
+    def _resolve_columns(self, X: np.ndarray) -> List[int]:
+        """Resolve the ``columns`` specification to column positions.
 
         Parameters
         ----------
         X : np.ndarray of shape (n_samples, n_features)
-            The full feature matrix.
-        feature_names : list of str or None
-            Column names aligned with ``X``'s columns.
+            The data this step is about to transform.
 
         Returns
         -------
-        X_subset : np.ndarray
-            ``X`` restricted to the requested columns, in the requested order.
-        selected : list of str
-            The selected feature names.
-        """
-        features = list(self._features)
-        if not feature_names:
-            raise ValueError(
-                "features= was given but the data source has no column names to "
-                "select from (e.g. a raw numpy array). Provide named data "
-                "(file path, DataFrame, or Dataset) to use features=."
-            )
-        feature_names = list(feature_names)
-        missing = [f for f in features if f not in feature_names]
-        if missing:
-            raise ValueError(
-                f"features not found in data columns {feature_names}: {missing}"
-            )
-        idx = [feature_names.index(f) for f in features]
-        return np.asarray(X)[:, idx], features
-
-    # ===== Execution =====
-
-    def run(self) -> WorkflowResult:
-        """Execute the complete workflow and return results.
-
-        Returns
-        -------
-        WorkflowResult
-            Object containing the trained model, metrics, and metadata.
+        list of int
+            Positions of the selected columns.
 
         Raises
         ------
         ValueError
-            If workflow is incomplete (missing data or model).
+            If names are requested but unknown, or a name is not present.
         """
-        if self._data is None:
-            raise ValueError("No data provided. Use load() or pass data in constructor.")
+        columns = self.columns
+        if callable(columns):
+            columns = columns(self._feature_names)
 
-        if self._model is None:
-            raise ValueError("No model specified. Use train() to set a model.")
+        if isinstance(columns, str):
+            if columns in ("number", "numeric"):
+                return list(np.flatnonzero(_numeric_mask(X)))
+            if columns in ("category", "categorical"):
+                return list(np.flatnonzero(~_numeric_mask(X)))
+            columns = [columns]
 
-        # Execute workflow directly
-        return self._execute()
+        resolved = []
+        for column in columns:
+            if isinstance(column, str):
+                if self._feature_names is None:
+                    raise ValueError(
+                        f"Cannot select column {column!r} by name: the column "
+                        f"names of this step's input are unknown. Put "
+                        f"name-based On steps first in the pipeline, or select "
+                        f'by position or by "number"/"category".'
+                    )
+                if column not in self._feature_names:
+                    raise ValueError(
+                        f"Column {column!r} not found in {self._feature_names}."
+                    )
+                resolved.append(self._feature_names.index(column))
+            else:
+                resolved.append(int(column))
+        return resolved
 
-    @staticmethod
-    def _resolve_component(name: str, fallback_module: str = None):
-        """Resolve a component class by name via hub registry, with module fallback.
+    def fit_transform(self, X, y=None):
+        """Fit the wrapped transformer on the selected columns and transform.
 
         Parameters
         ----------
-        name : str
-            Component class name (e.g., 'MinMaxScaler', 'SelectKBestSelector').
-        fallback_module : str, optional
-            Module path to try if not found in hub registry
-            ('preprocessing' or 'features').
+        X : array-like of shape (n_samples, n_features)
+            Input data.
+        y : array-like of shape (n_samples,), optional
+            Target values, forwarded to the wrapped transformer.
 
         Returns
         -------
-        cls : type or None
-            The component class, or None if not found.
+        np.ndarray
+            Transformed selected columns, followed by the passthrough columns.
         """
-        from tuiml.hub import registry
+        X = np.asarray(X)
+        self.columns_ = self._resolve_columns(X)
+        self.remainder_ = (
+            [j for j in range(X.shape[1]) if j not in set(self.columns_)]
+            if self.remainder == "passthrough" else []
+        )
+        # Always fit a copy, so repeated fits stay independent of each other.
+        self.transformer_ = _clone_estimator(_build_step(self.transformer))
+        transformed = _fit_transform(self.transformer_, X[:, self.columns_], y)
+        return self._concat(transformed, X)
 
-        # 1. Try hub registry first (covers built-in + community/custom components)
-        try:
-            return registry.get(name)
-        except KeyError:
-            pass
+    def transform(self, X):
+        """Transform new data with the already-fitted transformer.
 
-        # 2. Fallback to module-level import for backward compatibility
-        if fallback_module == 'preprocessing':
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Input data.
+
+        Returns
+        -------
+        np.ndarray
+            Transformed selected columns, followed by the passthrough columns.
+        """
+        if not hasattr(self, "transformer_"):
+            raise RuntimeError("This On step is not fitted yet. Call fit_transform first.")
+        X = np.asarray(X)
+        return self._concat(self.transformer_.transform(X[:, self.columns_]), X)
+
+    def _concat(self, transformed, X):
+        """Join transformed columns with the untouched passthrough columns.
+
+        Parameters
+        ----------
+        transformed : array-like
+            Output of the wrapped transformer.
+        X : np.ndarray
+            The original input, source of the passthrough columns.
+
+        Returns
+        -------
+        np.ndarray
+            The combined matrix, cast to float when every value is numeric.
+        """
+        transformed = np.asarray(transformed)
+        if transformed.ndim == 1:
+            transformed = transformed.reshape(-1, 1)
+        if self.remainder_:
+            transformed = np.hstack([transformed, X[:, self.remainder_]])
+        if not np.issubdtype(transformed.dtype, np.number):
             try:
-                from tuiml import preprocessing
-                cls = getattr(preprocessing, name, None)
-                if cls:
-                    return cls
-            except ImportError:
+                transformed = transformed.astype(float)
+            except (TypeError, ValueError):
                 pass
-        elif fallback_module == 'features':
-            try:
-                from tuiml.features import selection, extraction, generation
-                for module in (selection, extraction, generation):
-                    cls = getattr(module, name, None)
-                    if cls:
-                        return cls
-            except ImportError:
-                pass
+        return transformed
 
-        return None
+    def _tuiml_visual_block_(self):
+        """Return the diagram layout: one branch per routed column group."""
+        from tuiml.utils.html_repr import VisualBlock
+
+        transformer = getattr(self, "transformer_", None) or _build_step(self.transformer)
+        # Each branch is captioned by the columns it receives, so the diagram
+        # reads as "these columns go through this transformer".
+        branches = [transformer]
+        names = [repr(self.columns)]
+        details = [f"columns: {self.columns!r}"]
+        if self.remainder == "passthrough":
+            branches.append(None)
+            names.append("remainder")
+            details.append("every other column, unchanged")
+        return VisualBlock("parallel", branches, names=names, details=details,
+                           title="On", framed=True)
+
+    def __repr__(self):
+        return (
+            f"On({self.columns!r}, {self.transformer!r}"
+            + (f", remainder={self.remainder!r})" if self.remainder != "passthrough" else ")")
+        )
+
+
+# =============================================================================
+# Workflow
+# =============================================================================
+
+class Workflow(Algorithm):
+    """An ordered pipeline of steps ending in a model.
+
+    A ``Workflow`` *is* a model: it exposes the same ``fit``/``predict``/
+    ``score``/``save`` interface as any single algorithm, so it can be used
+    anywhere one can — including as a step inside another ``Workflow``, or as
+    an entry in :func:`tuiml.experiment`.
+
+    Every step except the last transforms the data; the last one is the model.
+
+    Parameters
+    ----------
+    steps : list, optional
+        The pipeline, in execution order. Each element is a component — a
+        class name, a ``{"name": ..., "params": {...}}`` spec dict, a class,
+        or a configured instance — or an explicit ``(name, component)`` tuple
+        when you want to choose the step's name. Names are otherwise derived
+        from the class name, lowercased.
+
+    Attributes
+    ----------
+    steps_ : list
+        The fitted transformation steps. Set by :meth:`fit`.
+    model_ : object
+        The fitted final model. Set by :meth:`fit`.
+    metrics_ : dict or None
+        Held-out scores, when :meth:`fit` was given ``cv`` or ``test_size``.
+    cv_results_ : dict or None
+        Per-fold scores from cross-validation.
+    predictions_ : np.ndarray or None
+        Predictions on the held-out split.
+    feature_names_in_ : list of str or None
+        Column names of the training data, when known.
+    metadata_ : dict
+        Details of the run — algorithm name, step names, evaluation method.
+
+    Notes
+    -----
+    :meth:`fit` always leaves the pipeline fitted on **all** the data it was
+    given. Passing ``cv`` or ``test_size`` additionally measures held-out
+    performance into :attr:`metrics_` before that final fit.
+
+    See Also
+    --------
+    :func:`tuiml.train` : The same engine driven by a single spec dict.
+    :class:`On` : Apply a step to a subset of columns.
+
+    Examples
+    --------
+    Strings — no imports needed:
+
+    >>> wf = Workflow(["StandardScaler", "NaiveBayesClassifier"])
+    >>> wf = wf.fit("iris", test_size=0.2)              # doctest: +SKIP
+    >>> wf.metrics_                                      # doctest: +SKIP
+    {'accuracy_score': 0.967, 'f1_score': 0.947}
+
+    Instances — full editor autocomplete:
+
+    >>> from tuiml.preprocessing import StandardScaler          # doctest: +SKIP
+    >>> from tuiml.algorithms.trees import RandomForestClassifier   # doctest: +SKIP
+    >>> wf = Workflow([StandardScaler(), RandomForestClassifier(n_estimators=100)])
+    ...                                                  # doctest: +SKIP
+    >>> wf.fit(X_train, y_train).predict(X_test)         # doctest: +SKIP
+
+    Mixed-type table, cross-validated:
+
+    >>> wf = Workflow([                                  # doctest: +SKIP
+    ...     On("number", "SimpleImputer"),
+    ...     On("category", "OneHotEncoder"),
+    ...     "RandomForestClassifier",
+    ... ])
+    >>> wf.fit("sales.csv", target="label", cv=10)       # doctest: +SKIP
+    """
+
+    def __init__(self, steps: Optional[List[Any]] = None):
+        self.steps = list(steps) if steps else []
+        self._named_steps = self._normalize(self.steps)
+        if self._named_steps:
+            self._validate()
+
+    # ----- construction -------------------------------------------------
 
     @staticmethod
-    def _normalize_step_config(step):
-        """Normalize a preprocessing step config into name + params."""
-        if isinstance(step, str):
-            return step, {}
-        if isinstance(step, dict):
-            name = step.get('name')
-            params = {k: v for k, v in step.items() if k not in ('name', 'params')}
-            params.update(step.get('params', {}))
-            return name, params
-        return None, {}
+    def _normalize(steps: List[Any]) -> List[Tuple[str, Any]]:
+        """Turn the ``steps`` argument into a list of ``(name, instance)`` pairs.
 
-    def _fit_preprocessing_pipeline(self, X, y=None):
-        """Fit preprocessing steps on the provided data only."""
-        X_current, y_current = X, y
-        fitted_steps = []
+        Parameters
+        ----------
+        steps : list
+            Raw steps as passed to the constructor.
 
-        for step in self._preprocessing_steps:
-            name, params = self._normalize_step_config(step)
-            if not name:
-                continue
+        Returns
+        -------
+        list of tuple
+            ``(name, component_instance)`` in execution order.
+        """
+        normalized: List[Tuple[str, Any]] = []
+        taken: Dict[str, int] = {}
+        for step in steps:
+            if isinstance(step, tuple) and len(step) == 2 and isinstance(step[0], str):
+                name, component = step[0], _build_step(step[1])
+                taken[name] = taken.get(name, 0) + 1
+            else:
+                component = _build_step(step)
+                name = _auto_name(component, taken)
+            normalized.append((name, component))
+        return normalized
 
-            preprocessor_cls = self._resolve_component(name, 'preprocessing')
-            if preprocessor_cls is None:
-                raise ValueError(
-                    f"Preprocessor '{name}' not found. Check the class name "
-                    f"or ensure it is registered in the hub."
+    def _validate(self) -> None:
+        """Check that every step can transform and the final step can predict.
+
+        Raises
+        ------
+        TypeError
+            If a step cannot transform, or the final step cannot predict.
+        """
+        *transformers, (final_name, final) = self._named_steps
+        for name, component in transformers:
+            transforms = hasattr(component, "fit_transform") or (
+                hasattr(component, "fit") and hasattr(component, "transform")
+            )
+            if not (transforms or hasattr(component, "fit_resample")):
+                raise TypeError(
+                    f"Step '{name}' ({type(component).__name__}) cannot transform "
+                    f"data. Every step but the last needs fit_transform() (or "
+                    f"fit_resample()); the model goes last."
                 )
-
-            preprocessor = preprocessor_cls(**params)
-            if hasattr(preprocessor, 'fit_resample') and y_current is not None:
-                X_current, y_current = preprocessor.fit_resample(X_current, y_current)
-            else:
-                transformed = preprocessor.fit_transform(X_current, y_current)
-                if isinstance(transformed, tuple):
-                    X_current, y_current = transformed
-                else:
-                    X_current = transformed
-            fitted_steps.append(preprocessor)
-
-        return X_current, y_current, fitted_steps
-
-    @staticmethod
-    def _transform_with_preprocessing_pipeline(X, fitted_steps):
-        """Transform inference/validation data with already-fitted steps."""
-        X_current = X
-
-        for step in fitted_steps:
-            if hasattr(step, 'fit_resample'):
-                continue
-            transformed = step.transform(X_current)
-            if isinstance(transformed, tuple):
-                X_current = transformed[0]
-            else:
-                X_current = transformed
-
-        return X_current
-
-    def _fit_feature_selector(self, X, y=None):
-        """Fit feature selection on the provided data only."""
-        if not self._feature_selection:
-            return X, None
-
-        fs_name = self._feature_selection.get('name')
-        fs_params = {
-            k: v for k, v in self._feature_selection.items() if k != 'name'
-        }
-        selector_cls = self._resolve_component(fs_name, 'features')
-        if selector_cls is None:
-            raise ValueError(
-                f"Feature selector '{fs_name}' not found. Check the class "
-                f"name or ensure it is registered in the hub."
+        if not (hasattr(final, "fit") and hasattr(final, "predict")):
+            raise TypeError(
+                f"The last step '{final_name}' ({type(final).__name__}) must be a "
+                f"model with fit() and predict(). Add the model at the end of the "
+                f"steps list."
             )
 
-        selector = selector_cls(**fs_params)
-        if hasattr(selector, 'fit_transform'):
-            X_selected = selector.fit_transform(X, y)
-        else:
-            selector.fit(X, y)
-            X_selected = selector.transform(X)
+    # ----- introspection ------------------------------------------------
 
-        return X_selected, selector
+    @property
+    def named_steps(self) -> Dict[str, Any]:
+        """Steps by name, e.g. ``wf.named_steps["standardscaler"]``."""
+        return dict(self._named_steps)
 
-    @staticmethod
-    def _transform_with_feature_selector(X, selector):
-        """Transform data with an already-fitted feature selector."""
-        if selector is None:
-            return X
-        return selector.transform(X)
+    @property
+    def model(self) -> Any:
+        """The final step — the model, unfitted unless :meth:`fit` has run."""
+        if not self._named_steps:
+            return None
+        return self._named_steps[-1][1]
 
-    def _fit_pipeline(self, X, y=None):
-        """Fit preprocessing + feature selection on a dataset split."""
-        X_processed, y_processed, fitted_steps = self._fit_preprocessing_pipeline(X, y)
-        X_processed, selector = self._fit_feature_selector(X_processed, y_processed)
-        pipeline = {
-            'preprocessing_steps': fitted_steps,
-            'feature_selector': selector,
-        }
-        return X_processed, y_processed, pipeline
+    @property
+    def transformers(self) -> List[Tuple[str, Any]]:
+        """The ``(name, component)`` pairs before the model."""
+        return list(self._named_steps[:-1])
 
-    def _transform_pipeline(self, X, pipeline):
-        """Apply a fitted pipeline to validation/test/inference data."""
-        if not pipeline:
-            return X
-        X_processed = self._transform_with_preprocessing_pipeline(
-            X, pipeline.get('preprocessing_steps', [])
-        )
-        return self._transform_with_feature_selector(
-            X_processed, pipeline.get('feature_selector')
-        )
+    @property
+    def _estimator_type(self) -> Optional[str]:
+        """The final model's estimator type — a pipeline's task is its model's.
 
-    def _execute(self) -> WorkflowResult:
-        """Internal execution method - performs actual training."""
-        import numpy as np
-        import os
-        import warnings
-        from tuiml.datasets import load_dataset, load
-        from tuiml.hub import registry
-        import tuiml.algorithms  # noqa: F401 - trigger registration
-        import tuiml.preprocessing  # noqa: F401 - trigger registration
-        import tuiml.features  # noqa: F401 - trigger registration
+        Tooling (``experiment()``, wrapper adapters) uses this to tell
+        supervised models from clusterers. Without it a pipeline would be
+        judged by its own ``fit`` signature, where ``y`` is optional, and be
+        mistaken for a clusterer.
+        """
+        from tuiml.hub import ComponentType
 
-        # 1. Load data — use TuiML loaders for all file formats
-        from tuiml.datasets.loaders.arff import Dataset as WNDataset
+        final = self.model
+        if final is None:
+            return None
+        declared = getattr(final, "_estimator_type", None)
+        if declared:
+            return declared
+        return {
+            ComponentType.CLASSIFIER: "classifier",
+            ComponentType.REGRESSOR: "regressor",
+            ComponentType.CLUSTERER: "clusterer",
+        }.get(getattr(final, "_component_type", None), "classifier")
 
-        feature_names = None
-        if isinstance(self._data, WNDataset):
-            # Already a Dataset object — use directly
-            X, y = self._data.X, self._data.y
-            feature_names = self._data.feature_names
+    def __len__(self):
+        return len(self._named_steps)
 
-        elif isinstance(self._data, str):
-            # String: try file path first (uses auto-detect loader for csv,
-            # arff, parquet, json, excel, numpy), then built-in name
-            if os.path.exists(self._data):
-                load_kwargs = self._loader_target_kwargs(self._data)
-                suffix = os.path.splitext(self._data)[1].lower()
-                if 'target_column' not in load_kwargs and suffix in _TABULAR_TARGET_FORMATS:
-                    warnings.warn(
-                        f"No target column specified for {self._data!r}; defaulting "
-                        f"to the last column. Pass target=... to be explicit.",
-                        stacklevel=2,
-                    )
-                dataset = load(self._data, **load_kwargs)
-            else:
-                dataset = load_dataset(self._data)
-            X, y = dataset.X, dataset.y
-            feature_names = dataset.feature_names
+    def __getitem__(self, key):
+        """Index by position (``wf[0]``, ``wf[-1]``) or by step name."""
+        if isinstance(key, str):
+            return self.named_steps[key]
+        if isinstance(key, slice):
+            return Workflow(self._named_steps[key])
+        return self._named_steps[key][1]
 
-        elif isinstance(self._data, pd.DataFrame):
-            # DataFrame — use from_pandas to get a proper Dataset
-            from tuiml.datasets import from_pandas
-            dataset = from_pandas(
-                self._data,
-                target_column=self._target if isinstance(self._target, str) else None,
-            )
-            X = dataset.X
-            y = dataset.y
-            feature_names = dataset.feature_names
-            # If target was passed as a separate array, use that instead
-            if isinstance(self._target, (np.ndarray, pd.Series)):
-                y = np.asarray(self._target)
+    def get_params(self, deep: bool = True) -> Dict[str, Any]:
+        """Return the pipeline's parameters.
 
-        else:
-            # ndarray or array-like
-            X = self._data if isinstance(self._data, np.ndarray) else np.asarray(self._data)
-            y = np.asarray(self._target) if self._target is not None else None
-
-        # Restrict the feature matrix to the requested columns, if any.
-        if self._features is not None:
-            X, feature_names = self._apply_feature_subset(X, feature_names)
-
-        # 3. Determine split config (merge evaluate's test_size if split not configured)
-        from tuiml.evaluation.splitting import train_test_split
-        from tuiml.utils.seed import get_global_seed
-        global_seed = get_global_seed()
-
-        split_config = self._split_config or {}
-        eval_config = self._evaluation_config or {}
-
-        test_size = split_config.get(
-            'test_size', eval_config.get('test_size', 0.2)
-        )
-        
-        # Priority: explicit split config random_state > global seed > 42
-        random_state = split_config.get('random_state')
-        if random_state is None:
-            random_state = global_seed
-        if random_state is None:
-            random_state = 42
-
-        do_stratify = split_config.get('stratify', True)
-        stratify_arr = y if (do_stratify and y is not None) else None
-
-        use_cv = eval_config.get('method') == 'cross_validate'
-
-        # 4. Resolve model class.
-        # ``self._model`` is normally a registry name (str). It may also be a
-        # class, or an already-built estimator instance — e.g. a raw
-        # scikit-learn estimator that the high-level API wrapped via
-        # ``wrap_sklearn``. For an instance we build a factory that returns a
-        # fresh clone on each call, since CV re-instantiates the model per fold.
-        if isinstance(self._model, str):
-            try:
-                model_cls = registry.get(self._model)
-            except KeyError:
-                raise ValueError(f"Unknown algorithm: {self._model}")
-        elif isinstance(self._model, type):
-            model_cls = self._model
-        else:
-            _prototype = self._model
-
-            def model_cls(**_kwargs):
-                return _clone_estimator(_prototype)
-
-        model_params = self._model_params or {}
-        model_params = _inject_seed_to_algorithm(model_cls, model_params, random_state)
-        _user_metrics = eval_config.get('metrics')
-
-        # Dynamically load metrics from registry
-        from tuiml.evaluation import metrics as metrics_module
-
-        def _get_metric_func(metric_name):
-            """Look up a metric function by name from the metrics module.
-
-            Parameters
-            ----------
-            metric_name : str
-                Exact function name (e.g., ``'accuracy_score'``,
-                ``'f1_score'``, ``'mean_squared_error'``).
-
-            Returns
-            -------
-            callable or None
-                The metric function, or None if not found.
-            """
-            return getattr(metrics_module, metric_name, None)
-
-        # Detect algorithm category from registry tags/type
-        is_clustering = False
-        is_anomaly = False
-        is_timeseries = False
-        algo_tags = []
-        algo_info = {}
-        if isinstance(self._model, str):
-            try:
-                algo_info = registry.get_info(self._model)
-                algo_tags = algo_info.get('tags', [])
-                is_clustering = algo_info.get('type') in ('clusterer', 'clustering')
-                is_anomaly = 'anomaly-detection' in algo_tags
-                is_timeseries = 'timeseries' in algo_tags
-            except (KeyError, Exception):
-                pass
-        else:
-            # Instance/class passed directly (e.g. a wrapped sklearn estimator):
-            # infer the task type from the reported estimator type.
-            est_type = getattr(self._model, '_estimator_type', None)
-            is_clustering = est_type == 'clusterer'
-
-        # Auto-resolve metrics based on algorithm type when not specified
-        if _user_metrics:
-            requested_metrics = _user_metrics
-        elif is_clustering:
-            requested_metrics = ['silhouette_score', 'calinski_harabasz_score']
-        elif is_anomaly:
-            requested_metrics = []
-        elif is_timeseries:
-            requested_metrics = ['r2_score', 'root_mean_squared_error', 'mean_absolute_error']
-        else:
-            algo_type = algo_info.get('type', 'classifier')
-            if algo_type == 'regressor':
-                requested_metrics = ['r2_score', 'mean_squared_error', 'mean_absolute_error']
-            else:
-                requested_metrics = ['accuracy_score', 'f1_score']
-
-        metrics = {}
-        cv_results = None
-        y_pred = None
-        preprocessing_pipeline = None
-
-        if is_clustering:
-            # ---- Clustering path ----
-            # Clusterers use fit(X) only; metrics take (X, labels)
-            X_model, _, preprocessing_pipeline = self._fit_pipeline(X, y)
-            model = model_cls(**model_params)
-            model.fit(X_model)
-            labels = model.predict(X_model) if hasattr(model, 'predict') else model.labels_
-
-            # Clustering metrics: silhouette_score(X, labels), etc.
-            for metric_name in requested_metrics:
-                metric_func = _get_metric_func(metric_name)
-                if metric_func is not None:
-                    try:
-                        metrics[metric_name] = float(metric_func(X_model, labels))
-                    except Exception as e:
-                        metrics[f'{metric_name}_error'] = str(e)
-
-        elif is_anomaly:
-            # ---- Anomaly detection path ----
-            # Anomaly detectors use fit(X) only (unsupervised).
-            # predict(X) returns -1 (anomaly) / 1 (normal).
-            # No train/test split — fit on all data and score it.
-            X_model, _, preprocessing_pipeline = self._fit_pipeline(X, y)
-            model = model_cls(**model_params)
-            model.fit(X_model)
-            predictions = model.predict(X_model)
-
-            result_info = {
-                'n_anomalies': int((predictions == -1).sum()),
-                'n_normal': int((predictions == 1).sum()),
-                'anomaly_ratio': float((predictions == -1).mean()),
-            }
-
-            # If decision_function is available, add score stats
-            if hasattr(model, 'decision_function'):
-                scores = model.decision_function(X_model)
-                result_info['score_mean'] = float(np.mean(scores))
-                result_info['score_std'] = float(np.std(scores))
-
-            metrics = result_info
-
-        elif is_timeseries:
-            # ---- Timeseries path ----
-            # Timeseries models use fit(y) with 1D series and
-            # predict(steps=int) to forecast future values.
-            # Use the first column of X as the time series if y is
-            # absent or all-zeros; otherwise use y.
-            series = y
-            if series is None or (np.unique(series).size <= 1):
-                # y is missing or constant (e.g. loaded as all-zeros) —
-                # use the first feature column as the series.
-                series = X[:, 0] if X.ndim == 2 else X
-
-            # Train/test split for evaluation: hold out last portion
-            n = len(series)
-            split_idx = max(1, int(n * (1.0 - test_size)))
-            train_series = series[:split_idx]
-            test_series = series[split_idx:]
-
-            model = model_cls(**model_params)
-            model.fit(train_series)
-
-            forecast_steps = len(test_series)
-            if forecast_steps > 0:
-                y_pred = model.predict(forecast_steps)
-
-                for metric_name in requested_metrics:
-                    metric_func = _get_metric_func(metric_name)
-                    if metric_func is not None:
-                        try:
-                            metrics[metric_name] = float(
-                                metric_func(test_series[:len(y_pred)], y_pred)
-                            )
-                        except Exception as e:
-                            metrics[f'{metric_name}_error'] = str(e)
-
-            # Re-fit on full series so the returned model is maximally useful
-            model = model_cls(**model_params)
-            model.fit(series)
-
-        elif use_cv:
-            # ---- Cross-validation path ----
-            cv_folds = eval_config.get('cv', 10)
-            from tuiml.evaluation.splitting import KFold
-
-            kfold = KFold(n_splits=cv_folds, shuffle=True, random_state=random_state)
-            cv_scores = {
-                m: [] for m in requested_metrics
-                if _get_metric_func(m) is not None
-            }
-
-            for train_idx, val_idx in kfold.split(X, y):
-                X_tr, X_val = X[train_idx], X[val_idx]
-                y_tr, y_val = y[train_idx], y[val_idx]
-
-                X_tr, y_tr, fold_pipeline = self._fit_pipeline(X_tr, y_tr)
-                X_val = self._transform_pipeline(X_val, fold_pipeline)
-
-                fold_model = model_cls(**model_params)
-                fold_model.fit(X_tr, y_tr)
-                fold_pred = fold_model.predict(X_val)
-
-                for metric_name in cv_scores:
-                    metric_func = _get_metric_func(metric_name)
-                    try:
-                        score = metric_func(y_val, fold_pred)
-                        cv_scores[metric_name].append(score)
-                    except Exception:
-                        pass
-
-            for metric_name, scores in cv_scores.items():
-                if scores:
-                    metrics[f'cv_{metric_name}_mean'] = float(np.mean(scores))
-                    metrics[f'cv_{metric_name}_std'] = float(np.std(scores))
-
-            cv_results = {'scores': cv_scores}
-
-            # Train final model on ALL data so the returned model is maximally useful
-            X_final, y_final, preprocessing_pipeline = self._fit_pipeline(X, y)
-            model = model_cls(**model_params)
-            model.fit(X_final, y_final)
-        else:
-            # ---- Holdout path ----
-            X_train, X_test, y_train, y_test = train_test_split(
-                X, y, test_size=test_size, random_state=random_state,
-                stratify=stratify_arr,
-            )
-
-            X_train, y_train, holdout_pipeline = self._fit_pipeline(X_train, y_train)
-            X_test = self._transform_pipeline(X_test, holdout_pipeline)
-
-            model = model_cls(**model_params)
-            model.fit(X_train, y_train)
-            y_pred = model.predict(X_test)
-
-            for metric_name in requested_metrics:
-                metric_func = _get_metric_func(metric_name)
-                if metric_func is not None:
-                    try:
-                        metrics[metric_name] = float(metric_func(y_test, y_pred))
-                    except Exception as e:
-                        metrics[f'{metric_name}_error'] = str(e)
-
-            X_final, y_final, preprocessing_pipeline = self._fit_pipeline(X, y)
-            model = model_cls(**model_params)
-            model.fit(X_final, y_final)
-
-        # 5. Return results
-        return WorkflowResult(
-            model=model,
-            metrics=metrics,
-            predictions=y_pred,
-            cv_results=cv_results,
-            preprocessing_pipeline=preprocessing_pipeline,
-            metadata={
-                'algorithm': self._model,
-                'preprocessing': self._preprocessing_steps,
-                'feature_selection': self._feature_selection,
-                'evaluation_method': 'cross_validate' if use_cv else 'holdout',
-            }
-        )
-
-    def to_config(self) -> Dict[str, Any]:
-        """Export workflow as a configuration dictionary.
+        Parameters
+        ----------
+        deep : bool, default=True
+            When True, also return each step's parameters under
+            ``"<step_name>__<param>"`` keys.
 
         Returns
         -------
         dict
-            Configuration dictionary containing data, preprocessing, 
-            split, model, and evaluation settings.
+            The parameters.
         """
+        params: Dict[str, Any] = {"steps": self.steps}
+        if deep:
+            for name, component in self._named_steps:
+                if hasattr(component, "get_params"):
+                    try:
+                        nested = component.get_params(deep=False)
+                    except TypeError:
+                        nested = component.get_params()
+                    for key, value in nested.items():
+                        params[f"{name}__{key}"] = value
+        return params
+
+    def set_params(self, **params) -> "Workflow":
+        """Set parameters, including a step's own via ``step__param``.
+
+        Parameters
+        ----------
+        **params
+            ``steps=[...]`` to replace the pipeline, or
+            ``standardscaler__with_mean=False`` to reach into a step.
+
+        Returns
+        -------
+        self : Workflow
+
+        Raises
+        ------
+        ValueError
+            If a step name is unknown or a key is not a pipeline parameter.
+
+        Examples
+        --------
+        >>> wf = Workflow(["PCAExtractor", "NaiveBayesClassifier"])
+        >>> _ = wf.set_params(pcaextractor__n_components=3)
+        """
+        if "steps" in params:
+            self.steps = list(params.pop("steps"))
+            self._named_steps = self._normalize(self.steps)
+            if self._named_steps:
+                self._validate()
+
+        named = self.named_steps
+        for key, value in params.items():
+            name, sep, param = key.partition("__")
+            if not sep:
+                raise ValueError(
+                    f"'{key}' is not a Workflow parameter. Use "
+                    f"'<step>__<param>' to set a step's parameter, e.g. "
+                    f"'{next(iter(named), 'step')}__some_param'."
+                )
+            if name not in named:
+                raise ValueError(
+                    f"Unknown step '{name}'. Available steps: {sorted(named)}."
+                )
+            named[name].set_params(**{param: value})
+        return self
+
+    # ----- fitting ------------------------------------------------------
+
+    def fit(
+        self,
+        data=None,
+        y=None,
+        *,
+        target=None,
+        features: Optional[List[str]] = None,
+        cv: Optional[int] = None,
+        test_size: Optional[float] = None,
+        stratify: bool = True,
+        metrics: Union[str, List[str]] = "auto",
+        random_seed: Optional[int] = None,
+    ) -> "Workflow":
+        """Fit the pipeline, optionally measuring held-out performance first.
+
+        Parameters
+        ----------
+        data : str, DataFrame, ndarray, or Dataset, optional
+            Training data. A string is a file path (csv, arff, parquet, json,
+            excel — auto-detected) or a builtin dataset name such as
+            ``"iris"``. Arrays and DataFrames are used directly.
+        y : array-like of shape (n_samples,), optional
+            Target values, for the ``fit(X, y)`` form.
+        target : str or array-like, optional
+            Target column name when ``data`` is a file or DataFrame, or a
+            separate target array.
+        features : list of str, optional
+            Restrict the feature matrix to these named columns.
+        cv : int, optional
+            Number of cross-validation folds. When given, scores are collected
+            per fold into :attr:`metrics_` and :attr:`cv_results_`.
+        test_size : float, optional
+            Hold out this fraction to score into :attr:`metrics_`. Ignored
+            when ``cv`` is given.
+        stratify : bool, default=True
+            Preserve class balance in the holdout split.
+        metrics : str or list of str, default="auto"
+            Metric function names from ``tuiml.evaluation.metrics``.
+            ``"auto"`` picks metrics that suit the model's task.
+        random_seed : int, optional
+            Seed for splits, folds, and any step that accepts one. Falls back
+            to the global seed, then 42.
+
+        Returns
+        -------
+        self : Workflow
+            Fitted on all the data given, with results on :attr:`metrics_`.
+
+        Raises
+        ------
+        ValueError
+            If no data or no steps were provided.
+
+        Examples
+        --------
+        >>> wf = Workflow(["StandardScaler", "NaiveBayesClassifier"])
+        >>> _ = wf.fit("iris", cv=5)                      # doctest: +SKIP
+        >>> wf.metrics_["cv_accuracy_score_mean"]         # doctest: +SKIP
+        0.953
+        """
+        if not self._named_steps:
+            raise ValueError(
+                "This Workflow has no steps. Pass them to the constructor: "
+                'Workflow(["StandardScaler", "RandomForestClassifier"]).'
+            )
+
+        X, y, feature_names = self._load(data, y, target, features)
+        seed = self._resolve_seed(random_seed)
+        task = self._task()
+        requested = self._requested_metrics(metrics, task)
+
+        self.feature_names_in_ = feature_names
+        self.metrics_ = None
+        self.cv_results_ = None
+        self.predictions_ = None
+        evaluation = None
+
+        if task in ("clusterer", "anomaly", "timeseries"):
+            # These tasks score on the data they were fitted on: clusterers and
+            # anomaly detectors have no held-out notion of correctness, and a
+            # time series must stay in order.
+            self.metrics_ = self._fit_unsupervised(X, y, task, requested, seed)
+            evaluation = task
+        elif cv:
+            self.metrics_, self.cv_results_ = self._cross_validate(
+                X, y, cv, requested, seed
+            )
+            evaluation = "cross_validate"
+        elif test_size:
+            self.metrics_, self.predictions_ = self._holdout(
+                X, y, test_size, stratify, requested, seed, feature_names
+            )
+            evaluation = "holdout"
+
+        if task not in ("clusterer", "anomaly", "timeseries"):
+            self.steps_, self.model_ = self._fit_steps(X, y, seed, feature_names)
+
+        self.metadata_ = {
+            "algorithm": type(self.model).__name__,
+            "steps": [name for name, _ in self._named_steps],
+            "evaluation_method": evaluation,
+            "n_samples": len(X),
+        }
+        return self
+
+    def _fit_steps(self, X, y, seed, feature_names=None):
+        """Fit every transformation step, then the model, on the given data.
+
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Features.
+        y : np.ndarray of shape (n_samples,) or None
+            Targets.
+        seed : int or None
+            Seed injected into components that accept one.
+        feature_names : list of str, optional
+            Column names, bound to column-aware steps such as :class:`On`.
+
+        Returns
+        -------
+        fitted_steps : list
+            The fitted transformation steps, in order.
+        model : object
+            The fitted final model.
+        """
+        X_current, y_current = X, y
+        fitted_steps = []
+
+        for _, prototype in self.transformers:
+            step = _clone_estimator(_inject_seed_into(prototype, seed))
+            if hasattr(step, "_bind_feature_names"):
+                step._bind_feature_names(feature_names)
+            if hasattr(step, "fit_resample") and y_current is not None:
+                X_current, y_current = step.fit_resample(X_current, y_current)
+            else:
+                transformed = _fit_transform(step, X_current, y_current)
+                if isinstance(transformed, tuple):
+                    X_current, y_current = transformed
+                else:
+                    X_current = transformed
+            fitted_steps.append(step)
+
+        model = _clone_estimator(_inject_seed_into(self.model, seed))
+        if y_current is None:
+            model.fit(X_current)
+        else:
+            model.fit(X_current, y_current)
+        return fitted_steps, model
+
+    @staticmethod
+    def _apply_steps(X, fitted_steps):
+        """Transform data through already-fitted steps.
+
+        Resamplers are skipped: they reshape the training set only and must
+        never touch validation or inference data.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Data to transform.
+        fitted_steps : list
+            Steps previously fitted by :meth:`_fit_steps`.
+
+        Returns
+        -------
+        np.ndarray
+            The transformed data.
+        """
+        X_current = X
+        for step in fitted_steps:
+            if hasattr(step, "fit_resample"):
+                continue
+            transformed = step.transform(X_current)
+            X_current = transformed[0] if isinstance(transformed, tuple) else transformed
+        return X_current
+
+    # ----- evaluation paths ---------------------------------------------
+
+    def _cross_validate(self, X, y, cv, requested, seed):
+        """Score the pipeline with k-fold cross-validation.
+
+        Each fold refits the whole pipeline from scratch, so no transformation
+        ever sees its validation fold.
+
+        Parameters
+        ----------
+        X, y : np.ndarray
+            The full dataset.
+        cv : int
+            Number of folds.
+        requested : list of str
+            Metric function names.
+        seed : int or None
+            Seed for the fold split.
+
+        Returns
+        -------
+        metrics : dict
+            ``cv_<metric>_mean`` / ``cv_<metric>_std`` per metric.
+        cv_results : dict
+            Raw per-fold scores.
+        """
+        from tuiml.evaluation.splitting import KFold
+
+        kfold = KFold(n_splits=cv, shuffle=True, random_state=seed)
+        scores = {m: [] for m in requested if self._metric_func(m) is not None}
+
+        for train_idx, val_idx in kfold.split(X, y):
+            fitted_steps, model = self._fit_steps(
+                X[train_idx], y[train_idx], seed, self.feature_names_in_
+            )
+            predictions = model.predict(self._apply_steps(X[val_idx], fitted_steps))
+            for name in scores:
+                try:
+                    scores[name].append(
+                        call_metric(self._metric_func(name), y[val_idx], predictions)
+                    )
+                except Exception:
+                    pass
+
+        metrics = {}
+        for name, fold_scores in scores.items():
+            if fold_scores:
+                metrics[f"cv_{name}_mean"] = float(np.mean(fold_scores))
+                metrics[f"cv_{name}_std"] = float(np.std(fold_scores))
+        return metrics, {"scores": scores}
+
+    def _holdout(self, X, y, test_size, stratify, requested, seed, feature_names):
+        """Score the pipeline on a single held-out split.
+
+        Parameters
+        ----------
+        X, y : np.ndarray
+            The full dataset.
+        test_size : float
+            Fraction held out.
+        stratify : bool
+            Preserve class balance in the split.
+        requested : list of str
+            Metric function names.
+        seed : int or None
+            Seed for the split.
+        feature_names : list of str or None
+            Column names for column-aware steps.
+
+        Returns
+        -------
+        metrics : dict
+            Metric name to value.
+        predictions : np.ndarray
+            Predictions on the held-out portion.
+        """
+        from tuiml.evaluation.splitting import train_test_split
+
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=test_size, random_state=seed,
+            stratify=y if (stratify and y is not None) else None,
+        )
+        fitted_steps, model = self._fit_steps(X_train, y_train, seed, feature_names)
+        predictions = model.predict(self._apply_steps(X_test, fitted_steps))
+
+        metrics = {}
+        for name in requested:
+            func = self._metric_func(name)
+            if func is None:
+                continue
+            try:
+                metrics[name] = float(call_metric(func, y_test, predictions))
+            except Exception as exc:
+                metrics[f"{name}_error"] = str(exc)
+        return metrics, predictions
+
+    def _fit_unsupervised(self, X, y, task, requested, seed):
+        """Fit and score a clusterer, anomaly detector, or forecaster.
+
+        Parameters
+        ----------
+        X, y : np.ndarray
+            The dataset. ``y`` is unused for clustering and anomaly detection.
+        task : {"clusterer", "anomaly", "timeseries"}
+            Which path to take.
+        requested : list of str
+            Metric function names.
+        seed : int or None
+            Seed injected into components that accept one.
+
+        Returns
+        -------
+        dict
+            Metrics for the task — cluster quality scores, anomaly counts, or
+            forecast errors.
+        """
+        metrics: Dict[str, Any] = {}
+
+        if task == "timeseries":
+            # Forecasters take a 1-D series and predict a number of steps
+            # ahead, so the "split" is the tail of the series.
+            series = y
+            if series is None or np.unique(series).size <= 1:
+                series = X[:, 0] if X.ndim == 2 else X
+            split_at = max(1, int(len(series) * 0.8))
+            train, test = series[:split_at], series[split_at:]
+
+            # Forecasters consume the raw 1-D series, so transformation steps
+            # (which are column-oriented) do not apply on this path.
+            model = _clone_estimator(_inject_seed_into(self.model, seed))
+            model.fit(train)
+            if len(test):
+                predictions = model.predict(len(test))
+                for name in requested:
+                    func = self._metric_func(name)
+                    if func is None:
+                        continue
+                    try:
+                        metrics[name] = float(func(test[:len(predictions)], predictions))
+                    except Exception as exc:
+                        metrics[f"{name}_error"] = str(exc)
+            # Refit on the whole series so the delivered model is complete.
+            self.steps_ = []
+            self.model_ = _clone_estimator(_inject_seed_into(self.model, seed))
+            self.model_.fit(series)
+            return metrics
+
+        self.steps_, self.model_ = self._fit_steps(X, None, seed, self.feature_names_in_)
+        X_transformed = self._apply_steps(X, self.steps_)
+        labels = (
+            self.model_.predict(X_transformed)
+            if hasattr(self.model_, "predict")
+            else self.model_.labels_
+        )
+
+        if task == "anomaly":
+            # Detectors label -1 for anomalies and 1 for normal points.
+            metrics = {
+                "n_anomalies": int((labels == -1).sum()),
+                "n_normal": int((labels == 1).sum()),
+                "anomaly_ratio": float((labels == -1).mean()),
+            }
+            if hasattr(self.model_, "decision_function"):
+                scores = self.model_.decision_function(X_transformed)
+                metrics["score_mean"] = float(np.mean(scores))
+                metrics["score_std"] = float(np.std(scores))
+            return metrics
+
+        for name in requested:  # clustering metrics take (X, labels)
+            func = self._metric_func(name)
+            if func is None:
+                continue
+            try:
+                metrics[name] = float(func(X_transformed, labels))
+            except Exception as exc:
+                metrics[f"{name}_error"] = str(exc)
+        return metrics
+
+    # ----- inference ----------------------------------------------------
+
+    def predict(self, X) -> np.ndarray:
+        """Predict, applying the fitted transformations first.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Raw input, in the same shape as the training data.
+
+        Returns
+        -------
+        np.ndarray
+            Predicted labels or values.
+        """
+        self._check_fitted()
+        return self.model_.predict(self._apply_steps(X, self.steps_))
+
+    def predict_proba(self, X) -> np.ndarray:
+        """Predict class probabilities, applying the fitted transformations first.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Raw input.
+
+        Returns
+        -------
+        np.ndarray of shape (n_samples, n_classes)
+            Class probabilities.
+
+        Raises
+        ------
+        AttributeError
+            If the final model has no ``predict_proba``.
+        """
+        self._check_fitted()
+        if not hasattr(self.model_, "predict_proba"):
+            raise AttributeError(
+                f"{type(self.model_).__name__} does not support predict_proba()."
+            )
+        return self.model_.predict_proba(self._apply_steps(X, self.steps_))
+
+    def score(self, X, y) -> float:
+        """Return the final model's default score on transformed data.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Raw input.
+        y : array-like of shape (n_samples,)
+            True labels or values.
+
+        Returns
+        -------
+        float
+            Accuracy for classifiers, R² for regressors.
+        """
+        self._check_fitted()
+        return self.model_.score(self._apply_steps(X, self.steps_), y)
+
+    def evaluate(self, X, y, metrics: Union[str, List[str]] = "auto") -> Dict[str, float]:
+        """Score the fitted pipeline on new data.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Raw input.
+        y : array-like of shape (n_samples,)
+            True labels or values.
+        metrics : str or list of str, default="auto"
+            Metric function names, or ``"auto"`` to pick by task.
+
+        Returns
+        -------
+        dict
+            Metric name to value.
+        """
+        self._check_fitted()
+        return self.model_.evaluate(self._apply_steps(X, self.steps_), y, metrics=metrics)
+
+    def _check_fitted(self) -> None:
+        """Raise a clear error if :meth:`fit` has not run yet."""
+        if not hasattr(self, "model_"):
+            raise RuntimeError(
+                "This Workflow is not fitted yet. Call fit() before predicting."
+            )
+
+    @property
+    def _is_fitted(self) -> bool:
+        """Whether :meth:`fit` has completed."""
+        return hasattr(self, "model_")
+
+    # ----- data loading and task detection ------------------------------
+
+    def _load(self, data, y, target, features):
+        """Resolve the ``data`` argument into ``(X, y, feature_names)``.
+
+        Parameters
+        ----------
+        data : str, DataFrame, ndarray, Dataset, or None
+            The data source.
+        y : array-like or None
+            Targets passed positionally.
+        target : str, array-like, or None
+            Target column name, or a target array.
+        features : list of str or None
+            Column subset to keep.
+
+        Returns
+        -------
+        X : np.ndarray
+            Feature matrix.
+        y : np.ndarray or None
+            Targets.
+        feature_names : list of str or None
+            Column names, when known.
+
+        Raises
+        ------
+        ValueError
+            If no data was given, or a requested feature is missing.
+        """
+        import os
+        import warnings
+        from tuiml.datasets.loaders.arff import Dataset
+
+        if data is None:
+            raise ValueError(
+                'No data provided. Pass a file path, a builtin name such as '
+                '"iris", or X and y arrays.'
+            )
+        if y is None and target is not None and not isinstance(target, str):
+            y = target
+
+        feature_names = None
+
+        if isinstance(data, Dataset):
+            X, y_loaded, feature_names = data.X, data.y, data.feature_names
+            y = y if y is not None else y_loaded
+
+        elif isinstance(data, str):
+            from tuiml.datasets import load, load_dataset
+
+            if os.path.exists(data):
+                load_kwargs = self._loader_target_kwargs(data, target)
+                suffix = os.path.splitext(data)[1].lower()
+                if "target_column" not in load_kwargs and suffix in _TABULAR_TARGET_FORMATS:
+                    warnings.warn(
+                        f"No target column specified for {data!r}; defaulting to "
+                        f"the last column. Pass target=... to be explicit.",
+                        stacklevel=3,
+                    )
+                dataset = load(data, **load_kwargs)
+            else:
+                dataset = load_dataset(data)
+            X, feature_names = dataset.X, dataset.feature_names
+            y = y if y is not None else dataset.y
+
+        elif isinstance(data, pd.DataFrame):
+            from tuiml.datasets import from_pandas
+
+            dataset = from_pandas(
+                data, target_column=target if isinstance(target, str) else None
+            )
+            X, feature_names = dataset.X, dataset.feature_names
+            y = y if y is not None else dataset.y
+
+        else:
+            X = data if isinstance(data, np.ndarray) else np.asarray(data)
+            y = np.asarray(y) if y is not None else None
+
+        if features is not None:
+            if feature_names is None:
+                raise ValueError(
+                    "Cannot restrict to named features: the column names of "
+                    "this data are unknown."
+                )
+            feature_names = list(feature_names)
+            missing = [f for f in features if f not in feature_names]
+            if missing:
+                raise ValueError(
+                    f"features not found in data columns {feature_names}: {missing}"
+                )
+            indices = [feature_names.index(f) for f in features]
+            X, feature_names = np.asarray(X)[:, indices], list(features)
+
+        return X, y, feature_names
+
+    @staticmethod
+    def _loader_target_kwargs(path: str, target) -> Dict[str, Any]:
+        """Build loader keyword arguments for a file path.
+
+        ARFF files declare their class column in the file metadata, so an
+        explicit target is rejected there rather than silently ignored.
+
+        Parameters
+        ----------
+        path : str
+            Path to the data file.
+        target : str or None
+            Requested target column.
+
+        Returns
+        -------
+        dict
+            Keyword arguments for :func:`tuiml.datasets.load`.
+
+        Raises
+        ------
+        ValueError
+            If a target column is given for an ARFF file.
+        """
+        import os
+
+        if not isinstance(target, str):
+            return {}
+        if os.path.splitext(path)[1].lower() == ".arff":
+            raise ValueError(
+                f"ARFF files declare their class column in the file metadata; "
+                f"remove target={target!r} when loading {os.path.basename(path)}."
+            )
+        return {"target_column": target}
+
+    def _task(self) -> str:
+        """Classify the final model's task, to pick metrics and a fit strategy.
+
+        Anomaly detectors and forecasters are registered as classifiers and
+        regressors, so their registry *tags* — not their component type — are
+        what distinguishes them.
+
+        Returns
+        -------
+        {"classifier", "regressor", "clusterer", "anomaly", "timeseries"}
+            The detected task.
+        """
+        from tuiml.hub import ComponentType
+
+        model = self.model
+        tags = []
+        try:
+            tags = type(model).get_component_info().get("tags") or []
+        except Exception:
+            pass
+        if "anomaly-detection" in tags:
+            return "anomaly"
+        if "timeseries" in tags:
+            return "timeseries"
+
+        component_type = getattr(model, "_component_type", None)
+        estimator_type = getattr(model, "_estimator_type", None)
+        if component_type == ComponentType.CLUSTERER or estimator_type == "clusterer":
+            return "clusterer"
+        if component_type == ComponentType.REGRESSOR or estimator_type == "regressor":
+            return "regressor"
+        return "classifier"
+
+    @staticmethod
+    def _requested_metrics(metrics, task: str) -> List[str]:
+        """Resolve the ``metrics`` argument to a list of metric function names.
+
+        Parameters
+        ----------
+        metrics : str or list of str
+            Explicit names, or ``"auto"``.
+        task : str
+            Task from :meth:`_task`, used to choose sensible defaults.
+
+        Returns
+        -------
+        list of str
+            Metric function names.
+        """
+        if metrics is not None and metrics != "auto":
+            return [metrics] if isinstance(metrics, str) else list(metrics)
         return {
-            "data": {
-                "source": self._data if isinstance(self._data, str) else None,
-                "target": self._target,
-            },
-            "preprocessing": self._preprocessing_steps,
-            "feature_selection": self._feature_selection,
-            "split": self._split_config,
-            "model": {"name": self._model, "params": self._model_params},
-            "evaluation": self._evaluation_config,
+            "clusterer": ["silhouette_score", "calinski_harabasz_score"],
+            "anomaly": [],
+            "timeseries": ["r2_score", "root_mean_squared_error", "mean_absolute_error"],
+            "regressor": ["r2_score", "mean_squared_error", "mean_absolute_error"],
+            "classifier": ["accuracy_score", "f1_score"],
+        }[task]
+
+    @staticmethod
+    def _metric_func(name: str):
+        """Look up a metric function by name.
+
+        Parameters
+        ----------
+        name : str
+            Function name from ``tuiml.evaluation.metrics``.
+
+        Returns
+        -------
+        callable or None
+            The metric function, or None when the name is unknown.
+        """
+        from tuiml.evaluation import metrics as metrics_module
+
+        return getattr(metrics_module, name, None)
+
+    @staticmethod
+    def _resolve_seed(random_seed: Optional[int]) -> int:
+        """Resolve the effective seed: explicit, then global, then 42.
+
+        Parameters
+        ----------
+        random_seed : int or None
+            Explicitly requested seed.
+
+        Returns
+        -------
+        int
+            The seed to use.
+        """
+        if random_seed is not None:
+            return random_seed
+        from tuiml.utils.seed import get_global_seed
+
+        return get_global_seed() or 42
+
+    # ----- export and display -------------------------------------------
+
+    def to_config(self) -> Dict[str, Any]:
+        """Export the pipeline as a :func:`tuiml.train` spec.
+
+        Returns
+        -------
+        dict
+            A spec with ``model`` and, when there are transformation steps,
+            ``pipeline`` — each component as ``{"name": ..., "params": {...}}``.
+
+        Notes
+        -----
+        The result is JSON-writable, which means parameters that cannot survive
+        that round trip are **omitted**: a callable passed as a parameter (a
+        custom ``score_func``, say) is dropped, and replaying the spec gets the
+        component's default instead. Parameters left at their default are also
+        omitted, to keep the spec small.
+
+        Examples
+        --------
+        >>> Workflow(["StandardScaler", "NaiveBayesClassifier"]).to_config()
+        {'model': {'name': 'NaiveBayesClassifier'}, 'pipeline': [{'name': 'StandardScaler'}]}
+        """
+        def spec(component):
+            entry: Dict[str, Any] = {"name": type(component).__name__}
+            if hasattr(component, "get_params"):
+                try:
+                    params = component.get_params(deep=False)
+                except TypeError:
+                    params = component.get_params()
+                defaults = self._default_params(type(component))
+                accepted = self._accepted_params(type(component))
+                params = {
+                    k: v for k, v in params.items()
+                    if not k.endswith("_")
+                    and (accepted is None or k in accepted)
+                    and not _same_value(v, defaults.get(k, _MISSING))
+                    and _is_serializable(v)
+                }
+                if params:
+                    entry["params"] = params
+            return entry
+
+        config: Dict[str, Any] = {"model": spec(self.model)}
+        if self.transformers:
+            config["pipeline"] = [spec(component) for _, component in self.transformers]
+        return config
+
+    @staticmethod
+    def _accepted_params(cls) -> Optional[set]:
+        """Return the parameter names a class's constructor accepts.
+
+        ``get_params()`` may report fitted state or derived values that the
+        constructor would reject, which would make :meth:`to_config` emit a
+        spec that cannot be replayed.
+
+        Parameters
+        ----------
+        cls : type
+            The component class.
+
+        Returns
+        -------
+        set of str or None
+            Accepted keyword names, or ``None`` when the constructor takes
+            ``**kwargs`` (so anything is allowed) or cannot be inspected.
+        """
+        import inspect
+
+        try:
+            signature = inspect.signature(cls.__init__)
+        except Exception:
+            return None
+        names = set()
+        for name, param in signature.parameters.items():
+            if param.kind is inspect.Parameter.VAR_KEYWORD:
+                return None
+            if name not in ("self",) and param.kind is not inspect.Parameter.VAR_POSITIONAL:
+                names.add(name)
+        return names
+
+    @staticmethod
+    def _default_params(cls) -> Dict[str, Any]:
+        """Return a class's default constructor arguments.
+
+        Used to keep :meth:`to_config` output small by omitting values the
+        constructor would have chosen anyway.
+
+        Parameters
+        ----------
+        cls : type
+            The component class.
+
+        Returns
+        -------
+        dict
+            Parameter name to default value.
+        """
+        import inspect
+
+        try:
+            signature = inspect.signature(cls.__init__)
+        except Exception:
+            return {}
+        return {
+            name: param.default
+            for name, param in signature.parameters.items()
+            if param.default is not inspect.Parameter.empty
         }
 
+    def _tuiml_visual_block_(self):
+        """Return the diagram layout: the steps, stacked in execution order."""
+        from tuiml.utils.html_repr import VisualBlock
+
+        components = [component for _, component in self._named_steps]
+        if self._is_fitted:
+            components = list(self.steps_) + [self.model_]
+        return VisualBlock(
+            "serial",
+            components,
+            names=[name for name, _ in self._named_steps],
+            details=[repr(component) for component in components],
+            title="Workflow",
+        )
+
+    def _repr_html_(self) -> str:
+        """Render the pipeline as an HTML diagram (used by Jupyter)."""
+        from tuiml.utils.html_repr import component_html_repr
+
+        return component_html_repr(self)
+
     def __repr__(self):
-        steps = []
-        steps.append(f"Data: {self._data}")
-        if self._preprocessing_steps:
-            steps.append(f"Preprocessing: {len(self._preprocessing_steps)} steps")
-        if self._feature_selection:
-            steps.append(f"Feature Selection: {self._feature_selection['name']}")
-        if self._model:
-            steps.append(f"Model: {self._model}")
-        return f"Workflow({' → '.join(steps)})"
+        if not self._named_steps:
+            return "Workflow([])"
+        components = ",\n    ".join(
+            repr(component) for _, component in self._named_steps
+        )
+        return f"Workflow([\n    {components},\n])"
+
+
+def _inject_seed_into(prototype, seed: Optional[int]):
+    """Return a copy of ``prototype`` carrying ``seed``, when it accepts one.
+
+    Parameters
+    ----------
+    prototype : object
+        Component instance to seed.
+    seed : int or None
+        Seed to apply.
+
+    Returns
+    -------
+    object
+        ``prototype`` itself when no seed applies, otherwise a seeded copy.
+    """
+    if seed is None:
+        return prototype
+    try:
+        params = prototype.get_params(deep=False)
+    except TypeError:
+        params = prototype.get_params()
+    except Exception:
+        return prototype
+
+    seeded = _inject_seed(type(prototype), params, seed)
+    changed = any(
+        not _same_value(seeded.get(key, _MISSING), params.get(key, _MISSING))
+        for key in ("random_seed", "random_state")
+    )
+    if not changed:
+        return prototype
+    try:
+        return type(prototype)(**seeded)
+    except Exception:
+        return prototype

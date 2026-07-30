@@ -92,12 +92,25 @@ class OneHotEncoder(Transformer):
             },
         }
 
+    def _validate_input(self, X: np.ndarray) -> np.ndarray:
+        """Validate input without forcing a float cast.
+
+        Categories are frequently strings — the base validator's float
+        coercion would make encoding them impossible.
+        """
+        X = np.asarray(X)
+        if X.ndim == 1:
+            X = X.reshape(-1, 1)
+        return X
+
     def fit(
         self,
         X: np.ndarray,
         y: Optional[np.ndarray] = None,
         feature_names: Optional[List[str]] = None,
     ) -> "OneHotEncoder":
+        import pandas as pd
+
         X = self._validate_input(X)
         self._n_features_in = X.shape[1]
         self._feature_names_in = feature_names
@@ -113,7 +126,10 @@ class OneHotEncoder(Transformer):
         else:
             self._categories = []
             for col in self._columns:
-                unique_vals = np.unique(X[:, col][~np.isnan(X[:, col])])
+                column = X[:, col]
+                # pd.isna handles both float NaN and missing values in
+                # object-dtype (string) columns.
+                unique_vals = np.unique(column[~pd.isna(column)])
                 self._categories.append(sorted(unique_vals.tolist()))
 
         self._is_fitted = True
@@ -155,7 +171,21 @@ class OneHotEncoder(Transformer):
             else:
                 output_parts.append(X[:, i:i+1])
 
-        return np.hstack(output_parts)
+        if not output_parts:
+            raise ValueError(
+                "OneHotEncoder produced no output columns. The fitted data "
+                "had no categories — check that the selected columns contain "
+                "categorical values."
+            )
+        output = np.hstack(output_parts)
+        if output.dtype == object:
+            # Passthrough columns can leave the matrix as object dtype; cast
+            # back to float when every remaining value is numeric.
+            try:
+                output = output.astype(float)
+            except (TypeError, ValueError):
+                pass
+        return output
 
     def get_feature_names_out(
         self, input_features: Optional[List[str]] = None

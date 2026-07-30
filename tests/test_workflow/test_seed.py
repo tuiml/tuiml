@@ -36,7 +36,7 @@ def test_api_train_seed_determinism():
     # Run train with explicit random_seed
     res1 = train("RandomForestClassifier", data=df, target='target', random_seed=42)
     res2 = train("RandomForestClassifier", data=df, target='target', random_seed=42)
-    assert res1.metrics == res2.metrics
+    assert res1.metrics_ == res2.metrics_
 
     # Set global seed and run train with no explicit seed (should fallback to global seed)
     set_global_seed(123)
@@ -44,7 +44,7 @@ def test_api_train_seed_determinism():
 
     set_global_seed(123)
     res4 = train("RandomForestClassifier", data=df, target='target')
-    assert res3.metrics == res4.metrics
+    assert res3.metrics_ == res4.metrics_
 
     set_global_seed(None)
 

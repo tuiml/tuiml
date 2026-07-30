@@ -86,26 +86,26 @@ def record_session_call(tool_name: str, args: dict, result: dict) -> None:
 
 def _save_model_to_disk(model, model_id: str, save_path: str = None) -> str:
     """Save model to disk and return the file path."""
-    import tuiml
+    from tuiml.utils.serialization import save_model
 
     if save_path:
         os.makedirs(os.path.dirname(save_path) or '.', exist_ok=True)
-        tuiml.save(model, save_path)
+        save_model(model, save_path)
         return save_path
     else:
         path = os.path.join(_MODELS_DIR, f'{model_id}.joblib')
-        tuiml.save(model, path)
+        save_model(model, path)
         return path
 
 
 def _load_model_from_disk(model_id: str = None, model_path: str = None):
     """Load model from disk by model_id or explicit path."""
-    import tuiml
+    from tuiml.utils.serialization import load_model
 
     if model_id and model_id in _MODEL_INDEX:
-        return tuiml.load(_MODEL_INDEX[model_id])
+        return load_model(_MODEL_INDEX[model_id])
     elif model_path and os.path.exists(model_path):
-        return tuiml.load(model_path)
+        return load_model(model_path)
     return None
 
 def _load_data(data_source: str):
@@ -1969,10 +1969,47 @@ def execute_train(**kwargs) -> Dict[str, Any]:
             if hasattr(model, 'get_params'):
                 kwargs['algorithm_params'] = model.get_params()
 
-    # Normal execution path (either default or cross_validate stage)
+    # Normal execution path (either default or cross_validate stage).
+    # Translate the tool-level vocabulary (algorithm/algorithm_params/preset/
+    # preprocessing/feature_selection + flat evaluation options) into
+    # tuiml.train()'s spec convention: {"name", "params"} components, one
+    # ordered "pipeline" list, and a grouped "evaluation" dict.
     algo_params = kwargs.pop('algorithm_params', {}) or {}
     save_path = kwargs.pop('save_path', None)
-    kwargs.update(algo_params)
+    algo_name = kwargs.pop('algorithm', None)
+    if not algo_name:
+        return {
+            'status': 'error',
+            'error': "Missing required parameter 'algorithm'"
+        }
+    kwargs['model'] = {'name': algo_name, 'params': algo_params}
+
+    def _nest_step(step):
+        """Convert a flat tool-level step ({"name", **params}) to spec form."""
+        if isinstance(step, str):
+            return step
+        step = dict(step)
+        name = step.pop('name', None)
+        params = step.pop('params', step)
+        return {'name': name, 'params': params}
+
+    preset = kwargs.pop('preset', None)
+    steps = [_nest_step(s) for s in kwargs.pop('preprocessing', None) or []]
+    fs = kwargs.pop('feature_selection', None)
+    if fs:
+        steps.append(_nest_step(fs))
+    if steps:
+        kwargs['pipeline'] = steps
+    elif preset:
+        kwargs['pipeline'] = preset
+
+    evaluation = {
+        key: kwargs.pop(key)
+        for key in ('cv', 'test_size', 'stratify', 'metrics')
+        if kwargs.get(key) is not None
+    }
+    if evaluation:
+        kwargs['evaluation'] = evaluation
 
     # Pre-resolve data via the shared loader
     data_arg = kwargs.get('data')
@@ -1991,24 +2028,23 @@ def execute_train(**kwargs) -> Dict[str, Any]:
             }
 
     try:
+        # train() returns the fitted Workflow, which is itself the model: it
+        # carries the fitted transformations, so saving it keeps predictions
+        # consistent with training.
         result = tuiml.train(**kwargs)
 
-        # Save model to disk and track by model_id
-        model_id = None
-        model_path = None
-        if result.model:
-            model_id = uuid.uuid4().hex[:12]
-            model_path = _save_model_to_disk(result, model_id, save_path)
-            _MODEL_INDEX[model_id] = model_path
+        model_id = uuid.uuid4().hex[:12]
+        model_path = _save_model_to_disk(result, model_id, save_path)
+        _MODEL_INDEX[model_id] = model_path
 
         return {
             'status': 'success',
             'model_id': model_id,
             'model_path': model_path,
-            'metrics': result.metrics,
-            'cv_results': result.cv_results,
-            'model_class': result.model.__class__.__name__ if result.model else None,
-            'metadata': result.metadata
+            'metrics': result.metrics_,
+            'cv_results': result.cv_results_,
+            'model_class': type(result.model_).__name__,
+            'metadata': result.metadata_
         }
     except KeyError as e:
         return {
@@ -2183,9 +2219,8 @@ def execute_predict(**kwargs) -> Dict[str, Any]:
             return result
 
         # Standard supervised/clustering prediction
-        import tuiml
         dataset = _load_data(kwargs['data'])
-        predictions = tuiml.predict(model, dataset.X)
+        predictions = model.predict(dataset.X)
 
         result = {
             'status': 'success',
@@ -2365,8 +2400,7 @@ def execute_evaluate(**kwargs) -> Dict[str, Any]:
                 report_str = report_header + report_str + "=================================================="
                 
                 # Also compute standard dict metrics
-                import tuiml
-                metrics = tuiml.evaluate(model, dataset.X, dataset.y, metrics='auto')
+                metrics = model.evaluate(dataset.X, dataset.y, metrics='auto')
                 return {
                     'status': 'success',
                     'model_type': 'classifier',
@@ -2501,9 +2535,8 @@ def execute_evaluate(**kwargs) -> Dict[str, Any]:
             return result
 
         # Standard supervised/clustering evaluation
-        import tuiml
-        metrics = tuiml.evaluate(
-            model, dataset.X, dataset.y,
+        metrics = model.evaluate(
+            dataset.X, dataset.y,
             metrics=kwargs.get('metrics', 'auto')
         )
         return {'status': 'success', 'metrics': metrics}
@@ -3241,7 +3274,7 @@ def execute_plot(**kwargs) -> Dict[str, Any]:
                 return {'status': 'error', 'error': 'Model not found. Provide model_id or model_path.'}
 
             dataset = _load_data(kwargs['data'])
-            predictions = tuiml.predict(model, dataset.X)
+            predictions = model.predict(dataset.X)
             plot_confusion_matrix(
                 dataset.y, predictions,
                 title=title or 'Confusion Matrix',
@@ -4893,39 +4926,61 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
         algo = args.get('algorithm', 'UnknownAlgorithm')
         data = args.get('data', '')
         target = args.get('target')
-        # tuiml.train() uses the spec convention: the model is a spec dict
-        # {"name": algo, **hyperparameters} and the data is a spec dict
-        # {"source": data, "target": target}. The MCP-tool-only 'algorithm_params'
-        # wrapper is folded into the model spec so the generated call is valid,
+        # tuiml.train() uses the spec convention: the model is
+        # {"name": algo, "params": {...}}, the data is {"source", "target"},
+        # steps live in one ordered "pipeline" list, and evaluation options
+        # are grouped into an "evaluation" dict. Translate the tool-level
+        # vocabulary into that shape so the generated call is valid,
         # idiomatic Python.
         model_spec = {"name": algo}
         algo_params = args.get('algorithm_params')
-        if isinstance(algo_params, dict):
-            model_spec.update(algo_params)
+        if isinstance(algo_params, dict) and algo_params:
+            model_spec["params"] = algo_params
         data_spec = {"source": data}
         if target is not None:
             data_spec["target"] = target
         if args.get('features') is not None:
             data_spec["features"] = args['features']
-        # Remaining run options become keyword arguments.
-        run_opt_keys = ('preprocessing', 'feature_selection', 'cv', 'metrics',
-                        'test_size', 'stratify', 'preset', 'random_seed')
+
+        def _nest_step(step):
+            if isinstance(step, str):
+                return step
+            step = dict(step)
+            name = step.pop('name', None)
+            params = step.pop('params', step)
+            nested = {"name": name}
+            if params:
+                nested["params"] = params
+            return nested
+
+        steps = [_nest_step(s) for s in args.get('preprocessing') or []]
+        if args.get('feature_selection'):
+            steps.append(_nest_step(args['feature_selection']))
+        pipeline = steps or args.get('preset')
+        evaluation = {
+            k: args[k]
+            for k in ('cv', 'test_size', 'stratify', 'metrics')
+            if args.get(k) is not None
+        }
         lines = [
             f"result_{n} = tuiml.train(\n",
             f"    {model_spec!r},\n",
             f"    {data_spec!r},\n",
         ]
-        for k in run_opt_keys:
-            if k in args and args[k] is not None:
-                lines.append(f"    {k}={args[k]!r},\n")
+        if pipeline:
+            lines.append(f"    pipeline={pipeline!r},\n")
+        if evaluation:
+            lines.append(f"    evaluation={evaluation!r},\n")
+        if args.get('random_seed') is not None:
+            lines.append(f"    random_seed={args['random_seed']!r},\n")
         lines.append(")\n")
         md = [
             f"## Train `{algo}` (step {n})\n",
             f"> `tuiml_train(algorithm={repr(algo)}, data={repr(data)}, ...)`",
         ]
         code = lines + [
-            f"model_{n} = result_{n}.model\n",
-            f"print('Metrics:', result_{n}.metrics)",
+            f"model_{n} = result_{n}.model_\n",
+            f"print('Metrics:', result_{n}.metrics_)",
         ]
         return md, code
 
@@ -4942,9 +4997,9 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
         ]
         code = _data_load_lines(data) + [
             "\n",
-            # Predict via the WorkflowResult so any fitted preprocessing /
-            # feature-selection from training is re-applied (a bare model would
-            # see raw, untransformed inputs and produce wrong predictions).
+            # Predict via the fitted Workflow so the training-time
+            # transformations are re-applied (a bare model would see raw,
+            # untransformed inputs and produce wrong predictions).
             f"predictions = {result_var}.predict(_dataset.X)\n",
             "print('Predictions (first 10):', predictions[:10])",
         ]
@@ -4964,11 +5019,11 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
         ]
         code = _data_load_lines(data) + [
             "\n",
-            # Evaluate via the WorkflowResult: tuiml.evaluate calls .predict(),
-            # and WorkflowResult.predict re-applies the fitted preprocessing /
-            # feature-selection so metrics reflect the real pipeline.
-            f"eval_metrics = tuiml.evaluate(\n",
-            f"    {var}, _dataset.X, _dataset.y,\n",
+            # Evaluate via the fitted Workflow: it re-applies the fitted
+            # transformations before scoring, so the metrics reflect the real
+            # pipeline.
+            f"eval_metrics = {var}.evaluate(\n",
+            f"    _dataset.X, _dataset.y,\n",
         ]
         if metrics:
             code.append(f"    metrics={repr(metrics)},\n")
@@ -5099,8 +5154,8 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
         elif plot_type == 'feature_importance':
             code = [
                 f"_importances = getattr({model_var}, 'feature_importances_', None)\n",
-                f"if _importances is None and {var}.feature_importance:\n",
-                f"    _importances = list({var}.feature_importance.values())\n",
+                "if _importances is None:\n",
+                "    raise ValueError('This model does not expose feature importances.')\n",
                 "plt.figure(figsize=(10, 5))\n",
                 "plt.bar(range(len(_importances)), _importances)\n",
                 f"plt.title({repr(title)})\n",
@@ -5159,15 +5214,15 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
             f"## Save Model → `{dest}`\n",
             f"> `tuiml_save_model(model_id=..., destination={repr(dest)})`",
         ]
-        # Use tuiml.save/tuiml.load (model serialization) — they are a matched
-        # pair. WorkflowResult.save() writes a different format that tuiml.load
-        # can't read back.
+        # model.save()/Algorithm.load() are a matched pair; a fitted Workflow
+        # round-trips through them too, carrying its steps along.
         code = [
-            f"tuiml.save({model_var}, {repr(dest)})\n",
+            f"{model_var}.save({repr(dest)})\n",
             f"print('Model saved to {dest}')\n",
             "\n",
             f"# Verify reload\n",
-            f"_reloaded = tuiml.load({repr(dest)})\n",
+            f"from tuiml.base.algorithms import Algorithm\n",
+            f"_reloaded = Algorithm.load({repr(dest)})\n",
             f"print('Reloaded:', _reloaded)",
         ]
         return md, code

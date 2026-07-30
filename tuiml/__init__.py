@@ -4,9 +4,9 @@ TuiML - Modern machine learning toolkit.
 A Python-based ML framework with a plugin architecture for extensibility.
 
 Three levels of API:
-    1. High-Level (Functional): tuiml.train() - One-liner with all parameters
-    2. Mid-Level (Workflow): tuiml.Workflow() - Fluent chainable interface
-    3. Low-Level (OOP): Direct class imports - Maximum control
+    1. High-Level (Functional): tuiml.train() - one call, spec-dict driven
+    2. Mid-Level (Workflow): tuiml.Workflow([...]) - a pipeline of steps
+    3. Low-Level (OOP): Direct class imports - fit/predict/score/save/load
 """
 
 from tuiml.hub import registry, ComponentType
@@ -14,12 +14,7 @@ from tuiml.hub import registry, ComponentType
 # High-level API
 from tuiml.api import (
     train,
-    run,
-    predict,
-    evaluate,
     experiment,
-    save,
-    load,
     list_algorithms,
     describe_algorithm,
     search_algorithms,
@@ -30,7 +25,7 @@ from tuiml.api import (
 )
 
 # Mid-level API
-from tuiml.workflow import Workflow, WorkflowResult
+from tuiml.workflow import Workflow, On
 
 # Agent entry points (tools for every major framework + one-liner agent)
 from tuiml.agent import agent
@@ -52,17 +47,12 @@ __version__ = "0.1.6"
 
 __all__ = [
     # Core registry
-    "hub",
+    "registry",
     "ComponentType",
 
     # High-level API (one-liner functions)
     "train",
-    "run",
-    "predict",
-    "evaluate",
     "experiment",
-    "save",
-    "load",
     "list_algorithms",
     "describe_algorithm",
     "search_algorithms",
@@ -71,9 +61,9 @@ __all__ = [
     "stop_server",
     "server_status",
 
-    # Mid-level API (fluent workflow)
+    # Mid-level API (pipeline objects)
     "Workflow",
-    "WorkflowResult",
+    "On",
 
     # Agent / framework integration
     "agent",

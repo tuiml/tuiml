@@ -51,20 +51,20 @@ uv tool uninstall tuiml   # finally, remove the package
 
 ### Three API Levels
 
-```python
-# High-level: one-liner (model spec + data spec)
-from tuiml import train
-result = train({"name": "RandomForestClassifier"}, {"source": "iris", "target": "class"}, cv=10)
+All three levels drive the same engine — a pipeline whose last step is the model.
 
-# Mid-level: chainable workflow
+```python
+# High-level: one declarative spec (strings + dicts, fully serializable)
+from tuiml import train
+model = train({"name": "RandomForestClassifier"}, {"source": "iris"},
+              evaluation={"cv": 10})
+
+# Mid-level: a pipeline of objects (imports give autocomplete + type checking)
 from tuiml import Workflow
-result = (Workflow()
-    .load("iris")
-    .preprocess("SimpleImputer")
-    .preprocess("StandardScaler")
-    .train("RandomForestClassifier", n_estimators=100)
-    .cross_validate(cv=10, metrics=["accuracy_score", "f1_score"])
-    .run())
+wf = Workflow(["SimpleImputer", "StandardScaler",
+               {"name": "RandomForestClassifier", "params": {"n_estimators": 100}}])
+wf.fit("iris", cv=10, metrics=["accuracy_score", "f1_score"])
+print(wf.metrics_)
 
 # Low-level: full OOP control
 from tuiml.algorithms.trees import RandomForestClassifier
@@ -86,90 +86,80 @@ All top-level functions are importable from `tuiml` directly.
 
 ```python
 from tuiml import (
-    train, run, predict, evaluate, experiment,
-    save, load,
+    train, experiment,
     list_algorithms, describe_algorithm, search_algorithms,
     serve, stop_server, server_status,
     PRESETS,
-    Workflow, WorkflowResult,
+    Workflow, On,
     agent,
-    hub, ComponentType,
+    registry, ComponentType,
 )
 ```
 
+`predict` / `evaluate` / `save` / `load` are **methods on the model**, not
+top-level functions — see §3. `run()` is gone: pass the spec dict straight to
+`train()`.
+
 ### train()
 
+Every component is `{"name": ..., "params": {...}}`. Hyperparameters go inside
+`"params"` — loose keys are rejected.
+
 ```python
-result = train(
-    {"name": "RandomForestClassifier", "n_estimators": 100},  # model spec: name + params
-    {"source": "iris", "target": "class"},                    # data spec: source + target
-    #   data spec also accepts "features": [...] to restrict columns,
+model = train(
+    {"name": "RandomForestClassifier", "params": {"n_estimators": 100}},
+    {"source": "iris", "target": "class"},   # data spec: source + target
+    #   also accepts "features": [...] to restrict columns,
     #   or {"X": X_array, "y": y_array} for in-memory arrays.
-    preprocessing=[{"name": "SimpleImputer"}, {"name": "StandardScaler"}],
-    feature_selection={"name": "SelectKBestSelector", "k": 10},
-    test_size=0.2,
-    stratify=True,
-    random_seed=None,                     # also accepts legacy random_state= kwarg
-    cv=10,
-    metrics="auto",                       # "auto" or list of metric names
-    return_model=True,
-    return_predictions=False,
-    return_probabilities=False,
-    preset=None,                          # "minimal", "fast", "standard", "full", "imbalanced"
-    verbose=False,
-    **kwargs,                             # algorithm hyperparameters
+    pipeline=[                               # ordered steps, all feature engineering
+        {"name": "SimpleImputer", "params": {"strategy": "mean"}},
+        {"name": "StandardScaler"},
+        {"name": "PCAExtractor", "params": {"n_components": 5}},
+        {"name": "SelectKBestSelector", "params": {"k": 10}},
+    ],
+    evaluation={                             # cv OR test_size/stratify, plus metrics
+        "cv": 10,
+        "metrics": ["accuracy_score", "f1_score"],
+    },
+    random_seed=42,
 )
-# result is a WorkflowResult with .model, .metrics, .model_id, etc.
+# Returns a FITTED Workflow: model.metrics_, model.predict(X), model.save(path)
+```
+
+The whole call can also be **one dict** (or a path to a `.json` file holding it):
+
+```python
+model = train({
+    "model": {"name": "RandomForestClassifier", "params": {"n_estimators": 100}},
+    "data": {"source": "sales.csv", "target": "label"},
+    "pipeline": [{"name": "MinMaxScaler"}],
+    "evaluation": {"cv": 10},
+    "random_seed": 42,
+})
+model = train("experiment.json")
 ```
 
 ### experiment()
 
 ```python
 result = experiment(
-    algorithms=[                          # list of names, list of (name, params) tuples,
-        "RandomForestClassifier",         # or dict of {"label": model_instance}
-        "SVC",
-        "NaiveBayesClassifier",
+    algorithms=[                          # names, {"name","params"} specs,
+        "RandomForestClassifier",         # (label, component) tuples,
+        {"name": "SVC", "params": {"kernel": "rbf"}},
+        ("NB", "NaiveBayesClassifier"),   # or dict of {"label": instance}
     ],
     datasets={                            # dict of {"name": (X, y)},
         "iris": (X, y),                  # list of built-in name strings,
-    },                                   # or list of {"path": ..., "target": ...} dicts
-    preprocessing=None,                  # preset name or step list applied to all datasets
+    },                                   # or list of {"source": ..., "target": ...} dicts
+    pipeline=None,                       # preset name or step list applied to all datasets
     cv=10,
     metrics=["accuracy_score", "f1_score"],
     n_jobs=1,                            # -1 to use all CPUs
     verbose=0,                           # int verbosity level
     random_seed=None,
     progress_callback=None,
-)
-```
-
-### predict() / evaluate()
-
-```python
-predictions = predict(model, data)       # model object with .predict(); data as DataFrame/ndarray
-metrics = evaluate(model, X, y, metrics="auto")   # X/y as arrays; returns dict of metric→value
-```
-
-### run()
-
-```python
-# One declarative experiment spec (same component convention as train()).
-result = run({
-    "model": {"name": "RandomForestClassifier", "n_estimators": 100},
-    "data": {"source": "sales.csv", "target": "label"},
-    "preprocessing": [{"name": "MinMaxScaler"}],
-    "feature_selection": {"name": "SelectKBestSelector", "k": 10},
-    "cv": 10,
-})
-result = run("config.json")              # or a path to a JSON spec file
-```
-
-### save() / load()
-
-```python
-save(model, path="model.pkl", metadata={"notes": "iris experiment"})
-model = load("model.pkl")
+    experiment_type=None,                # "classification"/"regression"/"clustering";
+)                                        # inferred from the models when omitted
 ```
 
 ### serve()
@@ -177,7 +167,7 @@ model = load("model.pkl")
 ```python
 # Returns a dict (not a URL string) when background=True; None when background=False
 info = serve(
-    model_or_path,           # file path, WorkflowResult, or any object with .predict()
+    model_or_path,           # file path, fitted Workflow, or any object with .predict()
     host="127.0.0.1",
     port=8000,
     model_id="default",
@@ -193,13 +183,14 @@ stop_server(server_id=None)              # server_id format: "host:port" e.g. "1
 
 ```python
 PRESETS = {
-    "minimal":    {},                                               # no preprocessing
+    "minimal":    [],                                               # no steps
     "fast":       SimpleImputer(strategy="most_frequent"),
     "standard":   SimpleImputer(mean) → MinMaxScaler → OneHotEncoder,
     "full":       SimpleImputer(median) → StandardScaler → OneHotEncoder → SelectKBestSelector(k=10),
     "imbalanced": SimpleImputer(mean) → MinMaxScaler → SMOTESampler,
 }
-# Pass as preset="standard" to train(), or as preprocessing="standard" (both work)
+# Pass the name as the pipeline: train(..., pipeline="standard")
+# Each preset is a plain step list, so PRESETS["standard"] + [...] composes.
 ```
 
 ### Discovery
@@ -212,42 +203,104 @@ results = search_algorithms("ensemble")
 
 ---
 
-## 3. Workflow Class
+## 3. Workflow — the pipeline
+
+A `Workflow` is an ordered list of steps whose **last step is the model**.
+Everything before it transforms. A `Workflow` *is* a model: same
+`fit`/`predict`/`score`/`save` interface as any single algorithm, so it works
+anywhere one does — including nested inside another `Workflow`.
+
+A step can be written three ways, and they mix freely:
 
 ```python
 from tuiml import Workflow
 
-result = (Workflow()
-    .load("iris")                              # built-in name, file path, or Dataset object
-    .impute(strategy="mean")                   # or handle_missing(strategy="mean")
-    .normalize(method="minmax")                # MinMax scaling
-    .standardize()                             # StandardScaler
-    .encode_categorical(method="onehot")
-    .resample(method="smote")                  # class balancing
-    .preprocess("SimpleImputer", strategy="median")   # any named preprocessor
-    .select_features("CFSSelector")
-    .pca(n_components=0.95)
-    .split(test_size=0.2, stratify=True, random_seed=42)
-    .train("RandomForestClassifier", n_estimators=100)   # or .model(...)
-    .evaluate(metrics="auto")
-    .cross_validate(cv=5, metrics="auto")
-    .run())
-
-# WorkflowResult
-result.model
-result.model_id
-result.metrics
-result.cv_results
-result.predictions
-result.probabilities
-result.feature_importance
-
-result.predict(X)
-result.predict_proba(X)
-result.save("path.pkl")
-result.serve(port=8000, host="127.0.0.1", model_id=None)
-WorkflowResult.load("path.pkl")
+Workflow(["StandardScaler", "RandomForestClassifier"])                  # class names
+Workflow([{"name": "PCAExtractor", "params": {"n_components": 5}}, "SVC"])   # spec dicts
+Workflow([StandardScaler(), RandomForestClassifier(n_estimators=100)])  # instances
+Workflow([("scale", "StandardScaler"), ("clf", "SVC")])                 # explicit names
 ```
+
+### fit() — the only execution method
+
+`fit()` always leaves the pipeline fitted on **all** the data given, and
+returns `self`. Passing `cv` or `test_size` *additionally* measures held-out
+performance into `metrics_` first.
+
+```python
+wf = Workflow(["SimpleImputer", "StandardScaler", "RandomForestClassifier"])
+
+wf.fit(X, y)                                      # plain fit, no evaluation
+wf.fit("sales.csv", target="label", cv=10)        # k-fold, then refit on all
+wf.fit("iris", test_size=0.2, stratify=True)      # holdout, then refit on all
+wf.fit("iris", features=["sepallength"], metrics=["accuracy_score"], random_seed=42)
+```
+
+### Results — fitted attributes (trailing underscore)
+
+```python
+wf.metrics_            # held-out scores, or None if no cv/test_size was given
+wf.cv_results_         # per-fold scores
+wf.predictions_        # predictions on the held-out split
+wf.model_              # the fitted final model
+wf.steps_              # the fitted transformation steps
+wf.feature_names_in_   # training column names, when known
+wf.metadata_           # algorithm, step names, evaluation method, n_samples
+```
+
+### Use it like a model
+
+```python
+wf.predict(X)          # transforms through the fitted steps, then predicts
+wf.predict_proba(X)
+wf.score(X, y)         # accuracy (classifier) / R² (regressor)
+wf.evaluate(X, y, metrics=["accuracy_score", "f1_score"])
+wf.save("pipeline.pkl")            # the whole pipeline, one file
+wf = Workflow.load("pipeline.pkl")
+wf.serve(port=8000)
+```
+
+### Inspect and tune
+
+Step names are the lowercased class name; duplicates get `-2`, `-3` suffixes.
+The `step__param` path is what lets a whole pipeline be tuned, not just a model.
+
+```python
+wf.named_steps         # {"simpleimputer": ..., "randomforestclassifier": ...}
+wf[0], wf[-1], wf["standardscaler"]
+wf.model               # the final step (unfitted prototype)
+wf.transformers        # [(name, component), ...] before the model
+
+wf.set_params(randomforestclassifier__n_estimators=200, pcaextractor__n_components=3)
+wf.get_params()        # includes nested "<step>__<param>" keys
+
+wf.to_config()         # export back to a train() spec dict
+wf._repr_html_()       # pipeline diagram (renders automatically in notebooks)
+```
+
+### On — per-column steps
+
+Mixed-type tables need different treatment per column. `On` wraps a
+transformer so it sees only the columns you name, and is itself a normal step.
+
+```python
+from tuiml import Workflow, On
+
+Workflow([
+    On("number", "SimpleImputer"),              # every numeric column
+    On("category", "OneHotEncoder"),            # every non-numeric column
+    On(["age", "fare"], "StandardScaler"),      # these named columns
+    On([0, 3], "MinMaxScaler"),                 # these positions
+    On("number", "StandardScaler", remainder="drop"),   # discard the rest
+    "RandomForestClassifier",
+])
+```
+
+Transformed columns come first in the output, then the untouched ones
+(`remainder="passthrough"`, the default). Selecting by **name** needs the
+original column names, so put name-based `On` steps first — before anything
+that changes the column layout. Type- and position-based selection works
+anywhere.
 
 ---
 
@@ -655,7 +708,7 @@ results = run_experiment(
     models={"RF": RandomForestClassifier(), "SVM": SVC(), "NB": NaiveBayesClassifier()},
     datasets={"iris": (X, y)},
     n_folds=10,
-    metrics=["accuracy", "f1_weighted"],
+    metrics=["accuracy_score", "f1_score"],   # exact function names from tuiml.evaluation.metrics
 )
 print(results.to_latex())
 print(results.to_markdown())
@@ -900,12 +953,13 @@ tuiml restart
 ## 11. Local Registry
 
 ```python
-from tuiml.hub import hub, ComponentType
+from tuiml.hub import registry, ComponentType
 
 # Local, in-process registry (no network calls)
-classifiers = hub.list("classifier")
-model = hub.create("RandomForestClassifier", n_estimators=100)
-exists = hub.exists("RandomForestClassifier")
+classifiers = registry.list(ComponentType.CLASSIFIER)          # metadata dicts
+model = registry.create("RandomForestClassifier", n_estimators=100)
+cls = registry.get("RandomForestClassifier")                   # the class itself
+names = registry.list_names(ComponentType.CLASSIFIER)
 ```
 
 The remote community hub is currently decommissioned — use agent-authored algorithms (section 12 + 14) to add algorithms to the registry at runtime instead.
