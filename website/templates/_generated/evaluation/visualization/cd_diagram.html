@@ -1,0 +1,1095 @@
+{% extends 'layouts/docs_generated.html' %}
+
+{% set active_nav = 'api' %}
+{% set breadcrumb_html = '<a href="../../api-reference.html" class="hover:text-gray-900">API Reference</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="../index.html" class="hover:text-gray-900">evaluation</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="index.html" class="hover:text-gray-900">visualization</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">cd_diagram</span>' %}
+
+{% block title %}cd_diagram - API Documentation{% endblock %}
+
+{% block content %}
+<p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a> / <a href="index.html">visualization</a></p>
+<h1 class="oc-display" style="margin-bottom: 32px;">cd_diagram</h1>
+<nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
+<div class="oc-toc-label">On this page</div>
+<a href="#class-CDDiagramResult">CDDiagramResult</a>
+<a href="#func-compute_ranks">compute_ranks</a>
+<a href="#func-critical_difference">critical_difference</a>
+<a href="#func-plot_critical_difference">plot_critical_difference</a>
+</nav>
+<main>
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Critical Difference (CD) diagrams: the standard way to report a benchmark of many algorithms over many datasets.</p>
+<div class="doc-extended">
+<p class="mb-4">
+Averaging accuracy across datasets is misleading — the scale of a metric differs per dataset, and one easy dataset can dominate the mean. Demšar (2006) instead recommends <strong>ranking</strong> the algorithms <em>within</em> each dataset, averaging those ranks, running a Friedman test for &quot;are any of them different at all?&quot;, and following up with a Nemenyi post-hoc test that yields a single <em>critical difference</em> (CD): the smallest gap between two average ranks that counts as significant.
+</p>
+
+<p class="mb-4">
+This module provides the three pieces of that recipe plus the plot:
+</p>
+
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">compute_ranks</code> — per-dataset ranks with ties averaged.
+</li>
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">critical_difference</code> — the CD value for <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">k</code> algorithms over <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">n</code>
+</li>
+
+</ul>
+datasets at a significance level.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">plot_critical_difference</code> — the diagram itself, returning a
+</li>
+
+</ul>
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">CDDiagramResult</code> with ranks, CD, cliques, and the Friedman statistic.
+<p class="mb-4">
+<strong>Reading the diagram.</strong> Algorithms sit on a horizontal <em>rank</em> axis running from 1 (best) on the left to <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">k</code> (worst) on the right; each one is connected by a line to its average rank. A <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">CD</code>-wide reference bar is drawn at the top for scale. Thick horizontal bars underneath join algorithms whose average ranks differ by <strong>less than</strong> the CD — those are the groups that are <em>not</em> statistically distinguishable. So the claim &quot;A beats B&quot; is only supported when A is to the left of B <strong>and</strong> no thick bar joins them.
+</p>
+</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">The tabulated Studentised-range critical values used here cover 2-20 algorithms; beyond that the value is extrapolated crudely (see <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">critical_difference</code>).</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/evaluation/statistics/friedman_test.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">friedman_test</code>
+                            <p class="text-sm text-gray-600 mt-0.5">The omnibus test the diagram summarises; check it is significant before interpreting the ranks.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/evaluation/statistics/nemenyi_post_hoc.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">nemenyi_post_hoc</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Pairwise p-values behind the &quot;not significantly different&quot; bars.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/evaluation/visualization/plot_ranking_table.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">plot_ranking_table</code>
+                            <p class="text-sm text-gray-600 mt-0.5">The same score matrix as a table of raw values and ranks.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-book text-amber-500 mr-2"></i>References</h4>
+            </div>
+            <div class="p-4"><div class="reference-list space-y-2">
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">Demsar2006</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Demšar, J. (2006). &quot;Statistical comparisons of classifiers over
+   multiple data sets.&quot; <em class="text-gray-700">Journal of Machine Learning Research</em>, 7, 1-30.</div>
+                    </div>
+                </div>
+                </div></div>
+        </div>
+        </div>
+<div class="mb-12">
+<h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-cubes text-indigo-500"></i> Classes</h2>
+<div class="mb-12 scroll-mt-24" id="class-CDDiagramResult">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">CDDiagramResult</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">evaluation.visualization.cd_diagram.CDDiagramResult</span></p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed">Numbers behind a Critical Difference diagram.</p>
+<div class="text-gray-600 mb-8 leading-relaxed">Returned by <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">plot_critical_difference</code> so the statistics shown in the figure can be reported in text or asserted on in tests.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-list-check text-blue-500 mr-2"></i>Attributes</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">avg_ranks</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">dict of {str: float}</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Average rank of each algorithm across datasets, keyed by the name given to <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">plot_critical_difference</code>. Lower is better; 1.0 means the algorithm won on every dataset. Keys follow the <em>input</em> order, not the sorted order drawn in the figure.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">critical_difference</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    The Nemenyi critical difference. Two algorithms are declared significantly different only if their average ranks differ by at least this much.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">groups</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">list of list of str</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Cliques of algorithm names that are <strong>not</strong> significantly different from one another — each list corresponds to one thick bar in the diagram. Groups may overlap, and an algorithm distinguishable from all others appears in none of them.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">p_value</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    P-value of the Friedman omnibus test. If this is above your :math:`\alpha`, the ranking as a whole is not significant and the pairwise reading of the diagram should not be trusted.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">test_statistic</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    The Friedman :math:`\chi^2` statistic, with <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">n_algorithms - 1</code> degrees of freedom.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/evaluation/visualization/plot_critical_difference.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">plot_critical_difference</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Produces this result.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/evaluation/statistics/friedman_test.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">friedman_test</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Standalone Friedman test with the same statistic.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.evaluation.visualization import CDDiagramResult
+&gt;&gt;&gt; res = CDDiagramResult(
+...     avg_ranks={&#x27;A&#x27;: 1.0, &#x27;B&#x27;: 2.0, &#x27;C&#x27;: 3.0},
+...     critical_difference=1.5,
+...     groups=[[&#x27;A&#x27;, &#x27;B&#x27;], [&#x27;B&#x27;, &#x27;C&#x27;]],
+...     p_value=0.03,
+...     test_statistic=6.0,
+... )
+&gt;&gt;&gt; min(res.avg_ranks, key=res.avg_ranks.get)
+&#x27;A&#x27;</code></pre>
+            </div>
+        </div>
+        </div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-CDDiagramResult-get_parameter_schema">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_parameter_schema</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; Dict</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return JSON Schema for the dataclass fields.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">schema</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-700">dict</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    JSON Schema describing the fields of <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">CDDiagramResult</code>.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+</div></div>
+</div>
+</div>
+<div class="mb-12">
+<h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-code text-indigo-500"></i> Functions</h2>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-compute_ranks">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">compute_ranks</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 165</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">compute_ranks(scores: np.ndarray, lower_better: bool=False) -&gt; np.ndarray</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Rank algorithms <strong>within each dataset</strong>, averaging tied ranks.</p>
+<div class="doc-extended">
+<p class="mb-4">
+This is the first step of the Demšar (2006) comparison protocol: ranking per dataset removes the effect of datasets having wildly different score scales, which is what makes a plain average across datasets untrustworthy.
+</p>
+
+<p class="mb-4">
+Each row of <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">scores</code> is ranked independently. The best algorithm on a row gets rank 1, the worst gets rank <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">n_algorithms</code>. Ties share the mean of the ranks they span, so two algorithms tying for first both get 1.5 and the next one gets 3 — rank sums stay comparable across rows.
+</p>
+</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">scores</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">ndarray of shape (n_datasets, n_algorithms)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Performance scores; one row per dataset, one column per algorithm.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">lower_better</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">bool</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= False</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Direction of the metric. Leave False for accuracy, F1, AUC, …; set True for error rates, RMSE, log-loss and other &quot;smaller is better&quot; metrics.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-arrow-right-from-bracket text-green-500 mr-2"></i>Returns</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">ranks</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">ndarray of shape (n_datasets, n_algorithms)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Rank matrix aligned with <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">scores</code>; 1 is best. Fractional values indicate ties.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">Column <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">j</code> of the result always refers to the same algorithm as column <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">j</code> of the input — nothing is sorted. The dtype follows <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">scores</code> (via <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">np.zeros_like</code>), so pass a float array: an integer score matrix cannot represent the fractional ranks produced by ties.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/evaluation/visualization/plot_critical_difference.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">plot_critical_difference</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Consumes these ranks and tests which differences are significant.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; from tuiml.evaluation.visualization import compute_ranks
+&gt;&gt;&gt; scores = np.array([[0.90, 0.85, 0.80],
+...                    [0.70, 0.70, 0.65]])
+&gt;&gt;&gt; compute_ranks(scores)
+array([[1. , 2. , 3. ],
+       [1.5, 1.5, 3. ]])</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">With an error metric, flip the direction:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; compute_ranks(np.array([[0.10, 0.15, 0.20]]), lower_better=True)
+array([[1., 2., 3.]])</code></pre>
+            </div>
+        </div>
+        </div></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-critical_difference">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">critical_difference</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 246</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">critical_difference(n_datasets: int, n_algorithms: int, alpha: float=0.05, test: str=&#x27;nemenyi&#x27;) -&gt; float</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Smallest gap between two average ranks that counts as significant.</p>
+<div class="doc-extended">
+<p class="mb-4">
+Implements the Nemenyi critical difference of Demšar (2006). For <span class="katex-inline">k</span> algorithms compared over <span class="katex-inline">N</span> datasets,
+</p>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">CD = q_{\alpha} \sqrt{\frac{k(k+1)}{6N}}</span>
+</div>
+
+<p class="mb-4">
+where <span class="katex-inline">q_{\alpha}</span> is the Studentised range statistic at level <span class="katex-inline">\alpha</span> divided by <span class="katex-inline">\sqrt{2}</span>, tabulated below. Two algorithms whose average ranks differ by at least <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">CD</code> are declared significantly different; anything closer is joined by a bar in the diagram.
+</p>
+
+<p class="mb-4">
+Two consequences worth internalising: the CD <em>shrinks</em> as you add datasets (<span class="katex-inline">\propto 1/\sqrt{N}</span>) and <em>grows</em> as you add algorithms — throwing extra baselines into a benchmark makes every comparison harder to call.
+</p>
+</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">n_datasets</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Number of datasets :math:`N` (rows of the score matrix).
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">n_algorithms</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Number of algorithms :math:`k` (columns of the score matrix).
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">alpha</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 0.05</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Significance level. Only two tables exist: <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">alpha &lt;= 0.05</code> selects the 0.05 critical values, anything larger selects the 0.10 values. Values such as 0.01 therefore behave exactly like 0.05.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">test</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">str</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= &#x27;nemenyi&#x27;</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Accepted for interface compatibility. The Nemenyi critical values are used regardless of what is passed; this argument does not currently change the result.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-arrow-right-from-bracket text-green-500 mr-2"></i>Returns</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">cd</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    The critical difference, in units of average rank.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">Tabulated <span class="katex-inline">q_{\alpha}</span> values cover <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">n_algorithms</code> from 2 to 20. Above 20 the value is approximated by a linear extrapolation, and an unlisted count falls back to 3.5 — treat results for very large <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">k</code> as indicative only.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/evaluation/visualization/plot_critical_difference.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">plot_critical_difference</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Draws the diagram this value scales.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/evaluation/statistics/nemenyi_post_hoc.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">nemenyi_post_hoc</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Exact pairwise p-values instead of a single threshold.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-book text-amber-500 mr-2"></i>References</h4>
+            </div>
+            <div class="p-4"><div class="reference-list space-y-2">
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">Demsar2006</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Demšar, J. (2006). &quot;Statistical comparisons of classifiers
+   over multiple data sets.&quot; <em class="text-gray-700">Journal of Machine Learning Research</em>, 7, 1-30.</div>
+                    </div>
+                </div>
+                </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.evaluation.visualization import critical_difference
+&gt;&gt;&gt; round(float(critical_difference(n_datasets=20, n_algorithms=5)), 3)
+1.364</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">More datasets tighten the threshold:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; round(float(critical_difference(n_datasets=80, n_algorithms=5)), 3)
+0.682</code></pre>
+            </div>
+        </div>
+        </div></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-plot_critical_difference">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">plot_critical_difference</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 403</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">plot_critical_difference(scores: Union[np.ndarray, Dict[str, np.ndarray]], names: List[str]=None, lower_better: bool=False, alpha: float=0.05, test: Literal[&#x27;nemenyi&#x27;, &#x27;wilcoxon&#x27;]=&#x27;nemenyi&#x27;, correction: Literal[&#x27;holm&#x27;, &#x27;bonferroni&#x27;, &#x27;none&#x27;]=&#x27;holm&#x27;, title: str=None, figsize: Tuple[int, int]=None, save_path: str=None) -&gt; Optional[CDDiagramResult]</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Draw a Critical Difference diagram comparing algorithms over many datasets.</p>
+<div class="doc-extended">
+<p class="mb-4">
+The plot answers one question: <em>which of these algorithms can I actually claim are different?</em> Each algorithm is ranked within every dataset (see <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">compute_ranks</code>), the ranks are averaged, and a Nemenyi critical difference is computed from the number of algorithms and datasets.
+</p>
+
+<p class="mb-4">
+<strong>How to read it.</strong> The horizontal axis is average rank, best (1) on the left, worst (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">k</code>) on the right. Every algorithm hangs off the axis by a connector line ending at its average rank, with names printed on the left for the better half and on the right for the worse half. The short bar labelled <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">CD</code> at the top is a ruler showing how wide the critical difference is in rank units. The <strong>thick horizontal bars underneath join algorithms that are NOT significantly different</strong> — if a bar spans two algorithms, the data does not support preferring one over the other, no matter how their average ranks are ordered:
+</p>
+<div class="bg-slate-900 rounded-lg p-4 my-3 overflow-x-auto"><pre class="text-sm font-mono text-slate-100 leading-relaxed">                      |------ CD ------|
+
+  1        2        3        4        5        6
+  |--------|--------|--------|--------|--------|
+  |        |        |             |        |
+SVM      Forest   Boosting      kNN    NaiveBayes
+           |________|             |________|
+            (tied)                 (tied)</pre></div>
+<p class="mb-4">
+Here SVM is significantly better than everything to the right of Forest, Forest and Boosting are indistinguishable, and so are kNN and NaiveBayes.
+</p>
+</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">scores</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">ndarray of shape (n_datasets, n_algorithms) or dict of {str: ndarray}</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Performance scores; one row per dataset, one column per algorithm. If a dict is given, keys become the algorithm names and each value is that algorithm&#x27;s score across the datasets (all values must be the same length), overriding <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">names</code>.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">names</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">list of str</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Algorithm names in column order. Required when <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">scores</code> is an array.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">lower_better</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">bool</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= False</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Set True when smaller scores are better (error rate, RMSE, log-loss).
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">alpha</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 0.05</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Significance level driving the critical difference. Note the implementation only distinguishes <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&lt;= 0.05</code> from larger values — see <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">critical_difference</code>.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">test</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">{&#x27;nemenyi&#x27;, &#x27;wilcoxon&#x27;}</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= &#x27;nemenyi&#x27;</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Accepted for interface compatibility; the critical difference is always computed from the Nemenyi statistic. Passing <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&#x27;wilcoxon&#x27;</code> does not currently change the figure.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">correction</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">{&#x27;holm&#x27;, &#x27;bonferroni&#x27;, &#x27;none&#x27;}</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= &#x27;holm&#x27;</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Accepted for interface compatibility; multiple-comparison correction is implicit in the Nemenyi critical value and this argument is not currently applied.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">title</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">str</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Figure title. Title-cased before rendering. No title is drawn if None.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">figsize</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">tuple of (float, float)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Figure size in inches. When None, it scales with the number of algorithms — width <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">max(8, k)</code>, height <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">max(3, 0.4 * k)</code> — which is usually the right thing, since the diagram grows vertically with <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">k</code>.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">save_path</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">str</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    If given, the figure is also written to this path as a 300-dpi PNG with a white background and tight bounding box, before being shown.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-arrow-right-from-bracket text-green-500 mr-2"></i>Returns</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">result</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">CDDiagramResult</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Average ranks, the critical difference, the cliques drawn as bars, and the Friedman test statistic and p-value. Check <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">result.p_value</code> first: if the Friedman test is not significant, the ordering shown carries no statistical weight.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-triangle-exclamation text-red-500 mr-2"></i>Raises</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">ImportError</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    If matplotlib is not installed (it is imported lazily).
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">ValueError</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    If <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">names</code> is None while <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">scores</code> is an array, or if <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">len(names)</code> does not match the number of columns in <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">scores</code>.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+Side effects: this function mutates the global matplotlib style (see <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">apply_style</code>), calls <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">matplotlib.pyplot.show()</code> before returning — so it blocks in a GUI backend and renders inline in a notebook — and writes a file when <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">save_path</code> is given. Use a non-interactive backend such as <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Agg</code> to render headlessly. The figure object itself is not returned; grab it with <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">matplotlib.pyplot.gcf()</code> before <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">show()</code> clears the display if you need to post-process it.
+</p>
+
+<p class="mb-4">
+Bars are computed from the pairwise rank gaps directly, so with many algorithms the bars can overlap; each one is drawn on its own row below the labels to keep them legible.
+</p>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/evaluation/visualization/compute_ranks.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">compute_ranks</code>
+                            <p class="text-sm text-gray-600 mt-0.5">The per-dataset ranking step.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/evaluation/visualization/critical_difference.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">critical_difference</code>
+                            <p class="text-sm text-gray-600 mt-0.5">The CD value that sets the width of the bars.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/evaluation/statistics/friedman_test.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">friedman_test</code>
+                            <p class="text-sm text-gray-600 mt-0.5">The omnibus test whose statistic and p-value are reported in the result.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/evaluation/statistics/nemenyi_post_hoc.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">nemenyi_post_hoc</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Pairwise p-values for a numeric write-up of the same comparison.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/evaluation/visualization/plot_boxplot_comparison.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">plot_boxplot_comparison</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Score spread per algorithm, a useful companion figure.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-book text-amber-500 mr-2"></i>References</h4>
+            </div>
+            <div class="p-4"><div class="reference-list space-y-2">
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">Demsar2006</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Demšar, J. (2006). &quot;Statistical comparisons of classifiers
+   over multiple data sets.&quot; <em class="text-gray-700">Journal of Machine Learning Research</em>, 7, 1-30.</div>
+                    </div>
+                </div>
+                </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; from tuiml.evaluation.visualization import plot_critical_difference
+&gt;&gt;&gt; scores = np.array([
+...     [0.85, 0.82, 0.78],
+...     [0.87, 0.84, 0.80],
+...     [0.83, 0.81, 0.79],
+... ])
+&gt;&gt;&gt; names = [&#x27;Algorithm A&#x27;, &#x27;Algorithm B&#x27;, &#x27;Algorithm C&#x27;]
+&gt;&gt;&gt; result = plot_critical_difference(scores, names)   # doctest: +SKIP
+&gt;&gt;&gt; result.avg_ranks                                   # doctest: +SKIP
+{&#x27;Algorithm A&#x27;: 1.0, &#x27;Algorithm B&#x27;: 2.0, &#x27;Algorithm C&#x27;: 3.0}</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">Passing a dict names the algorithms for you, and saves the figure:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; results = {
+...     &#x27;SVM&#x27;: np.array([0.91, 0.88, 0.93]),
+...     &#x27;Forest&#x27;: np.array([0.89, 0.90, 0.88]),
+...     &#x27;kNN&#x27;: np.array([0.80, 0.79, 0.84]),
+... }
+&gt;&gt;&gt; res = plot_critical_difference(
+...     results, title=&#x27;Accuracy over 3 datasets&#x27;,
+...     save_path=&#x27;cd.png&#x27;)                            # doctest: +SKIP</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">For an error metric, flip the direction so rank 1 is the smallest value:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; errors = np.array([[0.15, 0.18, 0.22], [0.13, 0.16, 0.21]])
+&gt;&gt;&gt; res = plot_critical_difference(
+...     errors, names=[&#x27;A&#x27;, &#x27;B&#x27;, &#x27;C&#x27;], lower_better=True)   # doctest: +SKIP</code></pre>
+            </div>
+        </div>
+        </div></div>
+</div></div>
+</div>
+</main>
+{% endblock %}

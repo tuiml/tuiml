@@ -1,0 +1,2211 @@
+{% extends 'layouts/docs_generated.html' %}
+
+{% set active_nav = 'api' %}
+{% set breadcrumb_html = '<a href="../../api-reference.html" class="hover:text-gray-900">API Reference</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="../index.html" class="hover:text-gray-900">algorithms</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="index.html" class="hover:text-gray-900">neural</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">perceptron</span>' %}
+
+{% block title %}perceptron - API Documentation{% endblock %}
+
+{% block content %}
+<p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">algorithms</a> / <a href="index.html">neural</a></p>
+<h1 class="oc-display" style="margin-bottom: 32px;">perceptron</h1>
+<nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
+<div class="oc-toc-label">On this page</div>
+<a href="#class-PerceptronClassifier">PerceptronClassifier</a>
+<a href="#class-VotedPerceptronClassifier">VotedPerceptronClassifier</a>
+<a href="#class-AveragedPerceptronClassifier">AveragedPerceptronClassifier</a>
+</nav>
+<main>
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">PerceptronClassifier classifier implementation.</p></div>
+<div class="mb-12">
+<h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-cubes text-indigo-500"></i> Classes</h2>
+<div class="mb-12 scroll-mt-24" id="class-PerceptronClassifier">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">PerceptronClassifier</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">algorithms.neural.perceptron.PerceptronClassifier</span>(<span class="text-cyan-400">Classifier</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed">PerceptronClassifier classifier.</p>
+<div class="text-gray-600 mb-8 leading-relaxed">A single-layer <strong>neural network</strong> that learns a <strong>linear decision boundary</strong> for classification. Supports binary and multiclass classification using a one-vs-all strategy.</div>
+
+        <div class="mb-8">
+            <div class="bg-slate-800 rounded-lg overflow-hidden shadow-lg">
+                <div class="flex items-center justify-between px-4 py-2 bg-slate-900/50 border-b border-slate-700">
+                    <span class="text-slate-400 text-xs font-mono">Constructor</span>
+                    <button onclick="copyCode('init-PerceptronClassifier')" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i>
+                        <span class="text-xs">Copy</span>
+                    </button>
+                </div>
+                <div class="p-4 overflow-x-auto" id="init-PerceptronClassifier">
+                    <pre class="font-mono text-sm leading-relaxed"><span class="text-purple-400">__init__</span><span class="text-slate-300">(</span>
+    <span class="text-red-400">self</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">learning_rate</span><span class="text-slate-400">:</span> <span class="text-cyan-400">float</span> <span class="text-slate-400">=</span> <span class="text-green-400">1.0</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">max_iter</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">1000</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">tol</span><span class="text-slate-400">:</span> <span class="text-cyan-400">float</span> <span class="text-slate-400">=</span> <span class="text-green-400">0.001</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">shuffle</span><span class="text-slate-400">:</span> <span class="text-cyan-400">bool</span> <span class="text-slate-400">=</span> <span class="text-green-400">True</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">random_state</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Optional[int]</span> <span class="text-slate-400">=</span> <span class="text-green-400">None</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">early_stopping</span><span class="text-slate-400">:</span> <span class="text-cyan-400">bool</span> <span class="text-slate-400">=</span> <span class="text-green-400">True</span><span class="text-slate-400">,</span>
+<span class="text-slate-300">)</span></pre>
+                </div>
+            </div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Overview</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+The Perceptron trains by iterating over samples and adjusting weights when a misclassification occurs:
+</p>
+
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+Initialize weight vectors and bias terms to zero for each class
+</li>
+
+<li class="text-gray-700">
+For each training sample, compute scores across all classes
+</li>
+
+<li class="text-gray-700">
+Predict the class with the highest score
+</li>
+
+<li class="text-gray-700">
+If the prediction is incorrect, update weights: increase weights for the
+</li>
+
+</ol>
+correct class and decrease weights for the predicted class
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+Repeat for multiple epochs until convergence or early stopping
+</li>
+
+</ol>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Theory</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+The Perceptron uses a linear activation with the following update rule. Given input <span class="katex-inline">\mathbf{x}</span> with true label <span class="katex-inline">y</span> and predicted label <span class="katex-inline">\hat{y}</span>:
+</p>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">\mathbf{w}_y \leftarrow \mathbf{w}_y + \eta \, \mathbf{x}</span>
+</div>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">\mathbf{w}_{\hat{y}} \leftarrow \mathbf{w}_{\hat{y}} - \eta \, \mathbf{x}</span>
+</div>
+
+<p class="mb-4">
+where <span class="katex-inline">\eta</span> is the learning rate. The decision function for class <span class="katex-inline">k</span> is:
+</p>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">f_k(\mathbf{x}) = \mathbf{w}_k \cdot \mathbf{x} + b_k</span>
+</div>
+
+<p class="mb-4">
+The predicted label is <span class="katex-inline">\hat{y} = \arg\max_k f_k(\mathbf{x})</span>.
+</p>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">learning_rate</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 1.0</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Learning rate for weight updates.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">max_iter</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 1000</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Maximum number of passes over the training data (epochs).
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">tol</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 1e-3</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Tolerance for stopping criterion based on error rate.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">shuffle</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">bool</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= True</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Whether to shuffle training data after each epoch.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">random_state</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int or None</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= None</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Seed used by the random number generator if <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">shuffle</code> is True.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">early_stopping</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">bool</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= True</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Whether to stop training if zero mistakes are made in an epoch.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-list-check text-blue-500 mr-2"></i>Attributes</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">weights_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_classes, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Weight vectors for each class.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">bias_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_classes,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Bias terms for each class.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">classes_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_classes,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Unique class labels discovered during <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">fit</code>.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">n_iter_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Number of iterations run during training.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+<strong>Complexity:</strong>
+</p>
+
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+Training: <span class="katex-inline">O(n \cdot d \cdot T)</span> where <span class="katex-inline">n</span> = number of
+</li>
+
+</ul>
+samples, <span class="katex-inline">d</span> = number of features, <span class="katex-inline">T</span> = max_iter
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+Prediction: <span class="katex-inline">O(n \cdot d \cdot K)</span> where <span class="katex-inline">K</span> = number of
+</li>
+
+</ul>
+classes
+<p class="mb-4">
+<strong>When to use PerceptronClassifier:</strong>
+</p>
+
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+When the data is linearly separable or nearly so
+</li>
+
+<li class="text-gray-700">
+When a fast, simple baseline classifier is needed
+</li>
+
+<li class="text-gray-700">
+When interpretability of the weight vector is important
+</li>
+
+<li class="text-gray-700">
+As a building block before moving to more complex neural models
+</li>
+
+</ul>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-book text-amber-500 mr-2"></i>References</h4>
+            </div>
+            <div class="p-4"><div class="reference-list space-y-2">
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">Rosenblatt1958</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Rosenblatt, F. (1958).
+       <strong class="text-gray-900">The Perceptron: A Probabilistic Model for Information Storage and
+       Organization in the Brain.</strong>
+       <em class="text-gray-700">Psychological Review</em>, 65(6), 386-408.</div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">Novikoff1963</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Novikoff, A.B. (1963).
+       <strong class="text-gray-900">On Convergence Proofs for Perceptrons.</strong>
+       <em class="text-gray-700">Symposium on the Mathematical Theory of Automata</em>, 12, 615-622.</div>
+                    </div>
+                </div>
+                </div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/algorithms/neural/perceptron.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">VotedPerceptronClassifier</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Voted variant with weighted voting for improved robustness.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/algorithms/neural/perceptron.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">AveragedPerceptronClassifier</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Averaged variant for better generalization.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/algorithms/neural/multilayer_perceptron.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">MultilayerPerceptronClassifier</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Multi-layer neural network with backpropagation.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0"><p class="text-gray-600 my-2">Train a Perceptron on a simple binary classification task:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.algorithms.neural import PerceptronClassifier
+&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; X = np.array([[1, 2], [2, 3], [4, 5], [5, 6]])
+&gt;&gt;&gt; y = np.array([0, 0, 1, 1])
+&gt;&gt;&gt; clf = PerceptronClassifier(learning_rate=0.1, max_iter=100)
+&gt;&gt;&gt; clf.fit(X, y)
+PerceptronClassifier(n_iter=..., n_classes=2)
+&gt;&gt;&gt; clf.predict([[3, 4]])
+array([0])</code></pre>
+            </div>
+        </div>
+        </div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-PerceptronClassifier-get_parameter_schema">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">get_parameter_schema</code>
+                    <span class="text-sm text-gray-400 font-mono">(cls) -&gt; Dict[str, Dict[str, Any]]</span>
+                </div>
+            </div>
+            
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-PerceptronClassifier-get_capabilities">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">get_capabilities</code>
+                    <span class="text-sm text-gray-400 font-mono">(cls) -&gt; List[str]</span>
+                </div>
+            </div>
+            
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-PerceptronClassifier-get_complexity">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">get_complexity</code>
+                    <span class="text-sm text-gray-400 font-mono">(cls) -&gt; str</span>
+                </div>
+            </div>
+            
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-PerceptronClassifier-get_references">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">get_references</code>
+                    <span class="text-sm text-gray-400 font-mono">(cls) -&gt; List[str]</span>
+                </div>
+            </div>
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-PerceptronClassifier-fit">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">fit</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray, y: np.ndarray) -&gt; &#x27;PerceptronClassifier&#x27;</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Fit the PerceptronClassifier classifier.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Training features.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Target labels.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">self</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">PerceptronClassifier</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Returns the fitted instance.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-PerceptronClassifier-partial_fit">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">partial_fit</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray, y: np.ndarray, classes: Optional[np.ndarray]=None) -&gt; &#x27;PerceptronClassifier&#x27;</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Incrementally fit the PerceptronClassifier classifier on a batch of samples.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Incremental training features.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Incremental target labels.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">classes</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_classes,)</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= None</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    List of all classes expected. Must be provided at the first call, can be omitted afterwards.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">self</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">PerceptronClassifier</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Returns the updated instance.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-PerceptronClassifier-decision_function">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">decision_function</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray) -&gt; np.ndarray</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Compute decision scores for samples.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Input features.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">scores</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_classes)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Confidence scores for each class.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-PerceptronClassifier-predict">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">predict</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray) -&gt; np.ndarray</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Predict class labels for samples.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Input features.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y_pred</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Predicted class labels.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-PerceptronClassifier-predict_proba">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">predict_proba</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray) -&gt; np.ndarray</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Estimate class probabilities for samples.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Input features.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">probabilities</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_classes)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Predicted class probabilities.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-PerceptronClassifier-__repr__">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">__repr__</code>
+                    <span class="text-sm text-gray-400 font-mono">(self) -&gt; str</span>
+                </div>
+            </div>
+            
+</div></div>
+</div>
+<div class="mb-12 scroll-mt-24" id="class-VotedPerceptronClassifier">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">VotedPerceptronClassifier</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">algorithms.neural.perceptron.VotedPerceptronClassifier</span>(<span class="text-cyan-400">Classifier</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed">Voted Perceptron classifier.</p>
+<div class="text-gray-600 mb-8 leading-relaxed">A variant of the Perceptron that keeps track of all <strong>weight vectors</strong> generated during training and uses <strong>weighted voting</strong> for prediction based on their survival time (how many samples they correctly classified before an update). This is generally more robust than the standard perceptron.</div>
+
+        <div class="mb-8">
+            <div class="bg-slate-800 rounded-lg overflow-hidden shadow-lg">
+                <div class="flex items-center justify-between px-4 py-2 bg-slate-900/50 border-b border-slate-700">
+                    <span class="text-slate-400 text-xs font-mono">Constructor</span>
+                    <button onclick="copyCode('init-VotedPerceptronClassifier')" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i>
+                        <span class="text-xs">Copy</span>
+                    </button>
+                </div>
+                <div class="p-4 overflow-x-auto" id="init-VotedPerceptronClassifier">
+                    <pre class="font-mono text-sm leading-relaxed"><span class="text-purple-400">__init__</span><span class="text-slate-300">(</span>
+    <span class="text-red-400">self</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">max_iter</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">1</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">exponent</span><span class="text-slate-400">:</span> <span class="text-cyan-400">float</span> <span class="text-slate-400">=</span> <span class="text-green-400">1.0</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">random_state</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Optional[int]</span> <span class="text-slate-400">=</span> <span class="text-green-400">None</span><span class="text-slate-400">,</span>
+<span class="text-slate-300">)</span></pre>
+                </div>
+            </div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Overview</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+The Voted Perceptron maintains a history of weight vectors during training:
+</p>
+
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+Initialize a weight vector and bias to zero
+</li>
+
+<li class="text-gray-700">
+For each training sample, compute the prediction using the current weights
+</li>
+
+<li class="text-gray-700">
+If the prediction is correct, increment the survival counter
+</li>
+
+<li class="text-gray-700">
+If the prediction is incorrect, store the current weight vector along with
+</li>
+
+</ol>
+its survival count, then update the weights using the perceptron rule
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+At prediction time, each stored weight vector casts a vote weighted by
+</li>
+
+</ol>
+its survival time</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Theory</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+The Voted Perceptron stores a sequence of weight vectors <span class="katex-inline">(\mathbf{w}_1, c_1), (\mathbf{w}_2, c_2), \ldots, (\mathbf{w}_k, c_k)</span> where <span class="katex-inline">c_i</span> is the survival time of <span class="katex-inline">\mathbf{w}_i</span>. The prediction for a new instance <span class="katex-inline">\mathbf{x}</span> is:
+</p>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">\hat{y} = \text{sign}\left(\sum_{i=1}^{k} c_i \, \text{sign}(\mathbf{w}_i \cdot \mathbf{x} + b_i)\right)</span>
+</div>
+
+<p class="mb-4">
+With a polynomial kernel of exponent <span class="katex-inline">p</span>, the dot product is replaced by:
+</p>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">K(\mathbf{x}_1, \mathbf{x}_2) = (\mathbf{x}_1 \cdot \mathbf{x}_2 + 1)^p</span>
+</div>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">max_iter</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 1</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Maximum number of passes over the training data (epochs).
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">exponent</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 1.0</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Exponent for the polynomial kernel. Use 1.0 for a linear model.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">random_state</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int or None</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= None</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Seed used by the random number generator.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-list-check text-blue-500 mr-2"></i>Attributes</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">weight_vectors_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">list of list of (np.ndarray, float)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Stored weight vectors and biases for each one-vs-all classifier.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">survival_times_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">list of list of int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Survival times corresponding to each stored weight vector.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">classes_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_classes,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Unique class labels discovered during <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">fit</code>.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+<strong>Complexity:</strong>
+</p>
+
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+Training: <span class="katex-inline">O(n \cdot d \cdot T)</span> where <span class="katex-inline">n</span> = number of
+</li>
+
+</ul>
+samples, <span class="katex-inline">d</span> = number of features, <span class="katex-inline">T</span> = max_iter
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+Prediction: <span class="katex-inline">O(V \cdot d)</span> where <span class="katex-inline">V</span> = total number of
+</li>
+
+</ul>
+stored weight vectors
+<p class="mb-4">
+<strong>When to use VotedPerceptronClassifier:</strong>
+</p>
+
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+When the standard perceptron overfits or is unstable
+</li>
+
+<li class="text-gray-700">
+When improved generalization is desired without additional tuning
+</li>
+
+<li class="text-gray-700">
+When the data is linearly separable but noisy
+</li>
+
+<li class="text-gray-700">
+When a theoretically motivated margin-based classifier is needed
+</li>
+
+</ul>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-book text-amber-500 mr-2"></i>References</h4>
+            </div>
+            <div class="p-4"><div class="reference-list space-y-2">
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">FreundSchapire1999</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Freund, Y. and Schapire, R.E. (1999).
+       <strong class="text-gray-900">Large Margin Classification Using the Perceptron Algorithm.</strong>
+       <em class="text-gray-700">Machine Learning</em>, 37(3), 277-296.
+       DOI: <a href="https://doi.org/10.1023/A:1007662407062" target="_blank" class="text-indigo-600 hover:text-indigo-800 hover:underline">10.1023/A:1007662407062 </a></div>
+                    </div>
+                </div>
+                </div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/algorithms/neural/perceptron.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">PerceptronClassifier</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Standard single-layer perceptron classifier.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/algorithms/neural/perceptron.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">AveragedPerceptronClassifier</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Averaged variant for better generalization.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/algorithms/neural/multilayer_perceptron.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">MultilayerPerceptronClassifier</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Multi-layer neural network with backpropagation.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0"><p class="text-gray-600 my-2">Train a Voted Perceptron on a simple binary classification task:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.algorithms.neural import VotedPerceptronClassifier
+&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; X = np.array([[1, 2], [2, 3], [4, 5], [5, 6]])
+&gt;&gt;&gt; y = np.array([0, 0, 1, 1])
+&gt;&gt;&gt; clf = VotedPerceptronClassifier(max_iter=3)
+&gt;&gt;&gt; clf.fit(X, y)
+VotedPerceptronClassifier(n_vectors=...)
+&gt;&gt;&gt; clf.predict([[3, 4]])
+array([0])</code></pre>
+            </div>
+        </div>
+        </div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-VotedPerceptronClassifier-get_parameter_schema">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">get_parameter_schema</code>
+                    <span class="text-sm text-gray-400 font-mono">(cls) -&gt; Dict[str, Dict[str, Any]]</span>
+                </div>
+            </div>
+            
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-VotedPerceptronClassifier-get_capabilities">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">get_capabilities</code>
+                    <span class="text-sm text-gray-400 font-mono">(cls) -&gt; List[str]</span>
+                </div>
+            </div>
+            
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-VotedPerceptronClassifier-get_complexity">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">get_complexity</code>
+                    <span class="text-sm text-gray-400 font-mono">(cls) -&gt; str</span>
+                </div>
+            </div>
+            
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-VotedPerceptronClassifier-get_references">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">get_references</code>
+                    <span class="text-sm text-gray-400 font-mono">(cls) -&gt; List[str]</span>
+                </div>
+            </div>
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-VotedPerceptronClassifier-fit">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">fit</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray, y: np.ndarray) -&gt; &#x27;VotedPerceptronClassifier&#x27;</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Fit the Voted PerceptronClassifier classifier.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Training features.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Target labels.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">self</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">VotedPerceptronClassifier</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Returns the fitted instance.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-VotedPerceptronClassifier-decision_function">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">decision_function</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray) -&gt; np.ndarray</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Compute weighted decision scores.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Input features.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">scores</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_classes)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Decision scores calculated as the weighted sum of votes.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-VotedPerceptronClassifier-predict">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">predict</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray) -&gt; np.ndarray</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Predict class labels using weighted voting.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Input features.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y_pred</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Predicted class labels.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-VotedPerceptronClassifier-predict_proba">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">predict_proba</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray) -&gt; np.ndarray</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Estimate class probabilities using softmax on voting scores.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Input features.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">probabilities</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_classes)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Predicted class probabilities.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-VotedPerceptronClassifier-__repr__">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">__repr__</code>
+                    <span class="text-sm text-gray-400 font-mono">(self) -&gt; str</span>
+                </div>
+            </div>
+            
+</div></div>
+</div>
+<div class="mb-12 scroll-mt-24" id="class-AveragedPerceptronClassifier">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">AveragedPerceptronClassifier</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">algorithms.neural.perceptron.AveragedPerceptronClassifier</span>(<span class="text-cyan-400">Classifier</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed">Averaged Perceptron classifier.</p>
+<div class="text-gray-600 mb-8 leading-relaxed">An enhanced Perceptron that <strong>averages all weight vectors</strong> seen during training to compute the final model. This usually leads to better <strong>generalization</strong> and <strong>stability</strong> compared to the standard perceptron.</div>
+
+        <div class="mb-8">
+            <div class="bg-slate-800 rounded-lg overflow-hidden shadow-lg">
+                <div class="flex items-center justify-between px-4 py-2 bg-slate-900/50 border-b border-slate-700">
+                    <span class="text-slate-400 text-xs font-mono">Constructor</span>
+                    <button onclick="copyCode('init-AveragedPerceptronClassifier')" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i>
+                        <span class="text-xs">Copy</span>
+                    </button>
+                </div>
+                <div class="p-4 overflow-x-auto" id="init-AveragedPerceptronClassifier">
+                    <pre class="font-mono text-sm leading-relaxed"><span class="text-purple-400">__init__</span><span class="text-slate-300">(</span>
+    <span class="text-red-400">self</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">learning_rate</span><span class="text-slate-400">:</span> <span class="text-cyan-400">float</span> <span class="text-slate-400">=</span> <span class="text-green-400">1.0</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">max_iter</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">5</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">shuffle</span><span class="text-slate-400">:</span> <span class="text-cyan-400">bool</span> <span class="text-slate-400">=</span> <span class="text-green-400">True</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">random_state</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Optional[int]</span> <span class="text-slate-400">=</span> <span class="text-green-400">None</span><span class="text-slate-400">,</span>
+<span class="text-slate-300">)</span></pre>
+                </div>
+            </div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Overview</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+The Averaged Perceptron accumulates weight snapshots during training:
+</p>
+
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+Initialize current weight vectors and bias terms to zero
+</li>
+
+<li class="text-gray-700">
+Initialize running sum accumulators for weights and biases
+</li>
+
+<li class="text-gray-700">
+For each training sample, compute the prediction using current weights
+</li>
+
+<li class="text-gray-700">
+If the prediction is incorrect, update the current weights using the
+</li>
+
+</ol>
+standard perceptron rule
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+After each sample (correct or not), add the current weights to the
+</li>
+
+</ol>
+running sum
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+After all epochs, divide the accumulated sums by the total number of
+</li>
+
+</ol>
+update steps to obtain the averaged weights</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Theory</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+The Averaged Perceptron maintains both current weights <span class="katex-inline">\mathbf{w}_t</span> and a cumulative sum. After <span class="katex-inline">T</span> total steps, the final averaged weight vector is:
+</p>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">\bar{\mathbf{w}} = \frac{1}{T} \sum_{t=1}^{T} \mathbf{w}_t</span>
+</div>
+
+<p class="mb-4">
+The update rule at each step is identical to the standard perceptron:
+</p>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">\mathbf{w}_{t+1} = \mathbf{w}_t + \eta \, (y - \hat{y}) \, \mathbf{x}</span>
+</div>
+
+<p class="mb-4">
+Averaging acts as a form of <strong>implicit regularization</strong>, reducing the variance of the final model.
+</p>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">learning_rate</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 1.0</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Learning rate for weight updates.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">max_iter</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 5</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Maximum number of passes over the training data (epochs).
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">shuffle</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">bool</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= True</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Whether to shuffle training data after each epoch.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">random_state</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int or None</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= None</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Seed used by the random number generator.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-list-check text-blue-500 mr-2"></i>Attributes</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">weights_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_classes, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Averaged weight vectors for each class.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">bias_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_classes,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Averaged bias terms for each class.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">classes_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_classes,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Unique class labels discovered during <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">fit</code>.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+<strong>Complexity:</strong>
+</p>
+
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+Training: <span class="katex-inline">O(n \cdot d \cdot T)</span> where <span class="katex-inline">n</span> = number of
+</li>
+
+</ul>
+samples, <span class="katex-inline">d</span> = number of features, <span class="katex-inline">T</span> = max_iter
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+Prediction: <span class="katex-inline">O(n \cdot d \cdot K)</span> where <span class="katex-inline">K</span> = number of
+</li>
+
+</ul>
+classes
+<p class="mb-4">
+<strong>When to use AveragedPerceptronClassifier:</strong>
+</p>
+
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+When the standard perceptron shows high variance across runs
+</li>
+
+<li class="text-gray-700">
+For structured prediction tasks (e.g., POS tagging, NER)
+</li>
+
+<li class="text-gray-700">
+When a simple, fast, and well-regularized linear model is needed
+</li>
+
+<li class="text-gray-700">
+As a drop-in replacement for the standard perceptron with better
+</li>
+
+</ul>
+generalization</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-book text-amber-500 mr-2"></i>References</h4>
+            </div>
+            <div class="p-4"><div class="reference-list space-y-2">
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">Collins2002</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Collins, M. (2002).
+       <strong class="text-gray-900">Discriminative Training Methods for Hidden Markov Models: Theory
+       and Experiments with Perceptron Algorithms.</strong>
+       <em class="text-gray-700">Proceedings of the ACL Conference on Empirical Methods in Natural
+       Language Processing (EMNLP)</em>, pp. 1-8.
+       DOI: <a href="https://doi.org/10.3115/1118693.1118694" target="_blank" class="text-indigo-600 hover:text-indigo-800 hover:underline">10.3115/1118693.1118694 </a></div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">Freund1999</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Freund, Y. and Schapire, R.E. (1999).
+       <strong class="text-gray-900">Large Margin Classification Using the Perceptron Algorithm.</strong>
+       <em class="text-gray-700">Machine Learning</em>, 37(3), 277-296.</div>
+                    </div>
+                </div>
+                </div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/algorithms/neural/perceptron.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">PerceptronClassifier</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Standard single-layer perceptron classifier.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/algorithms/neural/perceptron.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">VotedPerceptronClassifier</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Voted variant with weighted voting for improved robustness.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/algorithms/neural/multilayer_perceptron.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">MultilayerPerceptronClassifier</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Multi-layer neural network with backpropagation.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0"><p class="text-gray-600 my-2">Train an Averaged Perceptron on a simple binary classification task:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.algorithms.neural import AveragedPerceptronClassifier
+&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; X = np.array([[1, 2], [2, 3], [4, 5], [5, 6]])
+&gt;&gt;&gt; y = np.array([0, 0, 1, 1])
+&gt;&gt;&gt; clf = AveragedPerceptronClassifier(max_iter=10)
+&gt;&gt;&gt; clf.fit(X, y)
+AveragedPerceptronClassifier(n_classes=2)
+&gt;&gt;&gt; clf.predict([[3, 4]])
+array([0])</code></pre>
+            </div>
+        </div>
+        </div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-AveragedPerceptronClassifier-get_parameter_schema">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">get_parameter_schema</code>
+                    <span class="text-sm text-gray-400 font-mono">(cls) -&gt; Dict[str, Dict[str, Any]]</span>
+                </div>
+            </div>
+            
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-AveragedPerceptronClassifier-get_capabilities">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">get_capabilities</code>
+                    <span class="text-sm text-gray-400 font-mono">(cls) -&gt; List[str]</span>
+                </div>
+            </div>
+            
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-AveragedPerceptronClassifier-get_complexity">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">get_complexity</code>
+                    <span class="text-sm text-gray-400 font-mono">(cls) -&gt; str</span>
+                </div>
+            </div>
+            
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-AveragedPerceptronClassifier-get_references">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">get_references</code>
+                    <span class="text-sm text-gray-400 font-mono">(cls) -&gt; List[str]</span>
+                </div>
+            </div>
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-AveragedPerceptronClassifier-fit">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">fit</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray, y: np.ndarray) -&gt; &#x27;AveragedPerceptronClassifier&#x27;</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Fit the Averaged PerceptronClassifier classifier.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Training features.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Target labels.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">self</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">AveragedPerceptronClassifier</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Returns the fitted instance.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-AveragedPerceptronClassifier-decision_function">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">decision_function</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray) -&gt; np.ndarray</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Compute decision scores.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Input features.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">scores</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_classes)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Confidence scores for each class.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-AveragedPerceptronClassifier-predict">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">predict</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray) -&gt; np.ndarray</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Predict class labels.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Input features.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y_pred</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Predicted class labels.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-AveragedPerceptronClassifier-predict_proba">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">predict_proba</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray) -&gt; np.ndarray</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Estimate class probabilities using softmax.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Input features.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">probabilities</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_classes)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Predicted class probabilities.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-AveragedPerceptronClassifier-__repr__">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">__repr__</code>
+                    <span class="text-sm text-gray-400 font-mono">(self) -&gt; str</span>
+                </div>
+            </div>
+            
+</div></div>
+</div>
+</div>
+</main>
+{% endblock %}

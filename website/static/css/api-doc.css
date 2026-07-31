@@ -1,0 +1,196 @@
+/* ==================================================================
+   API-reference adapter — restyles the generated docs (scripts/
+   generate_docs.py output, which emits Tailwind utility classes) onto
+   the oc design system without touching the generator's markup.
+
+   Scope: everything inside .api-doc (see layouts/docs_generated.html).
+   Loaded after the Tailwind CDN styles, so equal-specificity
+   !important declarations here win on source order — including the
+   generator's .!rounded-xl / .!bg-slate-900 forced utilities.
+   ================================================================== */
+
+/* ---------------- Surfaces ---------------- */
+.api-doc .bg-white,
+.api-doc .bg-gray-50,
+.api-doc .bg-gray-50\/50 { background: var(--canvas) !important; }
+.api-doc .bg-gray-100,
+.api-doc .bg-slate-100 { background: var(--soft) !important; }
+.api-doc .hover\:bg-gray-50:hover,
+.api-doc .hover\:bg-gray-100:hover,
+.api-doc .hover\:bg-indigo-50:hover { background: var(--soft) !important; }
+
+/* Badge tints (Parameters / Returns / Command chips) */
+.api-doc .bg-indigo-100,
+.api-doc .bg-blue-100,
+.api-doc .bg-blue-50 { background: var(--soft) !important; color: var(--accent-deep) !important; }
+.api-doc .bg-orange-100,
+.api-doc .bg-yellow-100,
+.api-doc .bg-red-100,
+.api-doc .bg-pink-100 { background: rgba(194, 98, 12, 0.12) !important; color: var(--orange) !important; }
+.api-doc .bg-green-100 { background: rgba(13, 148, 136, 0.12) !important; color: var(--green) !important; }
+.api-doc .bg-purple-100 { background: var(--soft) !important; color: var(--accent-deep) !important; }
+.api-doc .bg-yellow-50 { background: var(--soft) !important; }
+
+/* Dark signature/code surfaces -> the light card surface */
+.api-doc .bg-slate-800,
+.api-doc .bg-slate-900,
+.api-doc .\!bg-slate-900,
+.api-doc .bg-slate-900\/50,
+.api-doc .bg-gray-900 { background: var(--card) !important; }
+
+/* ---------------- Text ---------------- */
+.api-doc .text-gray-900,
+.api-doc .text-gray-800,
+.api-doc .text-slate-900 { color: var(--ink) !important; }
+.api-doc .text-gray-700,
+.api-doc .text-gray-600,
+.api-doc .text-slate-700,
+.api-doc .text-slate-300 { color: var(--body) !important; }
+.api-doc .text-gray-500,
+.api-doc .text-gray-400,
+.api-doc .text-gray-300,
+.api-doc .text-slate-500,
+.api-doc .text-slate-400 { color: var(--mute) !important; }
+.api-doc .text-gray-200,
+.api-doc .text-slate-100 { color: var(--body) !important; }
+.api-doc .text-red-400,
+.api-doc .text-red-500,
+.api-doc .text-red-700,
+.api-doc .text-pink-700,
+.api-doc .text-amber-500,
+.api-doc .text-yellow-800 { color: var(--orange) !important; }
+.api-doc .text-purple-400,
+.api-doc .text-purple-700 { color: var(--accent-deep) !important; }
+.api-doc .text-indigo-500,
+.api-doc .text-indigo-600,
+.api-doc .text-indigo-700,
+.api-doc .text-blue-500,
+.api-doc .text-blue-600,
+.api-doc .text-blue-700 { color: var(--accent-deep) !important; }
+.api-doc .text-cyan-400 { color: var(--accent) !important; }
+.api-doc .text-green-400,
+.api-doc .text-green-500,
+.api-doc .text-green-700 { color: var(--green) !important; }
+.api-doc .text-orange-300,
+.api-doc .text-orange-700,
+.api-doc .text-yellow-400,
+.api-doc .text-yellow-500,
+.api-doc .text-yellow-600 { color: var(--orange) !important; }
+.api-doc .text-white { color: var(--ink) !important; }
+.api-doc .hover\:text-gray-900:hover,
+.api-doc .hover\:text-indigo-800:hover,
+.api-doc .hover\:text-white:hover { color: var(--accent-deep) !important; }
+
+/* ---------------- Borders, radius, shadows ---------------- */
+.api-doc .border,
+.api-doc .border-t,
+.api-doc .border-b,
+.api-doc .border-gray-100,
+.api-doc .border-gray-200,
+.api-doc .border-slate-700,
+.api-doc .border-slate-800,
+.api-doc .\!border-slate-800 { border-color: var(--hairline) !important; }
+.api-doc .divide-y > :not([hidden]) ~ :not([hidden]),
+.api-doc .divide-gray-100 > :not([hidden]) ~ :not([hidden]) { border-color: var(--hairline) !important; }
+.api-doc .hover\:border-indigo-200:hover,
+.api-doc .hover\:border-indigo-500:hover { border-color: var(--hairline-strong) !important; }
+.api-doc .rounded,
+.api-doc .rounded-md,
+.api-doc .rounded-lg,
+.api-doc .rounded-xl,
+.api-doc .\!rounded-xl { border-radius: 4px !important; }
+.api-doc .shadow-sm,
+.api-doc .shadow-md,
+.api-doc .shadow-lg,
+.api-doc .shadow-inner,
+.api-doc .hover\:shadow-md:hover,
+.api-doc .hover\:shadow-lg:hover { box-shadow: none !important; }
+.api-doc .border-l-4 { border-left-color: var(--hairline-strong) !important; border-left-width: 2px !important; }
+
+/* ---------------- Code blocks (examples + signatures) ---------------- */
+.api-doc .code-block-wrapper {
+    background: var(--card) !important;
+    border: none !important;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 16px 0;
+}
+.api-doc .code-block-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    background: transparent !important;
+    border-bottom: 1px solid var(--hairline);
+}
+.api-doc .code-block-header span {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--mute);
+    text-transform: uppercase;
+}
+.api-doc .code-block-wrapper pre { margin: 0; padding: 16px; overflow-x: auto; }
+.api-doc .code-block-wrapper code {
+    font-family: inherit;
+    font-size: 12.5px;
+    line-height: 1.7;
+    background: transparent !important;
+    color: var(--body);
+    border: none;
+    padding: 0;
+}
+.api-doc .copy-btn { background: transparent; border: none; color: var(--mute); cursor: pointer; padding: 4px; }
+.api-doc .copy-btn:hover { color: var(--ink); }
+
+/* Example-block chrome (generator's terminal-style header) */
+.api-doc .bg-slate-950\/50 { background: transparent !important; }
+.api-doc .border-white\/5 { border-color: var(--hairline) !important; }
+.api-doc .text-blue-100 { color: var(--body) !important; }
+/* macOS traffic-light dots: decorative ornament the oc system doesn't use */
+.api-doc .bg-red-500\/80,
+.api-doc .bg-yellow-500\/80,
+.api-doc .bg-green-500\/80 { display: none; }
+
+/* highlight.js tokens on the light card (replaces the github-dark theme) */
+.api-doc .hljs { background: transparent !important; color: var(--body); }
+.api-doc .hljs-keyword,
+.api-doc .hljs-literal,
+.api-doc .hljs-operator { color: var(--accent-deep); font-weight: 700; }
+.api-doc .hljs-string,
+.api-doc .hljs-regexp { color: var(--green); }
+.api-doc .hljs-number { color: var(--orange); }
+.api-doc .hljs-comment,
+.api-doc .hljs-meta { color: var(--mute); }
+.api-doc .hljs-title,
+.api-doc .hljs-built_in,
+.api-doc .hljs-attr { color: var(--accent); }
+.api-doc .hljs-params { color: var(--body); }
+
+/* ---------------- Name boxes (index pages) ---------------- */
+/* why-card tiles used as links: flat hairline boxes, title inks up on hover */
+.api-card { text-decoration: none; }
+.api-card:hover .why-title { color: var(--accent-deep); }
+.api-card .why-text { flex: 1; }
+
+/* ---------------- Breadcrumb (module + directory pages) ---------------- */
+.api-doc .api-crumb a { color: var(--mute); text-decoration: none; }
+.api-doc .api-crumb a:hover { color: var(--accent-deep); text-decoration: underline; }
+
+/* ---------------- On-this-page rail (module pages) ---------------- */
+/* Same wrap behavior as the tutorial rail: long class names break onto
+   the next line, aligned after the [+] marker, instead of ellipsizing. */
+.oc-toc.api-rail a {
+    position: relative;
+    padding-left: 34px;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+}
+.oc-toc.api-rail a::before { position: absolute; left: 0; }
+
+/* ---------------- Docstring prose ---------------- */
+.api-doc .doc-section { margin-top: 48px; }
+.api-doc .doc-section h2 { font-size: 20px; font-weight: 700; color: var(--ink); margin-bottom: 16px; }
+.api-doc .doc-section p { color: var(--body); line-height: 1.7; margin-bottom: 16px; }
+.api-doc a { text-decoration-color: inherit; }

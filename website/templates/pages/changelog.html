@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% include 'components/_head.html' %}
+</head>
+
+<body class="landing-page antialiased overflow-x-hidden">
+
+    {% include 'components/_docs_navbar.html' %}
+
+    <link rel="stylesheet" href="/static/css/oc.css">
+    <script src="/static/js/oc.js"></script>
+
+    <div class="oc-wrap">
+
+        <!-- ===================== HEADER ===================== -->
+        <section class="oc-section" style="padding-top: 64px;">
+            <h1 class="oc-display">Changelog</h1>
+            <p class="oc-body oc-max" style="margin-top: 16px;">
+                All notable changes to {{ config.project_name }}. Built from the repo's
+                canonical <code>CHANGELOG.md</code>.
+            </p>
+
+            <!-- Release sidebar: fixed rail on wide screens, in-flow here on narrow. -->
+            <nav class="oc-toc oc-toc-flow" aria-label="Releases">
+                <div class="oc-toc-label">Releases</div>
+                {% for release in releases %}
+                <a href="#v{{ release.version }}">{{ release.version }}{% if loop.first %} · latest{% endif %}</a>
+                {% endfor %}
+            </nav>
+        </section>
+
+        <!-- ===================== RELEASES ===================== -->
+        {% for release in releases %}
+        <section class="oc-section" id="v{{ release.version }}">
+            <h2 class="oc-h">{{ release.version }}</h2>
+            <hr class="oc-rule">
+            <p class="oc-caption" style="margin-bottom: 8px;">
+                {%- if release.date %}{{ release.date }}{% endif %}
+                {%- if loop.first %} <span style="color: var(--green); font-weight: 700;">[latest]</span>{% endif %}
+            </p>
+
+            {% for section in release.sections %}
+            {% set type_color = {
+                'Added': 'var(--green)',
+                'Changed': 'var(--accent-deep)',
+                'Fixed': 'var(--orange)',
+                'Removed': 'var(--ink)',
+                'Deprecated': 'var(--mute)',
+                'Security': 'var(--accent)',
+            }.get(section.type, 'var(--body)') %}
+            <div class="oc-sub" style="color: {{ type_color }};">{{ section.type }}</div>
+            <div>
+                {% for item in section["items"] %}
+                <div class="list-row" style="padding: 4px 0; font-size: 14px;">
+                    <span class="m" style="color: {{ type_color }};">[+]</span>
+                    <span class="txt">{{ item }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </section>
+        {% endfor %}
+    </div>
+
+    {% include 'components/_footer.html' %}
+</body>
+
+</html>

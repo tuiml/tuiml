@@ -1,0 +1,1647 @@
+{% extends 'layouts/docs_generated.html' %}
+
+{% set active_nav = 'api' %}
+{% set breadcrumb_html = '<a href="../../api-reference.html" class="hover:text-gray-900">API Reference</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="../index.html" class="hover:text-gray-900">evaluation</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="index.html" class="hover:text-gray-900">tuning</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">bayesian_search</span>' %}
+
+{% block title %}bayesian_search - API Documentation{% endblock %}
+
+{% block content %}
+<p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a> / <a href="index.html">tuning</a></p>
+<h1 class="oc-display" style="margin-bottom: 32px;">bayesian_search</h1>
+<nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
+<div class="oc-toc-label">On this page</div>
+<a href="#class-GaussianProcess">GaussianProcess</a>
+<a href="#class-AcquisitionFunction">AcquisitionFunction</a>
+<a href="#class-BayesianSearchCV">BayesianSearchCV</a>
+</nav>
+<main>
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Sequential model-based hyperparameter search using Gaussian Processes.</p>
+<div class="doc-extended">
+<p class="mb-4">
+Where <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">GridSearchCV</code> enumerates and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">RandomSearchCV</code> samples blindly, Bayesian optimization <em>learns as it goes</em>: it fits a cheap probabilistic surrogate to the (configuration, score) pairs observed so far and spends its next expensive model fit wherever that surrogate says the payoff is greatest.
+</p>
+
+<p class="mb-4">
+The module supplies the three pieces of that loop:
+</p>
+
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">GaussianProcess</code> — the surrogate. A from-scratch GP regressor with
+</li>
+
+</ul>
+an RBF kernel that returns a posterior mean and standard deviation for any   untried configuration.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">AcquisitionFunction</code> — the decision rule. Turns the surrogate&#x27;s mean
+</li>
+
+</ul>
+and uncertainty into a single &quot;how promising is this point&quot; score, trading   exploitation of good regions against exploration of uncertain ones.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">BayesianSearchCV</code> — the tuner. Warms up
+</li>
+
+</ul>
+with random configurations, then repeatedly refits the GP, maximizes the   acquisition function with L-BFGS-B restarts, and cross-validates the winner.
+<p class="mb-4">
+Reach for this module when a single estimator fit is expensive enough that thinking about the next configuration is cheaper than trying another one at random — large models, big datasets, or budgets in the tens of evaluations rather than thousands. For cheap fits the GP overhead dominates and random search is the better tool.
+</p>
+
+<p class="mb-4">
+Everything is implemented on NumPy and SciPy; no external Bayesian optimization library is required.
+</p>
+</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-book text-amber-500 mr-2"></i>References</h4>
+            </div>
+            <div class="p-4"><div class="reference-list space-y-2">
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">Snoek2012</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Snoek, J., Larochelle, H., &amp; Adams, R. P. (2012). Practical
+   Bayesian Optimization of Machine Learning Algorithms. <em class="text-gray-700">Advances in Neural
+   Information Processing Systems (NeurIPS)</em>, 25, 2951-2959.</div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">Brochu2010</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Brochu, E., Cora, V. M., &amp; de Freitas, N. (2010). A Tutorial
+   on Bayesian Optimization of Expensive Cost Functions, with Application to
+   Active User Modeling and Hierarchical Reinforcement Learning.
+   <em class="text-gray-700">arXiv:1012.2599</em>. https://doi.org/10.48550/arXiv.1012.2599</div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">Rasmussen2006</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Rasmussen, C. E., &amp; Williams, C. K. I. (2006). <em class="text-gray-700">Gaussian
+   Processes for Machine Learning</em>. MIT Press.</div>
+                    </div>
+                </div>
+                </div></div>
+        </div>
+        </div>
+<div class="mb-12">
+<h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-cubes text-indigo-500"></i> Classes</h2>
+<div class="mb-12 scroll-mt-24" id="class-GaussianProcess">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">GaussianProcess</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">evaluation.tuning.bayesian_search.GaussianProcess</span></p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed"><strong>Gaussian Process</strong> surrogate model with an RBF kernel.</p>
+<div class="text-gray-600 mb-8 leading-relaxed">A GP places a distribution over functions and, conditioned on the points observed so far, returns for any new point both a predicted mean and an honest estimate of how uncertain that prediction is. That uncertainty is exactly what an <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">AcquisitionFunction</code> needs in order to decide where to sample next.</div>
+
+        <div class="mb-8">
+            <div class="bg-slate-800 rounded-lg overflow-hidden shadow-lg">
+                <div class="flex items-center justify-between px-4 py-2 bg-slate-900/50 border-b border-slate-700">
+                    <span class="text-slate-400 text-xs font-mono">Constructor</span>
+                    <button onclick="copyCode('init-GaussianProcess')" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i>
+                        <span class="text-xs">Copy</span>
+                    </button>
+                </div>
+                <div class="p-4 overflow-x-auto" id="init-GaussianProcess">
+                    <pre class="font-mono text-sm leading-relaxed"><span class="text-purple-400">__init__</span><span class="text-slate-300">(</span>
+    <span class="text-red-400">self</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">kernel</span><span class="text-slate-400">:</span> <span class="text-cyan-400">str</span> <span class="text-slate-400">=</span> <span class="text-green-400">&#x27;rbf&#x27;</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">length_scale</span><span class="text-slate-400">:</span> <span class="text-cyan-400">float</span> <span class="text-slate-400">=</span> <span class="text-green-400">1.0</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">noise</span><span class="text-slate-400">:</span> <span class="text-cyan-400">float</span> <span class="text-slate-400">=</span> <span class="text-green-400">1e-10</span><span class="text-slate-400">,</span>
+<span class="text-slate-300">)</span></pre>
+                </div>
+            </div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Overview</h4>
+            </div>
+            <div class="p-4">
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">fit</code> builds the kernel matrix <span class="katex-inline">K</span> over the training inputs and
+</li>
+
+</ol>
+adds <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">noise</code> to its diagonal for numerical stability.
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+It inverts that matrix once and caches the result in <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">K_inv</code>.
+</li>
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">predict</code> forms the cross-kernel <span class="katex-inline">K_*</span> between the query points
+</li>
+
+</ol>
+and the training inputs and applies the standard GP posterior formulas.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Theory</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+The squared-exponential (RBF) kernel with length scale <span class="katex-inline">\ell</span> is
+</p>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">k(x, x&#x27;) = \exp\!\left(         -\frac{\lVert x - x&#x27; \rVert^{2}}{2\,\ell^{2}}     \right)</span>
+</div>
+
+<p class="mb-4">
+Conditioning a zero-mean GP prior on observations <span class="katex-inline">(X, y)</span> gives the posterior at test points <span class="katex-inline">X_*</span>
+</p>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">\mu_* = K_*\,(K + \sigma_n^{2} I)^{-1}\, y</span>
+</div>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">\Sigma_* = K_{**} - K_*\,(K + \sigma_n^{2} I)^{-1}\,K_*^{\top}</span>
+</div>
+
+<p class="mb-4">
+where <span class="katex-inline">K = k(X, X)</span>, <span class="katex-inline">K_* = k(X_*, X)</span>, <span class="katex-inline">K_{**} = k(X_*, X_*)</span> and <span class="katex-inline">\sigma_n^{2}</span> is <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">noise</code>. <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">predict</code> returns <span class="katex-inline">\mu_*</span> and, on request, the square root of the diagonal of <span class="katex-inline">\Sigma_*</span>, clipped at zero so round-off cannot produce a negative variance.
+</p>
+
+<p class="mb-4">
+A small <span class="katex-inline">\ell</span> makes the surrogate wiggly and trusts observations only very locally; a large <span class="katex-inline">\ell</span> smooths the surface and lets a single observation influence distant regions.
+</p>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">kernel</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">str</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= &#x27;rbf&#x27;</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Kernel type. Only <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&#x27;rbf&#x27;</code> (squared exponential) is implemented; the value is stored but not otherwise consulted.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">length_scale</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 1.0</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Length scale :math:`\ell` of the RBF kernel. Inputs are used on their raw scale, so a single length scale is shared by all dimensions.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">noise</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 1e-10</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Variance :math:`\sigma_n^{2}` added to the diagonal of :math:`K`. Acts as a jitter that keeps the inversion well conditioned; raise it if <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">numpy.linalg.inv</code> complains about a singular matrix.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-list-check text-blue-500 mr-2"></i>Attributes</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X_train</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_features) or None</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Training inputs retained from the last <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">fit</code>. <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">None</code> before fitting.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y_train</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples,) or None</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Training targets retained from the last <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">fit</code>.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">K_inv</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_samples) or None</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Cached inverse of the noise-augmented kernel matrix.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+<strong>Complexity.</strong> <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">fit</code> is <span class="katex-inline">O(n^{3})</span> for the explicit matrix inversion and <span class="katex-inline">O(n^{2})</span> in memory; <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">predict</code> is <span class="katex-inline">O(m\,n)</span> for the mean and <span class="katex-inline">O(m^{2} + m\,n^{2})</span> when standard deviations are requested. This is fine for the tens to low hundreds of observations a hyperparameter search produces, and unsuitable for large-scale regression.
+</p>
+
+<p class="mb-4">
+<strong>When to use.</strong> As the surrogate inside <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">BayesianSearchCV</code>. It is a deliberately minimal implementation: no kernel hyperparameter marginal-likelihood optimization, no Cholesky solve, no per-dimension length scales.
+</p>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-book text-amber-500 mr-2"></i>References</h4>
+            </div>
+            <div class="p-4"><div class="reference-list space-y-2">
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">Rasmussen2006</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Rasmussen, C. E., &amp; Williams, C. K. I. (2006).
+   <em class="text-gray-700">Gaussian Processes for Machine Learning</em>, chapter 2. MIT Press.</div>
+                    </div>
+                </div>
+                </div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/evaluation/tuning/bayesian_search.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">AcquisitionFunction</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Consumes this model&#x27;s mean and standard deviation.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/evaluation/tuning/bayesian_search.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">BayesianSearchCV</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Uses the GP as the surrogate for the score surface.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0"><p class="text-gray-600 my-2">Fit the surrogate to four observations and query an untried point:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; from tuiml.evaluation.tuning.bayesian_search import GaussianProcess
+&gt;&gt;&gt; X = np.array([[0.0], [1.0], [2.0], [3.0]])
+&gt;&gt;&gt; y = np.array([0.0, 0.8, 0.9, 0.1])
+&gt;&gt;&gt; gp = GaussianProcess(length_scale=1.0, noise=1e-6)
+&gt;&gt;&gt; gp.fit(X, y)
+&gt;&gt;&gt; mu, sigma = gp.predict(np.array([[1.5]]), return_std=True)
+&gt;&gt;&gt; round(float(mu[0]), 3)
+1.019
+&gt;&gt;&gt; round(float(sigma[0]), 3)
+0.1</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">The posterior interpolates the observations it has already seen:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; round(float(gp.predict(np.array([[1.0]]))[0]), 3)
+0.8</code></pre>
+            </div>
+        </div>
+        </div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-GaussianProcess-get_parameter_schema">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_parameter_schema</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; dict</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return JSON Schema for constructor parameters.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-GaussianProcess-fit">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">fit</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray, y: np.ndarray)</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Condition the Gaussian Process on observed points.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Observed inputs.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Observed targets.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">None</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    The model is updated in place; <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">X_train</code>, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">y_train</code> and <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">K_inv</code> are set.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-triangle-exclamation text-gray-400"></i> Raises
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">numpy.linalg.LinAlgError</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    If the kernel matrix is singular. Increase <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">noise</code> or drop duplicate rows from <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">X</code>.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-GaussianProcess-predict">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">predict</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray, return_std: bool=False) -&gt; Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Evaluate the GP posterior at new points.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Query points. Must have the same number of columns as the data passed to <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">fit</code>.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">return_std</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">bool</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= False</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    If <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">True</code>, also return the posterior standard deviation, which is what acquisition functions use to quantify exploration value.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y_mean</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Posterior mean :math:`\mu_*`. Returned on its own when <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">return_std=False</code>.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y_std</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Posterior standard deviation, clipped at zero. Only returned when <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">return_std=True</code>, as the second element of a tuple.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-triangle-exclamation text-gray-400"></i> Raises
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">ValueError</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    If <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">fit</code> has not been called yet.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+</div></div>
+</div>
+<div class="mb-12 scroll-mt-24" id="class-AcquisitionFunction">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">AcquisitionFunction</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">evaluation.tuning.bayesian_search.AcquisitionFunction</span></p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed"><strong>Acquisition functions</strong> that turn a GP posterior into a sampling decision.</p>
+<div class="text-gray-600 mb-8 leading-relaxed">A callable policy for Bayesian optimization. Given a fitted <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">GaussianProcess</code> and the best score observed so far, it scores candidate points so that <em>higher is better</em>; the optimizer then maximizes it to choose the next configuration to actually train. All three variants balance the same tension: the posterior mean <span class="katex-inline">\mu(x)</span> pulls toward regions already known to be good (exploitation) while the posterior standard deviation <span class="katex-inline">\sigma(x)</span> pulls toward regions the surrogate has not pinned down (exploration).</div>
+
+        <div class="mb-8">
+            <div class="bg-slate-800 rounded-lg overflow-hidden shadow-lg">
+                <div class="flex items-center justify-between px-4 py-2 bg-slate-900/50 border-b border-slate-700">
+                    <span class="text-slate-400 text-xs font-mono">Constructor</span>
+                    <button onclick="copyCode('init-AcquisitionFunction')" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i>
+                        <span class="text-xs">Copy</span>
+                    </button>
+                </div>
+                <div class="p-4 overflow-x-auto" id="init-AcquisitionFunction">
+                    <pre class="font-mono text-sm leading-relaxed"><span class="text-purple-400">__init__</span><span class="text-slate-300">(</span>
+    <span class="text-red-400">self</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">kind</span><span class="text-slate-400">:</span> <span class="text-cyan-400">str</span> <span class="text-slate-400">=</span> <span class="text-green-400">&#x27;ei&#x27;</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">xi</span><span class="text-slate-400">:</span> <span class="text-cyan-400">float</span> <span class="text-slate-400">=</span> <span class="text-green-400">0.01</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">kappa</span><span class="text-slate-400">:</span> <span class="text-cyan-400">float</span> <span class="text-slate-400">=</span> <span class="text-green-400">2.576</span><span class="text-slate-400">,</span>
+<span class="text-slate-300">)</span></pre>
+                </div>
+            </div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Theory</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+Write <span class="katex-inline">y^{+}</span> for the incumbent best observed score and
+</p>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">Z = \frac{\mu(x) - y^{+} - \xi}{\sigma(x)}</span>
+</div>
+
+<p class="mb-4">
+<strong>Expected Improvement</strong> (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">kind=&#x27;ei&#x27;</code>) is the expected amount by which <span class="katex-inline">x</span> beats the incumbent, which has the closed form
+</p>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">\text{EI}(x) = \left(\mu(x) - y^{+} - \xi\right)\,\Phi(Z)                   + \sigma(x)\,\phi(Z)</span>
+</div>
+
+<p class="mb-4">
+where <span class="katex-inline">\Phi</span> and <span class="katex-inline">\phi</span> are the standard normal CDF and PDF. The first term rewards a high mean, the second rewards uncertainty, and <span class="katex-inline">\xi</span> sets how much improvement must be expected before a point counts as promising. EI is the usual default because it is scale-aware: it answers &quot;by how much&quot;, not merely &quot;how likely&quot;.
+</p>
+
+<p class="mb-4">
+<strong>Probability of Improvement</strong> (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">kind=&#x27;poi&#x27;</code>) keeps only the probability that the incumbent is beaten,
+</p>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">\text{PI}(x) = P\!\left(f(x) \geq y^{+} + \xi\right) = \Phi(Z)</span>
+</div>
+
+<p class="mb-4">
+which ignores the size of the gain and therefore exploits greedily unless <span class="katex-inline">\xi</span> is raised.
+</p>
+
+<p class="mb-4">
+<strong>Upper Confidence Bound</strong> (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">kind=&#x27;ucb&#x27;</code>) is an explicit optimistic bound and the only variant that does not reference <span class="katex-inline">y^{+}</span>,
+</p>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">\text{UCB}(x) = \mu(x) + \kappa\,\sigma(x)</span>
+</div>
+
+<p class="mb-4">
+with <span class="katex-inline">\kappa</span> directly dialing exploration. The default <span class="katex-inline">\kappa = 2.576</span> is the two-sided 99% normal quantile.
+</p>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">kind</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">{&#x27;ei&#x27;, &#x27;ucb&#x27;, &#x27;poi&#x27;}</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= &#x27;ei&#x27;</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Which policy to evaluate: <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&#x27;ei&#x27;</code> for Expected Improvement, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&#x27;ucb&#x27;</code> for Upper Confidence Bound, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&#x27;poi&#x27;</code> for Probability of Improvement. Any other value raises at call time, not at construction.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">xi</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 0.01</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Minimum improvement margin :math:`\xi` for <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&#x27;ei&#x27;</code> and <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&#x27;poi&#x27;</code>. Larger values explore more; <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">0.0</code> is purely greedy. Ignored by <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&#x27;ucb&#x27;</code>.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">kappa</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 2.576</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Exploration weight :math:`\kappa` for <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&#x27;ucb&#x27;</code>; larger values favor uncertain regions. Ignored by <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&#x27;ei&#x27;</code> and <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&#x27;poi&#x27;</code>.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+<strong>Complexity.</strong> One GP prediction with standard deviations plus <span class="katex-inline">O(m)</span> arithmetic for <span class="katex-inline">m</span> candidate points, so the cost is dominated by <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">predict</code>.
+</p>
+
+<p class="mb-4">
+<strong>When to use.</strong> Keep <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&#x27;ei&#x27;</code> unless you have a reason not to. Choose <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&#x27;ucb&#x27;</code> when you want a single, interpretable exploration knob, and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&#x27;poi&#x27;</code> when any improvement at all is what matters. Standard deviations are floored at <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">1e-9</code> before division, so already-observed points where <span class="katex-inline">\sigma \to 0</span> yield a near-zero score rather than a divide-by-zero.
+</p>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-book text-amber-500 mr-2"></i>References</h4>
+            </div>
+            <div class="p-4"><div class="reference-list space-y-2">
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">Jones1998</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Jones, D. R., Schonlau, M., &amp; Welch, W. J. (1998).
+   Efficient Global Optimization of Expensive Black-Box Functions.
+   <em class="text-gray-700">Journal of Global Optimization</em>, 13(4), 455-492.
+   https://doi.org/10.1023/A:1008306431147</div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">Srinivas2010</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Srinivas, N., Krause, A., Kakade, S., &amp; Seeger, M.
+   (2010). Gaussian Process Optimization in the Bandit Setting: No Regret
+   and Experimental Design. <em class="text-gray-700">ICML</em>, 1015-1022.</div>
+                    </div>
+                </div>
+                </div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/evaluation/tuning/bayesian_search.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">GaussianProcess</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Supplies the mean and standard deviation this class consumes.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/evaluation/tuning/bayesian_search.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">BayesianSearchCV</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Maximizes this function to pick each next configuration.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0"><p class="text-gray-600 my-2">Score two candidate points against a surrogate whose incumbent is 0.9:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; from tuiml.evaluation.tuning.bayesian_search import (
+...     AcquisitionFunction, GaussianProcess)
+&gt;&gt;&gt; X = np.array([[0.0], [1.0], [2.0], [3.0]])
+&gt;&gt;&gt; y = np.array([0.0, 0.8, 0.9, 0.1])
+&gt;&gt;&gt; gp = GaussianProcess(length_scale=1.0, noise=1e-6)
+&gt;&gt;&gt; gp.fit(X, y)
+&gt;&gt;&gt; candidates = np.array([[1.5], [2.5]])
+&gt;&gt;&gt; ei = AcquisitionFunction(kind=&#x27;ei&#x27;, xi=0.01)
+&gt;&gt;&gt; [round(float(v), 4) for v in ei(candidates, gp, y_best=0.9)]
+[0.1157, 0.0]</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">UCB and POI rank the same candidates with different appetites for risk:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; ucb = AcquisitionFunction(kind=&#x27;ucb&#x27;, kappa=2.576)
+&gt;&gt;&gt; [round(float(v), 4) for v in ucb(candidates, gp, y_best=0.9)]
+[1.2752, 0.8316]
+&gt;&gt;&gt; poi = AcquisitionFunction(kind=&#x27;poi&#x27;)
+&gt;&gt;&gt; [round(float(v), 4) for v in poi(candidates, gp, y_best=0.9)]
+[0.8626, 0.0006]</code></pre>
+            </div>
+        </div>
+        </div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-AcquisitionFunction-get_parameter_schema">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_parameter_schema</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; dict</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return JSON Schema for constructor parameters.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-AcquisitionFunction-__call__">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">__call__</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray, gp: GaussianProcess, y_best: float) -&gt; np.ndarray</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Score candidate points with the configured acquisition policy.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Candidate points to score.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">gp</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">GaussianProcess</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Surrogate already fitted on the observations so far.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y_best</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Incumbent best observed score :math:`y^{+}`. Used by <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&#x27;ei&#x27;</code> and <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&#x27;poi&#x27;</code>; ignored by <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&#x27;ucb&#x27;</code>.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">values</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Acquisition values, higher meaning more promising. Not comparable across different <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">kind</code> settings.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-triangle-exclamation text-gray-400"></i> Raises
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">ValueError</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    If <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">self.kind</code> is not one of <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&#x27;ei&#x27;</code>, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&#x27;ucb&#x27;</code> or <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&#x27;poi&#x27;</code>.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+</div></div>
+</div>
+<div class="mb-12 scroll-mt-24" id="class-BayesianSearchCV">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">BayesianSearchCV</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">evaluation.tuning.bayesian_search.BayesianSearchCV</span>(<span class="text-cyan-400">BaseTuner</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed">Bayesian optimization search for hyperparameter tuning.</p>
+<div class="text-gray-600 mb-8 leading-relaxed">Uses Gaussian Process regression to model the objective function and acquisition functions to select promising hyperparameters.</div>
+
+        <div class="mb-8">
+            <div class="bg-slate-800 rounded-lg overflow-hidden shadow-lg">
+                <div class="flex items-center justify-between px-4 py-2 bg-slate-900/50 border-b border-slate-700">
+                    <span class="text-slate-400 text-xs font-mono">Constructor</span>
+                    <button onclick="copyCode('init-BayesianSearchCV')" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i>
+                        <span class="text-xs">Copy</span>
+                    </button>
+                </div>
+                <div class="p-4 overflow-x-auto" id="init-BayesianSearchCV">
+                    <pre class="font-mono text-sm leading-relaxed"><span class="text-purple-400">__init__</span><span class="text-slate-300">(</span>
+    <span class="text-red-400">self</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">estimator</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">param_space</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Dict</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">n_iterations</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">50</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">acquisition</span><span class="text-slate-400">:</span> <span class="text-cyan-400">str</span> <span class="text-slate-400">=</span> <span class="text-green-400">&#x27;ei&#x27;</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">n_random_starts</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">10</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">xi</span><span class="text-slate-400">:</span> <span class="text-cyan-400">float</span> <span class="text-slate-400">=</span> <span class="text-green-400">0.01</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">kappa</span><span class="text-slate-400">:</span> <span class="text-cyan-400">float</span> <span class="text-slate-400">=</span> <span class="text-green-400">2.576</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">scoring</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Union[str, Callable]</span> <span class="text-slate-400">=</span> <span class="text-green-400">&#x27;accuracy&#x27;</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">cv</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">5</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">refit</span><span class="text-slate-400">:</span> <span class="text-cyan-400">bool</span> <span class="text-slate-400">=</span> <span class="text-green-400">True</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">verbose</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">0</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">n_jobs</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">1</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">random_seed</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Optional[int]</span> <span class="text-slate-400">=</span> <span class="text-green-400">None</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">progress_callback</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Optional[Callable]</span> <span class="text-slate-400">=</span> <span class="text-green-400">None</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">**kwargs</span><span class="text-slate-400">,</span>
+<span class="text-slate-300">)</span></pre>
+                </div>
+            </div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">estimator</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">object</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Estimator to tune. Must have fit() and predict() methods.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">param_space</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-700">dict</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    <p class="mb-2">Dictionary with parameters as keys and search spaces as values. Values can be:</p><ul class="mt-2 space-y-1">
+<li class="flex items-start gap-2"><span class="text-gray-400">•</span><span>List of values: discrete search</span></li>
+<li class="flex items-start gap-2"><span class="text-gray-400">•</span><span>Tuple (min, max): continuous search</span></li>
+<li class="flex items-start gap-2"><span class="text-gray-400">•</span><span>Tuple (min, max, &#x27;int&#x27;): integer search</span></li>
+</ul>
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">n_iterations</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 50</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Number of iterations to run.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">acquisition</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">str</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= &#x27;ei&#x27;</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Acquisition function: &#x27;ei&#x27; (Expected Improvement), &#x27;ucb&#x27; (Upper Confidence Bound), or &#x27;poi&#x27; (Probability of Improvement).
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">n_random_starts</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 10</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Number of random evaluations before using GP.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">xi</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 0.01</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Exploration parameter for EI and POI.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">kappa</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 2.576</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Exploration parameter for UCB.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">scoring</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">str or callable</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= &#x27;accuracy&#x27;</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Scoring metric.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">cv</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 5</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Number of cross-validation folds.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">refit</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">bool</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= True</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Refit estimator with best parameters on full data.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">verbose</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 0</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Verbosity level.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">random_state</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Random seed.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-list-check text-blue-500 mr-2"></i>Attributes</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">best_params_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-700">dict</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Best parameters found.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">best_score_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Best cross-validation score.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">best_estimator_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">object</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Estimator fitted with best parameters.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">cv_results_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-700">dict</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Cross-validation results for all evaluated parameters.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">gp_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">GaussianProcess</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Fitted Gaussian Process model.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.algorithms.ensemble import BaggingClassifier
+&gt;&gt;&gt; from tuiml.datasets import load_iris
+&gt;&gt;&gt; from tuiml.evaluation.splitting import train_test_split
+&gt;&gt;&gt; from tuiml.evaluation.tuning import BayesianSearchCV
+&gt;&gt;&gt; X, y = load_iris()
+&gt;&gt;&gt; X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">A search space maps each parameter to a <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">(low, high)</code> range for floats</p>
+<p class="text-gray-600 my-2">or a <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">(low, high, &#x27;int&#x27;)</code> triple for integers:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; param_space = {
+...     &#x27;n_estimators&#x27;: (5, 20, &#x27;int&#x27;),
+...     &#x27;bag_size_percent&#x27;: (50.0, 100.0),
+... }
+&gt;&gt;&gt; search = BayesianSearchCV(
+...     estimator=BaggingClassifier(),
+...     param_space=param_space,
+...     n_iterations=5,
+...     cv=2,
+... )
+&gt;&gt;&gt; search = search.fit(X_train, y_train)              # doctest: +SKIP
+&gt;&gt;&gt; sorted(search.best_params_)                        # doctest: +SKIP
+[&#x27;bag_size_percent&#x27;, &#x27;n_estimators&#x27;]</code></pre>
+            </div>
+        </div>
+        </div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-BayesianSearchCV-get_parameter_schema">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_parameter_schema</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; dict</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return JSON Schema for BayesianSearchCV parameters.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">dict</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    JSON Schema describing all __init__ parameters.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-BayesianSearchCV-fit">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">fit</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray, y: np.ndarray) -&gt; &#x27;BayesianSearchCV&#x27;</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Run Bayesian optimization to find best parameters.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">ndarray of shape (n_samples, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Training features.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">ndarray of shape (n_samples,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Target values.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">self</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-BayesianSearchCV-get_results">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_results</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self) -&gt; TuningResult</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Get tuning results as TuningResult object.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">result</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">TuningResult</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-BayesianSearchCV-__repr__">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">__repr__</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self) -&gt; str</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return a short constructor-like summary of the search.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">repr</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">str</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;BayesianSearchCV(estimator=..., n_iterations=..., acquisition=&#x27;...&#x27;)&quot;</code>, showing the wrapped estimator&#x27;s class name and the two settings that most affect how the search behaves.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+</div></div>
+</div>
+</div>
+</main>
+{% endblock %}

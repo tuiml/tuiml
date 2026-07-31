@@ -19,11 +19,11 @@ import sys
 import html
 from pathlib import Path
 from dataclasses import dataclass, field
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Set
 from datetime import datetime
 
 # ============================================================================
-# Global config — single source of truth for generated HTML docs
+# Global config, single source of truth for generated HTML docs
 # ============================================================================
 DOC_CONFIG = {
     "project_name": "TuiML",
@@ -45,6 +45,8 @@ class DocItem:
     signature: str = ""
     decorators: List[str] = field(default_factory=list)
     bases: List[str] = field(default_factory=list)  # For classes
+    cli_usage: str = ""  # For click commands, e.g. "tuiml benchmark [OPTIONS]"
+    cli_options: List[Dict[str, Any]] = field(default_factory=list)  # click options
     methods: List["DocItem"] = field(default_factory=list)  # For classes
     children: List["DocItem"] = field(default_factory=list)  # Nested classes/functions
     module: str = ""  # Module path for display
@@ -151,14 +153,18 @@ class DocstringParser:
 
         line = lines[index].strip()
 
-        # Check if it's a known header
-        if line not in self.SECTION_HEADERS:
+        # A header is a short title line at the left margin. Besides the known
+        # names, accept any custom title (NumPy style allows e.g. "Example" or
+        # "Example, one-liner") as long as it carries a dash underline.
+        if not line or lines[index][:1] in (' ', '\t'):
+            return False
+        if line not in self.SECTION_HEADERS and len(line) > 60:
             return False
 
         # Check for underline
         if index + 1 < len(lines):
             underline = lines[index + 1].strip()
-            if underline and all(c == '-' for c in underline):
+            if len(underline) >= 3 and all(c == '-' for c in underline):
                 return True
 
         return False
@@ -168,7 +174,10 @@ class DocstringParser:
         parts = []
 
         if self.summary:
-            parts.append(f'<p class="doc-summary">{html.escape(self.summary)}</p>')
+            parts.append(
+                f'<p class="doc-summary text-lg font-semibold text-gray-900 mb-3">'
+                f'{self._format_inline_code(html.escape(self.summary))}</p>'
+            )
 
         if self.extended_summary:
             parts.append(f'<div class="doc-extended">{self._format_text(self.extended_summary)}</div>')
@@ -184,8 +193,10 @@ class DocstringParser:
 
         if name in ('Parameters', 'Returns', 'Yields', 'Raises', 'Attributes', 'Other Parameters'):
             html_content = self._format_param_section(content)
-        elif name == 'Examples':
-            html_content = self._format_examples(content)
+        elif name.startswith('Example') or name.startswith('Usage'):
+            # The dark code block is self-explanatory; skip the section box
+            # chrome and render the example content directly.
+            return f'<div class="mb-8 last:mb-0">{self._format_examples(content)}</div>'
         elif name == 'See Also':
             html_content = self._format_see_also(content)
         elif name == 'References':
@@ -201,7 +212,7 @@ class DocstringParser:
             icon = '<i class="fa-solid fa-arrow-right-from-bracket text-green-500 mr-2"></i>'
         elif name == 'Attributes':
             icon = '<i class="fa-solid fa-list-check text-blue-500 mr-2"></i>'
-        elif name == 'Examples':
+        elif name.startswith('Example') or name.startswith('Usage'):
             icon = '<i class="fa-solid fa-code text-purple-500 mr-2"></i>'
         elif name == 'Raises':
             icon = '<i class="fa-solid fa-triangle-exclamation text-red-500 mr-2"></i>'
@@ -354,8 +365,8 @@ class DocstringParser:
         """Render a list of options as styled HTML."""
         html_items = ['<ul class="mt-2 space-y-1">']
         for item in items:
-            # Parse option format: ``"value"`` — Description
-            option_match = re.match(r'``([^`]+)``\s*[—\-]\s*(.+)', item)
+            # Parse option format: ``"value"``: Description
+            option_match = re.match(r'``([^`]+)``\s*[-\-]\s*(.+)', item)
             if option_match:
                 option_value = option_match.group(1)
                 option_desc = option_match.group(2)
@@ -373,54 +384,147 @@ class DocstringParser:
 
     def _format_inline_code(self, text: str) -> str:
         """Format inline code markers `` `` to HTML code tags."""
+        # RST cross-reference roles: show the target name as inline code.
+        text = re.sub(
+            r':(?:func|class|meth|attr|data|mod|obj|exc):`~?([^`]+)`',
+            lambda m: '<code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">'
+                      + m.group(1).rsplit('.', 1)[-1] + '</code>',
+            text,
+        )
         # Replace ``code`` with styled code spans
-        return re.sub(
+        text = re.sub(
             r'``([^`]+)``',
             r'<code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">\1</code>',
             text
         )
+        # Summaries are written with **bold** key concepts (see the docstring
+        # convention); without this they render as literal asterisks.
+        return self._format_emphasis(text)
+
+    @staticmethod
+    def _format_emphasis(text: str) -> str:
+        """Convert ``**bold**`` and ``*italic*`` markers to HTML.
+
+        Parameters
+        ----------
+        text : str
+            Already HTML-escaped text.
+
+        Returns
+        -------
+        rendered : str
+            Text with emphasis markers replaced by <strong>/<em> tags.
+        """
+        # Bold first: a lone '*' rule would otherwise eat the '**' pairs.
+        text = re.sub(r'\*\*([^*]+)\*\*', r'<strong>\1</strong>', text)
+        return re.sub(r'(?<![*\w])\*([^*\s][^*]*)\*(?!\w)', r'<em>\1</em>', text)
 
     def _format_examples(self, content: str) -> str:
-        """Format Examples section with dark code blocks."""
+        """Format Examples/Usage sections with dark code blocks.
+
+        Handles two kinds of code: ``>>>`` doctest blocks (kept with their
+        prompts and output lines) and RST literal blocks, i.e. indented lines
+        introduced by prose ending in ``::``.
+        """
+        import textwrap
+
         lines = content.split('\n')
-        in_code = False
         output = []
         code_block = []
+        mode = None  # None | 'doctest' | 'literal'
         unique_id = f'example-{hash(content) % 10000}'
 
+        def flush():
+            nonlocal code_block, mode
+            if code_block:
+                code = '\n'.join(code_block)
+                if mode == 'literal':
+                    code = textwrap.dedent(code)
+                block_id = f'{unique_id}-{len(output)}'
+                output.append(self._create_code_block(code, block_id))
+                code_block = []
+            mode = None
+
         for line in lines:
-            if line.strip().startswith('>>>') or line.strip().startswith('...'):
-                if not in_code:
-                    in_code = True
-                # Simply escape and add the code line
-                escaped = html.escape(line)
-                code_block.append(escaped)
-            elif in_code and line.strip() and not line.strip().startswith('>>>'):
-                # Output line
+            stripped = line.strip()
+            indented = line[:1] in (' ', '\t')
+
+            if stripped.startswith('>>>') or stripped.startswith('$ ') \
+                    or (mode == 'doctest' and stripped.startswith('...')):
+                if mode == 'literal':
+                    flush()
+                mode = 'doctest'
                 code_block.append(html.escape(line))
-            elif in_code and not line.strip():
-                if code_block:
-                    block_id = f'{unique_id}-{len(output)}'
-                    output.append(self._create_code_block('\n'.join(code_block), block_id))
-                    code_block = []
-                in_code = False
+            elif mode == 'doctest' and stripped:
+                # Doctest output line
+                code_block.append(html.escape(line))
+            elif not stripped:
+                # Blank line ends the current code block
+                flush()
+            elif indented:
+                # Indented literal block (RST ``::`` style)
+                if mode == 'doctest':
+                    flush()
+                mode = 'literal'
+                code_block.append(html.escape(line))
             else:
-                if code_block:
-                    block_id = f'{unique_id}-{len(output)}'
-                    output.append(self._create_code_block('\n'.join(code_block), block_id))
-                    code_block = []
-                    in_code = False
-                if line.strip():
-                    output.append(f'<p class="text-gray-600 my-2">{html.escape(line)}</p>')
+                flush()
+                # "Run the server::" reads as "Run the server:" in HTML
+                text = stripped[:-1] if stripped.endswith('::') else stripped
+                output.append(f'<p class="text-gray-600 my-2">{self._format_inline_code(html.escape(text))}</p>')
 
-        if code_block:
-            block_id = f'{unique_id}-{len(output)}'
-            output.append(self._create_code_block('\n'.join(code_block), block_id))
-
+        flush()
         return '\n'.join(output)
+
+    #: Commands that mark a code block as shell rather than Python.
+    _SHELL_COMMANDS = (
+        'tuiml', 'tuiml-mcp', 'pip', 'pipx', 'uv', 'uvx', 'python -m', 'python3 -m',
+        'cd', 'ls', 'export', 'git', 'curl', 'wget', 'bash', 'sh ', 'make',
+        'pytest', 'docker', 'npm', 'brew', 'sudo', 'chmod', 'mkdir', 'echo',
+    )
+
+    def _detect_code_language(self, code: str) -> str:
+        """Detect whether a code block holds shell commands or Python.
+
+        CLI docstrings write their examples with ``>>>`` prompts even though
+        the content is shell, so the prompt alone cannot decide the language.
+
+        Parameters
+        ----------
+        code : str
+            The (HTML-escaped) code block contents.
+
+        Returns
+        -------
+        language : str
+            Either ``'bash'`` or ``'python'``.
+        """
+        plain = html.unescape(code)
+        for raw in plain.split('\n'):
+            line = raw.strip()
+            # Strip a doctest or shell prompt before inspecting the command.
+            for prompt in ('>>>', '...', '$'):
+                if line.startswith(prompt):
+                    line = line[len(prompt):].strip()
+                    break
+            if not line or line.startswith('#'):
+                continue
+            if line.startswith(self._SHELL_COMMANDS):
+                return 'bash'
+            if line[:1] in ('{', '['):
+                return 'json'
+            return 'python'
+        return 'python'
 
     def _create_code_block(self, code: str, block_id: str) -> str:
         """Create a styled code block with copy button matching readme.html style."""
+        language = self._detect_code_language(code)
+        if language == 'bash':
+            # Shell examples read better with a ``$`` prompt than a doctest one.
+            code = '\n'.join(
+                re.sub(r'^(\s*)&gt;&gt;&gt; ?', r'\1$ ', line)
+                for line in code.split('\n')
+            )
         return f'''
         <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
             <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
@@ -430,27 +534,40 @@ class DocstringParser:
                     <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">PYTHON</span>
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">{language}</span>
                     <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
                         <i class="fa-regular fa-copy text-xs"></i>
                     </button>
                 </div>
             </div>
             <div class="!p-4 overflow-x-auto">
-                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">{code}</code></pre>
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-{language}">{code}</code></pre>
             </div>
         </div>
         '''
 
     def _format_see_also(self, content: str) -> str:
         """Format See Also section with clickable links."""
-        lines = content.strip().split('\n')
+        # NumPy style wraps a long description onto indented continuation
+        # lines. Stitch each entry back together before parsing, or every
+        # wrapped line renders as its own orphaned card.
+        entries: List[str] = []
+        for raw in content.strip('\n').split('\n'):
+            if not raw.strip():
+                continue
+            if raw[:1].isspace() and entries:
+                entries[-1] += ' ' + raw.strip()
+            else:
+                entries.append(raw.strip())
+
         items = []
-        for line in lines:
-            line = line.strip()
+        for line in entries:
             if line:
                 # Try to extract reference and description from :class:`~path.ClassName` : description
-                match = re.match(r':(?:class|func|meth):`~?([^`]+)`\s*:?\s*(.*)', line)
+                match = re.match(
+                    r':(?:class|func|meth|attr|data|mod|obj|exc):`~?([^`]+)`\s*:?\s*(.*)',
+                    line,
+                )
                 if match:
                     ref, desc = match.groups()
                     parts = ref.split('.')
@@ -481,7 +598,7 @@ class DocstringParser:
                         </span>
                         <div>
                             <code class="font-bold text-indigo-600 group-hover:text-indigo-800">{html.escape(class_name)}</code>
-                            <p class="text-sm text-gray-600 mt-0.5">{html.escape(desc)}</p>
+                            <p class="text-sm text-gray-600 mt-0.5">{self._format_inline_code(html.escape(desc))}</p>
                         </div>
                     </a>
                     ''')
@@ -493,11 +610,11 @@ class DocstringParser:
                         items.append(f'''
                         <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
                             <code class="font-bold text-gray-700">{html.escape(name)}</code>
-                            <span class="text-sm text-gray-600">{html.escape(desc)}</span>
+                            <span class="text-sm text-gray-600">{self._format_inline_code(html.escape(desc))}</span>
                         </div>
                         ''')
                     else:
-                        items.append(f'<div class="p-3 bg-gray-50 rounded-lg border border-gray-200 text-gray-600">{html.escape(line)}</div>')
+                        items.append(f'<div class="p-3 bg-gray-50 rounded-lg border border-gray-200 text-gray-600">{self._format_inline_code(html.escape(line))}</div>')
 
         return f'<div class="space-y-2">{"".join(items)}</div>'
 
@@ -570,7 +687,44 @@ class DocstringParser:
             return f'{{{{INLINEMATH_{len(math_blocks)-1}}}}}'
         
         text = re.sub(r':math:`([^`]+)`', save_inline_math, text)
-        
+
+        # RST literal blocks: a line ending in "::" introduces indented code.
+        # Pull them out as placeholders so list/paragraph handling and HTML
+        # escaping cannot mangle them; restored as <pre> blocks at the end.
+        literal_blocks = []
+        raw_lines = text.split('\n')
+        kept_lines = []
+        i = 0
+        while i < len(raw_lines):
+            line = raw_lines[i]
+            if line.rstrip().endswith('::') and line.strip() != '::':
+                # RST renders "text::" as "text:".
+                kept_lines.append(line.rstrip()[:-2] + ':')
+                i += 1
+                while i < len(raw_lines) and not raw_lines[i].strip():
+                    i += 1
+                block = []
+                while i < len(raw_lines) and (
+                    raw_lines[i].startswith((' ', '\t')) or not raw_lines[i].strip()
+                ):
+                    block.append(raw_lines[i])
+                    i += 1
+                while block and not block[-1].strip():
+                    block.pop()
+                if block:
+                    indent = min(
+                        len(b) - len(b.lstrip()) for b in block if b.strip()
+                    )
+                    code = '\n'.join(b[indent:] for b in block)
+                    kept_lines.append('')
+                    kept_lines.append(f'{{{{LITERAL_{len(literal_blocks)}}}}}')
+                    kept_lines.append('')
+                    literal_blocks.append(code)
+            else:
+                kept_lines.append(line)
+                i += 1
+        text = '\n'.join(kept_lines)
+
         # Process line by line to handle lists
         lines = text.split('\n')
         result_lines = []
@@ -592,7 +746,9 @@ class DocstringParser:
                 if not in_numbered_list:
                     result_lines.append('<ol class="list-decimal list-inside my-3 space-y-1">')
                     in_numbered_list = True
-                result_lines.append(f'<li class="text-gray-700">{html.escape(numbered_match.group(2))}</li>')
+                # Escaped later by the split-by-tags pass; escaping here
+                # too would double-encode quotes into visible &quot; text.
+                result_lines.append(f'<li class="text-gray-700">{numbered_match.group(2)}</li>')
             elif bullet_match:
                 if not in_bullet_list:
                     if in_numbered_list:
@@ -600,7 +756,7 @@ class DocstringParser:
                         in_numbered_list = False
                     result_lines.append('<ul class="list-disc list-inside my-3 space-y-1 pl-4">')
                     in_bullet_list = True
-                result_lines.append(f'<li class="text-gray-700">{html.escape(bullet_match.group(1))}</li>')
+                result_lines.append(f'<li class="text-gray-700">{bullet_match.group(1)}</li>')
             elif where_match:
                 # Close any open lists
                 if in_numbered_list:
@@ -641,6 +797,14 @@ class DocstringParser:
                 escaped_parts.append(html.escape(part))
         text = ''.join(escaped_parts)
 
+        # RST cross-reference roles first, so ':func:' does not leak as text.
+        text = re.sub(
+            r':(?:func|class|meth|attr|data|mod|obj|exc):`~?([^`]+)`',
+            lambda m: '<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">'
+                      + m.group(1).rsplit('.', 1)[-1] + '</code>',
+            text,
+        )
+
         # Handle inline code
         text = re.sub(r'``([^`]+)``', r'<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">\1</code>', text)
         text = re.sub(r'`([^`]+)`', r'<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">\1</code>', text)
@@ -670,8 +834,11 @@ class DocstringParser:
             for p in paragraphs:
                 p = p.strip()
                 if p:
-                    # Don't wrap if it contains or is a block element
-                    if any(tag in p for tag in ['<ol', '</ol>', '<ul', '</ul>', '<div', '</div>', '<li']):
+                    # Don't wrap if it contains or is a block element. Literal
+                    # blocks are still placeholders at this point but expand to
+                    # a <div>, so wrapping them would nest a div inside a <p>.
+                    if ('{{LITERAL_' in p
+                            or any(tag in p for tag in ['<ol', '</ol>', '<ul', '</ul>', '<div', '</div>', '<li'])):
                         formatted_paragraphs.append(p)
                     else:
                         formatted_paragraphs.append(f'<p class="mb-4">{p}</p>')
@@ -683,6 +850,16 @@ class DocstringParser:
         text = re.sub(r'\s*(</?(?:ol|ul|li|div|p)[^>]*>)\s*', r'\n\1\n', text)
         # Clean up excessive newlines
         text = re.sub(r'\n{3,}', '\n\n', text)
+
+        # Restore RST literal blocks last: the newline cleanup above must not
+        # reach into their <pre> content, or code collapses onto one line.
+        for i, code in enumerate(literal_blocks):
+            text = text.replace(
+                f'{{{{LITERAL_{i}}}}}',
+                '<div class="bg-slate-900 rounded-lg p-4 my-3 overflow-x-auto">'
+                '<pre class="text-sm font-mono text-slate-100 leading-relaxed">'
+                + html.escape(code) + '</pre></div>'
+            )
 
         return text
 
@@ -720,6 +897,11 @@ class PythonDocExtractor:
         )
 
         for node in ast.iter_child_nodes(tree):
+            # Underscore-prefixed names are internal helpers, not part of the
+            # public API users call, keep them out of the reference.
+            if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)) \
+                    and node.name.startswith('_'):
+                continue
             if isinstance(node, ast.ClassDef):
                 class_doc = self._extract_class(node)
                 doc.classes.append(class_doc)
@@ -763,12 +945,92 @@ class PythonDocExtractor:
                 nested_class = self._extract_class(child)
                 doc_item.children.append(nested_class)
 
+        # Pydantic models document their fields via Field(description=...)
+        # annotations rather than a docstring section. Synthesize a NumPy
+        # "Attributes" section from them so schemas render with the same
+        # field tables as hand-written docstrings.
+        if 'BaseModel' in bases and 'Attributes' not in (doc_item.docstring or ''):
+            fields_section = self._pydantic_fields_section(node)
+            if fields_section:
+                doc_item.docstring = (
+                    (doc_item.docstring or '').rstrip() + '\n\n' + fields_section
+                )
+
         return doc_item
+
+    def _pydantic_fields_section(self, node: ast.ClassDef) -> str:
+        """Build a NumPy-style Attributes section from Pydantic field annotations.
+
+        Parameters
+        ----------
+        node : ast.ClassDef
+            The class definition to scan for annotated fields.
+
+        Returns
+        -------
+        section : str
+            An ``Attributes`` docstring section, or ``''`` if the class has
+            no documented fields.
+        """
+        lines = []
+        for child in node.body:
+            if not isinstance(child, ast.AnnAssign) or not isinstance(child.target, ast.Name):
+                continue
+            name = child.target.id
+            if name.startswith('_'):
+                continue
+
+            try:
+                type_str = ast.unparse(child.annotation)
+            except Exception:
+                type_str = ''
+
+            default = None
+            required = child.value is None
+            description = ''
+
+            value = child.value
+            if isinstance(value, ast.Call) and self._get_decorator_name(value.func).endswith('Field'):
+                if value.args:
+                    first = value.args[0]
+                    if isinstance(first, ast.Constant) and first.value is Ellipsis:
+                        required = True
+                    else:
+                        default = ast.unparse(first)
+                for kw in value.keywords:
+                    if kw.arg == 'default':
+                        default = ast.unparse(kw.value)
+                    elif kw.arg == 'default_factory':
+                        factory = ast.unparse(kw.value)
+                        default = {'dict': '{}', 'list': '[]', 'tuple': '()'}.get(
+                            factory, f"{factory}()"
+                        )
+                    elif kw.arg == 'description' and isinstance(kw.value, ast.Constant):
+                        description = str(kw.value.value)
+            elif value is not None:
+                default = ast.unparse(value)
+
+            type_line = f"{name} : {type_str}" if type_str else name
+            if default is not None:
+                type_line += f", default={default}"
+            lines.append(type_line)
+            if description:
+                lines.append(f"    {description}")
+
+        if not lines:
+            return ''
+        return 'Attributes\n----------\n' + '\n'.join(lines)
 
     def _extract_function(self, node: ast.FunctionDef, is_method: bool = False) -> DocItem:
         """Extract documentation from a function/method definition."""
         decorators = [self._get_decorator_name(d) for d in node.decorator_list]
         signature = self._get_function_signature(node)
+        cli_usage = self._click_usage(node, decorators)
+
+        # A click command is documented by how it is invoked in a shell; the
+        # long @click.option stack is implementation detail, not API surface.
+        if cli_usage:
+            decorators = [d for d in decorators if not d.startswith('click.')]
 
         return DocItem(
             name=node.name,
@@ -776,8 +1038,142 @@ class PythonDocExtractor:
             item_type='method' if is_method else 'function',
             lineno=node.lineno,
             signature=signature,
-            decorators=decorators
+            decorators=decorators,
+            cli_usage=cli_usage,
+            cli_options=self._click_options(node) if cli_usage else [],
         )
+
+    def _click_options(self, node: ast.FunctionDef) -> List[Dict[str, Any]]:
+        """Extract the options and arguments a click command accepts.
+
+        The ``help=`` text on each ``@click.option`` is the real user-facing
+        documentation for a command, so it is lifted out of the decorator
+        stack and rendered as a table instead of being shown as source.
+
+        Parameters
+        ----------
+        node : ast.FunctionDef
+            The decorated command function.
+
+        Returns
+        -------
+        options : List[Dict[str, Any]]
+            One dict per option with ``flags``, ``type``, ``default``,
+            ``required``, ``help`` and ``is_argument`` keys, in declaration
+            order.
+        """
+        options = []
+        # Decorators apply bottom-up, so the source order reads top-down.
+        for decorator in node.decorator_list:
+            if not isinstance(decorator, ast.Call):
+                continue
+            kind = self._get_decorator_name(decorator.func)
+            if kind not in ('click.option', 'click.argument'):
+                continue
+
+            flags = []
+            for arg in decorator.args:
+                if isinstance(arg, ast.Constant) and isinstance(arg.value, str):
+                    flags.append(arg.value)
+
+            entry = {
+                'flags': [f for f in flags if f.startswith('-')] or flags,
+                'type': '', 'default': None, 'required': False,
+                'help': '', 'is_argument': kind == 'click.argument',
+                'multiple': False,
+            }
+
+            for kw in decorator.keywords:
+                if kw.arg == 'help' and isinstance(kw.value, ast.Constant):
+                    entry['help'] = str(kw.value.value)
+                elif kw.arg == 'required':
+                    entry['required'] = bool(getattr(kw.value, 'value', False))
+                elif kw.arg == 'multiple':
+                    entry['multiple'] = bool(getattr(kw.value, 'value', False))
+                elif kw.arg == 'is_flag' and getattr(kw.value, 'value', False):
+                    entry['type'] = 'flag'
+                elif kw.arg == 'default':
+                    try:
+                        entry['default'] = ast.unparse(kw.value)
+                    except Exception:
+                        pass
+                elif kw.arg == 'type':
+                    entry['type'] = self._click_type(kw.value)
+
+            options.append(entry)
+        return options
+
+    def _click_type(self, node) -> str:
+        """Describe a click option's ``type=`` argument in words.
+
+        Parameters
+        ----------
+        node : ast.AST
+            The expression assigned to ``type=``.
+
+        Returns
+        -------
+        type_name : str
+            A short type label such as ``int`` or ``choice: a | b``.
+        """
+        if isinstance(node, ast.Name):
+            return node.id
+        if isinstance(node, ast.Call):
+            name = self._get_decorator_name(node.func)
+            if name.endswith('Choice') and node.args:
+                try:
+                    choices = ast.literal_eval(node.args[0])
+                    return 'choice: ' + ' | '.join(str(c) for c in choices)
+                except Exception:
+                    return 'choice'
+            if name.endswith('Path'):
+                return 'path'
+            if name.endswith('IntRange'):
+                return 'int range'
+            if name.endswith('FloatRange'):
+                return 'float range'
+            return name.split('.')[-1].lower()
+        try:
+            return ast.unparse(node)
+        except Exception:
+            return ''
+
+    def _click_usage(self, node: ast.FunctionDef, decorators: List[str]) -> str:
+        """Build the shell usage line for a click command or group.
+
+        Parameters
+        ----------
+        node : ast.FunctionDef
+            The decorated function definition.
+        decorators : List[str]
+            Dotted decorator names already resolved for this function.
+
+        Returns
+        -------
+        usage : str
+            A usage string such as ``tuiml benchmark [OPTIONS]``, or ``''``
+            when the function is not a click command.
+        """
+        if not any(d in ('click.command', 'click.group') for d in decorators):
+            return ''
+
+        is_group = 'click.group' in decorators
+        name = node.name.replace('_', '-')
+
+        # An explicit name wins: @click.command('test-statistics')
+        for decorator in node.decorator_list:
+            if not isinstance(decorator, ast.Call):
+                continue
+            if self._get_decorator_name(decorator.func) not in ('click.command', 'click.group'):
+                continue
+            if decorator.args and isinstance(decorator.args[0], ast.Constant) \
+                    and isinstance(decorator.args[0].value, str):
+                name = decorator.args[0].value
+
+        if is_group:
+            # The root group is invoked as the program itself.
+            return 'tuiml [OPTIONS] COMMAND [ARGS]...'
+        return f'tuiml {name} [OPTIONS]'
 
     def _get_function_signature(self, node: ast.FunctionDef) -> str:
         """Get the function signature as a string."""
@@ -910,6 +1306,24 @@ class HTMLDocGenerator:
         """Add a module to the documentation."""
         self.all_modules.append(doc)
 
+    def _card_summary(self, summary: str) -> str:
+        """Escape a module-card summary and render ``inline code`` as <code>.
+
+        Parameters
+        ----------
+        summary : str
+            Raw docstring summary text, possibly containing RST
+            double-backtick inline-code spans.
+
+        Returns
+        -------
+        rendered : str
+            HTML-escaped summary with ``spans`` converted to <code> tags.
+        """
+        escaped = html.escape(summary)
+        rendered = re.sub(r'``([^`]+)``', r'<code class="text-indigo-600">\1</code>', escaped)
+        return DocstringParser._format_emphasis(rendered)
+
     def _build_class_map(self):
         """Build mapping from class reference paths to actual file URLs."""
         self._class_map = {}
@@ -947,7 +1361,9 @@ class HTMLDocGenerator:
         # Generate directory index pages
         self._generate_directory_indexes()
 
-        # Skip generating api-reference.html — hand-written page exists at that URL
+        # Generate the landing page the site serves at /docs/api-reference.html,
+        # so its package/module cards can never drift from the real code.
+        self._generate_main_index()
 
     def _generate_module_page(self, doc: ModuleDoc):
         """Generate HTML page for a module."""
@@ -961,7 +1377,6 @@ class HTMLDocGenerator:
         # Build breadcrumb
         breadcrumb_parts = list(rel_path.parts[:-1])
         breadcrumb_items = []
-        breadcrumb_items.append('<a href="/docs/getting_started.html" class="hover:text-gray-900">Documentation</a>')
         breadcrumb_items.append(f'<a href="{index_path}" class="hover:text-gray-900">API Reference</a>')
         for i, part in enumerate(breadcrumb_parts):
             # Calculate relative path from current module to this breadcrumb level
@@ -974,26 +1389,29 @@ class HTMLDocGenerator:
         # Build content
         content = []
 
-        # Layout: Grid
-        content.append('<div class="flex flex-col lg:flex-row gap-8">')
-        
-        # Sidebar TOC
-        content.append('<aside class="w-full lg:w-64 flex-shrink-0">')
+        # Page header: linked breadcrumb (API Reference / pkg / subpkg) + module name
+        crumbs = [f'<a href="{index_path}">API Reference</a>']
+        for i, part in enumerate(breadcrumb_parts):
+            up_levels = len(breadcrumb_parts) - i - 1
+            crumbs.append(f'<a href="{"../" * up_levels}index.html">{part}</a>')
+        content.append(f'<p class="oc-caption api-crumb" style="margin: 0;">{" / ".join(crumbs)}</p>')
+        content.append(f'<h1 class="oc-display" style="margin-bottom: 32px;">{doc.module_name}</h1>')
+
+        # On-this-page rail: same oc-toc component as the tutorials/benchmarks
+        # pages — fixed beside the column on wide screens, in-flow block on
+        # narrow ones, scrollspy-highlighted by oc.js.
         if doc.classes or doc.functions:
-            content.append('<div class="sticky top-24 bg-white rounded-xl border border-gray-200 p-6 shadow-sm">')
-            content.append('<h3 class="font-bold text-gray-900 mb-4 border-b pb-2">On this page</h3>')
-            content.append('<ul class="space-y-2 text-sm">')
+            content.append('<nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">')
+            content.append('<div class="oc-toc-label">On this page</div>')
             for cls in doc.classes:
-                content.append(f'<li><a href="#class-{cls.name}" class="text-indigo-600 hover:text-indigo-800 font-medium block truncate"><i class="fa-solid fa-cube mr-1 text-xs text-gray-400"></i> {cls.name}</a></li>')
-                # Optional: Add methods to TOC?
+                content.append(f'<a href="#class-{cls.name}">{cls.name}</a>')
             for func in doc.functions:
-                content.append(f'<li><a href="#func-{func.name}" class="text-gray-600 hover:text-gray-900 block truncate"><i class="fa-solid fa-code mr-1 text-xs text-gray-400"></i> {func.name}</a></li>')
-            content.append('</ul></div>')
-        content.append('</aside>')
+                content.append(f'<a href="#func-{func.name}">{func.name}</a>')
+            content.append('</nav>')
 
         # Main Content
-        content.append('<main class="flex-1 min-w-0">')
-        
+        content.append('<main>')
+
         # Module docstring
         if doc.docstring:
             parser = DocstringParser(doc.docstring, self._class_map)
@@ -1019,7 +1437,6 @@ class HTMLDocGenerator:
             content.append('</div>')
             
         content.append('</main>')
-        content.append('</div>') # End flex container
 
         html = self._wrap_page(
             title=f'{doc.module_name} - API Documentation',
@@ -1062,7 +1479,7 @@ class HTMLDocGenerator:
         if cls.docstring:
             parser = DocstringParser(cls.docstring, self._class_map)
             if parser.summary:
-                parts.append(f'<p class="text-gray-700 text-lg mb-6 leading-relaxed">{html.escape(parser.summary)}</p>')
+                parts.append(f'<p class="text-gray-700 text-lg mb-6 leading-relaxed">{parser._format_inline_code(html.escape(parser.summary))}</p>')
             if parser.extended_summary:
                 parts.append(f'<div class="text-gray-600 mb-8 leading-relaxed">{parser._format_text(parser.extended_summary)}</div>')
 
@@ -1072,14 +1489,26 @@ class HTMLDocGenerator:
             parts.append(self._render_init_signature(cls.name, init_method))
 
         # Render docstring sections (Parameters, Examples, etc.)
+        class_sections: Dict[str, Any] = {}
         if cls.docstring:
             parser = DocstringParser(cls.docstring, self._class_map)
+            class_sections = parser.sections
             for section_name, content in parser.sections.items():
                 parts.append(parser._format_section(section_name, content))
 
-        # Methods section (including __init__, __call__, etc. if they have docstrings)
-        public_methods = [m for m in cls.methods if not m.name.startswith('_') or m.name in ('__init__', '__call__', '__str__', '__repr__')]
-        
+        # Methods section (including __init__, __call__, etc. if they have docstrings).
+        # __init__ already appears above as the Constructor, alongside the
+        # class-level Parameters table, so repeating it here would render the
+        # same block twice. Keep it only for the rare class that documents its
+        # arguments solely on __init__.
+        skip_init = init_method is not None and 'Parameters' in class_sections
+        public_methods = [
+            m for m in cls.methods
+            if (not m.name.startswith('_')
+                or m.name in ('__init__', '__call__', '__str__', '__repr__'))
+            and not (skip_init and m.name == '__init__')
+        ]
+
         if public_methods:
             parts.append(f'''
             <div class="mt-10">
@@ -1237,7 +1666,7 @@ class HTMLDocGenerator:
                     <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
                 </summary>
                 <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
-                    <p class="text-sm text-gray-600 mt-3">{html.escape(parser.summary)}</p>
+                    <p class="text-sm text-gray-600 mt-3">{parser._format_inline_code(html.escape(parser.summary))}</p>
                     {sections_html}
                 </div>
             </details>
@@ -1254,12 +1683,21 @@ class HTMLDocGenerator:
             decorators_html = ' '.join(f'<span class="text-amber-600 font-mono text-xs">@{d}</span>' for d in func.decorators)
             decorators_html = f'<div class="mb-2">{decorators_html}</div>'
 
+        if func.cli_usage:
+            badge_label, badge_class = 'Command', 'bg-indigo-100 text-indigo-700'
+            display_name = func.cli_usage.split(' [')[0]
+            usage_line = func.cli_usage
+        else:
+            badge_label, badge_class = 'Func', 'bg-green-100 text-green-700'
+            display_name = func.name
+            usage_line = func.name + func.signature
+
         parts.append(f'''
         <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
             {decorators_html}
             <div class="flex items-center gap-2">
-                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
-                <h3 class="text-lg font-bold text-gray-900 font-mono">{func.name}</h3>
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold {badge_class} uppercase tracking-wide">{badge_label}</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">{display_name}</h3>
             </div>
             <div class="text-xs text-gray-400 mt-1 font-mono">Line {func.lineno}</div>
         </div>
@@ -1267,14 +1705,71 @@ class HTMLDocGenerator:
 
         # Content
         parts.append('<div class="p-6">')
-        parts.append(f'<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">{html.escape(func.name + func.signature)}</div>')
+        parts.append(f'<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">{html.escape(usage_line)}</div>')
 
         if func.docstring:
             parser = DocstringParser(func.docstring, self._class_map)
             parts.append(f'<div class="prose max-w-none text-gray-600">{parser.to_html()}</div>')
 
+        if func.cli_options:
+            parts.append(self._render_cli_options(func.cli_options))
+
         parts.append('</div></div>')
         return '\n'.join(parts)
+
+    def _render_cli_options(self, options: List[Dict[str, Any]]) -> str:
+        """Render a click command's options as a documentation table.
+
+        Parameters
+        ----------
+        options : List[Dict[str, Any]]
+            Option dicts produced by ``PythonDocExtractor._click_options``.
+
+        Returns
+        -------
+        html_section : str
+            An HTML section listing each flag, its type and its help text.
+        """
+        rows = []
+        for opt in options:
+            flags = ', '.join(opt['flags'])
+            badges = []
+            if opt['is_argument']:
+                badges.append('<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">argument</span>')
+            if opt['type'] == 'flag':
+                badges.append('<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">flag</span>')
+            elif opt['type']:
+                badges.append(f'<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">{html.escape(opt["type"])}</span>')
+            if opt['multiple']:
+                badges.append('<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">repeatable</span>')
+            if opt['required']:
+                badges.append('<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">required</span>')
+            elif opt['default'] not in (None, 'None'):
+                badges.append(f'<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600">= {html.escape(opt["default"])}</span>')
+
+            description = html.escape(opt['help']) or '<span class="italic text-gray-400">No description.</span>'
+            rows.append(f'''
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-4">
+                    <code class="font-bold text-indigo-600 text-sm">{html.escape(flags)}</code>
+                </div>
+                <div class="md:col-span-8">
+                    <div class="flex flex-wrap gap-1 mb-1">{' '.join(badges)}</div>
+                    <div class="text-sm text-gray-600">{description}</div>
+                </div>
+            </div>
+            ''')
+
+        return f'''
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden mt-6">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center">
+                    <i class="fa-solid fa-terminal text-indigo-500 mr-2"></i>Options
+                </h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">{''.join(rows)}</div></div>
+        </div>
+        '''
 
     def _generate_directory_indexes(self):
         """Generate index.html for each directory."""
@@ -1295,9 +1790,10 @@ class HTMLDocGenerator:
                 all_dirs.add(Path(*rel_path.parts[:i+1]))
 
         for dir_path in all_dirs:
-            self._generate_directory_index(dir_path, dir_modules)
+            self._generate_directory_index(dir_path, dir_modules, all_dirs)
 
-    def _generate_directory_index(self, dir_path: Path, dir_modules: Dict[Path, List[ModuleDoc]]):
+    def _generate_directory_index(self, dir_path: Path, dir_modules: Dict[Path, List[ModuleDoc]],
+                                  all_dirs: Set[Path]):
         """Generate index.html for a specific directory."""
         output_path = self.output_dir / dir_path / 'index.html'
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1307,7 +1803,6 @@ class HTMLDocGenerator:
 
         # Build breadcrumb
         breadcrumb_items = []
-        breadcrumb_items.append('<a href="/docs/getting_started.html" class="hover:text-gray-900">Documentation</a>')
         breadcrumb_items.append(f'<a href="{root_index}" class="hover:text-gray-900">API Reference</a>')
         for i, part in enumerate(dir_path.parts):
             up_levels = depth - i - 1
@@ -1318,9 +1813,12 @@ class HTMLDocGenerator:
                 breadcrumb_items.append(f'<span class="text-gray-900 font-semibold">{part}</span>')
         breadcrumb_html = ' <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> '.join(breadcrumb_items)
 
-        # Find subdirectories and modules
+        # Find subdirectories and modules. Walk every directory that has an
+        # index page, not just the ones holding modules directly: a package
+        # like datasets/generators only contains subpackages, so keying off
+        # dir_modules would hide it from its parent's Packages list.
         subdirs = set()
-        for other_dir in dir_modules.keys():
+        for other_dir in all_dirs:
             if len(other_dir.parts) == len(dir_path.parts) + 1:
                 if other_dir.parts[:len(dir_path.parts)] == dir_path.parts:
                     subdirs.add(other_dir.parts[-1])
@@ -1329,27 +1827,31 @@ class HTMLDocGenerator:
 
         content = []
 
-        # Subdirectories
+        # Page header: linked breadcrumb (API Reference / parent dirs) + dir name
+        crumbs = [f'<a href="{root_index}">API Reference</a>']
+        for i, part in enumerate(dir_path.parts[:-1]):
+            up_levels = depth - i - 1
+            crumbs.append(f'<a href="{"../" * up_levels}index.html">{part}</a>')
+        content.append(f'<p class="oc-caption api-crumb" style="margin: 0;">{" / ".join(crumbs)}</p>')
+        content.append(f'<h1 class="oc-display" style="margin-bottom: 48px;">{dir_path.name}/</h1>')
+
+        # Subdirectories — flat hairline boxes (oc why-card), names only
         if subdirs:
-            content.append('<h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2 px-1"><i class="fa-regular fa-folder text-yellow-500"></i> Packages</h2>')
-            content.append('<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">')
+            content.append('<h2 class="oc-h">Packages</h2>')
+            content.append('<hr class="oc-rule">')
+            content.append('<div class="why-grid" style="margin-top: 0; margin-bottom: 48px;">')
             for subdir in sorted(subdirs):
-                content.append(f'''
-                <a href="{subdir}/index.html" class="group block p-6 bg-white rounded-xl border border-gray-200 hover:border-indigo-500 hover:shadow-md transition-all">
-                    <div class="flex items-center gap-3 mb-2">
-                        <span class="w-10 h-10 rounded-lg bg-yellow-50 text-yellow-600 flex items-center justify-center text-xl group-hover:bg-yellow-100 transition-colors">
-                            <i class="fa-regular fa-folder"></i>
-                        </span>
-                        <h3 class="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">{subdir}</h3>
-                    </div>
-                </a>
-                ''')
+                content.append(
+                    f'<a href="{subdir}/index.html" class="why-card api-card">'
+                    f'<div class="why-title">{subdir}/</div></a>'
+                )
             content.append('</div>')
 
-        # Modules in this directory
+        # Modules in this directory — boxes with summary + stats
         if modules:
-            content.append('<h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2 px-1"><i class="fa-brands fa-python text-blue-500"></i> Modules</h2>')
-            content.append('<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">')
+            content.append('<h2 class="oc-h">Modules</h2>')
+            content.append('<hr class="oc-rule">')
+            content.append('<div class="why-grid" style="margin-top: 0;">')
             for doc in sorted(modules, key=lambda d: d.module_name):
                 summary = ''
                 if doc.docstring:
@@ -1357,23 +1859,17 @@ class HTMLDocGenerator:
                     if len(doc.docstring) > 100:
                         summary += '...'
 
-                stats = f'{len(doc.classes)} classes, {len(doc.functions)} functions'
-                content.append(f'''
-                <a href="{doc.module_name}.html" class="group block bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-indigo-500 transition-all overflow-hidden flex flex-col h-full">
-                    <div class="p-6 flex-grow">
-                        <div class="flex items-center gap-3 mb-4">
-                            <span class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xl group-hover:bg-blue-100 transition-colors">
-                                <i class="fa-brands fa-python"></i>
-                            </span>
-                            <h3 class="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">{doc.module_name}</h3>
-                        </div>
-                        <p class="text-sm text-gray-600 mb-4 line-clamp-2">{html.escape(summary)}</p>
-                    </div>
-                    <div class="px-6 py-3 bg-gray-50 border-t border-gray-100 text-xs text-gray-500 font-mono">
-                        {stats}
-                    </div>
-                </a>
-                ''')
+                n_cls, n_fn = len(doc.classes), len(doc.functions)
+                stats = (
+                    f'{n_cls} class{"" if n_cls == 1 else "es"} · '
+                    f'{n_fn} function{"" if n_fn == 1 else "s"}'
+                )
+                content.append(
+                    f'<a href="{doc.module_name}.html" class="why-card api-card">'
+                    f'<div class="why-title">{doc.module_name}</div>'
+                    f'<p class="why-text">{self._card_summary(summary)}</p>'
+                    f'<div class="oc-caption" style="margin-top: auto;">{stats}</div></a>'
+                )
             content.append('</div>')
 
         html_content = self._wrap_page(
@@ -1387,82 +1883,163 @@ class HTMLDocGenerator:
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(html_content)
 
-    def _generate_main_index(self):
-        """Generate the main api-reference.html."""
-        output_path = self.output_dir / 'api-reference.html'
+    # One-line blurbs for the top-level packages on the API-reference landing
+    # page (list-row descriptions). Packages missing from this map fall back
+    # to a generic line — add new packages here as they appear.
+    PACKAGE_BLURBS = {
+        'agent': 'MCP server, LLM tool registry, and agent prompts.',
+        'algorithms': 'Native ML algorithms across 13 families.',
+        'base': 'Classifier/Regressor base classes and decorators.',
+        'capymoa': 'Optional CapyMOA streaming wrappers.',
+        'cli': 'The tuiml command-line interface.',
+        'datasets': 'Loaders, generators, and builtin datasets.',
+        'evaluation': 'Metrics, splitting, and cross-validation.',
+        'features': 'Feature selection, extraction, and generation.',
+        'preprocessing': 'Scalers, encoders, and transforms.',
+        'serving': 'Model serving and deployment.',
+        'sklearn': 'Optional scikit-learn wrappers.',
+        'utils': 'Shared helpers.',
+    }
 
-        # Get top-level directories
+    def _generate_main_index(self):
+        """Generate the API-reference landing page.
+
+        Written to ``templates/pages/api-reference.html`` — the template the
+        website serves at ``/docs/api-reference.html`` — so the package and
+        module rows always reflect the current source tree. Styled with the
+        site's oc design system (see website/DESIGN.md): flat list-rows with
+        ASCII bracket markers inside .oc-section blocks.
+        """
+        output_path = self.output_dir.parent / 'pages' / 'api-reference.html'
+
+        def name_box(href: str, name: str, blurb: str) -> str:
+            return (
+                f'                <a href="{href}" class="why-card api-card">'
+                f'<div class="why-title">{name}</div>'
+                f'<p class="why-text">{blurb}</p></a>'
+            )
+
+        # Top-level packages
         top_dirs = set()
         for doc in self.all_modules:
             rel_path = doc.relative_path.relative_to(self.source_root)
             if len(rel_path.parts) > 1:
                 top_dirs.add(rel_path.parts[0])
 
-        content = []
-        
-        # Hero section for docs
-        content.append(f'''
-        <div class="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-2xl p-8 mb-10 text-white shadow-lg">
-            <h2 class="text-3xl font-bold mb-4">{DOC_CONFIG["project_name"]} API Reference</h2>
-            <div class="flex gap-4 text-indigo-100 text-sm">
-                 <span><i class="fa-regular fa-clock mr-1"></i> Generated: {datetime.now().strftime("%Y-%m-%d")}</span>
-                 <span><i class="fa-solid fa-layer-group mr-1"></i> Modules: {len(self.all_modules)}</span>
-            </div>
-        </div>
-        ''')
-
-        if top_dirs:
-            content.append('<h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2 px-1"><i class="fa-solid fa-boxes-stacked text-indigo-500"></i> Packages</h2>')
-            content.append('<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">')
-            for dir_name in sorted(top_dirs):
-                content.append(f'''
-                <a href="{dir_name}/index.html" class="group block p-6 bg-white rounded-xl border border-gray-200 hover:border-indigo-500 hover:shadow-md transition-all">
-                    <div class="flex items-center gap-4 mb-2">
-                        <span class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-2xl group-hover:bg-indigo-100 transition-colors">
-                            <i class="fa-regular fa-folder"></i>
-                        </span>
-                        <h3 class="text-lg font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">{dir_name}</h3>
-                    </div>
-                    <p class="text-gray-500 text-sm pl-16">Package documentation</p>
-                </a>
-                ''')
-            content.append('</div>')
-
-        # Root-level modules
-        root_modules = [doc for doc in self.all_modules
-                        if len(doc.relative_path.relative_to(self.source_root).parts) == 1]
-
-        if root_modules:
-            content.append('<h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2 px-1"><i class="fa-brands fa-python text-blue-500"></i> Root Modules</h2>')
-            content.append('<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">')
-            for doc in sorted(root_modules, key=lambda d: d.module_name):
-                summary = ''
-                if doc.docstring:
-                    summary = DocstringParser(doc.docstring, self._class_map).summary[:100]
-
-                content.append(f'''
-                <a href="{doc.module_name}.html" class="group block bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-indigo-500 transition-all overflow-hidden flex flex-col h-full">
-                    <div class="p-6 flex-grow">
-                        <div class="flex items-center gap-3 mb-4">
-                            <span class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xl group-hover:bg-blue-100 transition-colors">
-                                <i class="fa-brands fa-python"></i>
-                            </span>
-                            <h3 class="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">{doc.module_name}</h3>
-                        </div>
-                        <p class="text-sm text-gray-600 mb-4 line-clamp-2">{html.escape(summary)}</p>
-                    </div>
-                </a>
-                ''')
-            content.append('</div>')
-
-        html_content = self._wrap_page(
-            title=f'{DOC_CONFIG["project_name"]} API Documentation',
-            content='\n'.join(content),
-            index_path='index.html',
-            breadcrumb='<a href="/docs/getting_started.html" class="hover:text-gray-900">Documentation</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">API Reference</span>',
-            header_info={'name': DOC_CONFIG["project_name"], 'path': ''}
+        package_rows = '\n'.join(
+            name_box(f'{d}/index.html', d, self.PACKAGE_BLURBS.get(d, 'Package documentation.'))
+            for d in sorted(top_dirs)
         )
 
+        # Root-level modules, described by their docstring summaries
+        root_modules = [doc for doc in self.all_modules
+                        if len(doc.relative_path.relative_to(self.source_root).parts) == 1]
+        module_rows = '\n'.join(
+            name_box(
+                f'{doc.module_name}.html',
+                doc.module_name,
+                self._card_summary(
+                    DocstringParser(doc.docstring, self._class_map).summary[:100]
+                    if doc.docstring else ''
+                ),
+            )
+            for doc in sorted(root_modules, key=lambda d: d.module_name)
+        )
+
+        html_content = f'''<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Reference, {DOC_CONFIG["project_name"]} Documentation</title>
+    <meta name="description" content="Complete API reference for TuiML: algorithms, datasets, preprocessing, evaluation, feature selection, and MCP server modules.">
+    <meta name="robots" content="index,follow">
+    <link rel="canonical" href="https://tuiml.ai/docs/api-reference.html">
+
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="{{{{ config.project_name }}}}">
+    <meta property="og:title" content="API Reference, {DOC_CONFIG["project_name"]} Documentation">
+    <meta property="og:description" content="Complete API reference for all TuiML modules, classes, and functions.">
+    <meta property="og:url" content="https://tuiml.ai/docs/api-reference.html">
+    <meta property="og:image" content="https://tuiml.ai/static/images/tuiml_logo.png">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="API Reference, {DOC_CONFIG["project_name"]} Documentation">
+    <meta name="twitter:description" content="Complete API reference for all TuiML modules, classes, and functions.">
+    <meta name="twitter:image" content="https://tuiml.ai/static/images/tuiml_logo.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32.png?v=10">
+    <link rel="icon" type="image/png" sizes="512x512" href="/static/images/favicon.png?v=10">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png?v=10">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome (site nav icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Tailwind CSS (site nav / footer chrome) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="landing-page antialiased overflow-x-hidden">
+
+    {{% include 'components/_docs_navbar.html' %}}
+
+    <link rel="stylesheet" href="/static/css/oc.css">
+    <script src="/static/js/oc.js"></script>
+    <link rel="stylesheet" href="/static/css/api-doc.css">
+
+    <div class="oc-wrap">
+
+        <!-- ===================== HEADER ===================== -->
+        <section class="oc-section" style="padding-top: 64px;" id="top">
+            <h1 class="oc-display">API Reference</h1>
+            <p class="oc-body oc-max" style="margin-top: 16px;">
+                Complete documentation for every {{{{ config.project_name }}}} module, class, and
+                function — generated straight from the source tree, so it can never drift
+                from the real code.
+            </p>
+
+            <nav class="oc-toc oc-toc-flow" aria-label="On this page">
+                <div class="oc-toc-label">On this page</div>
+                <a href="#packages">Packages</a>
+                <a href="#root-modules">Root modules</a>
+            </nav>
+        </section>
+
+        <!-- ===================== PACKAGES ===================== -->
+        <section class="oc-section" id="packages">
+            <h2 class="oc-h">Packages</h2>
+            <hr class="oc-rule">
+            <div class="why-grid" style="margin-top: 0;">
+{package_rows}
+            </div>
+        </section>
+
+        <!-- ===================== ROOT MODULES ===================== -->
+        <section class="oc-section" id="root-modules">
+            <h2 class="oc-h">Root modules</h2>
+            <hr class="oc-rule">
+            <div class="why-grid" style="margin-top: 0;">
+{module_rows}
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    {{% include 'components/_footer.html' %}}
+
+</body>
+
+</html>
+'''
+
+        output_path.parent.mkdir(parents=True, exist_ok=True)
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(html_content)
 
@@ -1494,7 +2071,7 @@ def main():
     # so the script works regardless of the current working directory.
     repo = Path(__file__).resolve().parent.parent
     source_dir = repo / 'tuiml'
-    output_dir = repo / 'website' / 'templates' / 'docs_api'
+    output_dir = repo / 'website' / 'templates' / '_generated'
 
     # Parse command line arguments
     if len(sys.argv) >= 2:
@@ -1523,8 +2100,17 @@ def main():
     skipped = 0
 
     for filepath in python_files:
-        # Skip test files and __pycache__
-        if '__pycache__' in str(filepath) or filepath.name.startswith('test_'):
+        # Skip test files, __pycache__, and package __init__ files, the
+        # latter only re-export names and would otherwise show up as a
+        # meaningless "__init__" module card in the docs. Only files inside a
+        # tests/ directory count as tests: the package itself ships modules
+        # such as cli/test_statistics.py that are real public API.
+        if (
+            '__pycache__' in str(filepath)
+            or (filepath.name.startswith('test_') and 'tests' in filepath.parts)
+            or filepath.name.startswith('_')
+            or any(part.startswith('_') for part in filepath.relative_to(source_dir).parts[:-1])
+        ):
             skipped += 1
             continue
 

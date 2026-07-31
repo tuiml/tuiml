@@ -3,1805 +3,476 @@
 <head>
     {% include 'components/_head.html' %}
 </head>
-<body class="landing-page bg-slate-950 text-slate-100 antialiased overflow-x-hidden">
+<body class="landing-page antialiased overflow-x-hidden">
 
 {% include 'components/_site_nav.html' %}
 
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
-    :root {
-        --surface-0: #0b1628;
-        --surface-1: #0f1c34;
-        --surface-2: #152742;
-        --accent: #60a5fa;
-        --accent-glow: rgba(96, 165, 250, 0.15);
-        --green: #34d399;
-        --orange: #fb923c;
-    }
-    .font-display { font-family: 'Outfit', 'IBM Plex Sans', sans-serif; }
-    .font-serif-quote { font-family: 'Instrument Serif', 'Iowan Old Style', Georgia, serif; font-style: italic; letter-spacing: -0.01em; }
-    .font-code { font-family: 'JetBrains Mono', 'IBM Plex Mono', monospace; }
-    .landing-page {
-        font-family: 'Outfit', 'IBM Plex Sans', sans-serif;
-        color: #e2e8f0;
-        background: var(--surface-0);
-    }
-    .section-shell {
-        position: relative;
-        background: var(--surface-0);
-    }
-    .section-shell-alt { background: var(--surface-1); }
-    .section-shell-hero {
-        background: linear-gradient(165deg, #0b1628 0%, #0f1c34 50%, #152742 100%);
-        overflow: hidden;
-    }
-    .section-frame {
-        position: relative;
-        z-index: 10;
-    }
-    .section-backdrop {
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-    }
-    .section-header {
-        text-align: center;
-        margin-bottom: 2.5rem;
-    }
-    @media (min-width: 640px) {
-        .section-header { margin-bottom: 3.5rem; }
-    }
-    .section-eyebrow {
-        margin-bottom: 0.75rem;
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0.15em;
-        text-transform: uppercase;
-        color: #38bdf8;
-    }
-    .section-title {
-        font-family: 'Outfit', 'IBM Plex Sans', sans-serif;
-        font-size: clamp(1.75rem, 2.8vw, 3rem);
-        font-weight: 800;
-        line-height: 1.05;
-        letter-spacing: -0.03em;
-        color: #ffffff;
-    }
-    .section-copy {
-        margin-top: 0.85rem;
-        max-width: 42rem;
-        margin-left: auto;
-        margin-right: auto;
-        font-size: 0.95rem;
-        line-height: 1.75;
-        color: #94a3b8;
-    }
-    @media (min-width: 640px) {
-        .section-copy { font-size: 1.05rem; }
-    }
-    .body-copy {
-        font-size: 0.95rem;
-        line-height: 1.75;
-        color: #cbd5e1;
-    }
-    .meta-copy {
-        font-size: 0.78rem;
-        line-height: 1.6;
-        color: #94a3b8;
-    }
-    .section-divider {
-        height: 1px;
-        background: linear-gradient(90deg, transparent, var(--accent), transparent);
-        opacity: 0.4;
-    }
-    .pill-tabs {
-        display: inline-flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 6px;
-        margin-bottom: 1rem;
-        padding: 4px;
-        border-radius: 999px;
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.08);
-    }
-    .pill-tab {
-        padding: 8px 16px;
-        border-radius: 999px;
-        font-family: 'Outfit', 'IBM Plex Sans', sans-serif;
-        font-size: 12px;
-        font-weight: 600;
-        color: #94a3b8;
-        background: transparent;
-        border: none;
-        cursor: pointer;
-        transition: all 0.15s ease;
-    }
-    .pill-tab:hover {
-        color: #e2e8f0;
-        background: rgba(255,255,255,0.07);
-    }
-    .pill-tab.active {
-        color: #0f172a;
-        background: #a3e635;
-    }
-    .pill-panel { display: none; }
-    .pill-panel.active { display: block; }
-
-    /* Animated rotating gradient border for the OpenClaw badge */
-    @property --oc-angle {
-        syntax: '<angle>';
-        initial-value: 0deg;
-        inherits: false;
-    }
-    @keyframes oc-rotate { to { --oc-angle: 360deg; } }
-    @keyframes oc-rotate-fallback { to { transform: rotate(360deg); } }
-
-    .oc-badge {
-        position: relative;
-        display: inline-flex;
-        padding: 1.5px;
-        border-radius: 9999px;
-        background: conic-gradient(from var(--oc-angle, 0deg),
-            rgba(255,77,77,0.95),
-            rgba(255,170,100,0.6),
-            rgba(118,185,0,0.95),
-            rgba(163,230,53,0.6),
-            rgba(118,185,0,0.95),
-            rgba(255,170,100,0.6),
-            rgba(255,77,77,0.95));
-        animation: oc-rotate 4s linear infinite;
-        box-shadow: none;
-    }
-    /* Fallback for browsers without @property support */
-    @supports not (background: conic-gradient(from 0deg, red, blue)) {
-        .oc-badge {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ffa07a 45%, #a3e635 55%, #76b900 100%);
-            animation: none;
-        }
-    }
-    .oc-badge-inner {
-        display: inline-flex; align-items: center; gap: 8px;
-        padding: 6px 14px; border-radius: 9999px;
-        background: #0b1628;
-        font-size: 12px; font-weight: 600; color: #fca5a5;
-    }
-    @media (min-width: 640px) {
-        .oc-badge-inner { font-size: 14px; padding: 6px 16px; }
-    }
-    @media (prefers-reduced-motion: reduce) {
-        .oc-badge { animation: none; }
-    }
-
-    /* Hero install tabs (Terminal / Agent) */
-    .hero-install-tabs {
-        display: inline-flex;
-        gap: 4px;
-        margin-bottom: 12px;
-        padding: 4px;
-        border-radius: 999px;
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.08);
-    }
-    .hero-install-tab {
-        padding: 6px 16px;
-        border-radius: 999px;
-        font-size: 12px;
-        font-weight: 600;
-        color: #94a3b8;
-        background: transparent;
-        border: none;
-        cursor: pointer;
-        transition: all 0.15s ease;
-    }
-    .hero-install-tab:hover { color: #e2e8f0; }
-    .hero-install-tab.active {
-        color: #0f172a;
-        background: #a3e635;
-    }
-    .hero-install-panel { display: none; }
-    .hero-install-panel.active { display: block; }
-
-    /* Override global inline-code styling for the dark landing page */
-    body code:not(pre code) {
-        background: rgba(96, 165, 250, 0.1);
-        color: #93c5fd;
-        border: 1px solid rgba(96, 165, 250, 0.15);
-        padding: 1px 6px;
-        border-radius: 4px;
-        font-size: 0.85em;
-    }
-    .glow-line { height: 1px; background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: 0.22; }
-    .glow-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
-    .code-block {
-        background: #0f1d36;
-        border: 1px solid rgba(255,255,255,0.12);
-        border-radius: 0.75rem;
-        padding: 1rem 1.1rem;
-        overflow-x: auto;
-        font-size: 0.72rem;
-        line-height: 1.7;
-        color: #e2e8f0;
-        white-space: pre;
-        -webkit-overflow-scrolling: touch;
-    }
-    @media (min-width: 640px) {
-        .code-block {
-            padding: 1.25rem 1.5rem;
-            font-size: 0.82rem;
-            line-height: 1.75;
-        }
-    }
-    .code-block .kw { color: #c084fc; }
-    .code-block .fn { color: #67e8f9; }
-    .code-block .str { color: #6ee7b7; }
-    .code-block .cm { color: #586e85; }
-    .code-block .num { color: #fdba74; }
-    .code-block .op { color: #94a3b8; }
-    .code-block .key { color: #7dd3fc; }
-    .pillar-card {
-        background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 1rem;
-        padding: 1.5rem;
-        transition: border-color 0.3s, box-shadow 0.3s;
-    }
-    @media (min-width: 640px) {
-        .pillar-card { padding: 2rem; }
-    }
-    .pillar-card:hover {
-        border-color: rgba(96, 165, 250, 0.35);
-        box-shadow: 0 0 40px rgba(96, 165, 250, 0.08);
-    }
-    .pillar-card p { font-family: inherit; }
-    .step-number {
-        width: 2rem; height: 2rem;
-        border-radius: 0.5rem;
-        background: linear-gradient(135deg, #3b82f6, #6366f1);
-        display: flex; align-items: center; justify-content: center;
-        font-weight: 800; font-size: 0.8rem; color: white;
-        flex-shrink: 0;
-    }
-    @media (min-width: 640px) {
-        .step-number { width: 2.5rem; height: 2.5rem; border-radius: 0.6rem; font-size: 0.85rem; }
-    }
-    .featured-card {
-        border-radius: 0.75rem;
-        border: 1px solid #e5e7eb;
-        background: #ffffff;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-        overflow: hidden;
-        transition: box-shadow 0.2s;
-    }
-    .featured-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-    .featured-type-pill {
-        display: inline-flex; align-items: center;
-        padding: 0.25rem 0.5rem; border-radius: 0.25rem;
-        background: #f3f4f6; color: #374151;
-        font-size: 0.7rem; font-weight: 600;
-        text-transform: uppercase; letter-spacing: 0.05em;
-    }
-    .featured-tag-pill {
-        display: inline-flex; align-items: center;
-        padding: 0.25rem 0.5rem; border-radius: 0.25rem;
-        background: #eff6ff; color: #1d4ed8;
-        font-size: 0.74rem; font-weight: 600;
-    }
-    .agent-icon {
-        width: 2.75rem; height: 2.75rem;
-        border-radius: 0.75rem;
-        border: 1px solid rgba(255,255,255,0.1);
-        background: rgba(255,255,255,0.05);
-        display: flex; align-items: center; justify-content: center;
-        transition: border-color 0.2s, transform 0.2s;
-    }
-    .agent-icon:hover { border-color: rgba(96,165,250,0.4); transform: translateY(-2px); }
-    @keyframes fade-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes hueShift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
-    .animate-in { animation: fade-up 0.6s ease-out both; }
-    .animate-in-d1 { animation-delay: 0.1s; }
-    .animate-in-d2 { animation-delay: 0.2s; }
-    .animate-in-d3 { animation-delay: 0.3s; }
-</style>
+<link rel="stylesheet" href="/static/css/oc.css">
+<script src="/static/js/oc.js"></script>
 
 <!-- ===================== HERO ===================== -->
-<div style="background: linear-gradient(165deg, #0b1628 0%, #0f1c34 50%, #152742 100%); position: relative; overflow: hidden;">
-    <div style="position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 0%, rgba(96,165,250,0.1), transparent);pointer-events:none;"></div>
-    <div style="position:absolute;inset:0;background:radial-gradient(ellipse 40% 60% at 80% 100%, rgba(139,92,246,0.06), transparent);pointer-events:none;"></div>
+<div class="oc-wrap">
+    <section class="oc-section" style="padding-top: 64px;">
+        <h1 class="oc-display">Machine learning for AI agents</h1>
+        <p class="oc-body oc-max" style="margin-top: 16px;">
+            Ask your agent to train a model, tune it, compare it to the last run,
+            or find an algorithm that fits your data. It just does it.
+            No code. No guesswork. No forgotten context.
+        </p>
 
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-14 lg:py-20 relative z-10">
-        <div class="max-w-4xl mx-auto text-center">
-            <div class="flex justify-center mb-4 sm:mb-6 animate-in">
-                <a href="/" class="relative inline-block group">
-                    <img src="/static/images/tuiml_logo_full.png?v=3" alt="TuiML" class="h-20 sm:h-32 md:h-40 object-contain transition-transform group-hover:scale-105 duration-300" style="filter: drop-shadow(0 8px 32px rgba(96,165,250,0.35));">
-                    <span class="absolute -top-1 -right-2 sm:-right-4 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-amber-400/20 text-amber-300 rounded-full leading-none border border-amber-400/30 backdrop-blur">Alpha</span>
-                </a>
+        <!-- A looping animated agent session in the theme's light chrome. -->
+        <div class="tui" role="img" aria-label="Animated demo: an agent benchmarks, charts, and tunes a model with TuiML tools">
+            <div class="tui-head">
+                <span>~ agent · tuiml connected</span>
+                <span>[claude]</span>
+            </div>
+            <div class="tui-chat" id="tui-chat" aria-hidden="true"></div>
+        </div>
+
+        <script>
+            /* Hero session animation: type the prompt, run the tools, land the
+               results, draw the pixel bar chart, answer, hold, loop.
+               Reduced motion gets the final frame with no animation. */
+            (function () {
+                const chat = document.getElementById('tui-chat');
+                if (!chat) return;
+
+                const NAME_PAD = 24;
+                const STEPS = [
+                    /* ── turn 1: discover, benchmark, tune ── */
+                    { t: 'user',  text: "Find the best classifier for iris, tune it, and show me a comparison." },
+                    { t: 'call',  tool: 'tuiml_list',
+                      args: '{ category: "algorithm", type: "classifier" }', run: 900 },
+                    { t: 'ok',    html: '<span class="num">142</span> classifiers · picked 3 candidates for a small numeric dataset' },
+                    { t: 'call',  tool: 'tuiml_benchmark',
+                      args: '{ algorithms: ["RandomForestClassifier", "XGBoostClassifier", "J48"], data: "iris", cv: 10 }', run: 1500 },
+                    { t: 'chart', rows: [
+                        { name: 'RandomForestClassifier', blocks: 20, val: '0.967', top: true },
+                        { name: 'XGBoostClassifier',      blocks: 18, val: '0.953' },
+                        { name: 'J48',                    blocks: 17, val: '0.947' },
+                    ] },
+                    { t: 'call',  tool: 'tuiml_tune',
+                      args: '{ algorithm: "RandomForestClassifier", param_grid: { n_estimators: [100, 300], max_depth: [8, 16] } }', run: 1500 },
+                    { t: 'ok',    html: 'best: n_estimators=<span class="num">300</span>, max_depth=<span class="num">8</span> · accuracy <span class="num">0.973</span> (+0.6pp)' },
+                    { t: 'agent', text: 'RandomForest, tuned to 0.973 — clear winner. Want it served?' },
+                    /* ── turn 2: serve + verify with a live prediction ── */
+                    { t: 'user',  text: "Yes — serve it and verify with one prediction." },
+                    { t: 'call',  tool: 'tuiml_serve_model',
+                      args: '{ model_id: "7a3c91f2", port: 8080 }', run: 1100 },
+                    { t: 'ok',    html: 'live at http://127.0.0.1:8080/predict · server_id srv_7f2e' },
+                    { t: 'call',  tool: 'POST /predict',
+                      args: '{ features: [5.1, 3.5, 1.4, 0.2] }', run: 800 },
+                    { t: 'chart', rows: [
+                        { name: 'setosa',     blocks: 20, val: '0.98', top: true },
+                        { name: 'versicolor', blocks: 1,  val: '0.02' },
+                        { name: 'virginica',  blocks: 0,  val: '0.00' },
+                    ] },
+                    { t: 'agent', text: 'Endpoint verified — setosa at 0.98. Stop it anytime with tuiml_stop_server.' },
+                    /* ── turn 3: experiment history sparkline ── */
+                    { t: 'user',  text: "Nice. How has accuracy trended across my runs this week?" },
+                    { t: 'call',  tool: 'tuiml_experiments',
+                      args: '{ algorithm: "RandomForestClassifier", last: 6 }', run: 1000 },
+                    { t: 'spark', label: 'accuracy · last 6 runs', blocks: '▂▃▄▅▆█',
+                      val: '0.941 → 0.973 (+3.2pp)' },
+                    { t: 'agent', text: 'Steady climb all week. Every run stays logged, so tomorrow picks up from here.' },
+                ];
+                const FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+                const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+                /* Chat-style stick-to-bottom: every new line scrolls into view. */
+                const stick = () => { chat.scrollTop = chat.scrollHeight; };
+
+                function line(cls, html) {
+                    const d = document.createElement('div');
+                    d.className = 'tl ' + cls;
+                    d.innerHTML = html;
+                    chat.appendChild(d);
+                    requestAnimationFrame(() => requestAnimationFrame(() => d.classList.add('show')));
+                    stick();
+                    return d;
+                }
+                const callHTML = s => '<span class="tl-tool">→ ' + s.tool + '</span> <span class="tl-args">' + s.args + '</span>';
+                const okHTML = s => '<span class="ok">[ok]</span> ' + s.html;
+                const agentHTML = s => '<span class="who">[tuiml]</span> ' + s.text;
+                const chartRowHTML = r =>
+                    r.name.padEnd(NAME_PAD) +
+                    '<span class="bar' + (r.top ? ' top' : '') + '">' + '█'.repeat(r.blocks) + '</span>' +
+                    ' <span class="val">' + r.val + '</span>';
+                const sparkHTML = s =>
+                    s.label.padEnd(NAME_PAD) + '<span class="spark">' + s.blocks + '</span> <span class="val">' + s.val + '</span>';
+
+                function chartStatic(s) {
+                    const d = line('tl-chart', '');
+                    d.innerHTML = s.rows.map(r => '<div>' + chartRowHTML(r) + '</div>').join('');
+                    stick();
+                    return d;
+                }
+
+                if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                    STEPS.forEach(s => {
+                        if (s.t === 'user') line('tl-user', '<span class="tl-prompt">&gt; </span>' + s.text);
+                        else if (s.t === 'call') line('tl-call', callHTML(s));
+                        else if (s.t === 'ok') line('tl-ok', okHTML(s));
+                        else if (s.t === 'chart') chartStatic(s);
+                        else if (s.t === 'spark') line('tl-spark', sparkHTML(s));
+                        else line('tl-agent', agentHTML(s));
+                    });
+                    stick();
+                    return;
+                }
+
+                async function typeUser(text) {
+                    const d = line('tl-user',
+                        '<span class="tl-prompt">&gt; </span><span class="tl-typed"></span><span class="tl-cursor">▌</span>');
+                    const typed = d.querySelector('.tl-typed');
+                    for (const ch of text) { typed.textContent += ch; await sleep(24); }
+                    await sleep(450);
+                    d.querySelector('.tl-cursor').remove();
+                }
+
+                async function runCall(s) {
+                    const d = line('tl-call', callHTML(s) + ' <span class="tl-spin">' + FRAMES[0] + '</span>');
+                    const spin = d.querySelector('.tl-spin');
+                    const t0 = Date.now();
+                    let i = 0;
+                    while (Date.now() - t0 < s.run) { spin.textContent = FRAMES[i++ % FRAMES.length]; await sleep(80); }
+                    spin.remove();
+                }
+
+                async function runChart(s) {
+                    const d = line('tl-chart', '');
+                    for (const r of s.rows) {
+                        const row = document.createElement('div');
+                        row.innerHTML = r.name.padEnd(NAME_PAD) +
+                            '<span class="bar' + (r.top ? ' top' : '') + '"></span><span class="val"></span>';
+                        d.appendChild(row);
+                        stick();
+                        const bar = row.querySelector('.bar');
+                        for (let i = 0; i < r.blocks; i++) { bar.textContent += '█'; await sleep(22); }
+                        row.querySelector('.val').textContent = ' ' + r.val;
+                        await sleep(120);
+                    }
+                }
+
+                async function runSpark(s) {
+                    const d = line('tl-spark',
+                        s.label.padEnd(NAME_PAD) + '<span class="spark"></span><span class="val"></span>');
+                    const spark = d.querySelector('.spark');
+                    for (const ch of s.blocks) { spark.textContent += ch; await sleep(130); }
+                    d.querySelector('.val').textContent = ' ' + s.val;
+                }
+
+                (async function loop() {
+                    for (;;) {
+                        chat.innerHTML = '';
+                        for (const s of STEPS) {
+                            if (s.t === 'user') await typeUser(s.text);
+                            else if (s.t === 'call') await runCall(s);
+                            else if (s.t === 'ok') { line('tl-ok', okHTML(s)); await sleep(750); }
+                            else if (s.t === 'chart') { await runChart(s); await sleep(500); }
+                            else if (s.t === 'spark') { await runSpark(s); await sleep(500); }
+                            else { line('tl-agent', agentHTML(s)); await sleep(1100); }
+                        }
+                        await sleep(5000);
+                    }
+                })();
+            })();
+        </script>
+
+        <!-- Install (tabbed: Terminal / Agent) -->
+        <div style="margin-top: 32px;" data-tab-group>
+            <div class="oc-tabs" role="tablist">
+                <button type="button" class="oc-tab active" data-tab="terminal" role="tab">terminal</button>
+                <button type="button" class="oc-tab" data-tab="agent" role="tab">agent</button>
             </div>
 
-            <h1 class="font-display text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-900 text-white tracking-tight leading-[1.1] sm:leading-[1.05] animate-in animate-in-d1 px-2 sm:px-0">
-                Machine Learning<br>
-                <span class="text-white">for </span><span style="background: linear-gradient(135deg, #f472b6, #c084fc, #818cf8, #60a5fa, #34d399, #fbbf24, #fb7185); background-size: 200% 200%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; animation: hueShift 8s ease-in-out infinite;">AI Agents</span>
-            </h1>
+            <div class="oc-panel active" data-panel="terminal">
+                <div class="snippet">
+                    <span class="dollar">$</span>
+                    <span class="cmd">curl -fsSL https://tuiml.ai/install.sh | bash</span>
+                    <button type="button" class="copy-btn" aria-label="Copy install command"
+                        onclick="navigator.clipboard.writeText('curl -fsSL https://tuiml.ai/install.sh | bash'); this.textContent='[ok]'; setTimeout(() => this.textContent='[copy]', 1500)">[copy]</button>
+                </div>
+            </div>
 
-            <p class="mt-5 sm:mt-6 text-sm sm:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed animate-in animate-in-d2 font-display px-2 sm:px-0">
-                Ask your agent to train a model, tune it, compare it to the last run, or find an algorithm that fits your data. It just does it. No code. No guesswork. No forgotten context.
+            <div class="oc-panel" data-panel="agent">
+                <div class="snippet">
+                    <span class="cmd">Help me install https://tuiml.ai/install</span>
+                    <button type="button" class="copy-btn" aria-label="Copy agent prompt"
+                        onclick="navigator.clipboard.writeText('Help me install https://tuiml.ai/install'); this.textContent='[ok]'; setTimeout(() => this.textContent='[copy]', 1500)">[copy]</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ready for -->
+        <div style="margin-top: 32px;">
+            <div class="oc-caption" style="font-weight: 700; color: var(--ink);">Ready for</div>
+            <div class="ready-row">
+                <span title="NVIDIA"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.948 8.798v-1.43a6.7 6.7 0 0 1 .424-.018c3.922-.124 6.493 3.374 6.493 3.374s-2.774 3.851-5.75 3.851c-.398 0-.787-.062-1.158-.185v-4.346c1.528.185 1.837.857 2.747 2.385l2.04-1.714s-1.492-1.952-4-1.952a6.016 6.016 0 0 0-.796.035m0-4.735v2.138l.424-.027c5.45-.185 9.01 4.47 9.01 4.47s-4.08 4.964-8.33 4.964c-.37 0-.733-.035-1.095-.097v1.325c.3.035.61.062.91.062 3.957 0 6.82-2.023 9.593-4.408.459.371 2.34 1.263 2.73 1.652-2.633 2.208-8.772 3.984-12.253 3.984-.335 0-.653-.018-.971-.053v1.864H24V4.063zm0 10.326v1.131c-3.657-.654-4.673-4.46-4.673-4.46s1.758-1.944 4.673-2.262v1.237H8.94c-1.528-.186-2.73 1.245-2.73 1.245s.68 2.412 2.739 3.11M2.456 10.9s2.164-3.197 6.5-3.533V6.201C4.153 6.59 0 10.653 0 10.653s2.35 6.802 8.948 7.42v-1.237c-4.84-.6-6.492-5.936-6.492-5.936z" fill="currentColor"/></svg></span>
+                <span title="OpenAI"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><mask id="mask0_79_128586" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="1" y="1" width="22" height="22"><path d="M23 1.5H1V22.2952H23V1.5Z" fill="white"/></mask><g mask="url(#mask0_79_128586)"><path d="M9.43799 9.06943V7.09387C9.43799 6.92749 9.50347 6.80267 9.65601 6.71959L13.8206 4.43211C14.3875 4.1202 15.0635 3.9747 15.7611 3.9747C18.3775 3.9747 20.0347 5.9087 20.0347 7.96734C20.0347 8.11288 20.0347 8.27926 20.0128 8.44564L15.6956 6.03335C15.434 5.88785 15.1723 5.88785 14.9107 6.03335L9.43799 9.06943ZM19.1624 16.7637V12.0431C19.1624 11.7519 19.0315 11.544 18.7699 11.3984L13.2972 8.36234L15.0851 7.3849C15.2377 7.30182 15.3686 7.30182 15.5212 7.3849L19.6858 9.67238C20.8851 10.3379 21.6917 11.7519 21.6917 13.1243C21.6917 14.7047 20.7106 16.1604 19.1624 16.7636V16.7637ZM8.15158 12.6047L6.36369 11.6066C6.21114 11.5235 6.14566 11.3986 6.14566 11.2323V6.65735C6.14566 4.43233 7.93355 2.7478 10.3538 2.7478C11.2697 2.7478 12.1199 3.039 12.8396 3.55886L8.54424 5.92959C8.28268 6.07508 8.15181 6.28303 8.15181 6.57427V12.6049L8.15158 12.6047ZM12 14.7258L9.43799 13.3533V10.4421L12 9.06965L14.5618 10.4421V13.3533L12 14.7258ZM13.6461 21.0476C12.7303 21.0476 11.8801 20.7564 11.1604 20.2366L15.4557 17.8658C15.7173 17.7203 15.8482 17.5124 15.8482 17.2211V11.1905L17.658 12.1886C17.8105 12.2717 17.876 12.3965 17.876 12.563V17.1379C17.876 19.3629 16.0662 21.0474 13.6461 21.0474V21.0476ZM8.47863 16.4103L4.314 14.1229C3.11471 13.4573 2.30808 12.0433 2.30808 10.6709C2.30808 9.06965 3.31106 7.6348 4.85903 7.03168V11.773C4.85903 12.0642 4.98995 12.2721 5.25151 12.4177L10.7025 15.4328L8.91464 16.4103C8.76209 16.4934 8.63117 16.4934 8.47863 16.4103ZM8.23892 19.8207C5.77508 19.8207 3.96533 18.0531 3.96533 15.8696C3.96533 15.7032 3.98719 15.5368 4.00886 15.3704L8.30418 17.7412C8.56574 17.8867 8.82752 17.8867 9.08909 17.7412L14.5618 14.726V16.7015C14.5618 16.8679 14.4964 16.9927 14.3438 17.0758L10.1792 19.3633C9.61225 19.6752 8.93631 19.8207 8.23869 19.8207H8.23892ZM13.6461 22.2952C16.2844 22.2952 18.4865 20.5069 18.9882 18.1362C21.4301 17.5331 23 15.3495 23 13.1245C23 11.6688 22.346 10.2548 21.1685 9.23581C21.2775 8.79908 21.343 8.36234 21.343 7.92582C21.343 4.95215 18.8137 2.72691 15.892 2.72691C15.3034 2.72691 14.7365 2.80999 14.1695 2.99726C13.1882 2.08223 11.8364 1.5 10.3538 1.5C7.71557 1.5 5.51352 3.28829 5.01185 5.65902C2.56987 6.26214 1 8.44564 1 10.6707C1 12.1264 1.65404 13.5404 2.83147 14.5594C2.72246 14.9961 2.65702 15.4328 2.65702 15.8694C2.65702 18.8431 5.1863 21.0683 8.108 21.0683C8.69661 21.0683 9.26354 20.9852 9.83046 20.7979C10.8115 21.713 12.1634 22.2952 13.6461 22.2952Z" fill="currentColor"/></g></svg></span>
+                <span title="Anthropic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13.7891 3.93164L20.2223 20.0677H23.7502L17.317 3.93164H13.7891Z" fill="currentColor"/><path d="M6.32538 13.6824L8.52662 8.01177L10.7279 13.6824H6.32538ZM6.68225 3.93164L0.25 20.0677H3.84652L5.16202 16.6791H11.8914L13.2067 20.0677H16.8033L10.371 3.93164H6.68225Z" fill="currentColor"/></svg></span>
+                <span title="Gemini"><svg width="24" height="24" viewBox="0 0 50 50" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M49.04,24.001l-1.082-0.043h-0.001C36.134,23.492,26.508,13.866,26.042,2.043L25.999,0.96C25.978,0.424,25.537,0,25,0    s-0.978,0.424-0.999,0.96l-0.043,1.083C23.492,13.866,13.866,23.492,2.042,23.958L0.96,24.001C0.424,24.022,0,24.463,0,25    c0,0.537,0.424,0.978,0.961,0.999l1.082,0.042c11.823,0.467,21.449,10.093,21.915,21.916l0.043,1.083C24.022,49.576,24.463,50,25,50    s0.978-0.424,0.999-0.96l0.043-1.083c0.466-11.823,10.092-21.449,21.915-21.916l1.082-0.042C49.576,25.978,50,25.537,50,25    C50,24.463,49.576,24.022,49.04,24.001z"/></svg></span>
+                <span title="Grok"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9.16861 16.0529L17.2018 9.85156C17.5957 9.54755 18.1586 9.66612 18.3463 10.1384C19.3339 12.6288 18.8926 15.6217 16.9276 17.6766C14.9626 19.7314 12.2285 20.1821 9.72948 19.1557L6.9995 20.4775C10.9151 23.2763 15.6699 22.5841 18.6411 19.4749C20.9979 17.0103 21.7278 13.6508 21.0453 10.6214L21.0515 10.6278C20.0617 6.17736 21.2948 4.39847 23.8207 0.760904C23.8804 0.674655 23.9402 0.588405 24 0.5L20.6762 3.97585V3.96506L9.16658 16.0551" fill="currentColor"/><path d="M7.37742 16.7017C4.67579 14.0395 5.14158 9.91963 7.44676 7.54383C9.15135 5.78544 11.9442 5.06779 14.3821 6.12281L17.0005 4.87559C16.5288 4.52392 15.9242 4.14566 15.2305 3.87986C12.0948 2.54882 8.34069 3.21127 5.79171 5.8386C3.33985 8.36779 2.56881 12.2567 3.89286 15.5751C4.88192 18.0552 3.26056 19.8094 1.62731 21.5801C1.04853 22.2078 0.467774 22.8355 0 23.5L7.3754 16.7037" fill="currentColor"/></svg></span>
+                <span title="Qwen"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.6043 1.34016C12.9973 2.03016 13.3883 2.72215 13.7783 3.41514C13.7941 3.44286 13.8169 3.46589 13.8445 3.48187C13.8721 3.49786 13.9034 3.50624 13.9353 3.50614H19.4873C19.6612 3.50614 19.8092 3.61614 19.9332 3.83314L21.3872 6.40311C21.5772 6.74011 21.6272 6.88111 21.4112 7.24011C21.1512 7.6701 20.8982 8.1041 20.6512 8.54009L20.2842 9.19809C20.1782 9.39409 20.0612 9.47809 20.2442 9.71008L22.8962 14.347C23.0682 14.648 23.0072 14.841 22.8532 15.117C22.4162 15.902 21.9712 16.681 21.5182 17.457C21.3592 17.729 21.1662 17.832 20.8382 17.827C20.0612 17.811 19.2863 17.817 18.5113 17.843C18.4946 17.8439 18.4785 17.8489 18.4644 17.8576C18.4502 17.8664 18.4385 17.8785 18.4303 17.893C17.5361 19.4773 16.6344 21.0573 15.7253 22.633C15.5563 22.926 15.3453 22.996 15.0003 22.997C14.0033 23 12.9983 23.001 11.9833 22.999C11.8889 22.9987 11.7961 22.9735 11.7145 22.9259C11.6328 22.8783 11.5652 22.8101 11.5184 22.728L10.1834 20.405C10.1756 20.3898 10.1637 20.3771 10.149 20.3684C10.1343 20.3598 10.1174 20.3554 10.1004 20.356H4.98244C4.69744 20.386 4.42944 20.355 4.17745 20.264L2.57447 17.494C2.52706 17.412 2.50193 17.319 2.50158 17.2243C2.50123 17.1296 2.52567 17.0364 2.57247 16.954L3.77945 14.834C3.79665 14.8041 3.80569 14.7701 3.80569 14.7355C3.80569 14.701 3.79665 14.667 3.77945 14.637C3.15073 13.5485 2.52573 12.4579 1.90448 11.3651L1.11449 9.97008C0.954488 9.66008 0.941489 9.47409 1.20949 9.00509C1.67448 8.1921 2.13647 7.38011 2.59647 6.56911C2.72847 6.33512 2.90046 6.23512 3.18046 6.23412C4.04344 6.23048 4.90644 6.23015 5.76943 6.23312C5.79123 6.23295 5.81259 6.22704 5.83138 6.21597C5.85016 6.20491 5.8657 6.1891 5.87643 6.17012L8.68239 1.27516C8.72491 1.2007 8.78631 1.13875 8.86039 1.09556C8.93448 1.05238 9.01863 1.02948 9.10439 1.02917C9.62838 1.02817 10.1574 1.02917 10.6874 1.02317L11.7044 1.00017C12.0453 0.997165 12.4283 1.03217 12.6043 1.34016ZM9.17238 1.74316C9.16185 1.74315 9.15149 1.74592 9.14236 1.75119C9.13323 1.75645 9.12565 1.76403 9.12038 1.77316L6.25442 6.78811C6.24066 6.81174 6.22097 6.83137 6.19729 6.84505C6.17361 6.85873 6.14677 6.86599 6.11942 6.86611H3.25346C3.19746 6.86611 3.18346 6.89111 3.21246 6.94011L9.02239 17.096C9.04739 17.138 9.03539 17.158 8.98839 17.159L6.19342 17.174C6.15256 17.1727 6.11214 17.1828 6.07678 17.2033C6.04141 17.2238 6.01253 17.2539 5.99342 17.29L4.67344 19.6C4.62944 19.678 4.65244 19.718 4.74144 19.718L10.4574 19.726C10.5034 19.726 10.5374 19.746 10.5614 19.787L11.9643 22.241C12.0103 22.322 12.0563 22.323 12.1033 22.241L17.1093 13.481L17.8923 12.0991C17.897 12.0905 17.904 12.0834 17.9125 12.0785C17.9209 12.0735 17.9305 12.0709 17.9403 12.0709C17.9501 12.0709 17.9597 12.0735 17.9681 12.0785C17.9765 12.0834 17.9835 12.0905 17.9883 12.0991L19.4123 14.629C19.4229 14.648 19.4385 14.6637 19.4573 14.6746C19.4761 14.6855 19.4975 14.6912 19.5193 14.691L22.2822 14.671C22.2893 14.6711 22.2963 14.6693 22.3024 14.6658C22.3086 14.6623 22.3137 14.6572 22.3172 14.651C22.3206 14.6449 22.3224 14.638 22.3224 14.631C22.3224 14.624 22.3206 14.6172 22.3172 14.611L19.4173 9.52508C19.4068 9.50809 19.4013 9.48853 19.4013 9.46859C19.4013 9.44864 19.4068 9.42908 19.4173 9.41209L19.7102 8.90509L20.8302 6.92811C20.8542 6.88711 20.8422 6.86611 20.7952 6.86611H9.20038C9.14138 6.86611 9.12738 6.84011 9.15738 6.78911L10.5914 4.28413C10.6021 4.26706 10.6078 4.24731 10.6078 4.22714C10.6078 4.20697 10.6021 4.18721 10.5914 4.17014L9.22538 1.77416C9.22016 1.7647 9.21248 1.75682 9.20315 1.75137C9.19382 1.74591 9.18319 1.74307 9.17238 1.74316ZM15.4623 9.76308C15.5083 9.76308 15.5203 9.78308 15.4963 9.82308L14.6643 11.2881L12.0513 15.873C12.0464 15.8819 12.0392 15.8894 12.0304 15.8945C12.0216 15.8996 12.0115 15.9022 12.0013 15.902C11.9912 15.902 11.9813 15.8993 11.9725 15.8942C11.9637 15.8891 11.9564 15.8818 11.9513 15.873L8.49839 9.84108C8.47839 9.80708 8.48839 9.78908 8.52639 9.78708L8.74239 9.77508L15.4643 9.76308H15.4623Z" fill="currentColor"/></svg></span>
+                <span title="Kimi"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.6241 11.346L20.3848 3.44816C20.5309 3.29931 20.4487 3 20.2601 3H16.0842C16.0388 3 15.9949 3.01897 15.9594 3.05541L7.59764 11.5629C7.46721 11.6944 7.27446 11.5771 7.27446 11.3666V3.25183C7.27446 3.11242 7.18515 3 7.07594 3H4.19843C4.08932 3 4 3.11242 4 3.25183V20.7482C4 20.8876 4.08932 21 4.19843 21H7.07594C7.18515 21 7.27446 20.8876 7.27446 20.7482V17.1834C7.27446 17.1073 7.30136 17.0344 7.34815 16.987L9.94075 14.3486C10.0031 14.2853 10.0895 14.2757 10.159 14.3232L17.0934 19.5573C18.2289 20.3412 19.4975 20.8226 20.786 20.9652C20.9008 20.9778 21 20.8606 21 20.7133V17.3559C21 17.2276 20.9249 17.1232 20.8243 17.1073C20.0659 16.9853 19.326 16.6845 18.6569 16.222L12.6538 11.764C12.5291 11.6785 12.5135 11.4584 12.6241 11.346Z" fill="currentColor"/></svg></span>
+                <span title="Z.ai"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.0962 3L10.0998 5.6577H1.59858L3.59417 3H12.0972H12.0962ZM22.3162 18.3432L20.3215 21H11.8497L13.8425 18.3432H22.3162ZM23 3L9.492 21H1L14.508 3H23Z" fill="currentColor"/></svg></span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== AUTO-CONNECT ===================== -->
+    <section class="oc-section">
+        <h2 class="oc-h">Connects itself</h2>
+        <hr class="oc-rule">
+        <p class="oc-body oc-max">
+            You never write MCP config by hand. One command finds every AI client
+            on your machine and wires TuiML in: the <strong>MCP server</strong> for
+            apps, the <strong>SKILL.md</strong> for coding agents.
+        </p>
+
+<div class="code-block term-reveal" id="setup-term" style="margin-top: 24px;"><div class="sl"><span class="cm">$</span> tuiml setup</div><div class="sl">&nbsp;</div><div class="sl" data-d="450"><span class="kw">Detected:</span></div><div class="sl">  <span class="str">✓</span> Claude Code            <span class="cm">(skills dir: ~/.claude/skills)</span></div><div class="sl">  <span class="str">✓</span> Claude Desktop         <span class="cm">(~/Library/Application Support/Claude/claude_desktop_config.json)</span></div><div class="sl">  <span class="str">✓</span> Cursor                 <span class="cm">(~/.cursor/mcp.json)</span></div><div class="sl">  <span class="str">✓</span> OpenAI Codex CLI       <span class="cm">(~/.codex/config.toml)</span></div><div class="sl">&nbsp;</div><div class="sl" data-d="450">    [<span class="str">a</span>] Auto, configure every detected client</div><div class="sl">&nbsp;</div><div class="sl" data-d="450"><span class="kw">Configuration:</span></div><div class="sl" data-d="300"><span class="str">✓</span> Claude Code: installed to ~/.claude/skills/tuiml/SKILL.md</div><div class="sl" data-d="300"><span class="str">✓</span> Claude Desktop: added new entry</div><div class="sl" data-d="300"><span class="str">✓</span> Cursor: added new entry</div><div class="sl" data-d="300"><span class="cm">·</span> OpenAI Codex CLI: already configured</div><div class="sl">&nbsp;</div><div class="sl" data-d="450"><span class="kw">Done.</span></div><div class="sl"><span class="cm">·</span> Restart your AI client(s) to activate TuiML.</div><div class="sl"><span class="cm">·</span> Try asking your agent: <span class="str">"Train a random forest on iris and report accuracy using TuiML"</span></div></div>
+
+        <div style="margin-top: 24px;">
+            <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Using an agent app</span><span class="txt">: Claude Desktop, Cursor, ChatGPT Desktop, Zed, Windsurf, and more get the MCP server. Ask for a model in plain language; the agent calls the tools.</span></span></div>
+            <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Using a coding agent</span><span class="txt">: Claude Code and friends also get the <code>SKILL.md</code>, the full framework guide, so the agent writes correct TuiML code on the first try.</span></span></div>
+            <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Writing your own agent</span><span class="txt">: the SDK adapters (<code>tuiml.agent.adapters</code>) ship the same tools and the same <code>SKILL.md</code> as the system prompt. One source of truth, every surface.</span></span></div>
+            <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Always inspectable</span><span class="txt">: <code>tuiml status</code> shows every live <code>tuiml-mcp</code> instance and which client launched it; <code>tuiml trace -f</code> follows tool calls in the log as your agent makes them.</span></span></div>
+        </div>
+    </section>
+
+    <!-- ===================== WHY TUIML ===================== -->
+    <section class="oc-section">
+        <h2 class="oc-h">What is TuiML?</h2>
+        <hr class="oc-rule">
+        <p class="oc-body oc-max">
+            A machine learning library built so agents can actually do ML.
+            Every algorithm ships with a schema agents read directly, so they pick
+            the right tool, pass valid arguments, and get typed results back.
+            Three principles carry the whole design:
+        </p>
+        <div class="why-grid">
+            <div class="why-card">
+                <span class="why-num">[01]</span>
+                <span class="why-title">Agents can call it</span>
+                <p class="why-text">Every algorithm is a typed MCP tool with a uniform fit/predict surface.</p>
+            </div>
+            <div class="why-card">
+                <span class="why-num">[02]</span>
+                <span class="why-title">Agents can discover it</span>
+                <p class="why-text">A queryable registry, searchable by task, data shape, or constraint.</p>
+            </div>
+            <div class="why-card">
+                <span class="why-num">[03]</span>
+                <span class="why-title">Agents can trust it</span>
+                <p class="why-text">Structured errors with suggested fixes and a recovery tool, never a raw traceback.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== BENCHMARKS ===================== -->
+    <section class="oc-section">
+        <h2 class="oc-h">Benchmarked</h2>
+        <hr class="oc-rule">
+        <p class="oc-body oc-max" style="margin-bottom: 24px;">
+            TuiML vs scikit-learn vs Weka — 51 datasets, 10-fold CV, TabArena v0.1.
+        </p>
+        <div class="fig-grid" style="border: 1px solid var(--hairline);">
+            <div class="fig-tile">
+                <div class="fig-spark" aria-hidden="true">▂▄▅▆▇▇██</div>
+                <div class="fig-num">84.7%</div>
+                <div class="fig-cap">accuracy, on par with scikit-learn</div>
+            </div>
+            <div class="fig-tile">
+                <div class="fig-spark" aria-hidden="true">█▆▄▃▂▁▁▁</div>
+                <div class="fig-num">3.7&times;</div>
+                <div class="fig-cap">faster training than Weka</div>
+            </div>
+            <div class="fig-tile">
+                <div class="fig-spark" aria-hidden="true">▁▂▂▄▄▆▆█</div>
+                <div class="fig-num">51</div>
+                <div class="fig-cap">datasets, 10-fold CV · TabArena v0.1</div>
+            </div>
+        </div>
+        <p class="oc-caption" style="margin-top: 16px;">
+            <a href="/docs/benchmarks.html" style="color: var(--ink); text-decoration: underline;">Full results →</a>
+        </p>
+    </section>
+
+    <!-- ===================== BUILD BOARD ===================== -->
+    <section class="oc-section">
+        <div>
+            <h2 class="oc-h">The open build board</h2>
+            <hr class="oc-rule">
+            <p class="oc-body oc-max">
+                Algorithms, integrations, and tools the community can build with TuiML.
+                Perfect for students and contributors. Pick a row and ship it.
+            </p>
+            <p class="bb-sync" id="bb-sync" style="margin: 8px 0 16px;">
+                <span class="dot">●</span> Live from GitHub issues
             </p>
 
-            <!-- Install (tabbed: Terminal / Agent) -->
-            <div class="mt-8 px-2 sm:px-0">
-                <div class="hero-install" data-install-tab="terminal">
-                    <div class="hero-install-tabs">
-                        <button type="button" class="hero-install-tab active" data-tab="terminal">Terminal</button>
-                        <button type="button" class="hero-install-tab" data-tab="agent">Agent</button>
-                    </div>
-
-                    <!-- Terminal panel -->
-                    <div class="hero-install-panel active" data-panel="terminal">
-                        <div class="flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-2.5 sm:py-3 rounded-xl bg-white/[0.05] border border-white/10 font-code text-xs sm:text-sm w-full sm:w-auto sm:inline-flex sm:max-w-full max-w-md mx-auto overflow-hidden">
-                            <span class="text-slate-500 flex-shrink-0">$</span>
-                            <span class="text-slate-200 truncate sm:whitespace-nowrap">curl -fsSL https://tuiml.ai/install.sh | bash</span>
-                            <button onclick="navigator.clipboard.writeText('curl -fsSL https://tuiml.ai/install.sh | bash'); this.innerHTML='<i class=\'fa-solid fa-check text-emerald-400\'></i>'; setTimeout(() => this.innerHTML='<i class=\'fa-regular fa-copy\'></i>', 1500)"
-                                class="text-slate-500 hover:text-white transition-colors flex-shrink-0 ml-1 sm:ml-2" aria-label="Copy"><i class="fa-regular fa-copy"></i></button>
-                        </div>
-                    </div>
-
-                    <!-- Agent panel -->
-                    <div class="hero-install-panel" data-panel="agent">
-                        <div class="flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-2.5 sm:py-3 rounded-xl bg-white/[0.05] border border-white/10 font-code text-xs sm:text-sm w-full sm:w-auto sm:inline-flex sm:max-w-full max-w-md mx-auto overflow-hidden">
-                            <span class="text-slate-200 truncate sm:whitespace-nowrap">Help me install https://tuiml.ai/install</span>
-                            <button onclick="navigator.clipboard.writeText('Help me install https://tuiml.ai/install'); this.innerHTML='<i class=\'fa-solid fa-check text-emerald-400\'></i>'; setTimeout(() => this.innerHTML='<i class=\'fa-regular fa-copy\'></i>', 1500)"
-                                class="text-slate-500 hover:text-white transition-colors flex-shrink-0 ml-1 sm:ml-2" aria-label="Copy"><i class="fa-regular fa-copy"></i></button>
-                        </div>
-                    </div>
+            <!-- Auto-scrolling marquee (duplicated set for a seamless loop).
+                 The cards below are the STATIC FALLBACK, shown if the GitHub API is
+                 unreachable. On a successful fetch the script at the end of this
+                 section replaces them with the live open issues. -->
+            <div class="bb-mq-wrap">
+                <div class="bb-track" id="bb-track">
+                    <!-- set A -->
+                    <a href="/projects.html" class="bb-card"><div class="bb-card-top"><span class="bb-cat">[integrations]</span><span class="bb-open">[open]</span></div><div class="bb-title">RAPIDS / cuML GPU backend</div><p class="bb-sub">GPU-accelerated drop-in for hot algorithms</p></a>
+                    <a href="/projects.html" class="bb-card"><div class="bb-card-top"><span class="bb-cat">[integrations]</span><span class="bb-open">[open]</span></div><div class="bb-title">JAX backend</div><p class="bb-sub">JIT-compiled linear models &amp; optimizers</p></a>
+                    <a href="/projects.html" class="bb-card"><div class="bb-card-top"><span class="bb-cat">[streaming]</span><span class="bb-testing">[needs testing]</span></div><div class="bb-title">CapyMOA streaming</div><p class="bb-sub">Online learning &amp; concept-drift detection</p></a>
+                    <a href="/projects.html" class="bb-card"><div class="bb-card-top"><span class="bb-cat">[auto-research]</span><span class="bb-testing">[needs testing]</span></div><div class="bb-title">AutoResearch agent loop</div><p class="bb-sub">Hypothesis → experiment → report</p></a>
+                    <a href="/projects.html" class="bb-card"><div class="bb-card-top"><span class="bb-cat">[automl]</span><span class="bb-testing">[needs testing]</span></div><div class="bb-title">AutoML compare_models()</div><p class="bb-sub">One-call model selection &amp; ranking</p></a>
+                    <a href="/projects.html" class="bb-card"><div class="bb-card-top"><span class="bb-cat">[algorithms]</span><span class="bb-open">[open]</span></div><div class="bb-title">HDBSCAN clustering</div><p class="bb-sub">Density-based hierarchical clustering</p></a>
+                    <a href="/projects.html" class="bb-card"><div class="bb-card-top"><span class="bb-cat">[algorithms]</span><span class="bb-open">[open]</span></div><div class="bb-title">Manifold learning suite</div><p class="bb-sub">t-SNE · Isomap · LLE</p></a>
+                    <a href="/projects.html" class="bb-card"><div class="bb-card-top"><span class="bb-cat">[deep-learning]</span><span class="bb-planned">[planned]</span></div><div class="bb-title">PyTorch wrapper</div><p class="bb-sub">Optional deep-learning extra</p></a>
+                    <a href="/projects.html" class="bb-card"><div class="bb-card-top"><span class="bb-cat">[tutorials]</span><span class="bb-open">[open]</span></div><div class="bb-title">Tutorial notebooks</div><p class="bb-sub">End-to-end, agent-first walkthroughs</p></a>
+                    <!-- set B (duplicate, hidden from a11y) -->
+                    <a href="/projects.html" class="bb-card" aria-hidden="true" tabindex="-1"><div class="bb-card-top"><span class="bb-cat">[integrations]</span><span class="bb-open">[open]</span></div><div class="bb-title">RAPIDS / cuML GPU backend</div><p class="bb-sub">GPU-accelerated drop-in for hot algorithms</p></a>
+                    <a href="/projects.html" class="bb-card" aria-hidden="true" tabindex="-1"><div class="bb-card-top"><span class="bb-cat">[integrations]</span><span class="bb-open">[open]</span></div><div class="bb-title">JAX backend</div><p class="bb-sub">JIT-compiled linear models &amp; optimizers</p></a>
+                    <a href="/projects.html" class="bb-card" aria-hidden="true" tabindex="-1"><div class="bb-card-top"><span class="bb-cat">[streaming]</span><span class="bb-testing">[needs testing]</span></div><div class="bb-title">CapyMOA streaming</div><p class="bb-sub">Online learning &amp; concept-drift detection</p></a>
+                    <a href="/projects.html" class="bb-card" aria-hidden="true" tabindex="-1"><div class="bb-card-top"><span class="bb-cat">[auto-research]</span><span class="bb-testing">[needs testing]</span></div><div class="bb-title">AutoResearch agent loop</div><p class="bb-sub">Hypothesis → experiment → report</p></a>
+                    <a href="/projects.html" class="bb-card" aria-hidden="true" tabindex="-1"><div class="bb-card-top"><span class="bb-cat">[automl]</span><span class="bb-testing">[needs testing]</span></div><div class="bb-title">AutoML compare_models()</div><p class="bb-sub">One-call model selection &amp; ranking</p></a>
+                    <a href="/projects.html" class="bb-card" aria-hidden="true" tabindex="-1"><div class="bb-card-top"><span class="bb-cat">[algorithms]</span><span class="bb-open">[open]</span></div><div class="bb-title">HDBSCAN clustering</div><p class="bb-sub">Density-based hierarchical clustering</p></a>
+                    <a href="/projects.html" class="bb-card" aria-hidden="true" tabindex="-1"><div class="bb-card-top"><span class="bb-cat">[algorithms]</span><span class="bb-open">[open]</span></div><div class="bb-title">Manifold learning suite</div><p class="bb-sub">t-SNE · Isomap · LLE</p></a>
+                    <a href="/projects.html" class="bb-card" aria-hidden="true" tabindex="-1"><div class="bb-card-top"><span class="bb-cat">[deep-learning]</span><span class="bb-planned">[planned]</span></div><div class="bb-title">PyTorch wrapper</div><p class="bb-sub">Optional deep-learning extra</p></a>
+                    <a href="/projects.html" class="bb-card" aria-hidden="true" tabindex="-1"><div class="bb-card-top"><span class="bb-cat">[tutorials]</span><span class="bb-open">[open]</span></div><div class="bb-title">Tutorial notebooks</div><p class="bb-sub">End-to-end, agent-first walkthroughs</p></a>
                 </div>
             </div>
 
-            <!-- Ready for -->
-            <div class="mt-12">
-                <div class="text-[11px] uppercase tracking-[0.15em] text-slate-500 font-semibold mb-4">Ready for</div>
-                <div class="flex flex-wrap items-center justify-center gap-3">
-                    <span class="agent-icon text-xl" title="OpenClaw" aria-label="OpenClaw" style="border-color: rgba(255,77,77,0.4); background: rgba(255,77,77,0.08);">🦞</span>
-                    <span class="agent-icon" title="NemoClaw (NVIDIA)" aria-label="NemoClaw (NVIDIA)" style="border-color: rgba(118,185,0,0.4); background: rgba(118,185,0,0.08);"><img src="https://img.icons8.com/color/48/nvidia.png" class="w-5 h-5" alt="NVIDIA NemoClaw"></span>
-                    <span class="agent-icon" title="Claude"><img src="https://img.icons8.com/fluency/48/claude.png" class="w-5 h-5" alt="Claude"></span>
-                    <span class="agent-icon" title="ChatGPT"><img src="https://img.icons8.com/?size=48&id=ka3InxFU3QZa&format=png&color=000000" class="w-5 h-5" alt="ChatGPT"></span>
-                    <span class="agent-icon" title="Cursor"><img src="https://img.icons8.com/color/48/cursor-ai.png" class="w-5 h-5" alt="Cursor"></span>
-                    <span class="agent-icon" title="Gemini"><img src="https://img.icons8.com/?size=48&id=rnK88i9FvAFO&format=png&color=000000" class="w-5 h-5" alt="Gemini"></span>
-                    <span class="agent-icon" title="Copilot"><img src="https://img.icons8.com/fluency/48/microsoft-copilot.png" class="w-5 h-5" alt="Copilot"></span>
-                    <span class="agent-icon" title="Perplexity" aria-label="Perplexity">
-                        <img src="https://img.icons8.com/?size=100&id=kzJWN5jCDzpq&format=png"
-                             class="w-5 h-5" alt="Perplexity">
-                    </span>
-                </div>
+            <div style="margin-top: 24px; display: flex; flex-wrap: wrap; gap: 12px;">
+                <a href="/projects.html" class="btn btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>See the full build board →</a>
+                <a href="/docs/getting_started.html" class="btn btn-secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Read the docs →</a>
+                <a href="https://github.com/tuiml/tuiml" class="btn btn-secondary"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>Star on GitHub</a>
             </div>
         </div>
-    </div>
-    <div class="glow-line"></div>
-</div>
+    </section>
 
-<!-- ===================== NEMOCLAW COMPATIBILITY (not a partnership, just a fit) ===================== -->
+    <!-- ===================== FAQ ===================== -->
+    <section class="oc-section">
+        <h2 class="oc-h">FAQ</h2>
+        <hr class="oc-rule" style="margin-bottom: 8px;">
 
-<style>
-    .nemo-section {
-        position: relative;
-        background: linear-gradient(135deg, #0a1a0d 0%, #0b1628 40%, #0f1c34 100%);
-        overflow: hidden;
-    }
-    .nemo-section::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background:
-            radial-gradient(ellipse 45% 60% at 88% 50%, rgba(118,185,0,0.18), transparent 70%),
-            radial-gradient(ellipse 35% 50% at 10% 100%, rgba(118,185,0,0.08), transparent 70%);
-        pointer-events: none;
-    }
-    .nemo-eyebrow {
-        display: inline-flex; align-items: center; gap: 8px;
-        padding: 4px 10px; border-radius: 999px;
-        background: rgba(118,185,0,0.1);
-        border: 1px solid rgba(118,185,0,0.28);
-        color: #b8e64c;
-        font-size: 10px; font-weight: 700;
-        letter-spacing: 0.18em; text-transform: uppercase;
-    }
-    .nemo-eyebrow img { width: 14px; height: 14px; }
-    .nemo-step {
-        display: flex; align-items: flex-start; gap: 14px;
-        padding: 14px 16px; border-radius: 12px;
-        background: rgba(0,0,0,0.35);
-        border: 1px solid rgba(255,255,255,0.06);
-    }
-    .nemo-step + .nemo-step { margin-top: 10px; }
-    .nemo-step .num {
-        flex: none;
-        width: 26px; height: 26px; border-radius: 999px;
-        display: inline-flex; align-items: center; justify-content: center;
-        background: rgba(118,185,0,0.18); color: #b8e64c;
-        font-size: 11px; font-weight: 700; font-family: 'JetBrains Mono', monospace;
-    }
-    .nemo-step .label {
-        font-size: 11px; color: #94a3b8;
-        text-transform: uppercase; letter-spacing: 0.1em;
-        margin-bottom: 4px;
-    }
-    .nemo-step code {
-        display: block;
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 12.5px; color: #e2e8f0;
-        background: transparent; border: 0; padding: 0;
-        word-break: break-word;
-    }
-    .nemo-chip {
-        display: inline-flex; align-items: center; gap: 6px;
-        padding: 5px 11px; border-radius: 999px;
-        background: rgba(118,185,0,0.08);
-        border: 1px solid rgba(118,185,0,0.22);
-        color: #c4e69c;
-        font-size: 11px; font-weight: 600;
-    }
-    .nemo-chip i { font-size: 10px; color: #b8e64c; }
-    .nemo-mascot-wrap {
-        position: relative; display: flex; justify-content: center;
-    }
-    .nemo-mascot-wrap::after {
-        content: "";
-        position: absolute; inset: 10% 5%;
-        background: radial-gradient(ellipse at center, rgba(118,185,0,0.22), transparent 65%);
-        filter: blur(30px);
-        z-index: 0;
-    }
-    .nemo-mascot-wrap img {
-        position: relative; z-index: 1;
-        -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 78%, transparent 98%);
-                mask-image: linear-gradient(180deg, #000 0%, #000 78%, transparent 98%);
-    }
-    .nemo-cta-primary {
-        display: inline-flex; align-items: center; gap: 10px;
-        padding: 14px 26px; border-radius: 12px;
-        background: #76b900; color: #0f172a;
-        font-weight: 700; font-size: 15px;
-        transition: background 0.15s;
-    }
-    .nemo-cta-primary:hover { background: #8fd10a; }
-    .nemo-cta-primary img { width: 20px; height: 20px; }
-</style>
-
-<div class="nemo-section">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 lg:py-24 relative z-10">
-        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-10 lg:gap-12 items-center">
-
-            <!-- Left: copy, install steps, chips, CTAs -->
-            <div>
-                <div class="nemo-eyebrow mb-5">
-                    <img src="https://img.icons8.com/color/48/nvidia.png" alt="NVIDIA">
-                    <span>Runs inside NVIDIA NemoClaw</span>
-                </div>
-
-                <h2 class="font-display text-2xl sm:text-4xl font-800 text-white tracking-tight leading-tight mb-4">
-                    Secure agent-driven<br>
-                    <span style="background: linear-gradient(135deg, #a3e635, #76b900, #b8e64c); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;">machine learning workflows.</span>
-                </h2>
-
-                <p class="text-slate-400 text-sm sm:text-base font-display leading-relaxed mb-6">
-                    Connect TuiML with NVIDIA NemoClaw to deploy safe, always-on AI assistants that can run real ML workflows, experiments, and evaluations through a structured interface.
-                </p>
-
-                <!-- NemoClaw + TuiML install flow -->
-                <div class="mb-6">
-                    <div class="nemo-step">
-                        <span class="num">1</span>
-                        <div class="min-w-0 flex-1">
-                            <div class="label">Install NemoClaw</div>
-                            <code>curl -fsSL https://www.nvidia.com/nemoclaw.sh | bash</code>
-                        </div>
-                    </div>
-                    <div class="nemo-step">
-                        <span class="num">2</span>
-                        <div class="min-w-0 flex-1">
-                            <div class="label">Enter the sandbox</div>
-                            <code>nemoclaw &lt;sandbox-name&gt; connect</code>
-                        </div>
-                    </div>
-                    <div class="nemo-step">
-                        <span class="num">3</span>
-                        <div class="min-w-0 flex-1">
-                            <div class="label">Install and connect TuiML</div>
-                            <code>pip install tuiml &amp;&amp; openclaw mcp set tuiml '{"command":"tuiml-mcp"}'</code>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Feature chips -->
-                <div class="flex flex-wrap gap-2 mb-7 justify-center">
-                    <span class="nemo-chip"><i class="fa-solid fa-shield-halved"></i> Secure Agent</span>
-                    <span class="nemo-chip"><i class="fa-solid fa-diagram-project"></i> ML Workflow</span>
-                    <span class="nemo-chip"><i class="fa-solid fa-terminal"></i> One-Command Setup</span>
-                </div>
-
-                <!-- CTA -->
-                <div class="flex flex-wrap gap-3 justify-center">
-                    <a href="https://www.nvidia.com/en-us/ai/nemoclaw/" target="_blank" rel="noopener" class="nemo-cta-primary">
-                        <img src="https://img.icons8.com/?size=100&id=c6tzu39juMcL&format=png&color=000000" alt="NVIDIA">
-                        View NemoClaw
-                        <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
-                    </a>
-                </div>
-
-                <p class="mt-5 text-[11px] text-slate-600 font-display italic">
-                    * NVIDIA, NemoClaw, and the NVIDIA logo are trademarks of NVIDIA Corporation. Compatibility noted above is informational; this is not an official partnership or endorsement.
-                </p>
+        <details class="faq-item">
+            <summary class="faq-summary"><span class="fq-m"></span><span>How is TuiML different from just calling scikit-learn from a code interpreter?</span></summary>
+            <div class="faq-body">
+                <p>scikit-learn assumes a human in front of an editor. Inconsistent <code>fit</code>/<code>predict</code> shapes, raw Python tracebacks, no algorithm registry. Fine for engineers, painful for agents.</p>
+                <p>TuiML wraps every algorithm in a <strong>typed MCP tool</strong> with a uniform schema, structured errors with suggested fixes, and a queryable registry the agent can search by task and data shape. You stop spending tokens on glue code and stack traces.</p>
             </div>
+        </details>
 
-            <!-- Right: mascot (ordered before copy on mobile, after on lg+) -->
-            <div class="nemo-mascot-wrap order-first lg:order-last">
-                <img src="/static/images/nemoclaw-mascot.png"
-                     alt="NVIDIA NemoClaw mascot"
-                     class="w-full h-auto select-none"
-                     draggable="false">
+        <details class="faq-item">
+            <summary class="faq-summary"><span class="fq-m"></span><span>Why not use a thin sklearn-MCP wrapper instead?</span></summary>
+            <div class="faq-body">
+                <p>Thin wrappers inherit sklearn's inconsistencies, return raw exceptions, and are stateless per call. They also cover <em>only</em> classical algorithms. No time-series, no anomaly detection, no model serving.</p>
+                <p>TuiML is purpose-built: shared experiment state across calls, diffable runs, and a single tool to deploy a trained model, not a thin layer over someone else's API.</p>
             </div>
+        </details>
 
+        <details class="faq-item">
+            <summary class="faq-summary"><span class="fq-m"></span><span>How does TuiML compare to managed AutoML (Vertex, SageMaker, H2O)?</span></summary>
+            <div class="faq-body">
+                <p>Managed AutoML platforms work, but you pay for compute, deal with auth and quotas, and your data leaves the machine. Algorithm choice is a black box.</p>
+                <p>TuiML runs <strong>100% local</strong>, free, BSD-3-Clause, with explicit algorithm selection your agent can reason about. Same end-to-end loop (train → evaluate → serve) without the cloud bill or vendor lock-in.</p>
+            </div>
+        </details>
+
+        <details class="faq-item">
+            <summary class="faq-summary"><span class="fq-m"></span><span>Which agents and clients work with TuiML?</span></summary>
+            <div class="faq-body">
+                <p>Anything that speaks MCP. The <code>tuiml setup</code> wizard auto-detects and configures Claude Desktop, Claude Code, Cursor, ChatGPT Desktop, Codex CLI, Zed, Continue, Windsurf, VS Code Copilot, Perplexity, Goose, and OpenClaw / NemoClaw.</p>
+            </div>
+        </details>
+
+        <details class="faq-item">
+            <summary class="faq-summary"><span class="fq-m"></span><span>Can my agent actually deploy a model, not just train one?</span></summary>
+            <div class="faq-body">
+                <p>Yes. <code>tuiml_serve_model</code> spins up a local HTTP endpoint for a trained model in one tool call. No FastAPI scaffolding, no Docker, no separate serving framework. The agent can train, evaluate, deploy, and verify in a single conversation.</p>
+            </div>
+        </details>
+
+        <details class="faq-item">
+            <summary class="faq-summary"><span class="fq-m"></span><span>Is TuiML production-ready?</span></summary>
+            <div class="faq-body">
+                <p>It's <strong>alpha</strong>. The API surface is stabilizing, the algorithm catalog is live, and early adopters are using it daily. But if you need 15-year battle-tested reliability today, raw scikit-learn is still the safer bet. We close that gap fast; <a href="https://github.com/tuiml/tuiml/issues">open issues</a> get a quick response.</p>
+            </div>
+        </details>
+
+        <details class="faq-item">
+            <summary class="faq-summary"><span class="fq-m"></span><span>What about my data? Does anything leave my machine?</span></summary>
+            <div class="faq-body">
+                <p>No. TuiML installs locally, trains locally, serves locally. The only network calls are the ones <em>your</em> agent makes to its own LLM. Your dataset never sees our servers. There are no servers.</p>
+            </div>
+        </details>
+
+        <details class="faq-item">
+            <summary class="faq-summary"><span class="fq-m"></span><span>How much does it cost?</span></summary>
+            <div class="faq-body">
+                <p>Free, open source, BSD-3-Clause. The only cost is whatever your agent's LLM provider charges for tokens, same as you'd pay anyway.</p>
+            </div>
+        </details>
+    </section>
+
+    <!-- ===================== SUPPORTED BY ===================== -->
+    <section class="oc-section">
+        <h2 class="oc-h">Supported by</h2>
+        <hr class="oc-rule">
+        <p class="oc-body oc-max" style="margin-bottom: 24px;">
+            Developed at the AI Institute, University of Waikato. Built for the modern AI era.
+        </p>
+        <div class="logo-grid">
+            <a href="https://www.waikato.ac.nz/" target="_blank" rel="noopener" class="logo-cell">
+                <img src="/static/images/waikato_uni_logo.png" alt="University of Waikato">
+            </a>
+            <a href="https://www.waikato.ac.nz/research/institutes-centres-entities/institutes/artificial-intelligence-institute/" target="_blank" rel="noopener" class="logo-cell">
+                <img src="/static/images/artificial-intelligence-institut.png" alt="AI Institute">
+            </a>
+            <a href="https://www.taiao.net/" target="_blank" rel="noopener" class="logo-cell">
+                <img src="/static/images/TAIAO_logo.png" alt="TAIAO Project">
+            </a>
+            <a href="https://ml.cms.waikato.ac.nz/weka/" target="_blank" rel="noopener" class="logo-cell">
+                <img src="/static/images/Weka_(software)_logo.png" alt="Weka" class="logo-tall">
+            </a>
         </div>
-    </div>
-    <div class="glow-line"></div>
-</div>
-
-<!-- ===================== WHY TUIML — PRINCIPLES + CAPABILITIES ===================== -->
-<style>
-    .principle-pill {
-        display: inline-flex; align-items: center; gap: 8px;
-        padding: 8px 16px; border-radius: 9999px;
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.08);
-        color: #cbd5e1; font-size: 13px; font-weight: 500;
-        font-family: var(--font-display, inherit);
-    }
-    .principle-pill .dot {
-        width: 6px; height: 6px; border-radius: 50%;
-    }
-    .principle-pill .pp-icon {
-        width: 22px; height: 22px; border-radius: 6px;
-        display: inline-flex; align-items: center; justify-content: center;
-        font-size: 11px;
-    }
-    .capability-card {
-        background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 1rem;
-        padding: 1.5rem;
-        transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
-    }
-    @media (min-width: 640px) {
-        .capability-card { padding: 1.75rem; }
-    }
-    .capability-card:hover {
-        border-color: rgba(96, 165, 250, 0.35);
-        box-shadow: 0 0 40px rgba(96, 165, 250, 0.08);
-        transform: translateY(-2px);
-    }
-    .capability-icon {
-        width: 44px; height: 44px;
-        border-radius: 10px;
-        display: inline-flex; align-items: center; justify-content: center;
-        font-size: 18px;
-        margin-bottom: 1rem;
-    }
-</style>
-
-<div style="background: var(--surface-0); position: relative;">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 lg:py-28">
-        <div class="max-w-6xl mx-auto">
-            <!-- Heading + 3 principle pills -->
-            <div class="text-center mb-10 sm:mb-14">
-                <div class="text-[11px] uppercase tracking-[0.15em] text-sky-400 font-semibold mb-3">Why TuiML</div>
-                <h2 class="font-display text-2xl sm:text-4xl font-800 text-white tracking-tight">Built so agents can actually do ML</h2>
-                <p class="mt-3 text-slate-400 text-sm sm:text-lg font-display max-w-3xl mx-auto">Three principles, six capabilities. Every algorithm ships with a schema agents read directly, so they pick the right tool, pass valid arguments, and get typed results back.</p>
-
-                <div class="mt-6 flex flex-wrap items-center justify-center gap-2">
-                    <span class="principle-pill"><span class="pp-icon" style="background: rgba(56,189,248,0.12); color:#7dd3fc;"><i class="fa-solid fa-bolt"></i></span>Agents can <strong class="text-white font-semibold">call</strong> it</span>
-                    <span class="principle-pill"><span class="pp-icon" style="background: rgba(167,139,250,0.12); color:#c4b5fd;"><i class="fa-solid fa-magnifying-glass"></i></span>Agents can <strong class="text-white font-semibold">discover</strong> it</span>
-                    <span class="principle-pill"><span class="pp-icon" style="background: rgba(52,211,153,0.12); color:#6ee7b7;"><i class="fa-solid fa-shield-halved"></i></span>Agents can <strong class="text-white font-semibold">trust</strong> it</span>
-                </div>
-            </div>
-
-            <!-- 6 capability cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-                <div class="capability-card">
-                    <div class="capability-icon" style="background: rgba(56,189,248,0.12); color:#7dd3fc;"><i class="fa-solid fa-layer-group"></i></div>
-                    <h3 class="font-display text-lg font-700 text-white mb-2">200+ Algorithms</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed">Classifiers, regressors, clustering, anomaly, and time-series, all wrapped as a typed MCP tool your agent can invoke directly.</p>
-                </div>
-
-                <div class="capability-card">
-                    <div class="capability-icon" style="background: rgba(244,114,182,0.12); color:#f9a8d4;"><i class="fa-solid fa-dumbbell"></i></div>
-                    <h3 class="font-display text-lg font-700 text-white mb-2">Train · Tune · Compare</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed">Fit a model, sweep hyperparameters, and rank runs in one conversation. No notebook. No glue code.</p>
-                </div>
-
-                <div class="capability-card">
-                    <div class="capability-icon" style="background: rgba(167,139,250,0.12); color:#c4b5fd;"><i class="fa-solid fa-compass"></i></div>
-                    <h3 class="font-display text-lg font-700 text-white mb-2">Algorithm Discovery</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed">Your agent searches the catalog by task, data shape, or constraint and gets ranked recommendations with rationale, not a flat list of names.</p>
-                </div>
-
-                <div class="capability-card">
-                    <div class="capability-icon" style="background: rgba(251,191,36,0.12); color:#fcd34d;"><i class="fa-solid fa-clock-rotate-left"></i></div>
-                    <h3 class="font-display text-lg font-700 text-white mb-2">Persistent Experiments</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed">Every run is logged with lineage and metrics. Compare today's model against last week's without re-running anything.</p>
-                </div>
-
-                <div class="capability-card">
-                    <div class="capability-icon" style="background: rgba(96,165,250,0.12); color:#93c5fd;"><i class="fa-solid fa-server"></i></div>
-                    <h3 class="font-display text-lg font-700 text-white mb-2">One-Call Serving</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed">Deploy a trained model to a local HTTP endpoint with a single tool call. Stop it the same way. No FastAPI scaffolding.</p>
-                </div>
-
-                <div class="capability-card">
-                    <div class="capability-icon" style="background: rgba(52,211,153,0.12); color:#6ee7b7;"><i class="fa-solid fa-shield-halved"></i></div>
-                    <h3 class="font-display text-lg font-700 text-white mb-2">100% Local &amp; Private</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed">Your data, your machine, your laptop. No cloud, no API keys, no telemetry. Only the LLM calls your agent already makes.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- ===================== DEMOS (AGENT IN ACTION) ===================== -->
-<style>
-    .demo-tabs { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-    .demo-tab {
-        padding: 8px 16px; border-radius: 9999px; font-size: 13px; font-weight: 600;
-        background: rgba(255,255,255,0.04); color: #94a3b8; border: 1px solid rgba(255,255,255,0.08);
-        cursor: pointer; transition: all 0.2s;
-    }
-    .demo-tab:hover { color: #e2e8f0; background: rgba(255,255,255,0.07); }
-    .demo-tab.active {
-        color: #0f172a;
-        background: #a3e635;
-        border-color: transparent;
-    }
-    .demo-panel { display: none; }
-    .demo-panel.active { display: block; }
-    /* Leaderboard rows used inside the Auto-Research demo panel. */
-    .leaderboard-row {
-        display: flex; align-items: center; gap: 10px;
-        padding: 7px 10px;
-        border-bottom: 1px dashed rgba(255,255,255,0.06);
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 11.5px;
-    }
-    .leaderboard-row:last-child { border-bottom: none; }
-    .leaderboard-row .rk { width: 22px; color: #fcd34d; font-weight: 700; }
-    .leaderboard-row .nm { flex: 1; color: #e2e8f0; }
-    .leaderboard-row .nm.custom { color: #93c5fd; }
-    .leaderboard-row .sc { color: #86efac; }
-    .leaderboard-row .sd { color: #64748b; font-size: 10.5px; }
-    .chat-window {
-        background: rgba(8,14,26,0.6); border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 16px; overflow: hidden; backdrop-filter: blur(10px);
-    }
-    .chat-header {
-        display: flex; align-items: center; gap: 10px; padding: 12px 18px;
-        border-bottom: 1px solid rgba(255,255,255,0.06);
-        background: rgba(255,255,255,0.02);
-    }
-    .chat-dot { width: 8px; height: 8px; border-radius: 50%; }
-    .chat-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
-    .msg { display: flex; gap: 10px; align-items: flex-start; }
-    .msg-user { justify-content: flex-end; }
-    .msg-bubble {
-        max-width: 85%; padding: 11px 15px; border-radius: 14px; font-size: 14px;
-        line-height: 1.55; word-wrap: break-word;
-    }
-    .msg-user .msg-bubble {
-        background: linear-gradient(135deg, rgba(96,165,250,0.2), rgba(139,92,246,0.15));
-        border: 1px solid rgba(96,165,250,0.25); color: #e0ecff;
-        border-bottom-right-radius: 4px;
-    }
-    .msg-agent .msg-bubble {
-        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
-        color: #cbd5e1; border-bottom-left-radius: 4px;
-    }
-    .avatar {
-        width: 28px; height: 28px; border-radius: 8px; display: flex;
-        align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0;
-    }
-    .avatar-agent { background: transparent; overflow: hidden; padding: 2px; }
-    .avatar-agent img { width: 100%; height: 100%; object-fit: contain; }
-    .tool-call {
-        background: rgba(15,28,52,0.7); border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 10px; overflow: hidden; font-family: 'JetBrains Mono', monospace;
-        font-size: 12px; margin-left: 38px; max-width: calc(100% - 38px);
-    }
-    .tool-call-head {
-        display: flex; align-items: center; gap: 8px; padding: 8px 12px;
-        background: rgba(96,165,250,0.06); border-bottom: 1px solid rgba(255,255,255,0.05);
-        color: #93c5fd;
-    }
-    .tool-call-head .tag {
-        font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em;
-        color: #64748b; font-weight: 700;
-    }
-    .tool-call-body {
-        padding: 10px 12px; color: #cbd5e1; white-space: pre-wrap;
-        overflow-x: auto; line-height: 1.6;
-    }
-    .tool-call-body .k { color: #93c5fd; }
-    .tool-call-body .s { color: #86efac; }
-    .tool-call-body .n { color: #fcd34d; }
-    .tool-call-body .c { color: #64748b; }
-    .result-row {
-        display: flex; justify-content: space-between; align-items: center;
-        padding: 6px 0; border-bottom: 1px dashed rgba(255,255,255,0.06);
-        font-family: 'JetBrains Mono', monospace; font-size: 12px;
-    }
-    .result-row:last-child { border-bottom: none; }
-    .rank { color: #fcd34d; font-weight: 700; width: 20px; }
-    .result-row .name { color: #e2e8f0; flex: 1; padding: 0 10px; }
-    .result-row .val { color: #86efac; }
-</style>
-
-<div style="background: var(--surface-1); position: relative;">
-    <div style="position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 0%, rgba(139,92,246,0.06), transparent);pointer-events:none;"></div>
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 lg:py-28 relative z-10">
-        <div class="max-w-5xl mx-auto">
-            <div class="text-center mb-10 sm:mb-12">
-                <div class="text-[11px] uppercase tracking-[0.15em] text-sky-400 font-semibold mb-3">Agent in action</div>
-                <h2 class="font-display text-2xl sm:text-4xl font-800 text-white tracking-tight">See it in a conversation</h2>
-                <p class="mt-3 text-slate-400 text-sm sm:text-lg font-display max-w-2xl mx-auto">A few demos of what an agent can actually do once TuiML is connected. Click a tab to walk through the full exchange.</p>
-            </div>
-
-            <!-- Tabs -->
-            <div class="demo-tabs mb-6">
-                <button class="demo-tab active" data-demo="1">Agent picks for you</button>
-                <button class="demo-tab" data-demo="2">Agent remembers</button>
-                <button class="demo-tab" data-demo="3">Agent explains failure</button>
-                <button class="demo-tab" data-demo="4">Auto-Research</button>
-                <button class="demo-tab" data-demo="5">Agent serves a model</button>
-            </div>
-
-            <!-- Demo 1: Recommendation -->
-            <div class="demo-panel active" data-demo="1">
-                <div class="chat-window">
-                    <div class="chat-header">
-                        <span class="chat-dot" style="background:#ef4444;"></span>
-                        <span class="chat-dot" style="background:#f59e0b;"></span>
-                        <span class="chat-dot" style="background:#22c55e;"></span>
-                        <span class="ml-3 text-xs text-slate-500 font-code">agent · tuiml connected</span>
-                    </div>
-                    <div class="chat-body">
-                        <div class="msg msg-user">
-                            <div class="msg-bubble">Recommend a classifier for the diabetes dataset and benchmark three options.</div>
-                        </div>
-
-                        <div class="tool-call">
-                            <div class="tool-call-head">
-                                <i class="fa-solid fa-wrench text-xs"></i>
-                                <span class="tag">Tool call</span>
-                                <span class="text-sky-300">tuiml_search</span>
-                            </div>
-                            <div class="tool-call-body">{ <span class="k">query</span>: <span class="s">"classifier"</span>, <span class="k">category</span>: <span class="s">"algorithm"</span> }</div>
-                        </div>
-
-                        <div class="tool-call">
-                            <div class="tool-call-head">
-                                <i class="fa-solid fa-check text-xs" style="color:#86efac;"></i>
-                                <span class="tag">Result</span>
-                                <span class="text-slate-400">status: success</span>
-                            </div>
-                            <div class="tool-call-body">results: [ RandomForestClassifier, LogisticRegression, J48, NaiveBayes, SVM, MultilayerPerceptron, ... ]</div>
-                        </div>
-
-                        <div class="tool-call">
-                            <div class="tool-call-head">
-                                <i class="fa-solid fa-wrench text-xs"></i>
-                                <span class="tag">Tool call</span>
-                                <span class="text-sky-300">tuiml_experiment</span>
-                            </div>
-                            <div class="tool-call-body">{ <span class="k">algorithms</span>: [<span class="s">"RandomForestClassifier"</span>, <span class="s">"LogisticRegression"</span>, <span class="s">"J48"</span>],
-  <span class="k">data</span>: <span class="s">"diabetes"</span>, <span class="k">cv</span>: <span class="n">5</span>, <span class="k">metrics</span>: [<span class="s">"accuracy_score"</span>] }</div>
-                        </div>
-
-                        <div class="msg msg-agent">
-                            <div class="avatar avatar-agent"><img src="/static/images/tuiml_logo.png?v=3" alt="TuiML" class="w-full h-full object-contain rounded-md"></div>
-                            <div class="msg-bubble">
-                                Queried the registry, picked three representative classifiers, and ran a 5-fold experiment on the built-in diabetes dataset. Ranked by mean accuracy:
-                                <div class="mt-3 p-3 rounded-lg" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.05);">
-                                    <div class="result-row"><span class="rank">#1</span><span class="name">RandomForestClassifier</span><span class="val">0.768</span></div>
-                                    <div class="result-row"><span class="rank">#2</span><span class="name">LogisticRegression</span><span class="val">0.758</span></div>
-                                    <div class="result-row"><span class="rank">#3</span><span class="name">J48</span><span class="val">0.737</span></div>
-                                </div>
-                                <div class="mt-3 text-xs text-slate-400">RandomForestClassifier leads. Want me to tune its <code>n_estimators</code> and <code>max_depth</code> with <code>tuiml_tune</code>?</div>
-                            </div>
-                        </div>
-
-                        <div class="mt-1 ml-10 text-xs text-slate-500">
-                            <i class="fa-solid fa-circle-info text-[10px] mr-1"></i>
-                            Built in: a queryable algorithm registry plus <code>tuiml_experiment</code>, which ranks multiple algorithms in one call.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Demo 2: Memory across sessions -->
-            <div class="demo-panel" data-demo="2">
-                <div class="chat-window">
-                    <div class="chat-header">
-                        <span class="chat-dot" style="background:#ef4444;"></span>
-                        <span class="chat-dot" style="background:#f59e0b;"></span>
-                        <span class="chat-dot" style="background:#22c55e;"></span>
-                        <span class="ml-3 text-xs text-slate-500 font-code">agent · session resumed · yesterday's context available</span>
-                    </div>
-                    <div class="chat-body">
-                        <div class="text-[10px] uppercase tracking-[0.15em] text-slate-600 font-semibold text-center pb-1">· Session 1 · Monday ·</div>
-                        <div class="msg msg-user">
-                            <div class="msg-bubble">Train a random forest on the iris dataset.</div>
-                        </div>
-                        <div class="tool-call">
-                            <div class="tool-call-head">
-                                <i class="fa-solid fa-wrench text-xs"></i>
-                                <span class="tag">Tool call</span>
-                                <span class="text-sky-300">tuiml_train</span>
-                            </div>
-                            <div class="tool-call-body">{ <span class="k">algorithm</span>: <span class="s">"RandomForestClassifier"</span>, <span class="k">data</span>: <span class="s">"iris"</span>, <span class="k">target</span>: <span class="s">"class"</span> }</div>
-                        </div>
-                        <div class="tool-call">
-                            <div class="tool-call-head">
-                                <i class="fa-solid fa-check text-xs" style="color:#86efac;"></i>
-                                <span class="tag">Result</span>
-                                <span class="text-slate-400">status: success</span>
-                            </div>
-                            <div class="tool-call-body">{ <span class="k">model_id</span>: <span class="s">"7a3c91f2b4d0"</span>,
-  <span class="k">model_path</span>: <span class="s">"~/.tuiml/models/7a3c91f2b4d0.joblib"</span>,
-  <span class="k">metrics</span>: { <span class="k">accuracy_score</span>: <span class="n">0.967</span> } }</div>
-                        </div>
-
-                        <div class="text-[10px] uppercase tracking-[0.15em] text-slate-600 font-semibold text-center pt-3 pb-1">· Session 2 · Tuesday (next day) ·</div>
-                        <div class="msg msg-user">
-                            <div class="msg-bubble">How did yesterday's model do? Evaluate it on the wine dataset and tell me how accuracy compares.</div>
-                        </div>
-
-                        <div class="tool-call">
-                            <div class="tool-call-head">
-                                <i class="fa-solid fa-wrench text-xs"></i>
-                                <span class="tag">Tool call</span>
-                                <span class="text-sky-300">tuiml_evaluate</span>
-                            </div>
-                            <div class="tool-call-body"><span class="c">// agent reuses model_path from yesterday's response</span>
-{ <span class="k">model_path</span>: <span class="s">"~/.tuiml/models/7a3c91f2b4d0.joblib"</span>,
-  <span class="k">data</span>: <span class="s">"wine"</span>, <span class="k">target</span>: <span class="s">"class"</span> }</div>
-                        </div>
-                        <div class="tool-call">
-                            <div class="tool-call-head">
-                                <i class="fa-solid fa-check text-xs" style="color:#86efac;"></i>
-                                <span class="tag">Result</span>
-                                <span class="text-slate-400">status: success</span>
-                            </div>
-                            <div class="tool-call-body">{ <span class="k">metrics</span>: { <span class="k">accuracy_score</span>: <span class="n">0.944</span> } }</div>
-                        </div>
-
-                        <div class="msg msg-agent">
-                            <div class="avatar avatar-agent"><img src="/static/images/tuiml_logo.png?v=3" alt="TuiML" class="w-full h-full object-contain rounded-md"></div>
-                            <div class="msg-bubble">
-                                Yesterday's model <code class="font-code">7a3c91f2b4d0</code> is still on disk, so I loaded it by <code>model_path</code> and evaluated on wine:
-                                <div class="mt-3 p-3 rounded-lg font-code text-xs" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.05);">
-                                    <div style="color:#94a3b8;">iris (Monday): <span style="color:#e2e8f0;">0.967</span></div>
-                                    <div style="color:#94a3b8;">wine (today): <span style="color:#fca5a5;">0.944 &nbsp;<small>▼ &minus;2.3pp</small></span></div>
-                                </div>
-                                <div class="mt-3 text-xs text-slate-400">The same model generalizes well to wine, just a little lower. Want me to retrain on wine with <code>tuiml_train</code>?</div>
-                            </div>
-                        </div>
-
-                        <div class="mt-1 ml-10 text-xs text-slate-500">
-                            <i class="fa-solid fa-circle-info text-[10px] mr-1"></i>
-                            Models persist in <code>~/.tuiml/models/</code> and stay callable by <code>model_path</code> across sessions.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Demo 3: Structured failure -->
-            <div class="demo-panel" data-demo="3">
-                <div class="chat-window">
-                    <div class="chat-header">
-                        <span class="chat-dot" style="background:#ef4444;"></span>
-                        <span class="chat-dot" style="background:#f59e0b;"></span>
-                        <span class="chat-dot" style="background:#22c55e;"></span>
-                        <span class="ml-3 text-xs text-slate-500 font-code">agent · tuiml connected</span>
-                    </div>
-                    <div class="chat-body">
-                        <div class="msg msg-user">
-                            <div class="msg-bubble">Train RandomForestClassifier on my CSV, no preprocessing, just go.</div>
-                        </div>
-
-                        <div class="tool-call">
-                            <div class="tool-call-head">
-                                <i class="fa-solid fa-wrench text-xs"></i>
-                                <span class="tag">Tool call</span>
-                                <span class="text-sky-300">tuiml_train</span>
-                            </div>
-                            <div class="tool-call-body">{ <span class="k">algorithm</span>: <span class="s">"RandomForestClassifier"</span>, <span class="k">data</span>: <span class="s">"raw_data"</span>, <span class="k">target</span>: <span class="s">"label"</span>,
-  <span class="k">n_estimators</span>: <span class="n">100</span>, <span class="k">max_leaves</span>: <span class="s">"none"</span> <span class="c">// wrong type for this param</span> }</div>
-                        </div>
-
-                        <div class="tool-call" style="border-color: rgba(239,68,68,0.3);">
-                            <div class="tool-call-head" style="background: rgba(239,68,68,0.08); color:#fca5a5;">
-                                <i class="fa-solid fa-triangle-exclamation text-xs"></i>
-                                <span class="tag" style="color:#ef4444;">Structured error</span>
-                                <span>status: error</span>
-                            </div>
-                            <div class="tool-call-body">{ <span class="k">status</span>: <span class="s">"error"</span>,
-  <span class="k">error_type</span>: <span class="s">"ValueError"</span>,
-  <span class="k">error</span>: <span class="s">"max_leaves expected int, got str"</span>,
-  <span class="k">suggestion</span>: <span class="s">"Check parameter types and values. Use tuiml_describe to see the algorithm's parameter schema"</span>,
-  <span class="k">recovery_tool</span>: <span class="s">"tuiml_describe"</span>,
-  <span class="k">recovery_params</span>: { <span class="k">name</span>: <span class="s">"RandomForestClassifier"</span> } }</div>
-                        </div>
-
-                        <div class="tool-call">
-                            <div class="tool-call-head">
-                                <i class="fa-solid fa-wrench text-xs"></i>
-                                <span class="tag">Auto-recovery</span>
-                                <span class="text-sky-300">tuiml_describe</span>
-                            </div>
-                            <div class="tool-call-body"><span class="c">// agent follows recovery_tool hint to read the schema</span>
-{ <span class="k">name</span>: <span class="s">"RandomForestClassifier"</span> }</div>
-                        </div>
-
-                        <div class="tool-call">
-                            <div class="tool-call-head">
-                                <i class="fa-solid fa-check text-xs" style="color:#86efac;"></i>
-                                <span class="tag">Schema</span>
-                                <span class="text-slate-400">parameters</span>
-                            </div>
-                            <div class="tool-call-body">{ <span class="k">n_estimators</span>: <span class="s">"int, default=100"</span>,
-  <span class="k">max_depth</span>: <span class="s">"int or None, default=None"</span>,
-  <span class="k">max_features</span>: <span class="s">"int | 'sqrt' | 'log2', default='sqrt'"</span>,
-  <span class="k">random_state</span>: <span class="s">"int or None, default=42"</span> }</div>
-                        </div>
-
-                        <div class="tool-call">
-                            <div class="tool-call-head">
-                                <i class="fa-solid fa-wrench text-xs"></i>
-                                <span class="tag">Retry</span>
-                                <span class="text-sky-300">tuiml_train</span>
-                            </div>
-                            <div class="tool-call-body">{ <span class="k">algorithm</span>: <span class="s">"RandomForestClassifier"</span>, <span class="k">data</span>: <span class="s">"raw_data"</span>, <span class="k">target</span>: <span class="s">"label"</span>,
-  <span class="k">preset</span>: <span class="s">"standard"</span>, <span class="k">n_estimators</span>: <span class="n">100</span>, <span class="k">max_depth</span>: <span class="n">12</span> }</div>
-                        </div>
-
-                        <div class="msg msg-agent">
-                            <div class="avatar avatar-agent"><img src="/static/images/tuiml_logo.png?v=3" alt="TuiML" class="w-full h-full object-contain rounded-md"></div>
-                            <div class="msg-bubble">
-                                The first call failed because <code>max_leaves</code> isn't a valid parameter. The error pointed me at <code>tuiml_describe</code>, I read the real schema, dropped the bad param, added the <code>standard</code> preprocessing preset, and retrained:
-                                <div class="mt-3 p-3 rounded-lg font-code text-xs" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.05); color:#86efac;">
-                                    ✓ Trained RandomForestClassifier · accuracy 0.911
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-1 ml-10 text-xs text-slate-500">
-                            <i class="fa-solid fa-circle-info text-[10px] mr-1"></i>
-                            Every TuiML error returns <code>error_type</code>, a human <code>suggestion</code>, and a <code>recovery_tool</code> + <code>recovery_params</code>, so agents can actually recover instead of giving up.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Demo 4: Auto-Research (agent writes + benchmarks its own algorithms) -->
-            <div class="demo-panel" data-demo="4">
-                <div class="chat-window">
-                    <div class="chat-header">
-                        <span class="chat-dot" style="background:#ef4444;"></span>
-                        <span class="chat-dot" style="background:#f59e0b;"></span>
-                        <span class="chat-dot" style="background:#22c55e;"></span>
-                        <span class="ml-3 text-xs text-slate-500 font-code">agent · auto-research session</span>
-                    </div>
-                    <div class="chat-body">
-                        <div class="msg msg-user">
-                            <div class="msg-bubble">Try a weighted-bagging tree ensemble on iris. Compare it to XGBoost and RandomForest. Iterate until you beat both.</div>
-                        </div>
-
-                        <div class="tool-call">
-                            <div class="tool-call-head">
-                                <i class="fa-solid fa-wrench text-xs"></i>
-                                <span class="tag">Tool call</span>
-                                <span class="text-sky-300">tuiml_algorithm_skeleton</span>
-                            </div>
-                            <div class="tool-call-body">{ <span class="k">kind</span>: <span class="s">"classifier"</span>, <span class="k">class_name</span>: <span class="s">"WeightedTreeBag"</span> }</div>
-                        </div>
-
-                        <div class="tool-call">
-                            <div class="tool-call-head">
-                                <i class="fa-solid fa-wrench text-xs"></i>
-                                <span class="tag">Tool call</span>
-                                <span class="text-sky-300">tuiml_create_algorithm</span>
-                            </div>
-                            <div class="tool-call-body"><span class="c">// agent wrote 38 lines of Python. AST-validated, saved, registered.</span>
-{ <span class="k">name</span>: <span class="s">"WeightedTreeBag"</span>, <span class="k">version</span>: <span class="s">"1.0.0"</span>,
-  <span class="k">kind</span>: <span class="s">"classifier"</span>, <span class="k">code</span>: <span class="s">"&lt;38 lines&gt;"</span> }</div>
-                        </div>
-
-                        <div class="tool-call">
-                            <div class="tool-call-head">
-                                <i class="fa-solid fa-check text-xs" style="color:#86efac;"></i>
-                                <span class="tag">Registered</span>
-                                <span class="text-slate-400">source_hash 6a12f…</span>
-                            </div>
-                            <div class="tool-call-body">{ <span class="k">registered_as</span>: [<span class="s">"WeightedTreeBag"</span>, <span class="s">"WeightedTreeBag_v1_0_0"</span>],
-  <span class="k">path</span>: <span class="s">"~/.tuiml/user_algorithms/WeightedTreeBag/1.0.0/"</span> }</div>
-                        </div>
-
-                        <div class="tool-call">
-                            <div class="tool-call-head">
-                                <i class="fa-solid fa-wrench text-xs"></i>
-                                <span class="tag">Iterate</span>
-                                <span class="text-sky-300">tuiml_create_algorithm</span>
-                            </div>
-                            <div class="tool-call-body"><span class="c">// v1 scored 0.92. Agent tweaks weighting and resubmits.</span>
-{ <span class="k">name</span>: <span class="s">"WeightedTreeBag"</span>, <span class="k">version</span>: <span class="s">"1.0.1"</span>, <span class="k">code</span>: <span class="s">"…"</span> }</div>
-                        </div>
-
-                        <div class="tool-call">
-                            <div class="tool-call-head">
-                                <i class="fa-solid fa-wrench text-xs"></i>
-                                <span class="tag">Benchmark</span>
-                                <span class="text-sky-300">tuiml_experiment</span>
-                            </div>
-                            <div class="tool-call-body">{ <span class="k">algorithms</span>: [<span class="s">"WeightedTreeBag_v1_0_0"</span>, <span class="s">"WeightedTreeBag_v1_0_1"</span>,
-                <span class="s">"XGBoostClassifier"</span>, <span class="s">"RandomForestClassifier"</span>],
-  <span class="k">data</span>: <span class="s">"iris"</span>, <span class="k">cv</span>: <span class="n">10</span>, <span class="k">metrics</span>: [<span class="s">"accuracy_score"</span>] }</div>
-                        </div>
-
-                        <div class="tool-call">
-                            <div class="tool-call-head">
-                                <i class="fa-solid fa-check text-xs" style="color:#86efac;"></i>
-                                <span class="tag">Ranked · iris · 10-fold CV</span>
-                            </div>
-                            <div class="tool-call-body" style="padding: 6px 4px;">
-                                <div class="leaderboard-row">
-                                    <span class="rk">#1</span>
-                                    <span class="nm custom">WeightedTreeBag_v1_0_1</span>
-                                    <span class="sc">0.9667</span>
-                                    <span class="sd">± 0.021</span>
-                                </div>
-                                <div class="leaderboard-row">
-                                    <span class="rk">#2</span>
-                                    <span class="nm">XGBoostClassifier</span>
-                                    <span class="sc">0.9533</span>
-                                    <span class="sd">± 0.028</span>
-                                </div>
-                                <div class="leaderboard-row">
-                                    <span class="rk">#3</span>
-                                    <span class="nm">RandomForestClassifier</span>
-                                    <span class="sc">0.9467</span>
-                                    <span class="sd">± 0.033</span>
-                                </div>
-                                <div class="leaderboard-row">
-                                    <span class="rk">#4</span>
-                                    <span class="nm custom">WeightedTreeBag_v1_0_0</span>
-                                    <span class="sc">0.9200</span>
-                                    <span class="sd">± 0.041</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="tool-call">
-                            <div class="tool-call-head">
-                                <i class="fa-solid fa-check-circle text-xs" style="color:#86efac;"></i>
-                                <span class="tag" style="color:#86efac;">Verdict</span>
-                                <span class="text-slate-400">Wilcoxon signed-rank</span>
-                            </div>
-                            <div class="tool-call-body">{ <span class="k">p_value</span>: <span class="n">0.031</span>, <span class="k">significant</span>: <span class="n">true</span>,
-  <span class="k">alpha</span>: <span class="n">0.05</span>, <span class="k">conclusion</span>: <span class="s">"v1_0_1 &gt; XGBoost"</span> }</div>
-                        </div>
-
-                        <div class="msg msg-agent">
-                            <div class="avatar avatar-agent"><img src="/static/images/tuiml_logo.png?v=3" alt="TuiML" class="w-full h-full object-contain rounded-md"></div>
-                            <div class="msg-bubble">
-                                Second iteration (<code>v1.0.1</code>) beat both baselines. Wilcoxon signed-rank on the 10-fold scores confirms the gap is significant (<code>p = 0.031</code>). Source is persisted at <code>~/.tuiml/user_algorithms/WeightedTreeBag/1.0.1/</code>, so you can rerun or iterate from there anytime.
-                            </div>
-                        </div>
-
-                        <div class="mt-1 ml-10 text-xs text-slate-500">
-                            <i class="fa-solid fa-circle-info text-[10px] mr-1"></i>
-                            Every version is AST-validated, source-hashed, and persisted to <code>~/.tuiml/user_algorithms</code>, so iterations survive restarts and are fully reproducible.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Demo 5: Agent trains, deploys, and hits the endpoint -->
-            <div class="demo-panel" data-demo="5">
-                <div class="chat-window">
-                    <div class="chat-header">
-                        <span class="chat-dot" style="background:#ef4444;"></span>
-                        <span class="chat-dot" style="background:#f59e0b;"></span>
-                        <span class="chat-dot" style="background:#22c55e;"></span>
-                        <span class="ml-3 text-xs text-slate-500 font-code">agent · tuiml connected</span>
-                    </div>
-                    <div class="chat-body">
-                        <div class="msg msg-user">
-                            <div class="msg-bubble">Train a RandomForest on iris, serve it as a REST endpoint, and verify it works.</div>
-                        </div>
-
-                        <div class="tool-call">
-                            <div class="tool-call-head">
-                                <i class="fa-solid fa-wrench text-xs"></i>
-                                <span class="tag">Tool call</span>
-                                <span class="text-sky-300">tuiml_train</span>
-                            </div>
-                            <div class="tool-call-body">{ <span class="k">algorithm</span>: <span class="s">"RandomForestClassifier"</span>,
-  <span class="k">data</span>: <span class="s">"iris"</span>, <span class="k">target</span>: <span class="s">"target"</span>, <span class="k">cv</span>: <span class="n">5</span> }</div>
-                        </div>
-
-                        <div class="tool-call">
-                            <div class="tool-call-head">
-                                <i class="fa-solid fa-check text-xs" style="color:#86efac;"></i>
-                                <span class="tag">Trained</span>
-                                <span class="text-slate-400">model_id a1b2c3d4</span>
-                            </div>
-                            <div class="tool-call-body">{ <span class="k">status</span>: <span class="s">"success"</span>, <span class="k">model_id</span>: <span class="s">"a1b2c3d4"</span>,
-  <span class="k">metrics</span>: { <span class="k">cv_accuracy_score_mean</span>: <span class="n">0.9667</span> } }</div>
-                        </div>
-
-                        <div class="tool-call">
-                            <div class="tool-call-head">
-                                <i class="fa-solid fa-wrench text-xs"></i>
-                                <span class="tag">Tool call</span>
-                                <span class="text-sky-300">tuiml_serve_model</span>
-                            </div>
-                            <div class="tool-call-body">{ <span class="k">model_id</span>: <span class="s">"a1b2c3d4"</span>, <span class="k">port</span>: <span class="n">8080</span> }</div>
-                        </div>
-
-                        <div class="tool-call">
-                            <div class="tool-call-head">
-                                <i class="fa-solid fa-check text-xs" style="color:#86efac;"></i>
-                                <span class="tag">Serving</span>
-                                <span class="text-slate-400">REST endpoint live</span>
-                            </div>
-                            <div class="tool-call-body">{ <span class="k">status</span>: <span class="s">"success"</span>, <span class="k">url</span>: <span class="s">"http://127.0.0.1:8080/predict"</span>,
-  <span class="k">server_id</span>: <span class="s">"srv_7f2e"</span>, <span class="k">methods</span>: [<span class="s">"POST"</span>] }</div>
-                        </div>
-
-                        <div class="tool-call">
-                            <div class="tool-call-head">
-                                <i class="fa-solid fa-wrench text-xs"></i>
-                                <span class="tag">Verify</span>
-                                <span class="text-sky-300">POST /predict</span>
-                            </div>
-                            <div class="tool-call-body"><span class="c">// agent sends one sample to confirm the endpoint responds</span>
-{ <span class="k">features</span>: [<span class="n">5.1</span>, <span class="n">3.5</span>, <span class="n">1.4</span>, <span class="n">0.2</span>] }
-
-<span class="c">// → 200 OK</span>
-{ <span class="k">prediction</span>: <span class="s">"setosa"</span>, <span class="k">proba</span>: { <span class="s">"setosa"</span>: <span class="n">0.98</span>,
-  <span class="s">"versicolor"</span>: <span class="n">0.02</span>, <span class="s">"virginica"</span>: <span class="n">0.00</span> } }</div>
-                        </div>
-
-                        <div class="msg msg-agent">
-                            <div class="avatar avatar-agent"><img src="/static/images/tuiml_logo.png?v=3" alt="TuiML" class="w-full h-full object-contain rounded-md"></div>
-                            <div class="msg-bubble">
-                                Trained (<code>cv_acc 0.967</code>), served on <code>:8080</code>, and confirmed a live prediction round-trip. Stop the server anytime with <code>tuiml_stop_server(server_id="srv_7f2e")</code>.
-                            </div>
-                        </div>
-
-                        <div class="mt-1 ml-10 text-xs text-slate-500">
-                            <i class="fa-solid fa-circle-info text-[10px] mr-1"></i>
-                            Train, deploy, and smoke-test in one conversation. No YAML, no Dockerfile, no context switching.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-    <div class="glow-line"></div>
-</div>
-
-<script>
-    (function() {
-        const tabs = document.querySelectorAll('.demo-tab');
-        const panels = document.querySelectorAll('.demo-panel');
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const id = tab.dataset.demo;
-                tabs.forEach(t => t.classList.toggle('active', t.dataset.demo === id));
-                panels.forEach(p => p.classList.toggle('active', p.dataset.demo === id));
-            });
-        });
-
-        const installTabs = document.querySelectorAll('.hero-install-tab');
-        const installPanels = document.querySelectorAll('.hero-install-panel');
-        installTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const id = tab.dataset.tab;
-                installTabs.forEach(t => t.classList.toggle('active', t.dataset.tab === id));
-                installPanels.forEach(p => p.classList.toggle('active', p.dataset.panel === id));
-            });
-        });
-    })();
-</script>
-
-<!-- ===================== DEVELOPER INTEGRATION ===================== -->
-
-<style>
-    .fw-tabs {
-        display: flex; flex-wrap: wrap; gap: 6px;
-        justify-content: center; margin-bottom: 16px;
-    }
-    .fw-tab {
-        padding: 8px 14px; border-radius: 9999px;
-        font-size: 12px; font-weight: 600;
-        background: rgba(255,255,255,0.04);
-        color: #94a3b8;
-        border: 1px solid rgba(255,255,255,0.08);
-        cursor: pointer; transition: all 0.15s ease;
-    }
-    .fw-tab:hover { color: #e2e8f0; background: rgba(255,255,255,0.07); }
-    .fw-tab.active {
-        color: #0f172a; background: #a3e635; border-color: transparent;
-    }
-    .fw-panel { display: none; }
-    .fw-panel.active { display: block; }
-    .fw-install {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 12px; color: #64748b;
-        text-align: center; margin-top: 10px;
-    }
-    .fw-install code { color: #93c5fd; background: rgba(96,165,250,0.08); padding: 2px 8px; border-radius: 6px; }
-</style>
-
-<div style="background: var(--surface-0);">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 lg:py-28">
-        <div class="max-w-5xl mx-auto">
-            <div class="text-center mb-10 sm:mb-14">
-                <div class="text-[11px] uppercase tracking-[0.15em] text-sky-400 font-semibold mb-3">Framework adapters</div>
-                <h2 class="font-display text-2xl sm:text-4xl font-800 text-white tracking-tight">Drop into any agent framework</h2>
-                <p class="mt-3 text-slate-400 text-sm sm:text-lg font-display">Same TuiML tools, native bindings for every popular framework. Pick your SDK, install the extra, copy the snippet.</p>
-            </div>
-
-            <div class="fw-tabs" role="tablist">
-                <button class="fw-tab active" data-fw="openai">OpenAI</button>
-                <button class="fw-tab" data-fw="anthropic">Anthropic</button>
-                <button class="fw-tab" data-fw="langchain">LangChain / LangGraph</button>
-                <button class="fw-tab" data-fw="pydantic_ai">Pydantic-AI</button>
-                <button class="fw-tab" data-fw="crewai">CrewAI</button>
-                <button class="fw-tab" data-fw="oneliner">One-liner</button>
-            </div>
-
-            <div class="max-w-3xl mx-auto">
-
-                <!-- One-liner -->
-                <div class="fw-panel" data-panel="oneliner">
-<div class="code-block font-code"><span class="kw">import</span> tuiml
-
-<span class="cm"># Default: Claude Sonnet 4.6. Set ANTHROPIC_API_KEY in your env.</span>
-<span class="cm"># tuiml.agent() returns a Pydantic-AI Agent preloaded with</span>
-<span class="cm">#   - every TuiML MCP tool (tuiml_train, tuiml_experiment, ...)</span>
-<span class="cm">#   - the canonical SKILL.md as the system prompt</span>
-result = tuiml.<span class="fn">agent</span>().<span class="fn">run_sync</span>(
-    <span class="str">"Train RandomForestClassifier on iris, then benchmark it "</span>
-    <span class="str">"against XGBoost. Return both accuracy scores."</span>
-)
-<span class="fn">print</span>(result.output)
-<span class="cm"># → "RandomForestClassifier: 0.95, XGBoostClassifier: 0.96 (diff: +0.01)"</span>
-
-<span class="cm"># Pick a different LLM. Any Pydantic-AI model string works:</span>
-<span class="cm">#   tuiml.agent(<span class="str">"openai:gpt-4o"</span>)          <span class="cm"># OpenAI</span>
-<span class="cm">#   tuiml.agent(<span class="str">"google:gemini-2.0-pro"</span>)  <span class="cm"># Google</span>
-<span class="cm">#   tuiml.agent(<span class="str">"groq:llama-3.3-70b"</span>)     <span class="cm"># Groq</span></div>
-                    <p class="fw-install">Install · <code>pip install tuiml[pydantic-ai]</code></p>
-                </div>
-
-                <!-- OpenAI -->
-                <div class="fw-panel active" data-panel="openai">
-<div class="code-block font-code"><span class="kw">from</span> openai <span class="kw">import</span> <span class="fn">OpenAI</span>
-<span class="kw">from</span> tuiml.agent <span class="kw">import</span> openai <span class="kw">as</span> tuiml_openai
-
-client = <span class="fn">OpenAI</span>()
-response = client.chat.completions.<span class="fn">create</span>(
-    model=<span class="str">"gpt-4o"</span>,
-    tools=tuiml_openai.<span class="fn">get_tools</span>(),
-    messages=[
-        {<span class="str">"role"</span>: <span class="str">"system"</span>, <span class="str">"content"</span>: tuiml_openai.<span class="fn">system_prompt</span>()},
-        {<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"Train RandomForestClassifier on iris."</span>},
-    ],
-)
-
-<span class="kw">for</span> call <span class="kw">in</span> response.choices[<span class="num">0</span>].message.tool_calls <span class="kw">or</span> []:
-    result = tuiml_openai.<span class="fn">dispatch_tool_call</span>(call)
-    <span class="fn">print</span>(result)</div>
-                    <p class="fw-install">Install · <code>pip install tuiml[openai]</code></p>
-                </div>
-
-                <!-- Anthropic -->
-                <div class="fw-panel" data-panel="anthropic">
-<div class="code-block font-code"><span class="kw">from</span> anthropic <span class="kw">import</span> <span class="fn">Anthropic</span>
-<span class="kw">from</span> tuiml.agent <span class="kw">import</span> anthropic <span class="kw">as</span> tuiml_anthropic
-
-client = <span class="fn">Anthropic</span>()
-response = client.messages.<span class="fn">create</span>(
-    model=<span class="str">"claude-sonnet-4-6"</span>,
-    max_tokens=<span class="num">4096</span>,
-    system=tuiml_anthropic.<span class="fn">system_prompt</span>(),
-    tools=tuiml_anthropic.<span class="fn">get_tools</span>(),
-    messages=[{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"Compare RF and XGBoost on iris."</span>}],
-)
-
-<span class="kw">for</span> block <span class="kw">in</span> response.content:
-    <span class="kw">if</span> block.type == <span class="str">"tool_use"</span>:
-        result = tuiml_anthropic.<span class="fn">dispatch_tool_use</span>(block)
-        <span class="fn">print</span>(result)</div>
-                    <p class="fw-install">Install · <code>pip install tuiml[anthropic]</code></p>
-                </div>
-
-                <!-- LangChain / LangGraph -->
-                <div class="fw-panel" data-panel="langchain">
-<div class="code-block font-code"><span class="kw">from</span> langgraph.prebuilt <span class="kw">import</span> <span class="fn">create_react_agent</span>
-<span class="kw">from</span> langchain_anthropic <span class="kw">import</span> <span class="fn">ChatAnthropic</span>
-<span class="kw">from</span> tuiml.agent <span class="kw">import</span> langchain <span class="kw">as</span> tuiml_lc
-
-agent = <span class="fn">create_react_agent</span>(
-    model=<span class="fn">ChatAnthropic</span>(model=<span class="str">"claude-sonnet-4-6"</span>),
-    tools=tuiml_lc.<span class="fn">get_tools</span>(),
-    prompt=tuiml_lc.<span class="fn">system_prompt</span>(),
-)
-
-agent.<span class="fn">invoke</span>({
-    <span class="str">"messages"</span>: [(<span class="str">"user"</span>, <span class="str">"Tune XGBoost on the wine dataset."</span>)]
-})</div>
-                    <p class="fw-install">Install · <code>pip install tuiml[langchain]</code></p>
-                </div>
-
-                <!-- Pydantic-AI -->
-                <div class="fw-panel" data-panel="pydantic_ai">
-<div class="code-block font-code"><span class="kw">from</span> pydantic_ai <span class="kw">import</span> <span class="fn">Agent</span>
-<span class="kw">from</span> tuiml.agent <span class="kw">import</span> pydantic_ai <span class="kw">as</span> tuiml_pai
-
-agent = <span class="fn">Agent</span>(
-    <span class="str">"anthropic:claude-sonnet-4-6"</span>,
-    tools=tuiml_pai.<span class="fn">get_tools</span>(),
-    system_prompt=tuiml_pai.<span class="fn">system_prompt</span>(),
-)
-
-result = agent.<span class="fn">run_sync</span>(<span class="str">"Train a classifier on iris and show metrics."</span>)
-<span class="fn">print</span>(result.output)
-<span class="cm"># For the one-liner: tuiml.agent().run_sync(...)</span></div>
-                    <p class="fw-install">Install · <code>pip install tuiml[pydantic-ai]</code></p>
-                </div>
-
-                <!-- CrewAI -->
-                <div class="fw-panel" data-panel="crewai">
-<div class="code-block font-code"><span class="kw">from</span> crewai <span class="kw">import</span> <span class="fn">Agent</span>, <span class="fn">Task</span>, <span class="fn">Crew</span>
-<span class="kw">from</span> tuiml.agent <span class="kw">import</span> crewai <span class="kw">as</span> tuiml_crew
-
-data_scientist = <span class="fn">Agent</span>(
-    role=<span class="str">"Data Scientist"</span>,
-    goal=<span class="str">"build accurate models"</span>,
-    backstory=tuiml_crew.<span class="fn">system_prompt</span>(),
-    tools=tuiml_crew.<span class="fn">get_tools</span>(),
-)
-
-task = <span class="fn">Task</span>(description=<span class="str">"Train and tune XGBoost on iris"</span>, agent=data_scientist)
-<span class="fn">Crew</span>(agents=[data_scientist], tasks=[task]).<span class="fn">kickoff</span>()</div>
-                    <p class="fw-install">Install · <code>pip install tuiml[crewai]</code></p>
-                </div>
-
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    (function() {
-        const tabs = document.querySelectorAll('.fw-tab');
-        const panels = document.querySelectorAll('.fw-panel');
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const id = tab.dataset.fw;
-                tabs.forEach(t => t.classList.toggle('active', t.dataset.fw === id));
-                panels.forEach(p => p.classList.toggle('active', p.dataset.panel === id));
-            });
-        });
-    })();
-</script>
-
-<!-- ===================== FAQ ===================== -->
-<style>
-    .faq-wrap { max-width: 880px; margin: 0 auto; }
-    .faq-item {
-        border: 1px solid rgba(255,255,255,0.08);
-        background: rgba(8,14,26,0.6);
-        border-radius: 12px;
-        margin-bottom: 10px;
-        overflow: hidden;
-        transition: border-color 0.2s, background 0.2s;
-    }
-    .faq-item:hover { border-color: rgba(96,165,250,0.25); }
-    .faq-item[open] {
-        border-color: rgba(96,165,250,0.35);
-        background: linear-gradient(180deg, rgba(96,165,250,0.05), rgba(8,14,26,0.6));
-    }
-    .faq-summary {
-        list-style: none;
-        cursor: pointer;
-        padding: 16px 20px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        color: #e2e8f0;
-        font-size: 15px;
-        font-weight: 500;
-        line-height: 1.4;
-        transition: color 0.2s;
-    }
-    .faq-summary::-webkit-details-marker { display: none; }
-    .faq-summary:hover { color: #ffffff; }
-    .faq-icon {
-        flex-shrink: 0;
-        width: 28px; height: 28px;
-        display: inline-flex; align-items: center; justify-content: center;
-        border-radius: 8px;
-        background: rgba(96,165,250,0.12);
-        color: #93c5fd;
-        font-size: 12px;
-        transition: transform 0.25s ease, background 0.2s;
-    }
-    .faq-item[open] .faq-icon {
-        transform: rotate(45deg);
-        background: rgba(96,165,250,0.25);
-        color: #ffffff;
-    }
-    .faq-body {
-        padding: 0 20px 18px 20px;
-        color: #94a3b8;
-        font-size: 14px;
-        line-height: 1.65;
-    }
-    .faq-body p { margin: 0 0 8px 0; }
-    .faq-body p:last-child { margin-bottom: 0; }
-    .faq-body code {
-        background: rgba(255,255,255,0.06);
-        border: 1px solid rgba(255,255,255,0.08);
-        padding: 1px 6px;
-        border-radius: 4px;
-        font-size: 12.5px;
-        color: #cbd5e1;
-    }
-    .faq-body strong { color: #e2e8f0; font-weight: 600; }
-    .faq-body a { color: #93c5fd; text-decoration: underline; text-decoration-color: rgba(147,197,253,0.3); }
-    .faq-body a:hover { text-decoration-color: rgba(147,197,253,0.8); }
-</style>
-
-<div style="background: linear-gradient(180deg, var(--surface-1) 0%, var(--surface-2) 100%); position: relative; overflow: hidden;">
-    <div style="position:absolute;inset:0;background:radial-gradient(ellipse 50% 40% at 50% 0%, rgba(96,165,250,0.08), transparent);pointer-events:none;"></div>
-    <div style="position:absolute;inset:0;background:radial-gradient(ellipse 40% 50% at 100% 100%, rgba(139,92,246,0.05), transparent);pointer-events:none;"></div>
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 lg:py-24 relative z-10">
-        <div class="text-center mb-10 sm:mb-12">
-            <div class="text-[11px] uppercase tracking-[0.15em] text-sky-400 font-semibold mb-3">Common questions</div>
-            <h2 class="font-display text-2xl sm:text-4xl font-800 text-white tracking-tight">Frequently asked</h2>
-            <p class="mt-3 text-slate-400 text-sm sm:text-lg font-display max-w-2xl mx-auto">Quick answers about scope, comparison, and how TuiML fits into your stack.</p>
-        </div>
-
-        <div class="faq-wrap">
-            <details class="faq-item">
-                <summary class="faq-summary">
-                    <span>How is TuiML different from just calling scikit-learn from a code interpreter?</span>
-                    <span class="faq-icon"><i class="fa-solid fa-plus"></i></span>
-                </summary>
-                <div class="faq-body">
-                    <p>scikit-learn assumes a human in front of an editor. Inconsistent <code>fit</code>/<code>predict</code> shapes, raw Python tracebacks, no algorithm registry. Fine for engineers, painful for agents.</p>
-                    <p>TuiML wraps every algorithm in a <strong>typed MCP tool</strong> with a uniform schema, structured errors with suggested fixes, and a queryable registry the agent can search by task and data shape. You stop spending tokens on glue code and stack traces.</p>
-                </div>
-            </details>
-
-            <details class="faq-item">
-                <summary class="faq-summary">
-                    <span>Why not use a thin sklearn-MCP wrapper instead?</span>
-                    <span class="faq-icon"><i class="fa-solid fa-plus"></i></span>
-                </summary>
-                <div class="faq-body">
-                    <p>Thin wrappers inherit sklearn's inconsistencies, return raw exceptions, and are stateless per call. They also cover <em>only</em> classical algorithms. No time-series, no anomaly detection, no model serving.</p>
-                    <p>TuiML is purpose-built: shared experiment state across calls, diffable runs, and a single tool to deploy a trained model, not a thin layer over someone else's API.</p>
-                </div>
-            </details>
-
-            <details class="faq-item">
-                <summary class="faq-summary">
-                    <span>How does TuiML compare to managed AutoML (Vertex, SageMaker, H2O)?</span>
-                    <span class="faq-icon"><i class="fa-solid fa-plus"></i></span>
-                </summary>
-                <div class="faq-body">
-                    <p>Managed AutoML platforms work, but you pay for compute, deal with auth and quotas, and your data leaves the machine. Algorithm choice is a black box.</p>
-                    <p>TuiML runs <strong>100% local</strong>, free, BSD-3-Clause, with explicit algorithm selection your agent can reason about. Same end-to-end loop (train → evaluate → serve) without the cloud bill or vendor lock-in.</p>
-                </div>
-            </details>
-
-            <details class="faq-item">
-                <summary class="faq-summary">
-                    <span>Which agents and clients work with TuiML?</span>
-                    <span class="faq-icon"><i class="fa-solid fa-plus"></i></span>
-                </summary>
-                <div class="faq-body">
-                    <p>Anything that speaks MCP. The <code>tuiml setup</code> wizard auto-detects and configures Claude Desktop, Claude Code, Cursor, ChatGPT Desktop, Codex CLI, Zed, Continue, Windsurf, VS Code Copilot, Perplexity, Goose, and OpenClaw / NemoClaw.</p>
-                </div>
-            </details>
-
-            <details class="faq-item">
-                <summary class="faq-summary">
-                    <span>Can my agent actually deploy a model, not just train one?</span>
-                    <span class="faq-icon"><i class="fa-solid fa-plus"></i></span>
-                </summary>
-                <div class="faq-body">
-                    <p>Yes. <code>tuiml_serve_model</code> spins up a local HTTP endpoint for a trained model in one tool call. No FastAPI scaffolding, no Docker, no separate serving framework. The agent can train, evaluate, deploy, and verify in a single conversation.</p>
-                </div>
-            </details>
-
-            <details class="faq-item">
-                <summary class="faq-summary">
-                    <span>Is TuiML production-ready?</span>
-                    <span class="faq-icon"><i class="fa-solid fa-plus"></i></span>
-                </summary>
-                <div class="faq-body">
-                    <p>It's <strong>alpha</strong>. The API surface is stabilizing, the algorithm catalog is live, and early adopters are using it daily. But if you need 15-year battle-tested reliability today, raw scikit-learn is still the safer bet. We close that gap fast; <a href="https://github.com/tuiml/tuiml/issues">open issues</a> get a quick response.</p>
-                </div>
-            </details>
-
-            <details class="faq-item">
-                <summary class="faq-summary">
-                    <span>What about my data? Does anything leave my machine?</span>
-                    <span class="faq-icon"><i class="fa-solid fa-plus"></i></span>
-                </summary>
-                <div class="faq-body">
-                    <p>No. TuiML installs locally, trains locally, serves locally. The only network calls are the ones <em>your</em> agent makes to its own LLM. Your dataset never sees our servers. There are no servers.</p>
-                </div>
-            </details>
-
-            <details class="faq-item">
-                <summary class="faq-summary">
-                    <span>How much does it cost?</span>
-                    <span class="faq-icon"><i class="fa-solid fa-plus"></i></span>
-                </summary>
-                <div class="faq-body">
-                    <p>Free, open source, BSD-3-Clause. The only cost is whatever your agent's LLM provider charges for tokens, same as you'd pay anyway.</p>
-                </div>
-            </details>
-        </div>
-    </div>
-    <div class="glow-line"></div>
-</div>
-
-<!-- ===================== SUPPORTED BY ===================== -->
-
-<div style="background: var(--surface-0);">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
-        <div class="max-w-5xl mx-auto">
-            <h2 class="font-display text-3xl font-800 text-white mb-3 text-center tracking-tight">Supported By</h2>
-            <p class="text-center text-slate-400 mb-12 max-w-2xl mx-auto font-display">Developed at the AI Institute, University of Waikato. Built for the modern AI era.</p>
-
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 items-center justify-items-center">
-                <a href="https://www.waikato.ac.nz/" target="_blank" class="bg-white/95 rounded-xl p-4 h-20 w-full flex items-center justify-center hover:bg-white transition-colors duration-300">
-                    <img src="/static/images/waikato_uni_logo.png" alt="University of Waikato" class="max-h-12 object-contain">
-                </a>
-                <a href="https://www.waikato.ac.nz/research/institutes-centres-entities/institutes/artificial-intelligence-institute/" target="_blank" class="bg-white/95 rounded-xl p-4 h-20 w-full flex items-center justify-center hover:bg-white transition-colors duration-300">
-                    <img src="/static/images/artificial-intelligence-institut.png" alt="AI Institute" class="max-h-12 object-contain">
-                </a>
-                <a href="https://www.taiao.net/" target="_blank" class="bg-white/95 rounded-xl p-4 h-20 w-full flex items-center justify-center hover:bg-white transition-colors duration-300">
-                    <img src="/static/images/TAIAO_logo.png" alt="TAIAO Project" class="max-h-12 object-contain">
-                </a>
-                <a href="https://ml.cms.waikato.ac.nz/weka/" target="_blank" class="bg-white/95 rounded-xl p-4 h-20 w-full flex items-center justify-center hover:bg-white transition-colors duration-300">
-                    <img src="/static/images/Weka_(software)_logo.png" alt="Weka" class="max-h-12 object-contain">
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- ===================== BUILD BOARD MARQUEE ===================== -->
-<style>
-    .mq-wrap { position: relative; overflow: hidden; }
-    .mq-wrap::before, .mq-wrap::after {
-        content: ""; position: absolute; top: 0; bottom: 0; width: 12%;
-        z-index: 2; pointer-events: none;
-    }
-    .mq-wrap::before { left: 0;  background: linear-gradient(90deg, var(--surface-0), transparent); }
-    .mq-wrap::after  { right: 0; background: linear-gradient(270deg, var(--surface-0), transparent); }
-    .mq-track {
-        display: flex; gap: 18px; width: max-content;
-        animation: mq-scroll 48s linear infinite;
-    }
-    .mq-wrap:hover .mq-track { animation-play-state: paused; }
-    @keyframes mq-scroll { from { transform: translateX(-50%); } to { transform: translateX(0); } }
-    @media (prefers-reduced-motion: reduce) { .mq-track { animation: none; } }
-
-    .mq-card {
-        display: flex; flex-direction: column;
-        width: 290px; flex-shrink: 0;
-        background: linear-gradient(135deg, rgba(255,255,255,0.045), rgba(255,255,255,0.01));
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 1rem; padding: 1.25rem;
-        transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
-    }
-    .mq-card:hover {
-        border-color: rgba(96,165,250,0.35);
-        box-shadow: 0 0 30px rgba(96,165,250,0.1);
-        transform: translateY(-3px);
-    }
-    .mq-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 0.85rem; }
-    .mq-chip {
-        display: inline-flex; align-items: center; gap: 6px;
-        padding: 4px 9px; border-radius: 8px;
-        font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
-    }
-    .mq-status { display: inline-flex; align-items: center; gap: 6px; font-size: 10.5px; font-weight: 600; white-space: nowrap; }
-    .mq-dot { width: 7px; height: 7px; border-radius: 50%; }
-    .mq-open    { color: #6ee7b7; } .mq-open .mq-dot    { background: #34d399; box-shadow: 0 0 8px #34d399; }
-    .mq-testing { color: #67e8f9; } .mq-testing .mq-dot { background: #22d3ee; box-shadow: 0 0 8px #22d3ee; }
-    .mq-planned { color: #94a3b8; } .mq-planned .mq-dot { background: #64748b; }
-    .mq-title { font-family: 'Outfit', sans-serif; font-size: 0.98rem; font-weight: 700; color: #fff; line-height: 1.25; margin-bottom: 0.35rem; }
-    .mq-sub { font-size: 0.8rem; color: #93c5fd; line-height: 1.45; }
-    .mq-foot {
-        display: flex; align-items: center; justify-content: space-between; gap: 8px;
-        margin-top: 0.85rem; padding-top: 0.7rem;
-        border-top: 1px solid rgba(255,255,255,0.06);
-        font-size: 10.5px; font-weight: 600; color: #64748b;
-    }
-    .mq-num { font-family: 'JetBrains Mono', monospace; }
-    .mq-claimed { display: inline-flex; align-items: center; gap: 5px; color: #94a3b8; }
-    .mq-claimed img { width: 14px; height: 14px; border-radius: 50%; }
-
-    .mq-sync { display: inline-flex; align-items: center; gap: 7px; font-size: 11.5px; font-weight: 500; color: #64748b; }
-    .mq-sync-dot { width: 6px; height: 6px; border-radius: 50%; background: #34d399; box-shadow: 0 0 8px #34d399; }
-    .mq-sync.stale .mq-sync-dot { background: #fb923c; box-shadow: 0 0 8px #fb923c; }
-</style>
-
-<div style="background: var(--surface-0); position: relative; overflow: hidden;">
-    <div style="position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 0%, rgba(163,230,53,0.05), transparent);pointer-events:none;"></div>
-    <div class="py-14 sm:py-20 lg:py-24 relative z-10">
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-10 sm:mb-12">
-                <div class="text-[11px] uppercase tracking-[0.15em] text-lime-400 font-semibold mb-3">Build with us</div>
-                <h2 class="font-display text-2xl sm:text-4xl font-800 text-white tracking-tight">The open build board</h2>
-                <p class="mt-3 text-slate-400 text-sm sm:text-lg font-display max-w-2xl mx-auto">Algorithms, integrations, and tools the community can build with TuiML. Perfect for students and contributors. Pick a card and ship it.</p>
-                <div class="mt-4">
-                    <span class="mq-sync" id="mq-sync">
-                        <span class="mq-sync-dot"></span> Live from GitHub issues
-                    </span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Auto-scrolling marquee (duplicated set for a seamless loop).
-             The cards below are the STATIC FALLBACK, shown if the GitHub API is
-             unreachable. On a successful fetch the script at the end of this
-             section replaces them with the live open issues. -->
-        <div class="mq-wrap">
-            <div class="mq-track" id="mq-track">
-                <!-- set A -->
-                <a href="/projects.html" class="mq-card">
-                    <div class="mq-top"><span class="mq-chip" style="color:#60a5fa;background:rgba(96,165,250,0.12);"><i class="fa-solid fa-plug"></i> Integrations</span><span class="mq-status mq-open"><span class="mq-dot"></span>Open</span></div>
-                    <h3 class="mq-title">RAPIDS / cuML GPU backend</h3><p class="mq-sub">GPU-accelerated drop-in for hot algorithms</p>
-                </a>
-                <a href="/projects.html" class="mq-card">
-                    <div class="mq-top"><span class="mq-chip" style="color:#60a5fa;background:rgba(96,165,250,0.12);"><i class="fa-solid fa-plug"></i> Integrations</span><span class="mq-status mq-open"><span class="mq-dot"></span>Open</span></div>
-                    <h3 class="mq-title">JAX backend</h3><p class="mq-sub">JIT-compiled linear models &amp; optimizers</p>
-                </a>
-                <a href="/projects.html" class="mq-card">
-                    <div class="mq-top"><span class="mq-chip" style="color:#34d399;background:rgba(52,211,153,0.12);"><i class="fa-solid fa-wave-square"></i> Streaming</span><span class="mq-status mq-testing"><span class="mq-dot"></span>Needs testing</span></div>
-                    <h3 class="mq-title">CapyMOA streaming</h3><p class="mq-sub">Online learning &amp; concept-drift detection</p>
-                </a>
-                <a href="/projects.html" class="mq-card">
-                    <div class="mq-top"><span class="mq-chip" style="color:#c084fc;background:rgba(192,132,252,0.12);"><i class="fa-solid fa-flask"></i> Auto-Research</span><span class="mq-status mq-testing"><span class="mq-dot"></span>Needs testing</span></div>
-                    <h3 class="mq-title">AutoResearch agent loop</h3><p class="mq-sub">Hypothesis → experiment → report</p>
-                </a>
-                <a href="/projects.html" class="mq-card">
-                    <div class="mq-top"><span class="mq-chip" style="color:#fbbf24;background:rgba(251,191,36,0.12);"><i class="fa-solid fa-wand-magic-sparkles"></i> AutoML</span><span class="mq-status mq-testing"><span class="mq-dot"></span>Needs testing</span></div>
-                    <h3 class="mq-title">AutoML compare_models()</h3><p class="mq-sub">One-call model selection &amp; ranking</p>
-                </a>
-                <a href="/projects.html" class="mq-card">
-                    <div class="mq-top"><span class="mq-chip" style="color:#a3e635;background:rgba(163,230,53,0.12);"><i class="fa-solid fa-shapes"></i> Algorithms</span><span class="mq-status mq-open"><span class="mq-dot"></span>Open</span></div>
-                    <h3 class="mq-title">HDBSCAN clustering</h3><p class="mq-sub">Density-based hierarchical clustering</p>
-                </a>
-                <a href="/projects.html" class="mq-card">
-                    <div class="mq-top"><span class="mq-chip" style="color:#a3e635;background:rgba(163,230,53,0.12);"><i class="fa-solid fa-shapes"></i> Algorithms</span><span class="mq-status mq-open"><span class="mq-dot"></span>Open</span></div>
-                    <h3 class="mq-title">Manifold learning suite</h3><p class="mq-sub">t-SNE · Isomap · LLE</p>
-                </a>
-                <a href="/projects.html" class="mq-card">
-                    <div class="mq-top"><span class="mq-chip" style="color:#f472b6;background:rgba(244,114,182,0.12);"><i class="fa-solid fa-brain"></i> Deep Learning</span><span class="mq-status mq-planned"><span class="mq-dot"></span>Planned</span></div>
-                    <h3 class="mq-title">PyTorch wrapper</h3><p class="mq-sub">Optional deep-learning extra</p>
-                </a>
-                <a href="/projects.html" class="mq-card">
-                    <div class="mq-top"><span class="mq-chip" style="color:#38bdf8;background:rgba(56,189,248,0.12);"><i class="fa-solid fa-graduation-cap"></i> Tutorials</span><span class="mq-status mq-open"><span class="mq-dot"></span>Open</span></div>
-                    <h3 class="mq-title">Tutorial notebooks</h3><p class="mq-sub">End-to-end, agent-first walkthroughs</p>
-                </a>
-                <!-- set B (duplicate, hidden from a11y) -->
-                <a href="/projects.html" class="mq-card" aria-hidden="true" tabindex="-1">
-                    <div class="mq-top"><span class="mq-chip" style="color:#60a5fa;background:rgba(96,165,250,0.12);"><i class="fa-solid fa-plug"></i> Integrations</span><span class="mq-status mq-open"><span class="mq-dot"></span>Open</span></div>
-                    <h3 class="mq-title">RAPIDS / cuML GPU backend</h3><p class="mq-sub">GPU-accelerated drop-in for hot algorithms</p>
-                </a>
-                <a href="/projects.html" class="mq-card" aria-hidden="true" tabindex="-1">
-                    <div class="mq-top"><span class="mq-chip" style="color:#60a5fa;background:rgba(96,165,250,0.12);"><i class="fa-solid fa-plug"></i> Integrations</span><span class="mq-status mq-open"><span class="mq-dot"></span>Open</span></div>
-                    <h3 class="mq-title">JAX backend</h3><p class="mq-sub">JIT-compiled linear models &amp; optimizers</p>
-                </a>
-                <a href="/projects.html" class="mq-card" aria-hidden="true" tabindex="-1">
-                    <div class="mq-top"><span class="mq-chip" style="color:#34d399;background:rgba(52,211,153,0.12);"><i class="fa-solid fa-wave-square"></i> Streaming</span><span class="mq-status mq-testing"><span class="mq-dot"></span>Needs testing</span></div>
-                    <h3 class="mq-title">CapyMOA streaming</h3><p class="mq-sub">Online learning &amp; concept-drift detection</p>
-                </a>
-                <a href="/projects.html" class="mq-card" aria-hidden="true" tabindex="-1">
-                    <div class="mq-top"><span class="mq-chip" style="color:#c084fc;background:rgba(192,132,252,0.12);"><i class="fa-solid fa-flask"></i> Auto-Research</span><span class="mq-status mq-testing"><span class="mq-dot"></span>Needs testing</span></div>
-                    <h3 class="mq-title">AutoResearch agent loop</h3><p class="mq-sub">Hypothesis → experiment → report</p>
-                </a>
-                <a href="/projects.html" class="mq-card" aria-hidden="true" tabindex="-1">
-                    <div class="mq-top"><span class="mq-chip" style="color:#fbbf24;background:rgba(251,191,36,0.12);"><i class="fa-solid fa-wand-magic-sparkles"></i> AutoML</span><span class="mq-status mq-testing"><span class="mq-dot"></span>Needs testing</span></div>
-                    <h3 class="mq-title">AutoML compare_models()</h3><p class="mq-sub">One-call model selection &amp; ranking</p>
-                </a>
-                <a href="/projects.html" class="mq-card" aria-hidden="true" tabindex="-1">
-                    <div class="mq-top"><span class="mq-chip" style="color:#a3e635;background:rgba(163,230,53,0.12);"><i class="fa-solid fa-shapes"></i> Algorithms</span><span class="mq-status mq-open"><span class="mq-dot"></span>Open</span></div>
-                    <h3 class="mq-title">HDBSCAN clustering</h3><p class="mq-sub">Density-based hierarchical clustering</p>
-                </a>
-                <a href="/projects.html" class="mq-card" aria-hidden="true" tabindex="-1">
-                    <div class="mq-top"><span class="mq-chip" style="color:#a3e635;background:rgba(163,230,53,0.12);"><i class="fa-solid fa-shapes"></i> Algorithms</span><span class="mq-status mq-open"><span class="mq-dot"></span>Open</span></div>
-                    <h3 class="mq-title">Manifold learning suite</h3><p class="mq-sub">t-SNE · Isomap · LLE</p>
-                </a>
-                <a href="/projects.html" class="mq-card" aria-hidden="true" tabindex="-1">
-                    <div class="mq-top"><span class="mq-chip" style="color:#f472b6;background:rgba(244,114,182,0.12);"><i class="fa-solid fa-brain"></i> Deep Learning</span><span class="mq-status mq-planned"><span class="mq-dot"></span>Planned</span></div>
-                    <h3 class="mq-title">PyTorch wrapper</h3><p class="mq-sub">Optional deep-learning extra</p>
-                </a>
-                <a href="/projects.html" class="mq-card" aria-hidden="true" tabindex="-1">
-                    <div class="mq-top"><span class="mq-chip" style="color:#38bdf8;background:rgba(56,189,248,0.12);"><i class="fa-solid fa-graduation-cap"></i> Tutorials</span><span class="mq-status mq-open"><span class="mq-dot"></span>Open</span></div>
-                    <h3 class="mq-title">Tutorial notebooks</h3><p class="mq-sub">End-to-end, agent-first walkthroughs</p>
-                </a>
-            </div>
-        </div>
-
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mt-10 sm:mt-12">
-                <a href="/projects.html" class="inline-flex items-center gap-2 px-6 py-3 bg-white/[0.06] text-white border border-white/15 rounded-lg font-bold hover:bg-white/10 transition-colors font-display">
-                    <i class="fa-solid fa-hammer"></i> See the full build board
-                    <i class="fa-solid fa-arrow-right text-xs"></i>
-                </a>
-            </div>
-        </div>
-    </div>
-    <div class="glow-line"></div>
+    </section>
 </div>
 
 <script>
 /* ------------------------------------------------------------------
-   Build-board marquee — live from GitHub issues.
+   Build board, live from GitHub issues.
 
    Same source of truth as /projects: the open issues of tuiml/tuiml that
    carry an `area:*` label. Closed issues drop off automatically and each
-   card deep-links to its own issue. Shares the sessionStorage cache with
+   row deep-links to its own issue. Shares the sessionStorage cache with
    the /projects page, so navigating between them costs no extra API call.
 
-   The cards in the markup above are the fallback; they are only replaced
+   The rows in the markup above are the fallback; they are only replaced
    once a fetch succeeds, so an API outage degrades to the static set
-   instead of an empty marquee.
+   instead of an empty list.
 ------------------------------------------------------------------- */
 (function () {
     const REPO_URL = "https://github.com/tuiml/tuiml";
     const API = "https://api.github.com/repos/tuiml/tuiml/issues?state=open&per_page=100";
-    const CACHE_KEY = "tuiml_board_v2";           // shared with /projects — same key AND same schema
+    const CACHE_KEY = "tuiml_board_v2";           // shared with /projects, same key AND same schema
     const CACHE_TTL = 10 * 60 * 1000;
-    const MAX_CARDS = 10;
+    const MAX_ROWS = 10;
 
     const CATS = {
-        integrations: { label: "Integrations",  icon: "fa-plug",                 color: "#60a5fa", bg: "rgba(96,165,250,0.12)" },
-        algorithms:   { label: "Algorithms",    icon: "fa-shapes",               color: "#a3e635", bg: "rgba(163,230,53,0.12)" },
-        streaming:    { label: "Streaming",     icon: "fa-wave-square",          color: "#34d399", bg: "rgba(52,211,153,0.12)" },
-        automl:       { label: "AutoML",        icon: "fa-wand-magic-sparkles",  color: "#fbbf24", bg: "rgba(251,191,36,0.12)" },
-        deeplearning: { label: "Deep Learning", icon: "fa-brain",                color: "#f472b6", bg: "rgba(244,114,182,0.12)" },
-        research:     { label: "Auto-Research", icon: "fa-flask",                color: "#c084fc", bg: "rgba(192,132,252,0.12)" },
-        docs:         { label: "Tutorials",     icon: "fa-graduation-cap",       color: "#38bdf8", bg: "rgba(56,189,248,0.12)" },
+        integrations: "integrations",
+        algorithms: "algorithms",
+        streaming: "streaming",
+        automl: "automl",
+        deeplearning: "deep-learning",
+        research: "auto-research",
+        docs: "tutorials",
     };
     const STATUS = {
-        open:     { label: "Open",          cls: "mq-open" },
-        testing:  { label: "Needs testing", cls: "mq-testing" },
-        progress: { label: "In progress",   cls: "mq-testing" },
-        planned:  { label: "Planned",       cls: "mq-planned" },
+        open:     { label: "[open]",          cls: "bb-open" },
+        testing:  { label: "[needs testing]", cls: "bb-testing" },
+        progress: { label: "[in progress]",   cls: "bb-testing" },
+        planned:  { label: "[planned]",       cls: "bb-planned" },
     };
-    // NOTE: this must produce the SAME card shape as /projects — both pages share
+    // NOTE: this must produce the SAME card shape as /projects, both pages share
     // the cache below, so a leaner object here would break the board (and vice
     // versa) whenever a visitor hits one page after the other.
     const LABEL_MAP = {
@@ -1851,36 +522,26 @@ task = <span class="fn">Task</span>(description=<span class="str">"Train and tun
     const isValid = c => c && typeof c.issue === "string" && Array.isArray(c.tags);
 
     function cardHTML(p, dup) {
-        const cat = CATS[p.category];
         const st = STATUS[p.status] || STATUS.open;
-        const claimed = p.assignees.length
-            ? `<span class="mq-claimed"><img src="${esc(p.assignees[0].avatar_url)}" alt="" loading="lazy"> Claimed</span>`
-            : `<span>Help wanted</span>`;
+        const cat = CATS[p.category] || p.category;
+        const claimed = p.assignees.length ? "[claimed]" : "[help wanted]";
         return `
-        <a href="${esc(p.issue)}" target="_blank" rel="noopener" class="mq-card"${dup ? ' aria-hidden="true" tabindex="-1"' : ""}>
-            <div class="mq-top">
-                <span class="mq-chip" style="color:${cat.color};background:${cat.bg};">
-                    <i class="fa-solid ${cat.icon}"></i> ${cat.label}
-                </span>
-                <span class="mq-status ${st.cls}"><span class="mq-dot"></span>${st.label}</span>
-            </div>
-            <h3 class="mq-title">${esc(p.title)}</h3>
-            <p class="mq-sub">${esc(p.sub)}</p>
-            <div class="mq-foot">
-                <span class="mq-num">#${p.number}</span>
-                ${claimed}
-            </div>
+        <a href="${esc(p.issue)}" target="_blank" rel="noopener" class="bb-card"${dup ? ' aria-hidden="true" tabindex="-1"' : ""}>
+            <div class="bb-card-top"><span class="bb-cat">[${esc(cat)}]</span><span class="${st.cls}">${st.label}</span></div>
+            <div class="bb-title">${esc(p.title)}</div>
+            <p class="bb-sub">${esc(p.sub)}</p>
+            <div class="bb-card-foot"><span class="bb-num">#${p.number}</span><span>${claimed}</span></div>
         </a>`;
     }
 
     function setSync(html, live) {
-        const el = document.getElementById("mq-sync");
+        const el = document.getElementById("bb-sync");
         if (!el) return;
-        el.className = "mq-sync" + (live ? "" : " stale");
-        el.innerHTML = `<span class="mq-sync-dot"></span> ${html}`;
+        el.className = "bb-sync" + (live ? "" : " stale");
+        el.innerHTML = `<span class="dot">●</span> ${html}`;
     }
 
-    async function fetchCards() {
+    async function fetchRows() {
         try {
             const c = JSON.parse(sessionStorage.getItem(CACHE_KEY) || "null");
             if (c && Date.now() - c.t < CACHE_TTL && c.d.length && c.d.every(isValid)) return c.d;
@@ -1896,97 +557,52 @@ task = <span class="fn">Task</span>(description=<span class="str">"Train and tun
     }
 
     (async function init() {
-        const track = document.getElementById("mq-track");
+        const track = document.getElementById("bb-track");
         if (!track) return;
 
-        let cards;
+        let rows;
         try {
-            cards = await fetchCards();
+            rows = await fetchRows();
         } catch (err) {
             // Leave the static fallback cards in place.
-            setSync(`Showing the last known list — <a href="${REPO_URL}/issues" target="_blank" rel="noopener" style="color:#93c5fd;">browse issues</a>`, false);
+            setSync(`Showing the last known list · <a href="${REPO_URL}/issues" target="_blank" rel="noopener">browse issues</a>`, false);
             console.warn("[build-board] marquee falling back to static cards:", err.message);
             return;
         }
 
-        const open = cards.length;
+        const open = rows.length;
 
         // Round-robin across categories rather than taking the top N outright:
         // Algorithms outnumbers every other area, so a plain sort would fill the
-        // marquee with it and hide the breadth of the project. Within each
+        // list with it and hide the breadth of the project. Within each
         // category the most actionable work still comes first.
         const buckets = new Map();
-        cards.slice()
-             .sort((a, b) => (ORDER[a.status] ?? 9) - (ORDER[b.status] ?? 9))
-             .forEach(p => {
-                 if (!buckets.has(p.category)) buckets.set(p.category, []);
-                 buckets.get(p.category).push(p);
-             });
+        rows.slice()
+            .sort((a, b) => (ORDER[a.status] ?? 9) - (ORDER[b.status] ?? 9))
+            .forEach(p => {
+                if (!buckets.has(p.category)) buckets.set(p.category, []);
+                buckets.get(p.category).push(p);
+            });
 
         const shown = [];
-        while (shown.length < MAX_CARDS) {
+        while (shown.length < MAX_ROWS) {
             let drained = true;
             for (const q of buckets.values()) {
                 if (!q.length) continue;
                 shown.push(q.shift());
                 drained = false;
-                if (shown.length >= MAX_CARDS) break;
+                if (shown.length >= MAX_ROWS) break;
             }
             if (drained) break;   // every category exhausted
         }
 
-        // Two identical sets — the -50% -> 0 keyframe depends on it for a seamless loop.
+        // Two identical sets, the -50% -> 0 keyframe depends on it for a seamless loop.
         track.innerHTML = shown.map(p => cardHTML(p, false)).join("")
                         + shown.map(p => cardHTML(p, true)).join("");
-
-        setSync(`Live from <a href="${REPO_URL}/issues" target="_blank" rel="noopener" style="color:#93c5fd;">GitHub</a> · ${open} open projects`, true);
+        setSync(`Live from <a href="${REPO_URL}/issues" target="_blank" rel="noopener">GitHub</a> · ${open} open projects`, true);
     })();
 })();
 </script>
-
-<!-- ===================== CTA ===================== -->
-
-<div style="background: var(--surface-1); position: relative; overflow: hidden;">
-    <div style="position:absolute;inset:0;background:radial-gradient(ellipse 50% 60% at 50% 0%, rgba(96,165,250,0.10), transparent);pointer-events:none;"></div>
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 relative z-10">
-        <div class="max-w-xl mx-auto text-center">
-            <h3 class="font-display text-2xl sm:text-4xl font-800 text-white mb-3 tracking-tight">Ready to build?</h3>
-            <p class="text-slate-400 mb-8 font-display text-sm sm:text-base">Benchmarked against the tools you already trust. Start building in minutes.</p>
-
-            <!-- Benchmark highlight — the credibility proof, links to full results -->
-            <a href="/docs/benchmarks.html" class="group block max-w-lg mx-auto rounded-xl bg-white/[0.04] border border-white/10 hover:border-sky-400/40 hover:bg-white/[0.06] transition-all p-5 sm:p-6 text-left shadow-lg shadow-black/20">
-                <div class="flex items-center justify-between mb-5">
-                    <span class="text-[11px] uppercase tracking-[0.15em] text-sky-400 font-semibold">Benchmarked · TuiML vs scikit-learn vs Weka</span>
-                    <span class="text-xs text-slate-500 group-hover:text-sky-300 transition-colors whitespace-nowrap">Full results <i class="fa-solid fa-arrow-right text-[10px]"></i></span>
-                </div>
-                <div class="grid grid-cols-3 gap-3 sm:gap-4 text-center">
-                    <div>
-                        <div class="font-display text-2xl sm:text-3xl font-800 text-white">84.7%</div>
-                        <div class="text-[11px] sm:text-xs text-slate-400 mt-1.5 leading-snug">accuracy, on par with scikit-learn</div>
-                    </div>
-                    <div class="border-x border-white/10">
-                        <div class="font-display text-2xl sm:text-3xl font-800 text-white">3.7&times;</div>
-                        <div class="text-[11px] sm:text-xs text-slate-400 mt-1.5 leading-snug">faster training than Weka</div>
-                    </div>
-                    <div>
-                        <div class="font-display text-2xl sm:text-3xl font-800 text-white">51</div>
-                        <div class="text-[11px] sm:text-xs text-slate-400 mt-1.5 leading-snug">datasets, 10-fold CV<br><span class="text-slate-500">TabArena v0.1</span></div>
-                    </div>
-                </div>
-            </a>
-
-            <!-- Primary + secondary actions -->
-            <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-                <a href="/docs/getting_started.html" class="w-full sm:w-auto px-6 py-3 bg-white text-slate-900 rounded-lg font-bold hover:bg-slate-100 transition-colors shadow-lg shadow-white/10">
-                    Read the Docs <i class="fa-solid fa-arrow-right ml-1 text-sm"></i>
-                </a>
-                <a href="https://github.com/tuiml/tuiml" class="w-full sm:w-auto px-6 py-3 bg-white/[0.06] text-white border border-white/15 rounded-lg font-bold hover:bg-white/10 transition-colors">
-                    <i class="fa-brands fa-github mr-2"></i> Star on GitHub
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
 
 {% include 'components/_footer.html' %}
 

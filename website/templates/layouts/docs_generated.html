@@ -7,6 +7,9 @@
     <meta name="description" content="{{ meta_description|default(config.default_meta_description) }}">
     <meta name="robots" content="{{ meta_robots|default('index,follow') }}">
     <link rel="canonical" href="{{ canonical_url|default(request.url|string if request is defined else '') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32.png?v=10">
+    <link rel="icon" type="image/png" sizes="512x512" href="/static/images/favicon.png?v=10">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png?v=10">
 
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="{{ config.project_name }}">
@@ -23,7 +26,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -33,74 +36,38 @@
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 
-    <!-- Highlight.js for Code Syntax Highlighting -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <!-- Highlight.js for code syntax (token colors live in api-doc.css) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
 
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS (layout utilities in the generated content + nav/footer chrome) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Outfit', 'sans-serif'],
+                        sans: ['"JetBrains Mono"', 'monospace'],
                         mono: ['"JetBrains Mono"', 'monospace'],
-                    },
-                    colors: {
-                        primary: {
-                            50: '#eff6ff',
-                            100: '#dbeafe',
-                            200: '#bfdbfe',
-                            300: '#93c5fd',
-                            400: '#60a5fa',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                            800: '#1e40af',
-                            900: '#1e3a8a',
-                        }
                     }
                 }
             }
         }
     </script>
-    <style>
-        /* Code blocks */
-        .code-block-wrapper { background: #1e293b; border-radius: 0.75rem; overflow: hidden; margin: 1rem 0; border: 1px solid #334155; }
-        .code-block-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background: #0f172a; border-bottom: 1px solid #334155; }
-        .code-block-header span { font-size: 0.75rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; }
-        .code-block-wrapper pre { margin: 0; padding: 1rem; overflow-x: auto; }
-        .code-block-wrapper code { font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; line-height: 1.6; background: transparent !important; color: #e2e8f0; padding: 0; }
-        .copy-btn { background: transparent; border: none; color: #64748b; cursor: pointer; padding: 0.25rem; transition: color 0.15s; }
-        .copy-btn:hover { color: #e2e8f0; }
-        /* Inline code */
-        code { font-family: 'JetBrains Mono', monospace; font-size: 0.875em; background: #f1f5f9; color: #ef4444; padding: 0.125rem 0.375rem; border-radius: 0.25rem; }
-        /* Doc sections */
-        .doc-section { margin-top: 4rem; }
-        .doc-section h2 { font-size: 1.75rem; font-weight: 800; color: #0f172a; margin-bottom: 1rem; }
-        .doc-section p { color: #475569; line-height: 1.7; margin-bottom: 1rem; }
-    </style>
 </head>
-<body class="bg-gray-50 text-gray-900 font-sans antialiased flex flex-col min-h-screen">
+<body class="landing-page antialiased overflow-x-hidden">
     <!-- Navigation -->
-    {% include 'docs/components/_navbar.html' %}
+    {% include 'components/_docs_navbar.html' %}
 
-    <!-- Hero Section -->
-    {% if hero_title %}
-    <div class="bg-white border-b border-gray-200">
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-10">
-            <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">{{ hero_title }}</h1>
-            {% if hero_subtitle %}
-            <p class="text-gray-500 mt-2 text-lg">{{ hero_subtitle }}</p>
-            {% endif %}
-        </div>
-    </div>
-    {% endif %}
+    <link rel="stylesheet" href="/static/css/oc.css">
+    <script src="/static/js/oc.js"></script>
+    <!-- Adapter: maps the generated content's utility classes onto the oc palette -->
+    <link rel="stylesheet" href="/static/css/api-doc.css">
 
-    <div class="container mx-auto px-4 py-8 flex-grow">
-        {% block content %}{% endblock %}
+    <div class="oc-wrap">
+        <section class="oc-section api-doc" style="padding-top: 48px;">
+            {% block content %}{% endblock %}
+        </section>
     </div>
 
     <!-- Footer -->

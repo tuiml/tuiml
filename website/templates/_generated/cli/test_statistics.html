@@ -1,0 +1,160 @@
+{% extends 'layouts/docs_generated.html' %}
+
+{% set active_nav = 'api' %}
+{% set breadcrumb_html = '<a href="../api-reference.html" class="hover:text-gray-900">API Reference</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="index.html" class="hover:text-gray-900">cli</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">test_statistics</span>' %}
+
+{% block title %}test_statistics - API Documentation{% endblock %}
+
+{% block content %}
+<p class="oc-caption api-crumb" style="margin: 0;"><a href="../api-reference.html">API Reference</a> / <a href="index.html">cli</a></p>
+<h1 class="oc-display" style="margin-bottom: 32px;">test_statistics</h1>
+<nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
+<div class="oc-toc-label">On this page</div>
+<a href="#func-test_statistics">test_statistics</a>
+</nav>
+<main>
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Test Statistics Command - Significance tests over experiment results.</p></div>
+<div class="mb-12">
+<h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-code text-indigo-500"></i> Functions</h2>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-test_statistics">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-indigo-100 text-indigo-700 uppercase tracking-wide">Command</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">tuiml test-statistics</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 13</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">tuiml test-statistics [OPTIONS]</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Run statistical significance tests over experiment results.</p>
+<div class="doc-extended">Compares algorithms using their cross-validation scores and reports the test statistic, the p-value and whether the difference is significant, so a benchmark result can be defended rather than eyeballed. The Friedman test, Friedman aligned ranks, the Quade test, one-way ANOVA, the Nemenyi post-hoc test, the Wilcoxon signed-rank test and the paired t-test are all available. Scores are given as a JSON object mapping each algorithm name to its list of fold scores, and --significance-level moves alpha away from its 0.05 default.</div>
+<div class="mb-8 last:mb-0"><p class="text-gray-600 my-2">Compare three or more algorithms:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">bash</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-bash">$ tuiml test-statistics --test friedman --results &quot;$SCORES&quot;</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">Find which pairs actually differ, once Friedman is significant:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">bash</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-bash">$ tuiml test-statistics --test nemenyi --results &quot;$SCORES&quot;</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">Compare exactly two algorithms without assuming normality:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">bash</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-bash">$ tuiml test-statistics --test wilcoxon --results &quot;$SCORES&quot;</code></pre>
+            </div>
+        </div>
+        </div></div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden mt-6">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center">
+                    <i class="fa-solid fa-terminal text-indigo-500 mr-2"></i>Options
+                </h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-4">
+                    <code class="font-bold text-indigo-600 text-sm">--test</code>
+                </div>
+                <div class="md:col-span-8">
+                    <div class="flex flex-wrap gap-1 mb-1"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">str</span> <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">required</span></div>
+                    <div class="text-sm text-gray-600">Test to run. Across 3+ algorithms: &#x27;friedman&#x27;, &#x27;friedman_aligned&#x27; (more powerful variant), &#x27;quade&#x27; (accounts for dataset difficulty), &#x27;anova&#x27; (parametric). Post-hoc after Friedman: &#x27;nemenyi&#x27;. Between 2 algorithms: &#x27;wilcoxon&#x27;, &#x27;paired_t&#x27; (parametric)</div>
+                </div>
+            </div>
+            
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-4">
+                    <code class="font-bold text-indigo-600 text-sm">--results</code>
+                </div>
+                <div class="md:col-span-8">
+                    <div class="flex flex-wrap gap-1 mb-1"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">str</span> <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">required</span></div>
+                    <div class="text-sm text-gray-600">Cross-validation scores as a JSON object mapping each algorithm name to its list of fold scores</div>
+                </div>
+            </div>
+            
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-4">
+                    <code class="font-bold text-indigo-600 text-sm">--significance-level</code>
+                </div>
+                <div class="md:col-span-8">
+                    <div class="flex flex-wrap gap-1 mb-1"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">float</span></div>
+                    <div class="text-sm text-gray-600">Significance level alpha below which a difference counts as real (default: 0.05)</div>
+                </div>
+            </div>
+            
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-4">
+                    <code class="font-bold text-indigo-600 text-sm">--higher-better/--no-higher-better</code>
+                </div>
+                <div class="md:col-span-8">
+                    <div class="flex flex-wrap gap-1 mb-1"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600">= True</span></div>
+                    <div class="text-sm text-gray-600">Whether a higher score means a better model, which sets the ranking direction (default: higher is better)</div>
+                </div>
+            </div>
+            
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-4">
+                    <code class="font-bold text-indigo-600 text-sm">--json-output</code>
+                </div>
+                <div class="md:col-span-8">
+                    <div class="flex flex-wrap gap-1 mb-1"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">flag</span></div>
+                    <div class="text-sm text-gray-600">Output raw JSON</div>
+                </div>
+            </div>
+            </div></div>
+        </div>
+        
+</div></div>
+</div>
+</main>
+{% endblock %}

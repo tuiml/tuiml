@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Reference, TuiML Documentation</title>
+    <meta name="description" content="Complete API reference for TuiML: algorithms, datasets, preprocessing, evaluation, feature selection, and MCP server modules.">
+    <meta name="robots" content="index,follow">
+    <link rel="canonical" href="https://tuiml.ai/docs/api-reference.html">
+
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="{{ config.project_name }}">
+    <meta property="og:title" content="API Reference, TuiML Documentation">
+    <meta property="og:description" content="Complete API reference for all TuiML modules, classes, and functions.">
+    <meta property="og:url" content="https://tuiml.ai/docs/api-reference.html">
+    <meta property="og:image" content="https://tuiml.ai/static/images/tuiml_logo.png">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="API Reference, TuiML Documentation">
+    <meta name="twitter:description" content="Complete API reference for all TuiML modules, classes, and functions.">
+    <meta name="twitter:image" content="https://tuiml.ai/static/images/tuiml_logo.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32.png?v=10">
+    <link rel="icon" type="image/png" sizes="512x512" href="/static/images/favicon.png?v=10">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png?v=10">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome (site nav icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Tailwind CSS (site nav / footer chrome) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="landing-page antialiased overflow-x-hidden">
+
+    {% include 'components/_docs_navbar.html' %}
+
+    <link rel="stylesheet" href="/static/css/oc.css">
+    <script src="/static/js/oc.js"></script>
+    <link rel="stylesheet" href="/static/css/api-doc.css">
+
+    <div class="oc-wrap">
+
+        <!-- ===================== HEADER ===================== -->
+        <section class="oc-section" style="padding-top: 64px;" id="top">
+            <h1 class="oc-display">API Reference</h1>
+            <p class="oc-body oc-max" style="margin-top: 16px;">
+                Complete documentation for every {{ config.project_name }} module, class, and
+                function — generated straight from the source tree, so it can never drift
+                from the real code.
+            </p>
+
+            <nav class="oc-toc oc-toc-flow" aria-label="On this page">
+                <div class="oc-toc-label">On this page</div>
+                <a href="#packages">Packages</a>
+                <a href="#root-modules">Root modules</a>
+            </nav>
+        </section>
+
+        <!-- ===================== PACKAGES ===================== -->
+        <section class="oc-section" id="packages">
+            <h2 class="oc-h">Packages</h2>
+            <hr class="oc-rule">
+            <div class="why-grid" style="margin-top: 0;">
+                <a href="agent/index.html" class="why-card api-card"><div class="why-title">agent</div><p class="why-text">MCP server, LLM tool registry, and agent prompts.</p></a>
+                <a href="algorithms/index.html" class="why-card api-card"><div class="why-title">algorithms</div><p class="why-text">Native ML algorithms across 13 families.</p></a>
+                <a href="base/index.html" class="why-card api-card"><div class="why-title">base</div><p class="why-text">Classifier/Regressor base classes and decorators.</p></a>
+                <a href="capymoa/index.html" class="why-card api-card"><div class="why-title">capymoa</div><p class="why-text">Optional CapyMOA streaming wrappers.</p></a>
+                <a href="cli/index.html" class="why-card api-card"><div class="why-title">cli</div><p class="why-text">The tuiml command-line interface.</p></a>
+                <a href="datasets/index.html" class="why-card api-card"><div class="why-title">datasets</div><p class="why-text">Loaders, generators, and builtin datasets.</p></a>
+                <a href="evaluation/index.html" class="why-card api-card"><div class="why-title">evaluation</div><p class="why-text">Metrics, splitting, and cross-validation.</p></a>
+                <a href="features/index.html" class="why-card api-card"><div class="why-title">features</div><p class="why-text">Feature selection, extraction, and generation.</p></a>
+                <a href="preprocessing/index.html" class="why-card api-card"><div class="why-title">preprocessing</div><p class="why-text">Scalers, encoders, and transforms.</p></a>
+                <a href="serving/index.html" class="why-card api-card"><div class="why-title">serving</div><p class="why-text">Model serving and deployment.</p></a>
+                <a href="sklearn/index.html" class="why-card api-card"><div class="why-title">sklearn</div><p class="why-text">Optional scikit-learn wrappers.</p></a>
+                <a href="utils/index.html" class="why-card api-card"><div class="why-title">utils</div><p class="why-text">Shared helpers.</p></a>
+            </div>
+        </section>
+
+        <!-- ===================== ROOT MODULES ===================== -->
+        <section class="oc-section" id="root-modules">
+            <h2 class="oc-h">Root modules</h2>
+            <hr class="oc-rule">
+            <div class="why-grid" style="margin-top: 0;">
+                <a href="benchmarking.html" class="why-card api-card"><div class="why-title">benchmarking</div><p class="why-text">Benchmark models across datasets.</p></a>
+                <a href="discovery.html" class="why-card api-card"><div class="why-title">discovery</div><p class="why-text">Find and inspect the registered components.</p></a>
+                <a href="registry.html" class="why-card api-card"><div class="why-title">registry</div><p class="why-text">Local component registry for TuiML.</p></a>
+                <a href="training.html" class="why-card api-card"><div class="why-title">training</div><p class="why-text">Train models from one declarative spec.</p></a>
+                <a href="workflow.html" class="why-card api-card"><div class="why-title">workflow</div><p class="why-text">Pipelines: an ordered list of steps ending in a model.</p></a>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    {% include 'components/_footer.html' %}
+
+</body>
+
+</html>

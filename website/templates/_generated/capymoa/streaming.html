@@ -1,0 +1,263 @@
+{% extends 'layouts/docs_generated.html' %}
+
+{% set active_nav = 'api' %}
+{% set breadcrumb_html = '<a href="../api-reference.html" class="hover:text-gray-900">API Reference</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="index.html" class="hover:text-gray-900">capymoa</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">streaming</span>' %}
+
+{% block title %}streaming - API Documentation{% endblock %}
+
+{% block content %}
+<p class="oc-caption api-crumb" style="margin: 0;"><a href="../api-reference.html">API Reference</a> / <a href="index.html">capymoa</a></p>
+<h1 class="oc-display" style="margin-bottom: 32px;">streaming</h1>
+<nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
+<div class="oc-toc-label">On this page</div>
+<a href="#class-NaiveBayes">NaiveBayes</a>
+<a href="#class-HoeffdingTree">HoeffdingTree</a>
+<a href="#class-AdaptiveRandomForest">AdaptiveRandomForest</a>
+<a href="#class-FIMTDD">FIMTDD</a>
+</nav>
+<main>
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Curated CapyMOA streaming-learner wrappers.</p>
+<div class="doc-extended">Registered under <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">capymoa.<ClassName></code> hub keys. These wrap genuinely streaming (incremental) learners backed by CapyMOA/MOA, distinct from TuiML&#x27;s own native streaming algorithms in <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml.algorithms.streaming</code>.</div></div>
+<div class="mb-12">
+<h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-cubes text-indigo-500"></i> Classes</h2>
+<div class="mb-12 scroll-mt-24" id="class-NaiveBayes">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">NaiveBayes</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">capymoa.streaming.NaiveBayes</span>(<span class="text-cyan-400">_CapyMOAStreamMixin, Classifier</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed">CapyMOA incremental Naive Bayes classifier.</p>
+
+        <div class="mb-8">
+            <div class="bg-slate-800 rounded-lg overflow-hidden shadow-lg">
+                <div class="flex items-center justify-between px-4 py-2 bg-slate-900/50 border-b border-slate-700">
+                    <span class="text-slate-400 text-xs font-mono">Constructor</span>
+                    <button onclick="copyCode('init-NaiveBayes')" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i>
+                        <span class="text-xs">Copy</span>
+                    </button>
+                </div>
+                <div class="p-4 overflow-x-auto" id="init-NaiveBayes">
+                    <pre class="font-mono text-sm leading-relaxed"><span class="text-purple-400">__init__</span><span class="text-slate-300">(</span>
+    <span class="text-red-400">self</span><span class="text-slate-400">,</span>
+<span class="text-slate-300">)</span></pre>
+                </div>
+            </div>
+        </div>
+        
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-NaiveBayes-__init__">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">__init__</code>
+                    <span class="text-sm text-gray-400 font-mono">(self)</span>
+                </div>
+            </div>
+            
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-NaiveBayes-get_parameter_schema">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">get_parameter_schema</code>
+                    <span class="text-sm text-gray-400 font-mono">(cls) -&gt; Dict[str, Any]</span>
+                </div>
+            </div>
+            
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-NaiveBayes-get_capabilities">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">get_capabilities</code>
+                    <span class="text-sm text-gray-400 font-mono">(cls) -&gt; List[str]</span>
+                </div>
+            </div>
+            
+</div></div>
+</div>
+<div class="mb-12 scroll-mt-24" id="class-HoeffdingTree">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">HoeffdingTree</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">capymoa.streaming.HoeffdingTree</span>(<span class="text-cyan-400">_CapyMOAStreamMixin, Classifier</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed">CapyMOA Hoeffding Tree (VFDT) classifier.</p>
+
+        <div class="mb-8">
+            <div class="bg-slate-800 rounded-lg overflow-hidden shadow-lg">
+                <div class="flex items-center justify-between px-4 py-2 bg-slate-900/50 border-b border-slate-700">
+                    <span class="text-slate-400 text-xs font-mono">Constructor</span>
+                    <button onclick="copyCode('init-HoeffdingTree')" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i>
+                        <span class="text-xs">Copy</span>
+                    </button>
+                </div>
+                <div class="p-4 overflow-x-auto" id="init-HoeffdingTree">
+                    <pre class="font-mono text-sm leading-relaxed"><span class="text-purple-400">__init__</span><span class="text-slate-300">(</span>
+    <span class="text-red-400">self</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">grace_period</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">200</span><span class="text-slate-400">,</span>
+<span class="text-slate-300">)</span></pre>
+                </div>
+            </div>
+        </div>
+        
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-HoeffdingTree-__init__">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">__init__</code>
+                    <span class="text-sm text-gray-400 font-mono">(self, grace_period: int=200)</span>
+                </div>
+            </div>
+            
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-HoeffdingTree-get_parameter_schema">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">get_parameter_schema</code>
+                    <span class="text-sm text-gray-400 font-mono">(cls) -&gt; Dict[str, Any]</span>
+                </div>
+            </div>
+            
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-HoeffdingTree-get_capabilities">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">get_capabilities</code>
+                    <span class="text-sm text-gray-400 font-mono">(cls) -&gt; List[str]</span>
+                </div>
+            </div>
+            
+</div></div>
+</div>
+<div class="mb-12 scroll-mt-24" id="class-AdaptiveRandomForest">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">AdaptiveRandomForest</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">capymoa.streaming.AdaptiveRandomForest</span>(<span class="text-cyan-400">_CapyMOAStreamMixin, Classifier</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed">CapyMOA Adaptive Random Forest classifier (concept-drift aware).</p>
+
+        <div class="mb-8">
+            <div class="bg-slate-800 rounded-lg overflow-hidden shadow-lg">
+                <div class="flex items-center justify-between px-4 py-2 bg-slate-900/50 border-b border-slate-700">
+                    <span class="text-slate-400 text-xs font-mono">Constructor</span>
+                    <button onclick="copyCode('init-AdaptiveRandomForest')" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i>
+                        <span class="text-xs">Copy</span>
+                    </button>
+                </div>
+                <div class="p-4 overflow-x-auto" id="init-AdaptiveRandomForest">
+                    <pre class="font-mono text-sm leading-relaxed"><span class="text-purple-400">__init__</span><span class="text-slate-300">(</span>
+    <span class="text-red-400">self</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">ensemble_size</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">10</span><span class="text-slate-400">,</span>
+<span class="text-slate-300">)</span></pre>
+                </div>
+            </div>
+        </div>
+        
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-AdaptiveRandomForest-__init__">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">__init__</code>
+                    <span class="text-sm text-gray-400 font-mono">(self, ensemble_size: int=10)</span>
+                </div>
+            </div>
+            
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-AdaptiveRandomForest-get_parameter_schema">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">get_parameter_schema</code>
+                    <span class="text-sm text-gray-400 font-mono">(cls) -&gt; Dict[str, Any]</span>
+                </div>
+            </div>
+            
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-AdaptiveRandomForest-get_capabilities">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">get_capabilities</code>
+                    <span class="text-sm text-gray-400 font-mono">(cls) -&gt; List[str]</span>
+                </div>
+            </div>
+            
+</div></div>
+</div>
+<div class="mb-12 scroll-mt-24" id="class-FIMTDD">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">FIMTDD</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">capymoa.streaming.FIMTDD</span>(<span class="text-cyan-400">_CapyMOAStreamMixin, Regressor</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed">CapyMOA FIMT-DD streaming regression tree.</p>
+
+        <div class="mb-8">
+            <div class="bg-slate-800 rounded-lg overflow-hidden shadow-lg">
+                <div class="flex items-center justify-between px-4 py-2 bg-slate-900/50 border-b border-slate-700">
+                    <span class="text-slate-400 text-xs font-mono">Constructor</span>
+                    <button onclick="copyCode('init-FIMTDD')" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i>
+                        <span class="text-xs">Copy</span>
+                    </button>
+                </div>
+                <div class="p-4 overflow-x-auto" id="init-FIMTDD">
+                    <pre class="font-mono text-sm leading-relaxed"><span class="text-purple-400">__init__</span><span class="text-slate-300">(</span>
+    <span class="text-red-400">self</span><span class="text-slate-400">,</span>
+<span class="text-slate-300">)</span></pre>
+                </div>
+            </div>
+        </div>
+        
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-FIMTDD-__init__">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">__init__</code>
+                    <span class="text-sm text-gray-400 font-mono">(self)</span>
+                </div>
+            </div>
+            
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-FIMTDD-get_parameter_schema">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">get_parameter_schema</code>
+                    <span class="text-sm text-gray-400 font-mono">(cls) -&gt; Dict[str, Any]</span>
+                </div>
+            </div>
+            
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-FIMTDD-get_capabilities">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">get_capabilities</code>
+                    <span class="text-sm text-gray-400 font-mono">(cls) -&gt; List[str]</span>
+                </div>
+            </div>
+            
+</div></div>
+</div>
+</div>
+</main>
+{% endblock %}

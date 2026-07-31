@@ -1,0 +1,263 @@
+{% extends 'layouts/docs_generated.html' %}
+
+{% set active_nav = 'api' %}
+{% set breadcrumb_html = '<a href="../api-reference.html" class="hover:text-gray-900">API Reference</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="index.html" class="hover:text-gray-900">cli</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">evaluate</span>' %}
+
+{% block title %}evaluate - API Documentation{% endblock %}
+
+{% block content %}
+<p class="oc-caption api-crumb" style="margin: 0;"><a href="../api-reference.html">API Reference</a> / <a href="index.html">cli</a></p>
+<h1 class="oc-display" style="margin-bottom: 32px;">evaluate</h1>
+<nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
+<div class="oc-toc-label">On this page</div>
+<a href="#func-parse_extra_args">parse_extra_args</a>
+<a href="#func-evaluate">evaluate</a>
+</nav>
+<main>
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Evaluate Command - Evaluate trained models on test data via CLI.</p></div>
+<div class="mb-12">
+<h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-code text-indigo-500"></i> Functions</h2>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-parse_extra_args">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">parse_extra_args</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 7</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">parse_extra_args(args)</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Parse unrecognised command-line arguments into a keyword dictionary.</p>
+<div class="doc-extended">Leading dashes are stripped from each flag name. A flag followed by a non-flag token takes that token as its value, coerced to <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">bool</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">int</code>, or <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">float</code> when possible; a flag with no value becomes <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">True</code>.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">args</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">list of str</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Raw leftover tokens, typically <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">click.Context.args</code>.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-arrow-right-from-bracket text-green-500 mr-2"></i>Returns</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">kwargs</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-700">dict</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Mapping of flag name to parsed value.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        </div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-evaluate">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-indigo-100 text-indigo-700 uppercase tracking-wide">Command</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">tuiml evaluate</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 73</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">tuiml evaluate [OPTIONS]</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Score a trained model against labelled test data.</p>
+<div class="doc-extended">Loads a model by ID or file path, runs it over the given dataset, and prints the resulting metrics. With <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">--stage report</code> it prints a per-class classification report instead of a flat table of scores. Metrics are chosen automatically from the model&#x27;s task unless <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">--metrics</code> is given.</div>
+<div class="mb-8 last:mb-0"><p class="text-gray-600 my-2">Evaluate a saved model on a held-out CSV:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">bash</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-bash">$ tuiml evaluate --model-path model.pkl -d test.csv -t label</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">Ask for specific metrics and save the scores:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">bash</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-bash">$ tuiml evaluate --model-id abc123 -d test.csv -t label -m accuracy -m f1_score -o scores.json</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">Print a per-class classification report:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">bash</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-bash">$ tuiml evaluate --model-path model.pkl -d test.csv -t label --stage report</code></pre>
+            </div>
+        </div>
+        </div></div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden mt-6">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center">
+                    <i class="fa-solid fa-terminal text-indigo-500 mr-2"></i>Options
+                </h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-4">
+                    <code class="font-bold text-indigo-600 text-sm">--model-path</code>
+                </div>
+                <div class="md:col-span-8">
+                    <div class="flex flex-wrap gap-1 mb-1"></div>
+                    <div class="text-sm text-gray-600">Path to a saved model file (alternative to --model-id).</div>
+                </div>
+            </div>
+            
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-4">
+                    <code class="font-bold text-indigo-600 text-sm">--data, -d</code>
+                </div>
+                <div class="md:col-span-8">
+                    <div class="flex flex-wrap gap-1 mb-1"></div>
+                    <div class="text-sm text-gray-600">Path to a test data file or a built-in dataset name.</div>
+                </div>
+            </div>
+            
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-4">
+                    <code class="font-bold text-indigo-600 text-sm">--target, -t</code>
+                </div>
+                <div class="md:col-span-8">
+                    <div class="flex flex-wrap gap-1 mb-1"></div>
+                    <div class="text-sm text-gray-600">Name of the target column holding the true labels or values.</div>
+                </div>
+            </div>
+            
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-4">
+                    <code class="font-bold text-indigo-600 text-sm">--model-id</code>
+                </div>
+                <div class="md:col-span-8">
+                    <div class="flex flex-wrap gap-1 mb-1"></div>
+                    <div class="text-sm text-gray-600">Model ID printed by &quot;tuiml train&quot; (alternative to --model-path).</div>
+                </div>
+            </div>
+            
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-4">
+                    <code class="font-bold text-indigo-600 text-sm">--metrics, -m</code>
+                </div>
+                <div class="md:col-span-8">
+                    <div class="flex flex-wrap gap-1 mb-1"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">repeatable</span></div>
+                    <div class="text-sm text-gray-600">Metric to compute, by function name. Repeatable; defaults to metrics chosen for the task.</div>
+                </div>
+            </div>
+            
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-4">
+                    <code class="font-bold text-indigo-600 text-sm">--output, -o</code>
+                </div>
+                <div class="md:col-span-8">
+                    <div class="flex flex-wrap gap-1 mb-1"></div>
+                    <div class="text-sm text-gray-600">Write the full result record to this file as JSON.</div>
+                </div>
+            </div>
+            
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-4">
+                    <code class="font-bold text-indigo-600 text-sm">--stage</code>
+                </div>
+                <div class="md:col-span-8">
+                    <div class="flex flex-wrap gap-1 mb-1"></div>
+                    <div class="text-sm text-gray-600">Evaluation stage to run: &#x27;metrics&#x27; for scores, or &#x27;report&#x27; for a per-class text report.</div>
+                </div>
+            </div>
+            
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-4">
+                    <code class="font-bold text-indigo-600 text-sm">--json-output</code>
+                </div>
+                <div class="md:col-span-8">
+                    <div class="flex flex-wrap gap-1 mb-1"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">flag</span></div>
+                    <div class="text-sm text-gray-600">Print the raw JSON result instead of the formatted summary.</div>
+                </div>
+            </div>
+            
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-4">
+                    <code class="font-bold text-indigo-600 text-sm">--verbose, -v</code>
+                </div>
+                <div class="md:col-span-8">
+                    <div class="flex flex-wrap gap-1 mb-1"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">flag</span></div>
+                    <div class="text-sm text-gray-600">Echo the resolved configuration and re-raise full tracebacks on error.</div>
+                </div>
+            </div>
+            </div></div>
+        </div>
+        
+</div></div>
+</div>
+</main>
+{% endblock %}
