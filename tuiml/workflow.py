@@ -1,4 +1,4 @@
-"""Pipelines — an ordered list of steps ending in a model.
+"""Pipelines: an ordered list of steps ending in a model.
 
 A :class:`Workflow` chains transformation steps and a final model into one
 object that behaves like a model itself: ``fit``, ``predict``, ``score``,
@@ -6,15 +6,14 @@ object that behaves like a model itself: ``fit``, ``predict``, ``score``,
 transformations always travel with the model, so inference can never
 accidentally skip them.
 
-Steps may be written three ways — a class name, a spec dict, or a configured
-instance — and the three can be mixed freely::
+Steps are configured instances::
 
-    Workflow(["StandardScaler", "NaiveBayesClassifier"])
-    Workflow([{"name": "PCAExtractor", "params": {"n_components": 5}}, "SVC"])
     Workflow([StandardScaler(), RandomForestClassifier(n_estimators=100)])
 
-This is what lets :func:`tuiml.train` accept a JSON spec and this module accept
-imported classes while sharing one execution path.
+This is the object-based level of the API, with imports, autocomplete, and
+type checking. The string-and-dict way of writing the same pipeline belongs
+to :func:`tuiml.train`, which resolves names through the hub and runs on
+this same engine.
 """
 
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -118,7 +117,7 @@ def _inject_seed(model_cls, params: dict, seed: Optional[int]) -> dict:
 
     Notes
     -----
-    A parameter present but set to ``None`` counts as unset — that is the
+    A parameter present but set to ``None`` counts as unset, that is the
     default for seed arguments, and ``get_params()`` reports every constructor
     parameter, not only the ones the caller passed.
     """
@@ -211,7 +210,7 @@ def _resolve_component(name: str):
     ValueError
         If no component with that name is registered or importable.
     """
-    from tuiml.hub import registry
+    from tuiml.registry import registry
 
     try:
         return registry.get(name)
@@ -292,7 +291,7 @@ def _fit_transform(step, X, y):
     """Fit a transformer on ``(X, y)`` and return the transformed data.
 
     Components may implement ``fit_transform`` directly, or the plain
-    ``fit`` + ``transform`` pair — both are accepted as steps.
+    ``fit`` + ``transform`` pair, both are accepted as steps.
 
     Parameters
     ----------
@@ -318,7 +317,7 @@ def _fit_transform(step, X, y):
 def _auto_name(component: Any, taken: Dict[str, int]) -> str:
     """Derive a step name from a component's class name.
 
-    Follows the ``make_pipeline`` convention — the lowercased class name, with
+    Follows the ``make_pipeline`` convention, the lowercased class name, with
     a numeric suffix when the same class appears more than once.
 
     Parameters
@@ -378,7 +377,7 @@ def _numeric_mask(X: np.ndarray) -> np.ndarray:
 class On:
     """Apply a transformer to a subset of columns.
 
-    Mixed-type tables need different treatment per column — scale the numbers,
+    Mixed-type tables need different treatment per column, scale the numbers,
     encode the categories. ``On`` wraps a transformer so it sees only the
     columns you name, and is itself an ordinary pipeline step::
 
@@ -396,15 +395,15 @@ class On:
     columns : str, list of str, list of int, or callable
         Which columns to route:
 
-        - ``"number"`` — every numeric column, detected from the data
-        - ``"category"`` — every non-numeric column
-        - ``["age", "income"]`` — these named columns
-        - ``[0, 3]`` — these column positions
+        - ``"number"``: every numeric column, detected from the data
+        - ``"category"``: every non-numeric column
+        - ``["age", "income"]``: these named columns
+        - ``[0, 3]``: these column positions
         - a callable taking the feature-name list and returning names/indices
 
     transformer : object
-        Any component with ``fit_transform``/``transform``, given as an
-        instance, class name, or spec dict.
+        A configured transformer instance (anything with ``fit_transform``,
+        or the ``fit`` and ``transform`` pair).
     remainder : {"passthrough", "drop"}, default="passthrough"
         What to do with the columns that were not selected.
 
@@ -424,14 +423,28 @@ class On:
 
     Examples
     --------
+    >>> from tuiml import On
+    >>> from tuiml.preprocessing import SimpleImputer, StandardScaler
     >>> On("number", StandardScaler())                      # doctest: +SKIP
-    >>> On(["age", "fare"], "SimpleImputer")                # doctest: +SKIP
+    >>> On(["age", "fare"], SimpleImputer())                # doctest: +SKIP
     """
 
     def __init__(self, columns, transformer, remainder: str = "passthrough"):
         if remainder not in ("passthrough", "drop"):
             raise ValueError(
                 f'remainder must be "passthrough" or "drop", got {remainder!r}.'
+            )
+        if isinstance(transformer, (str, dict)):
+            raise TypeError(
+                "On takes a configured transformer instance, e.g. "
+                "On(\"number\", SimpleImputer()). Names and spec dicts "
+                "belong to tuiml.train()."
+            )
+        if isinstance(transformer, type):
+            raise TypeError(
+                f"On takes an instance, got the class "
+                f"{transformer.__name__}. Instantiate it: "
+                f"{transformer.__name__}()."
             )
         self.columns = columns
         self.transformer = transformer
@@ -537,7 +550,7 @@ class On:
             if self.remainder == "passthrough" else []
         )
         # Always fit a copy, so repeated fits stay independent of each other.
-        self.transformer_ = _clone_estimator(_build_step(self.transformer))
+        self.transformer_ = _clone_estimator(self.transformer)
         transformed = _fit_transform(self.transformer_, X[:, self.columns_], y)
         return self._concat(transformed, X)
 
@@ -590,7 +603,7 @@ class On:
         """Return the diagram layout: one branch per routed column group."""
         from tuiml.utils.html_repr import VisualBlock
 
-        transformer = getattr(self, "transformer_", None) or _build_step(self.transformer)
+        transformer = getattr(self, "transformer_", None) or self.transformer
         # Each branch is captioned by the columns it receives, so the diagram
         # reads as "these columns go through this transformer".
         branches = [transformer]
@@ -619,19 +632,19 @@ class Workflow(Algorithm):
 
     A ``Workflow`` *is* a model: it exposes the same ``fit``/``predict``/
     ``score``/``save`` interface as any single algorithm, so it can be used
-    anywhere one can — including as a step inside another ``Workflow``, or as
-    an entry in :func:`tuiml.experiment`.
+    anywhere one can, including as a step inside another ``Workflow``, or as
+    an entry in :func:`tuiml.benchmark`.
 
     Every step except the last transforms the data; the last one is the model.
 
     Parameters
     ----------
     steps : list, optional
-        The pipeline, in execution order. Each element is a component — a
-        class name, a ``{"name": ..., "params": {...}}`` spec dict, a class,
-        or a configured instance — or an explicit ``(name, component)`` tuple
-        when you want to choose the step's name. Names are otherwise derived
-        from the class name, lowercased.
+        The pipeline, in execution order. Each element is a configured
+        component instance, or an explicit ``(name, instance)`` tuple when
+        you want to choose the step's name. Names are otherwise derived from
+        the class name, lowercased. To build the same pipeline from strings
+        and dicts, use :func:`tuiml.train`.
 
     Attributes
     ----------
@@ -648,7 +661,7 @@ class Workflow(Algorithm):
     feature_names_in_ : list of str or None
         Column names of the training data, when known.
     metadata_ : dict
-        Details of the run — algorithm name, step names, evaluation method.
+        Details of the run, algorithm name, step names, evaluation method.
 
     Notes
     -----
@@ -663,27 +676,29 @@ class Workflow(Algorithm):
 
     Examples
     --------
-    Strings — no imports needed:
+    Build from configured instances, then use it like any model:
 
-    >>> wf = Workflow(["StandardScaler", "NaiveBayesClassifier"])
-    >>> wf = wf.fit("iris", test_size=0.2)              # doctest: +SKIP
-    >>> wf.metrics_                                      # doctest: +SKIP
-    {'accuracy_score': 0.967, 'f1_score': 0.947}
-
-    Instances — full editor autocomplete:
-
-    >>> from tuiml.preprocessing import StandardScaler          # doctest: +SKIP
-    >>> from tuiml.algorithms.trees import RandomForestClassifier   # doctest: +SKIP
+    >>> from tuiml import Workflow
+    >>> from tuiml.preprocessing import StandardScaler
+    >>> from tuiml.algorithms.trees import RandomForestClassifier
     >>> wf = Workflow([StandardScaler(), RandomForestClassifier(n_estimators=100)])
     ...                                                  # doctest: +SKIP
     >>> wf.fit(X_train, y_train).predict(X_test)         # doctest: +SKIP
 
-    Mixed-type table, cross-validated:
+    Evaluate while fitting by naming a split:
 
+    >>> wf = wf.fit("iris", cv=10)                       # doctest: +SKIP
+    >>> wf.metrics_                                      # doctest: +SKIP
+    {'cv_accuracy_score_mean': 0.96, 'cv_accuracy_score_std': 0.02}
+
+    Mixed-type table with per-column steps:
+
+    >>> from tuiml import On, Workflow
+    >>> from tuiml.preprocessing import SimpleImputer, OneHotEncoder
     >>> wf = Workflow([                                  # doctest: +SKIP
-    ...     On("number", "SimpleImputer"),
-    ...     On("category", "OneHotEncoder"),
-    ...     "RandomForestClassifier",
+    ...     On("number", SimpleImputer()),
+    ...     On("category", OneHotEncoder()),
+    ...     RandomForestClassifier(),
     ... ])
     >>> wf.fit("sales.csv", target="label", cv=10)       # doctest: +SKIP
     """
@@ -700,6 +715,10 @@ class Workflow(Algorithm):
     def _normalize(steps: List[Any]) -> List[Tuple[str, Any]]:
         """Turn the ``steps`` argument into a list of ``(name, instance)`` pairs.
 
+        Workflow is the object-based API level, so every step must be a
+        configured instance. Class names and spec dicts belong to
+        :func:`tuiml.train`, which resolves them before reaching this class.
+
         Parameters
         ----------
         steps : list
@@ -709,18 +728,54 @@ class Workflow(Algorithm):
         -------
         list of tuple
             ``(name, component_instance)`` in execution order.
+
+        Raises
+        ------
+        TypeError
+            If a step is a string, a dict, or an uninstantiated class.
         """
         normalized: List[Tuple[str, Any]] = []
         taken: Dict[str, int] = {}
         for step in steps:
             if isinstance(step, tuple) and len(step) == 2 and isinstance(step[0], str):
-                name, component = step[0], _build_step(step[1])
+                name, component = step
+                Workflow._check_step_is_instance(component)
                 taken[name] = taken.get(name, 0) + 1
             else:
-                component = _build_step(step)
+                component = step
+                Workflow._check_step_is_instance(component)
                 name = _auto_name(component, taken)
             normalized.append((name, component))
         return normalized
+
+    @staticmethod
+    def _check_step_is_instance(step: Any) -> None:
+        """Reject step notations that belong to the declarative API level.
+
+        Parameters
+        ----------
+        step : object
+            A candidate pipeline step.
+
+        Raises
+        ------
+        TypeError
+            With a pointer to the right place: ``tuiml.train`` for strings
+            and spec dicts, instantiation for bare classes.
+        """
+        if isinstance(step, (str, dict)):
+            shown = step if isinstance(step, str) else "{...}"
+            raise TypeError(
+                f"Workflow steps are configured instances, got {shown!r}. "
+                f"Names and spec dicts belong to the declarative API: "
+                f'tuiml.train({{"model": ..., "data": ..., "pipeline": '
+                f"[...]}}). Or import the class and pass an instance here."
+            )
+        if isinstance(step, type):
+            raise TypeError(
+                f"Workflow steps are instances, got the class "
+                f"{step.__name__}. Instantiate it: {step.__name__}()."
+            )
 
     def _validate(self) -> None:
         """Check that every step can transform and the final step can predict.
@@ -757,7 +812,7 @@ class Workflow(Algorithm):
 
     @property
     def model(self) -> Any:
-        """The final step — the model, unfitted unless :meth:`fit` has run."""
+        """The final step, the model, unfitted unless :meth:`fit` has run."""
         if not self._named_steps:
             return None
         return self._named_steps[-1][1]
@@ -769,14 +824,14 @@ class Workflow(Algorithm):
 
     @property
     def _estimator_type(self) -> Optional[str]:
-        """The final model's estimator type — a pipeline's task is its model's.
+        """The final model's estimator type, a pipeline's task is its model's.
 
-        Tooling (``experiment()``, wrapper adapters) uses this to tell
+        Tooling (``benchmark()``, wrapper adapters) uses this to tell
         supervised models from clusterers. Without it a pipeline would be
         judged by its own ``fit`` signature, where ``y`` is optional, and be
         mistaken for a clusterer.
         """
-        from tuiml.hub import ComponentType
+        from tuiml.registry import ComponentType
 
         final = self.model
         if final is None:
@@ -847,7 +902,10 @@ class Workflow(Algorithm):
 
         Examples
         --------
-        >>> wf = Workflow(["PCAExtractor", "NaiveBayesClassifier"])
+        >>> from tuiml import Workflow
+        >>> from tuiml.features.extraction import PCAExtractor
+        >>> from tuiml.algorithms.bayesian import NaiveBayesClassifier
+        >>> wf = Workflow([PCAExtractor(), NaiveBayesClassifier()])   # doctest: +SKIP
         >>> _ = wf.set_params(pcaextractor__n_components=3)
         """
         if "steps" in params:
@@ -893,7 +951,7 @@ class Workflow(Algorithm):
         ----------
         data : str, DataFrame, ndarray, or Dataset, optional
             Training data. A string is a file path (csv, arff, parquet, json,
-            excel — auto-detected) or a builtin dataset name such as
+            excel, auto-detected) or a builtin dataset name such as
             ``"iris"``. Arrays and DataFrames are used directly.
         y : array-like of shape (n_samples,), optional
             Target values, for the ``fit(X, y)`` form.
@@ -929,15 +987,19 @@ class Workflow(Algorithm):
 
         Examples
         --------
-        >>> wf = Workflow(["StandardScaler", "NaiveBayesClassifier"])
+        >>> from tuiml import Workflow
+        >>> from tuiml.preprocessing import StandardScaler
+        >>> from tuiml.algorithms.bayesian import NaiveBayesClassifier
+        >>> wf = Workflow([StandardScaler(), NaiveBayesClassifier()])   # doctest: +SKIP
         >>> _ = wf.fit("iris", cv=5)                      # doctest: +SKIP
         >>> wf.metrics_["cv_accuracy_score_mean"]         # doctest: +SKIP
         0.953
         """
         if not self._named_steps:
             raise ValueError(
-                "This Workflow has no steps. Pass them to the constructor: "
-                'Workflow(["StandardScaler", "RandomForestClassifier"]).'
+                "This Workflow has no steps. Pass configured instances to "
+                "the constructor: Workflow([StandardScaler(), "
+                "RandomForestClassifier()])."
             )
 
         X, y, feature_names = self._load(data, y, target, features)
@@ -1164,7 +1226,7 @@ class Workflow(Algorithm):
         Returns
         -------
         dict
-            Metrics for the task — cluster quality scores, anomaly counts, or
+            Metrics for the task, cluster quality scores, anomaly counts, or
             forecast errors.
         """
         metrics: Dict[str, Any] = {}
@@ -1457,7 +1519,7 @@ class Workflow(Algorithm):
         """Classify the final model's task, to pick metrics and a fit strategy.
 
         Anomaly detectors and forecasters are registered as classifiers and
-        regressors, so their registry *tags* — not their component type — are
+        regressors, so their registry *tags*, not their component type, are
         what distinguishes them.
 
         Returns
@@ -1465,7 +1527,7 @@ class Workflow(Algorithm):
         {"classifier", "regressor", "clusterer", "anomaly", "timeseries"}
             The detected task.
         """
-        from tuiml.hub import ComponentType
+        from tuiml.registry import ComponentType
 
         model = self.model
         tags = []
@@ -1559,7 +1621,7 @@ class Workflow(Algorithm):
         -------
         dict
             A spec with ``model`` and, when there are transformation steps,
-            ``pipeline`` — each component as ``{"name": ..., "params": {...}}``.
+            ``pipeline``: each component as ``{"name": ..., "params": {...}}``.
 
         Notes
         -----
@@ -1571,7 +1633,10 @@ class Workflow(Algorithm):
 
         Examples
         --------
-        >>> Workflow(["StandardScaler", "NaiveBayesClassifier"]).to_config()
+        >>> from tuiml import Workflow
+        >>> from tuiml.preprocessing import StandardScaler
+        >>> from tuiml.algorithms.bayesian import NaiveBayesClassifier
+        >>> Workflow([StandardScaler(), NaiveBayesClassifier()]).to_config()   # doctest: +SKIP
         {'model': {'name': 'NaiveBayesClassifier'}, 'pipeline': [{'name': 'StandardScaler'}]}
         """
         def spec(component):

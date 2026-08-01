@@ -59,14 +59,7 @@ class ClassBalanceSampler(InstanceTransformer):
         target_ratio: float = 1.0,
         random_state: Optional[int] = None,
     ):
-        """
-        Initialize ClassBalanceSampler.
-
-        Args:
-            strategy: Balancing strategy
-            target_ratio: Target minority/majority ratio
-            random_state: Random seed
-        """
+        """Store the balancing strategy and target ratio. See the class docstring."""
         super().__init__()
         self.strategy = strategy
         self.target_ratio = target_ratio
@@ -109,15 +102,19 @@ class ClassBalanceSampler(InstanceTransformer):
         X: np.ndarray,
         y: Optional[np.ndarray] = None,
     ) -> "ClassBalanceSampler":
-        """
-        Fit the balancer.
+        """Record the class distribution used to plan the resampling.
 
-        Args:
-            X: Input data
-            y: Target values (required)
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Input data.
+        y : np.ndarray of shape (n_samples,)
+            Target values. Required, since the classes drive the balancing.
 
-        Returns:
-            Self
+        Returns
+        -------
+        self : object
+            The fitted sampler.
         """
         X = np.asarray(X)
         if X.ndim == 1:
@@ -131,15 +128,22 @@ class ClassBalanceSampler(InstanceTransformer):
         X: np.ndarray,
         y: Optional[np.ndarray] = None,
     ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
-        """
-        Balance class distribution.
+        """Resample the data so the classes are balanced.
 
-        Args:
-            X: Input data
-            y: Target values (required)
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Input data.
+        y : np.ndarray of shape (n_samples,)
+            Target values. Required, since the classes drive the balancing.
 
-        Returns:
-            (X_balanced, y_balanced) tuple
+        Returns
+        -------
+        X_balanced : np.ndarray
+            Resampled feature matrix.
+        y_balanced : np.ndarray
+            Matching resampled targets. Row count differs from the input, so this
+            transformer changes the number of samples.
         """
         self._check_is_fitted()
         X = np.asarray(X)

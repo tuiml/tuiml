@@ -9,13 +9,14 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Optional, Any
 import numpy as np
 
-from tuiml.hub import registry, ComponentType, Registrable
+from tuiml.registry import registry, ComponentType, Registrable
 
 class FeatureMethod(Registrable, ABC):
     """Abstract base class for all feature engineering operations.
 
-    Defines the standard workflow for discovering, extracting, or creating 
-    features from raw data.
+    Defines the standard workflow for discovering, extracting, or creating
+    features from raw data. Concrete subclasses are registered with the
+    component registry so they can be discovered by name.
 
     See Also
     --------
@@ -25,55 +26,72 @@ class FeatureMethod(Registrable, ABC):
     """
 
     def __init__(self):
-        """Initialize feature method."""
+        """Initialize feature method state."""
         self._is_fitted = False
         self._feature_names_in: Optional[List[str]] = None
         self._feature_names_out: Optional[List[str]] = None
 
     @abstractmethod
     def fit(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> "FeatureMethod":
-        """
-        Learn from data.
+        """Learn feature engineering parameters from data.
 
-        Args:
-            X: Training data (n_samples, n_features)
-            y: Target values (optional)
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Training data.
+        y : np.ndarray of shape (n_samples,), optional
+            Target values. Required only by supervised methods.
 
-        Returns:
-            Self (for method chaining)
+        Returns
+        -------
+        self : FeatureMethod
+            The fitted instance (for method chaining).
         """
         pass
 
     @abstractmethod
     def transform(self, X: np.ndarray) -> np.ndarray:
-        """
-        Apply transformation to data.
+        """Apply the learned transformation to data.
 
-        Args:
-            X: Data to transform
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Data to transform.
 
-        Returns:
-            Transformed data
+        Returns
+        -------
+        X_transformed : np.ndarray
+            Transformed data.
         """
         pass
 
     def fit_transform(
         self, X: np.ndarray, y: Optional[np.ndarray] = None
     ) -> np.ndarray:
-        """
-        Fit and transform in one step.
+        """Fit to data, then transform it in one step.
 
-        Args:
-            X: Training data
-            y: Target values (optional)
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Training data.
+        y : np.ndarray of shape (n_samples,), optional
+            Target values. Required only by supervised methods.
 
-        Returns:
-            Transformed data
+        Returns
+        -------
+        X_transformed : np.ndarray
+            Transformed data.
         """
         return self.fit(X, y).transform(X)
 
     def get_params(self) -> Dict[str, Any]:
-        """Get method parameters."""
+        """Return the method's public parameters.
+
+        Returns
+        -------
+        params : dict
+            Mapping of parameter names to their current values.
+        """
         params = {}
         for key, value in self.__dict__.items():
             if not key.startswith("_"):
@@ -81,7 +99,24 @@ class FeatureMethod(Registrable, ABC):
         return params
 
     def set_params(self, **params) -> "FeatureMethod":
-        """Set method parameters."""
+        """Set method parameters.
+
+        Parameters
+        ----------
+        **params : dict
+            Parameter names mapped to new values. Each name must match an
+            existing attribute.
+
+        Returns
+        -------
+        self : FeatureMethod
+            The updated instance (for method chaining).
+
+        Raises
+        ------
+        ValueError
+            If a parameter name does not match an existing attribute.
+        """
         for key, value in params.items():
             if hasattr(self, key):
                 setattr(self, key, value)
@@ -90,26 +125,32 @@ class FeatureMethod(Registrable, ABC):
         return self
 
     def _check_is_fitted(self):
-        """Check if method has been fitted."""
+        """Raise ``RuntimeError`` if the method has not been fitted yet."""
         if not self._is_fitted:
             raise RuntimeError(
                 f"{self.__class__.__name__} must be fitted before calling transform"
             )
 
     def get_feature_names_out(self) -> Optional[List[str]]:
-        """Return output feature names after transformation."""
+        """Return output feature names after transformation.
+
+        Returns
+        -------
+        feature_names_out : list of str or None
+            Names of the output features, or ``None`` if unavailable.
+        """
         return self._feature_names_out
 
 class FeatureSelector(FeatureMethod):
     """Base class for feature selection algorithms.
 
-    Feature selection identifies and preserves the most relevant subset of 
-    existing features based on statistical significance, model importance, 
+    Feature selection identifies and preserves the most relevant subset of
+    existing features based on statistical significance, model importance,
     or information theory.
 
     Overview
     --------
-    Unlike extraction, selection does not create new features; it simplifies 
+    Unlike extraction, selection does not create new features; it simplifies
     the model by pruning irrelevant or redundant inputs.
 
     Parameters
@@ -125,17 +166,24 @@ class FeatureSelector(FeatureMethod):
         The indices of the features chosen during :meth:`fit`.
     _feature_scores : np.ndarray
         The raw scores calculated for each input feature.
+
+    See Also
+    --------
+    :class:`~tuiml.base.features.FeatureExtractor` : For dimensionality reduction.
+    :class:`~tuiml.base.features.FeatureConstructor` : For expanding feature space.
     """
 
     _component_type = ComponentType.FEATURE_SELECTOR
 
     def __init__(self, k: Optional[int] = None, threshold: Optional[float] = None):
-        """
-        Initialize feature selector.
+        """Initialize feature selector.
 
-        Args:
-            k: Number of features to select (if None, use threshold)
-            threshold: Score threshold for selection (if None, use k)
+        Parameters
+        ----------
+        k : int, optional
+            Number of features to select. If ``None``, ``threshold`` is used.
+        threshold : float, optional
+            Score threshold for selection. If ``None``, ``k`` is used.
         """
         super().__init__()
         self.k = k
@@ -145,28 +193,45 @@ class FeatureSelector(FeatureMethod):
 
     @abstractmethod
     def _compute_scores(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
-        """
-        Compute feature scores.
+        """Compute a relevance score for each feature.
 
-        Args:
-            X: Training data
-            y: Target values
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Training data.
+        y : np.ndarray of shape (n_samples,)
+            Target values.
 
-        Returns:
-            Array of feature scores
+        Returns
+        -------
+        scores : np.ndarray of shape (n_features,)
+            Score for each feature (higher means more relevant).
         """
         pass
 
     def fit(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> "FeatureSelector":
-        """
-        Compute feature scores and select features.
+        """Compute feature scores and select the feature subset.
 
-        Args:
-            X: Training data
-            y: Target values
+        Selection keeps the top ``k`` features by score, or all features whose
+        score is at least ``threshold``. If neither is set, the top 10 features
+        (or all, if fewer) are kept.
 
-        Returns:
-            Self
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Training data.
+        y : np.ndarray of shape (n_samples,)
+            Target values. Required for feature selection.
+
+        Returns
+        -------
+        self : FeatureSelector
+            The fitted instance (for method chaining).
+
+        Raises
+        ------
+        ValueError
+            If ``y`` is ``None``.
         """
         if y is None:
             raise ValueError("Feature selection requires target values (y)")
@@ -191,37 +256,57 @@ class FeatureSelector(FeatureMethod):
         return self
 
     def transform(self, X: np.ndarray) -> np.ndarray:
-        """
-        Select features from data.
+        """Reduce data to the selected features.
 
-        Args:
-            X: Data to transform
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Data to transform.
 
-        Returns:
-            Data with selected features only
+        Returns
+        -------
+        X_transformed : np.ndarray of shape (n_samples, n_selected)
+            Data restricted to the selected feature columns.
         """
         self._check_is_fitted()
         return X[:, self._selected_indices]
 
     def get_selected_indices(self) -> np.ndarray:
-        """Return indices of selected features."""
+        """Return indices of the selected features.
+
+        Returns
+        -------
+        indices : np.ndarray of shape (n_selected,)
+            Sorted indices of the features chosen during :meth:`fit`.
+        """
         self._check_is_fitted()
         return self._selected_indices
 
     def get_feature_scores(self) -> np.ndarray:
-        """Return computed feature scores."""
+        """Return the computed feature scores.
+
+        Returns
+        -------
+        scores : np.ndarray of shape (n_features,)
+            Score for each input feature.
+        """
         self._check_is_fitted()
         return self._feature_scores
 
     def get_support(self, indices: bool = False) -> np.ndarray:
-        """
-        Get a mask or indices of selected features.
+        """Get a mask or indices of the selected features.
 
-        Args:
-            indices: If True, return indices; if False, return boolean mask
+        Parameters
+        ----------
+        indices : bool, default=False
+            If ``True``, return the integer indices of the selected
+            features; otherwise return a boolean mask over all features.
 
-        Returns:
-            Mask or indices array
+        Returns
+        -------
+        support : np.ndarray
+            Boolean mask of shape ``(n_features,)``, or integer indices of
+            shape ``(n_selected,)`` if ``indices`` is ``True``.
         """
         self._check_is_fitted()
         if indices:
@@ -234,67 +319,85 @@ class FeatureSelector(FeatureMethod):
 class FeatureExtractor(FeatureMethod):
     """Base class for feature extraction and dimensionality reduction.
 
-    Feature extraction transforms the original high-dimensional data into 
-    a lower-dimensional representation while preserving as much information 
+    Feature extraction transforms the original high-dimensional data into
+    a lower-dimensional representation while preserving as much information
     as possible (e.g., PCA, SVD).
 
     Parameters
     ----------
     n_components : int, optional
         The number of projection components or latent dimensions to extract.
+
+    See Also
+    --------
+    :class:`~tuiml.base.features.FeatureSelector` : For subset selection.
+    :class:`~tuiml.base.features.FeatureConstructor` : For expanding feature space.
     """
 
     _component_type = ComponentType.FEATURE_EXTRACTOR
 
     def __init__(self, n_components: Optional[int] = None):
-        """
-        Initialize feature extractor.
+        """Initialize feature extractor.
 
-        Args:
-            n_components: Number of components to extract
+        Parameters
+        ----------
+        n_components : int, optional
+            Number of components to extract.
         """
         super().__init__()
         self.n_components = n_components
 
     @abstractmethod
     def fit(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> "FeatureExtractor":
-        """
-        Learn extraction parameters from data.
+        """Learn extraction parameters from data.
 
-        Args:
-            X: Training data
-            y: Target values (optional)
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Training data.
+        y : np.ndarray of shape (n_samples,), optional
+            Target values. Used only by supervised extractors.
 
-        Returns:
-            Self
+        Returns
+        -------
+        self : FeatureExtractor
+            The fitted instance (for method chaining).
         """
         pass
 
     @abstractmethod
     def transform(self, X: np.ndarray) -> np.ndarray:
-        """
-        Extract features from data.
+        """Extract features from data.
 
-        Args:
-            X: Data to transform
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Data to transform.
 
-        Returns:
-            Extracted features
+        Returns
+        -------
+        X_transformed : np.ndarray of shape (n_samples, n_components)
+            Extracted features.
         """
         pass
 
     def inverse_transform(self, X: np.ndarray) -> np.ndarray:
-        """
-        Reverse the transformation (if possible).
+        """Reverse the transformation (if possible).
 
-        Args:
-            X: Transformed data
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_components)
+            Transformed data.
 
-        Returns:
-            Reconstructed data in original space
+        Returns
+        -------
+        X_original : np.ndarray of shape (n_samples, n_features)
+            Reconstructed data in the original feature space.
 
-        Raises:
-            NotImplementedError: If inverse is not supported
+        Raises
+        ------
+        NotImplementedError
+            If the extractor does not support inversion.
         """
         raise NotImplementedError(
             f"{self.__class__.__name__} does not support inverse_transform"
@@ -303,9 +406,14 @@ class FeatureExtractor(FeatureMethod):
 class FeatureConstructor(FeatureMethod):
     """Base class for expanded feature construction.
 
-    Feature construction creates new features through combinations or 
-    non-linear expansions of existing inputs (e.g., Polynomial Interactions, 
+    Feature construction creates new features through combinations or
+    non-linear expansions of existing inputs (e.g., Polynomial Interactions,
     Logarithmic mappings).
+
+    See Also
+    --------
+    :class:`~tuiml.base.features.FeatureSelector` : For subset selection.
+    :class:`~tuiml.base.features.FeatureExtractor` : For dimensionality reduction.
     """
 
     _component_type = ComponentType.FEATURE_CONSTRUCTOR
@@ -318,28 +426,35 @@ class FeatureConstructor(FeatureMethod):
     def fit(
         self, X: np.ndarray, y: Optional[np.ndarray] = None
     ) -> "FeatureConstructor":
-        """
-        Learn construction parameters from data.
+        """Learn construction parameters from data.
 
-        Args:
-            X: Training data
-            y: Target values (optional)
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Training data.
+        y : np.ndarray of shape (n_samples,), optional
+            Target values. Used only by supervised constructors.
 
-        Returns:
-            Self
+        Returns
+        -------
+        self : FeatureConstructor
+            The fitted instance (for method chaining).
         """
         pass
 
     @abstractmethod
     def transform(self, X: np.ndarray) -> np.ndarray:
-        """
-        Construct new features from data.
+        """Construct new features from data.
 
-        Args:
-            X: Data to transform
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Data to transform.
 
-        Returns:
-            Data with new features
+        Returns
+        -------
+        X_transformed : np.ndarray
+            Data augmented with the constructed features.
         """
         pass
 
@@ -350,14 +465,31 @@ def feature_selector(
     version: str = "1.0.0",
     author: Optional[str] = None,
 ):
-    """
-    Decorator to register a feature selector.
+    """Register a feature selector class with the component registry.
 
-    Example::
+    Parameters
+    ----------
+    name : str, optional
+        Registration name. Defaults to the class name.
+    tags : list of str, optional
+        Searchable tags describing the selector.
+    version : str, default="1.0.0"
+        Component version string.
+    author : str, optional
+        Component author.
 
-        @feature_selector(tags=["statistical", "univariate"])
-        class ChiSquaredSelector(FeatureSelector):
-            pass
+    Returns
+    -------
+    decorator : callable
+        Class decorator that registers the decorated class in the registry
+        as a :class:`~tuiml.base.features.FeatureSelector` component.
+
+    Examples
+    --------
+    >>> from tuiml.base.features import feature_selector, FeatureSelector
+    >>> @feature_selector(tags=["statistical", "univariate"])
+    ... class ChiSquaredSelector(FeatureSelector):
+    ...     pass
     """
     return registry.register(
         ComponentType.FEATURE_SELECTOR,
@@ -373,14 +505,31 @@ def feature_extractor(
     version: str = "1.0.0",
     author: Optional[str] = None,
 ):
-    """
-    Decorator to register a feature extractor.
+    """Register a feature extractor class with the component registry.
 
-    Example::
+    Parameters
+    ----------
+    name : str, optional
+        Registration name. Defaults to the class name.
+    tags : list of str, optional
+        Searchable tags describing the extractor.
+    version : str, default="1.0.0"
+        Component version string.
+    author : str, optional
+        Component author.
 
-        @feature_extractor(tags=["dimensionality_reduction"])
-        class PCAExtractor(FeatureExtractor):
-            pass
+    Returns
+    -------
+    decorator : callable
+        Class decorator that registers the decorated class in the registry
+        as a :class:`~tuiml.base.features.FeatureExtractor` component.
+
+    Examples
+    --------
+    >>> from tuiml.base.features import feature_extractor, FeatureExtractor
+    >>> @feature_extractor(tags=["dimensionality_reduction"])
+    ... class PCAExtractor(FeatureExtractor):
+    ...     pass
     """
     return registry.register(
         ComponentType.FEATURE_EXTRACTOR,
@@ -396,14 +545,31 @@ def feature_constructor(
     version: str = "1.0.0",
     author: Optional[str] = None,
 ):
-    """
-    Decorator to register a feature constructor.
+    """Register a feature constructor class with the component registry.
 
-    Example::
+    Parameters
+    ----------
+    name : str, optional
+        Registration name. Defaults to the class name.
+    tags : list of str, optional
+        Searchable tags describing the constructor.
+    version : str, default="1.0.0"
+        Component version string.
+    author : str, optional
+        Component author.
 
-        @feature_constructor(tags=["polynomial"])
-        class PolynomialFeaturesGenerator(FeatureConstructor):
-            pass
+    Returns
+    -------
+    decorator : callable
+        Class decorator that registers the decorated class in the registry
+        as a :class:`~tuiml.base.features.FeatureConstructor` component.
+
+    Examples
+    --------
+    >>> from tuiml.base.features import feature_constructor, FeatureConstructor
+    >>> @feature_constructor(tags=["polynomial"])
+    ... class PolynomialFeaturesGenerator(FeatureConstructor):
+    ...     pass
     """
     return registry.register(
         ComponentType.FEATURE_CONSTRUCTOR,

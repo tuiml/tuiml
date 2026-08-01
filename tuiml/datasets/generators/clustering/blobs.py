@@ -1,7 +1,9 @@
 """
-Gaussian Blobs data generator.
+Blobs generator: isotropic Gaussian clusters.
 
-Generates isotropic Gaussian blobs for clustering.
+Samples points from spherical Gaussians placed at random or caller-supplied
+centers. Cluster count, spread, and dimensionality are all adjustable, which
+makes it the usual first sanity check for a clustering algorithm.
 """
 
 import numpy as np
@@ -37,9 +39,12 @@ class Blobs(ClusteringGenerator):
 
     Examples
     --------
-    >>> gen = Blobs(n_samples=1000, n_clusters=4)
+    >>> from tuiml.datasets.generators.clustering import Blobs
+    >>> gen = Blobs(n_samples=1000, n_clusters=4, random_state=0)
     >>> data = gen.generate()
-    >>> X, y = gen(return_X_y=True)
+    >>> data.X.shape
+    (1000, 2)
+    >>> X, y = gen(return_X_y=True)   # same data as plain arrays
     """
 
     def __init__(

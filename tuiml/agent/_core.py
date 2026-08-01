@@ -1,8 +1,8 @@
 """Shared helpers for the agent framework adapters.
 
 Every adapter in ``tuiml.agent.*`` (langchain, openai, anthropic, pydantic_ai,
-crewai, …) derives its tool list from the same source of truth — the
-``WORKFLOW_TOOLS`` dict in ``tuiml.agent.tools`` — and routes invocations
+crewai, …) derives its tool list from the same source of truth, the
+``WORKFLOW_TOOLS`` dict in ``tuiml.agent.tools``: and routes invocations
 through ``execute_tool``. This module holds the bits that don't belong to any
 one framework: the canonical tool iterator, the JSON-Schema → Pydantic model
 converter, the framework-agnostic callable adapter, and the bundled system
@@ -25,6 +25,15 @@ def iter_tools() -> Iterator[Tuple[str, str, Dict[str, Any]]]:
 
     A single place every adapter should consume. If we ever add new tools they
     automatically show up in every framework integration.
+
+    Yields
+    ------
+    name : str
+        Tool name (e.g. ``tuiml_train``).
+    description : str
+        Tool description from ``WORKFLOW_TOOLS``.
+    input_schema : Dict[str, Any]
+        JSON Schema for the tool's arguments (empty object schema if unset).
     """
     from tuiml.agent.tools import WORKFLOW_TOOLS
     for name, spec in WORKFLOW_TOOLS.items():
@@ -38,8 +47,20 @@ def iter_tools() -> Iterator[Tuple[str, str, Dict[str, Any]]]:
 def invoke(name: str, **kwargs: Any) -> Dict[str, Any]:
     """Run a TuiML tool and return its structured result.
 
-    Thin alias for ``tuiml.agent.execute_tool`` — kept here so every adapter
+    Thin alias for ``tuiml.agent.execute_tool``: kept here so every adapter
     imports from one consistent path.
+
+    Parameters
+    ----------
+    name : str
+        Workflow tool name (a key of ``WORKFLOW_TOOLS``).
+    **kwargs : Any
+        Keyword arguments matching the tool's JSON Schema.
+
+    Returns
+    -------
+    result : Dict[str, Any]
+        The tool's structured result; always contains a ``status`` key.
     """
     from tuiml.agent.tools import execute_tool
     return execute_tool(name, **kwargs)
@@ -51,6 +72,11 @@ def callables() -> Dict[str, Callable[..., Dict[str, Any]]]:
     Useful when a framework only takes plain callables (e.g. smolagents,
     custom loops). Each callable accepts keyword arguments matching the
     tool's JSON Schema and returns the usual ``{status: ..., ...}`` dict.
+
+    Returns
+    -------
+    tools : Dict[str, Callable[..., Dict[str, Any]]]
+        Mapping of tool name to a keyword-argument callable that invokes it.
     """
     return {
         name: _bind(name)
@@ -59,8 +85,22 @@ def callables() -> Dict[str, Callable[..., Dict[str, Any]]]:
 
 
 def _bind(tool_name: str) -> Callable[..., Dict[str, Any]]:
-    """Bind a tool name to a callable — kept as a separate function so each
-    closure captures a distinct ``tool_name`` via its default-argument trick."""
+    """Bind a tool name to a callable.
+
+    Kept as a separate function so each closure captures a distinct
+    ``tool_name`` via its default-argument trick.
+
+    Parameters
+    ----------
+    tool_name : str
+        Workflow tool name to bind.
+
+    Returns
+    -------
+    call : Callable[..., Dict[str, Any]]
+        Callable named after the tool that forwards keyword arguments to
+        ``invoke``.
+    """
     def _call(__tool_name: str = tool_name, **kwargs: Any) -> Dict[str, Any]:
         return invoke(__tool_name, **kwargs)
     _call.__name__ = tool_name
@@ -87,6 +127,16 @@ def _py_type_from_prop(prop: Dict[str, Any]) -> type:
 
     Best-effort: array/object get ``list``/``dict`` (no item type); ``anyOf``
     collapses to ``Any``; missing ``type`` also falls back to ``Any``.
+
+    Parameters
+    ----------
+    prop : Dict[str, Any]
+        A single JSON Schema property definition.
+
+    Returns
+    -------
+    py_type : type
+        The corresponding Python type (or ``typing.Any`` as fallback).
     """
     from typing import Any as _Any
 
@@ -104,6 +154,19 @@ def build_args_model(tool_name: str, schema: Dict[str, Any]) -> Type:
 
     The resulting model becomes ``StructuredTool(args_schema=…)`` for
     LangChain, or any framework that needs a concrete type.
+
+    Parameters
+    ----------
+    tool_name : str
+        Tool name; the model class is named ``<tool_name>Args``.
+    schema : Dict[str, Any]
+        JSON Schema object with ``properties`` and ``required`` keys.
+
+    Returns
+    -------
+    model : Type
+        A dynamically created Pydantic ``BaseModel`` subclass with one field
+        per schema property (plus a no-op ``_`` field for no-arg tools).
     """
     from pydantic import create_model, Field  # type: ignore
 
@@ -131,7 +194,13 @@ def build_args_model(tool_name: str, schema: Dict[str, Any]) -> Type:
 
 @lru_cache(maxsize=1)
 def load_skill() -> str:
-    """Return the bundled ``SKILL.md`` contents (canonical system prompt)."""
+    """Return the bundled ``SKILL.md`` contents (canonical system prompt).
+
+    Returns
+    -------
+    skill : str
+        Full text of the ``SKILL.md`` file shipped with ``tuiml.agent``.
+    """
     return resources.files("tuiml.agent").joinpath("SKILL.md").read_text(encoding="utf-8")
 
 
@@ -144,6 +213,18 @@ def require(module_name: str, extra: str) -> None:
 
     Every adapter calls ``require("langchain_core", "langchain")`` etc. so the
     error message points the user to ``pip install tuiml[langchain]``.
+
+    Parameters
+    ----------
+    module_name : str
+        Importable module name to check (e.g. ``'langchain_core'``).
+    extra : str
+        Name of the tuiml optional extra that provides it.
+
+    Raises
+    ------
+    ImportError
+        If ``module_name`` cannot be imported, with install instructions.
     """
     import importlib
     try:

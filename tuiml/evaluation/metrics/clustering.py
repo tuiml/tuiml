@@ -1,7 +1,35 @@
 """
 Clustering evaluation metrics.
 
-Complete implementations of clustering quality metrics.
+Two kinds of measure live here, and mixing them up is the usual mistake.
+
+**External** metrics compare a clustering against known ground-truth labels:
+:func:`adjusted_rand_score`, :func:`rand_score`, :func:`mutual_info_score`,
+:func:`normalized_mutual_info_score`, :func:`homogeneity_score`,
+:func:`completeness_score`, :func:`v_measure_score` and
+:func:`fowlkes_mallows_score`. They take ``(labels_true, labels_pred)`` and are
+invariant to how the clusters are named, so permuting labels changes nothing.
+
+**Internal** metrics judge the clustering from the data geometry alone, with no
+ground truth: :func:`silhouette_score`, :func:`silhouette_samples`,
+:func:`davies_bouldin_score` and :func:`calinski_harabasz_score`. They take
+``(X, labels)`` and are what you use to pick a number of clusters.
+
+Two directions to watch. :func:`davies_bouldin_score` is LOWER-is-better, unlike
+every other metric here. And :func:`rand_score` and :func:`mutual_info_score`
+are uncorrected, so they drift upward as the cluster count grows -- prefer
+:func:`adjusted_rand_score` or :func:`normalized_mutual_info_score` when
+comparing clusterings of different sizes.
+
+Examples
+--------
+>>> from tuiml.evaluation.metrics import adjusted_rand_score, v_measure_score
+>>> true = [0, 0, 1, 1, 2, 2]
+>>> pred = [1, 1, 0, 0, 2, 2]          # same partition, different names
+>>> adjusted_rand_score(true, pred)
+1.0
+>>> v_measure_score(true, pred)
+1.0
 """
 
 from typing import Optional, Union
@@ -25,20 +53,40 @@ def adjusted_rand_score(labels_true: np.ndarray, labels_pred: np.ndarray) -> flo
     """
     Compute Adjusted Rand Index (ARI).
     
-    The ARI measures the similarity between two clusterings, adjusted for chance.
-    
-    Args:
-        labels_true: Ground truth cluster labels
-        labels_pred: Predicted cluster labels
-        
-    Returns:
-        ARI score in range [-1, 1], where 1 is perfect agreement
-        
-    Example:
-        >>> adjusted_rand_score([0, 0, 1, 1], [0, 0, 1, 1])
-        1.0
-        >>> adjusted_rand_score([0, 0, 1, 1], [0, 1, 0, 1])
-        0.0
+    The Rand index corrected for chance, using the contingency table
+    :math:`n_{ij}` with row sums :math:`a_i` and column sums :math:`b_j`:
+
+    .. math::
+        \\text{ARI} = \\frac{\\sum_{ij} \\binom{n_{ij}}{2} -
+        \\left[\\sum_i \\binom{a_i}{2} \\sum_j \\binom{b_j}{2}\\right] \\Big/ \\binom{n}{2}}
+        {\\tfrac{1}{2}\\left[\\sum_i \\binom{a_i}{2} + \\sum_j \\binom{b_j}{2}\\right] -
+        \\left[\\sum_i \\binom{a_i}{2} \\sum_j \\binom{b_j}{2}\\right] \\Big/ \\binom{n}{2}}
+
+    Subtracting the expected index makes 0.0 the score of random labelling,
+    so unlike :func:`rand_score` the value does not drift upward with the
+    number of clusters.
+
+    Parameters
+    ----------
+    labels_true : array-like of shape (n_samples,)
+        Ground-truth cluster labels.
+    labels_pred : array-like of shape (n_samples,)
+        Predicted cluster labels.
+
+    Returns
+    -------
+    score : float
+        ARI in the range [-1, 1]. 1.0 is perfect agreement, 0.0 is the value
+        expected from random labelling, and negative values mean the agreement
+        is worse than chance.
+
+    Examples
+    --------
+    >>> from tuiml.evaluation.metrics import adjusted_rand_score
+    >>> adjusted_rand_score([0, 0, 1, 1], [0, 0, 1, 1])
+    1.0
+    >>> round(adjusted_rand_score([0, 0, 1, 1], [0, 1, 0, 1]), 2)
+    -0.5
     """
     labels_true = np.asarray(labels_true)
     labels_pred = np.asarray(labels_pred)
@@ -64,13 +112,36 @@ def adjusted_rand_score(labels_true: np.ndarray, labels_pred: np.ndarray) -> flo
 def rand_score(labels_true: np.ndarray, labels_pred: np.ndarray) -> float:
     """
     Compute Rand Index (RI).
-    
-    Args:
-        labels_true: Ground truth cluster labels
-        labels_pred: Predicted cluster labels
-        
-    Returns:
-        RI score in range [0, 1]
+
+    The fraction of sample pairs that both labellings agree about, where
+    :math:`a` counts pairs together in both and :math:`b` counts pairs apart
+    in both:
+
+    .. math::
+        \\text{RI} = \\frac{a + b}{\\binom{n}{2}}
+
+    Not corrected for chance: random labellings score well above 0. Use
+    :func:`adjusted_rand_score` when comparing across different cluster counts.
+
+    Parameters
+    ----------
+    labels_true : array-like of shape (n_samples,)
+        Ground-truth cluster labels.
+    labels_pred : array-like of shape (n_samples,)
+        Predicted cluster labels.
+
+    Returns
+    -------
+    score : float
+        RI score in the range [0, 1].
+
+    Examples
+    --------
+    >>> from tuiml.evaluation.metrics import rand_score
+    >>> round(rand_score([0, 0, 1, 1], [0, 0, 1, 1]), 3)
+    0.333
+    >>> rand_score([0, 0, 1, 1], [0, 1, 0, 1])
+    0.0
     """
     labels_true = np.asarray(labels_true)
     labels_pred = np.asarray(labels_pred)
@@ -102,23 +173,40 @@ def silhouette_score(
 ) -> float:
     """
     Compute mean Silhouette Coefficient.
-    
-    The Silhouette Coefficient is calculated using the mean intra-cluster 
-    distance (a) and the mean nearest-cluster distance (b) for each sample.
-    
-    Args:
-        X: Feature matrix, shape (n_samples, n_features)
-        labels: Cluster labels for each sample
-        metric: Distance metric ('euclidean', 'manhattan', 'cosine')
-        
-    Returns:
-        Mean silhouette score in range [-1, 1]
-        
-    Example:
-        >>> X = np.array([[1, 2], [1, 4], [1, 0], [4, 2], [4, 4], [4, 0]])
-        >>> labels = np.array([0, 0, 0, 1, 1, 1])
-        >>> silhouette_score(X, labels)  # doctest: +SKIP
-        0.55...
+
+    The mean silhouette over all samples. For one sample, with :math:`a(i)` its
+    mean distance to its own cluster and :math:`b(i)` the mean distance to the
+    nearest other cluster:
+
+    .. math::
+        s(i) = \\frac{b(i) - a(i)}{\\max\\{a(i),\\, b(i)\\}}
+
+    +1 means the sample sits well inside its cluster, 0 means it lies on a
+    boundary, and negative means it is closer to a different cluster.
+
+    Parameters
+    ----------
+    X : array-like of shape (n_samples, n_features)
+        Feature matrix.
+    labels : array-like of shape (n_samples,)
+        Cluster label for each sample.
+    metric : str, default='euclidean'
+        Distance metric to use. One of ``'euclidean'``, ``'manhattan'``,
+        or ``'cosine'``.
+
+    Returns
+    -------
+    score : float
+        Mean silhouette score in the range [-1, 1].
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from tuiml.evaluation.metrics import silhouette_score
+    >>> X = np.array([[1, 2], [1, 4], [1, 0], [4, 2], [4, 4], [4, 0]])
+    >>> labels = np.array([0, 0, 0, 1, 1, 1])
+    >>> round(silhouette_score(X, labels), 3)
+    0.287
     """
     X = np.asarray(X)
     labels = np.asarray(labels)
@@ -171,14 +259,38 @@ def silhouette_samples(
 ) -> np.ndarray:
     """
     Compute Silhouette Coefficient for each sample.
-    
-    Args:
-        X: Feature matrix
-        labels: Cluster labels
-        metric: Distance metric
-        
-    Returns:
-        Silhouette scores for each sample
+
+    Per-sample version of :func:`silhouette_score`:
+
+    .. math::
+        s(i) = \\frac{b(i) - a(i)}{\\max\\{a(i),\\, b(i)\\}}
+
+    Useful for finding which individual points are badly clustered rather
+    than only the overall average.
+
+    Parameters
+    ----------
+    X : array-like of shape (n_samples, n_features)
+        Feature matrix.
+    labels : array-like of shape (n_samples,)
+        Cluster label for each sample.
+    metric : str, default='euclidean'
+        Distance metric to use. One of ``'euclidean'``, ``'manhattan'``,
+        or ``'cosine'``.
+
+    Returns
+    -------
+    scores : np.ndarray of shape (n_samples,)
+        Silhouette coefficient for each sample, in the range [-1, 1].
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from tuiml.evaluation.metrics import silhouette_samples
+    >>> X = np.array([[1, 2], [1, 4], [1, 0], [4, 2], [4, 4], [4, 0]])
+    >>> labels = np.array([0, 0, 0, 1, 1, 1])
+    >>> np.round(silhouette_samples(X, labels), 3)
+    array([0.412, 0.225, 0.225, 0.412, 0.225, 0.225])
     """
     X = np.asarray(X)
     labels = np.asarray(labels)
@@ -214,21 +326,40 @@ def silhouette_samples(
 def davies_bouldin_score(X: np.ndarray, labels: np.ndarray) -> float:
     """
     Compute Davies-Bouldin Index.
-    
+
     Lower values indicate better clustering (minimum is 0).
-    
-    Args:
-        X: Feature matrix
-        labels: Cluster labels
-        
-    Returns:
-        Davies-Bouldin score (lower is better)
-        
-    Example:
-        >>> X = np.array([[1, 2], [1, 4], [1, 0], [4, 2], [4, 4], [4, 0]])
-        >>> labels = np.array([0, 0, 0, 1, 1, 1])
-        >>> davies_bouldin_score(X, labels)  # doctest: +SKIP
-        0.6...
+
+    Average over clusters of the worst-case similarity to any other cluster,
+    where :math:`s_i` is the mean distance from cluster :math:`i` to its own
+    centroid and :math:`d_{ij}` the distance between centroids:
+
+    .. math::
+        \\text{DB} = \\frac{1}{k} \\sum_{i=1}^{k}
+        \\max_{j \\neq i} \\frac{s_i + s_j}{d_{ij}}
+
+    LOWER is better, and 0 is the best possible value: the opposite direction
+    to most metrics in this module.
+
+    Parameters
+    ----------
+    X : array-like of shape (n_samples, n_features)
+        Feature matrix.
+    labels : array-like of shape (n_samples,)
+        Cluster label for each sample.
+
+    Returns
+    -------
+    score : float
+        Davies-Bouldin score (lower is better).
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from tuiml.evaluation.metrics import davies_bouldin_score
+    >>> X = np.array([[1, 2], [1, 4], [1, 0], [4, 2], [4, 4], [4, 0]])
+    >>> labels = np.array([0, 0, 0, 1, 1, 1])
+    >>> round(davies_bouldin_score(X, labels), 3)
+    0.889
     """
     X = np.asarray(X)
     labels = np.asarray(labels)
@@ -266,21 +397,39 @@ def davies_bouldin_score(X: np.ndarray, labels: np.ndarray) -> float:
 def calinski_harabasz_score(X: np.ndarray, labels: np.ndarray) -> float:
     """
     Compute Calinski-Harabasz Index (Variance Ratio Criterion).
-    
+
     Higher values indicate better clustering.
-    
-    Args:
-        X: Feature matrix
-        labels: Cluster labels
-        
-    Returns:
-        Calinski-Harabasz score (higher is better)
-        
-    Example:
-        >>> X = np.array([[1, 2], [1, 4], [1, 0], [4, 2], [4, 4], [4, 0]])
-        >>> labels = np.array([0, 0, 0, 1, 1, 1])
-        >>> calinski_harabasz_score(X, labels)  # doctest: +SKIP
-        5.0
+
+    Ratio of between-cluster to within-cluster dispersion, each corrected for
+    its degrees of freedom:
+
+    .. math::
+        \\text{CH} = \\frac{\\operatorname{tr}(B_k) \\big/ (k - 1)}
+        {\\operatorname{tr}(W_k) \\big/ (n - k)}
+
+    Higher is better. The score is unbounded above, so it is meaningful for
+    ranking candidate cluster counts on one dataset, not across datasets.
+
+    Parameters
+    ----------
+    X : array-like of shape (n_samples, n_features)
+        Feature matrix.
+    labels : array-like of shape (n_samples,)
+        Cluster label for each sample.
+
+    Returns
+    -------
+    score : float
+        Calinski-Harabasz score (higher is better).
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from tuiml.evaluation.metrics import calinski_harabasz_score
+    >>> X = np.array([[1, 2], [1, 4], [1, 0], [4, 2], [4, 4], [4, 0]])
+    >>> labels = np.array([0, 0, 0, 1, 1, 1])
+    >>> round(calinski_harabasz_score(X, labels), 3)
+    3.375
     """
     X = np.asarray(X)
     labels = np.asarray(labels)
@@ -320,13 +469,35 @@ def calinski_harabasz_score(X: np.ndarray, labels: np.ndarray) -> float:
 def mutual_info_score(labels_true: np.ndarray, labels_pred: np.ndarray) -> float:
     """
     Compute Mutual Information between two clusterings.
-    
-    Args:
-        labels_true: Ground truth cluster labels
-        labels_pred: Predicted cluster labels
-        
-    Returns:
-        Mutual information score
+
+    How much knowing the cluster tells you about the true class:
+
+    .. math::
+        \\text{MI}(U, V) = \\sum_{i}\\sum_{j} \\frac{n_{ij}}{n}
+        \\log \\frac{n \\, n_{ij}}{a_i b_j}
+
+    Measured in nats and unbounded above, which makes raw MI hard to compare;
+    :func:`normalized_mutual_info_score` rescales it to [0, 1].
+
+    Parameters
+    ----------
+    labels_true : array-like of shape (n_samples,)
+        Ground-truth cluster labels.
+    labels_pred : array-like of shape (n_samples,)
+        Predicted cluster labels.
+
+    Returns
+    -------
+    score : float
+        Mutual information score (non-negative, unbounded above).
+
+    Examples
+    --------
+    >>> from tuiml.evaluation.metrics import mutual_info_score
+    >>> round(mutual_info_score([0, 0, 1, 1], [0, 0, 1, 1]), 3)
+    0.693
+    >>> mutual_info_score([0, 0, 1, 1], [0, 1, 0, 1])
+    0.0
     """
     labels_true = np.asarray(labels_true)
     labels_pred = np.asarray(labels_pred)
@@ -357,14 +528,39 @@ def normalized_mutual_info_score(
 ) -> float:
     """
     Compute Normalized Mutual Information (NMI).
-    
-    Args:
-        labels_true: Ground truth cluster labels
-        labels_pred: Predicted cluster labels
-        average_method: 'arithmetic', 'geometric', 'min', 'max'
-        
-    Returns:
-        NMI score in range [0, 1]
+
+    Mutual information rescaled by the entropies of the two labellings:
+
+    .. math::
+        \\text{NMI}(U, V) = \\frac{\\text{MI}(U, V)}
+        {\\tfrac{1}{2}\\left[H(U) + H(V)\\right]}
+
+    Bounded in [0, 1], reaching 1.0 exactly when the two labellings agree up
+    to relabelling.
+
+    Parameters
+    ----------
+    labels_true : array-like of shape (n_samples,)
+        Ground-truth cluster labels.
+    labels_pred : array-like of shape (n_samples,)
+        Predicted cluster labels.
+    average_method : str, default='arithmetic'
+        Normalizer to divide the mutual information by. One of
+        ``'arithmetic'``, ``'geometric'``, ``'min'``, or ``'max'``,
+        computed from the entropies of ``labels_true`` and ``labels_pred``.
+
+    Returns
+    -------
+    score : float
+        NMI score in the range [0, 1].
+
+    Examples
+    --------
+    >>> from tuiml.evaluation.metrics import normalized_mutual_info_score
+    >>> round(normalized_mutual_info_score([0, 0, 1, 1], [0, 0, 1, 1]), 3)
+    1.0
+    >>> normalized_mutual_info_score([0, 0, 1, 1], [0, 1, 0, 1])
+    0.0
     """
     mi = mutual_info_score(labels_true, labels_pred)
     
@@ -392,18 +588,28 @@ def _entropy(labels: np.ndarray) -> float:
     """Compute entropy of a label distribution."""
     _, counts = np.unique(labels, return_counts=True)
     probs = counts / len(labels)
-    return float(-np.sum(probs * np.log(probs + 1e-10)))
+    # np.unique returns only observed labels, so every count is >= 1 and every
+    # probability is strictly positive. An epsilon inside the log would guard a
+    # case that cannot occur while inflating the entropy, which leaked into the
+    # normalized scores and pushed them just above their maximum of 1.0.
+    return float(-np.sum(probs * np.log(probs)))
 
 def _pairwise_distances(X: np.ndarray, metric: str = 'euclidean') -> np.ndarray:
     """
     Compute pairwise distances between samples.
-    
-    Args:
-        X: Feature matrix
-        metric: Distance metric
-        
-    Returns:
-        Distance matrix
+
+    Parameters
+    ----------
+    X : array-like of shape (n_samples, n_features)
+        Feature matrix.
+    metric : str, default='euclidean'
+        Distance metric to use. One of ``'euclidean'``, ``'manhattan'``,
+        or ``'cosine'``.
+
+    Returns
+    -------
+    distances : np.ndarray of shape (n_samples, n_samples)
+        Symmetric matrix of pairwise distances.
     """
     n_samples = len(X)
     distances = np.zeros((n_samples, n_samples))
@@ -447,14 +653,38 @@ def v_measure_score(
 ) -> float:
     """
     Compute V-measure (harmonic mean of homogeneity and completeness).
-    
-    Args:
-        labels_true: Ground truth cluster labels
-        labels_pred: Predicted cluster labels
-        beta: Weight of homogeneity vs completeness
-        
-    Returns:
-        V-measure score in range [0, 1]
+
+    The harmonic mean of homogeneity :math:`h` and completeness :math:`c`:
+
+    .. math::
+        v = \\frac{2 h c}{h + c}
+
+    Symmetric in the two labellings, and equal to
+    :func:`normalized_mutual_info_score` under arithmetic-mean normalization.
+
+    Parameters
+    ----------
+    labels_true : array-like of shape (n_samples,)
+        Ground-truth class labels.
+    labels_pred : array-like of shape (n_samples,)
+        Predicted cluster labels.
+    beta : float, default=1.0
+        Weight of homogeneity relative to completeness. Values greater
+        than 1.0 favor completeness; values less than 1.0 favor
+        homogeneity.
+
+    Returns
+    -------
+    score : float
+        V-measure score in the range [0, 1].
+
+    Examples
+    --------
+    >>> from tuiml.evaluation.metrics import v_measure_score
+    >>> round(v_measure_score([0, 0, 1, 1], [0, 0, 1, 1]), 3)
+    1.0
+    >>> v_measure_score([0, 0, 1, 1], [0, 1, 0, 1])
+    0.0
     """
     homogeneity = homogeneity_score(labels_true, labels_pred)
     completeness = completeness_score(labels_true, labels_pred)
@@ -467,13 +697,34 @@ def v_measure_score(
 def homogeneity_score(labels_true: np.ndarray, labels_pred: np.ndarray) -> float:
     """
     Compute homogeneity metric (each cluster contains only members of a single class).
-    
-    Args:
-        labels_true: Ground truth class labels
-        labels_pred: Predicted cluster labels
-        
-    Returns:
-        Homogeneity score in range [0, 1]
+
+    Whether each cluster contains only members of a single class:
+
+    .. math::
+        h = 1 - \\frac{H(C \\mid K)}{H(C)}
+
+    Splitting one true class across many clusters does not hurt this score --
+    that is what :func:`completeness_score` measures.
+
+    Parameters
+    ----------
+    labels_true : array-like of shape (n_samples,)
+        Ground-truth class labels.
+    labels_pred : array-like of shape (n_samples,)
+        Predicted cluster labels.
+
+    Returns
+    -------
+    score : float
+        Homogeneity score in the range [0, 1].
+
+    Examples
+    --------
+    >>> from tuiml.evaluation.metrics import homogeneity_score
+    >>> round(homogeneity_score([0, 0, 1, 1], [0, 0, 1, 1]), 3)
+    1.0
+    >>> homogeneity_score([0, 0, 1, 1], [0, 1, 0, 1])
+    0.0
     """
     h_true = _entropy(labels_true)
     
@@ -486,13 +737,34 @@ def homogeneity_score(labels_true: np.ndarray, labels_pred: np.ndarray) -> float
 def completeness_score(labels_true: np.ndarray, labels_pred: np.ndarray) -> float:
     """
     Compute completeness metric (all members of a class are in the same cluster).
-    
-    Args:
-        labels_true: Ground truth class labels
-        labels_pred: Predicted cluster labels
-        
-    Returns:
-        Completeness score in range [0, 1]
+
+    Whether all members of a class land in the same cluster:
+
+    .. math::
+        c = 1 - \\frac{H(K \\mid C)}{H(K)}
+
+    The mirror image of :func:`homogeneity_score`; putting everything in one
+    cluster scores 1.0 here and poorly there.
+
+    Parameters
+    ----------
+    labels_true : array-like of shape (n_samples,)
+        Ground-truth class labels.
+    labels_pred : array-like of shape (n_samples,)
+        Predicted cluster labels.
+
+    Returns
+    -------
+    score : float
+        Completeness score in the range [0, 1].
+
+    Examples
+    --------
+    >>> from tuiml.evaluation.metrics import completeness_score
+    >>> round(completeness_score([0, 0, 1, 1], [0, 0, 1, 1]), 3)
+    1.0
+    >>> completeness_score([0, 0, 1, 1], [0, 1, 0, 1])
+    0.0
     """
     h_pred = _entropy(labels_pred)
     
@@ -505,13 +777,36 @@ def completeness_score(labels_true: np.ndarray, labels_pred: np.ndarray) -> floa
 def fowlkes_mallows_score(labels_true: np.ndarray, labels_pred: np.ndarray) -> float:
     """
     Compute Fowlkes-Mallows Index.
-    
-    Args:
-        labels_true: Ground truth cluster labels
-        labels_pred: Predicted cluster labels
-        
-    Returns:
-        FM index in range [0, 1]
+
+    The geometric mean of the pairwise precision and recall, counting pairs of
+    samples placed in the same cluster:
+
+    .. math::
+        \\text{FMI} = \\frac{\\text{TP}}
+        {\\sqrt{(\\text{TP} + \\text{FP})(\\text{TP} + \\text{FN})}}
+
+    Bounded in [0, 1]; unlike :func:`rand_score` it ignores the true-negative
+    pairs that dominate when there are many clusters.
+
+    Parameters
+    ----------
+    labels_true : array-like of shape (n_samples,)
+        Ground-truth cluster labels.
+    labels_pred : array-like of shape (n_samples,)
+        Predicted cluster labels.
+
+    Returns
+    -------
+    score : float
+        Fowlkes-Mallows index in the range [0, 1].
+
+    Examples
+    --------
+    >>> from tuiml.evaluation.metrics import fowlkes_mallows_score
+    >>> fowlkes_mallows_score([0, 0, 1, 1], [0, 0, 1, 1])
+    1.0
+    >>> fowlkes_mallows_score([0, 0, 1, 1], [0, 1, 0, 1])
+    0.0
     """
     n_samples = len(labels_true)
     contingency = _contingency_matrix(labels_true, labels_pred)

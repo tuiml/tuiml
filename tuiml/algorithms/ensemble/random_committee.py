@@ -6,7 +6,7 @@ from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 
 from tuiml.base.algorithms import Classifier, classifier, Regressor, regressor
-from tuiml.hub import registry
+from tuiml.registry import registry
 
 @classifier(tags=["ensemble", "committee", "randomizable"], version="1.0.0")
 class RandomCommitteeClassifier(Classifier):

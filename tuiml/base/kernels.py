@@ -10,14 +10,22 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Any, Optional
 
 def kernel(tags: List[str] = None, version: str = "1.0.0"):
-    """
-    Decorator for kernel registration.
+    """Class decorator that registers a kernel with the component registry.
 
-    Args:
-        tags: List of tags for categorization
-        version: Version string
+    Parameters
+    ----------
+    tags : list of str, default=None
+        Tags for categorization in the registry.
+    version : str, default="1.0.0"
+        Version string for the kernel.
+
+    Returns
+    -------
+    decorator : callable
+        Decorator that attaches registry metadata to the kernel class.
     """
     def decorator(cls):
+        """Attach registry metadata to the kernel class."""
         cls._tags = tags or []
         cls._version = version
         cls._component_type = "kernel"
@@ -25,21 +33,26 @@ def kernel(tags: List[str] = None, version: str = "1.0.0"):
     return decorator
 
 class Kernel(ABC):
-    """
-    Abstract base class for kernel functions.
+    """Abstract base class for kernel functions.
 
-    A kernel function K(x, y) computes the dot product of two instances
-    in a (possibly high-dimensional or infinite) feature space without
-    explicitly computing the feature mapping phi:
-    ``K(x, y) = <phi(x), phi(y)>``
+    A kernel function :math:`K(x, y)` computes the dot product of two
+    instances in a (possibly high-dimensional or infinite) feature space
+    without explicitly computing the feature mapping :math:`\\phi`:
+
+    .. math::
+        K(x, y) = \\langle \\phi(x), \\phi(y) \\rangle
 
     Kernels must satisfy Mercer's condition (positive semi-definite)
     to ensure valid behavior with SVMs.
 
-    Attributes:
-        X_: Training data (set by build())
-        n_samples_: Number of training samples
-        n_features_: Number of features
+    Attributes
+    ----------
+    X_ : np.ndarray of shape (n_samples, n_features)
+        Training data (set by ``build()``).
+    n_samples_ : int
+        Number of training samples.
+    n_features_ : int
+        Number of features.
     """
 
     # libsvm kernel type: 0=linear, 1=poly, 2=rbf, 3=sigmoid, None=precomputed
@@ -53,14 +66,17 @@ class Kernel(ABC):
         self.n_features_ = None
 
     def build(self, X: np.ndarray) -> "Kernel":
-        """
-        Build the kernel with training data.
+        """Build the kernel with training data.
 
-        Args:
-            X: Training data (n_samples, n_features)
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Training data.
 
-        Returns:
-            Self for method chaining
+        Returns
+        -------
+        self : Kernel
+            The built kernel, for method chaining.
         """
         X = np.asarray(X, dtype=float)
         if X.ndim == 1:
@@ -74,52 +90,64 @@ class Kernel(ABC):
 
     @abstractmethod
     def evaluate(self, x1: np.ndarray, x2: np.ndarray) -> float:
-        """
-        Evaluate the kernel function K(x1, x2).
+        """Evaluate the kernel function :math:`K(x_1, x_2)`.
 
-        Args:
-            x1: First instance
-            x2: Second instance
+        Parameters
+        ----------
+        x1 : np.ndarray of shape (n_features,)
+            First instance.
+        x2 : np.ndarray of shape (n_features,)
+            Second instance.
 
-        Returns:
-            Kernel value
+        Returns
+        -------
+        value : float
+            Kernel value.
         """
         pass
 
     def compute(self, i: int, j: int) -> float:
-        """
-        Compute kernel value between training instances i and j.
+        """Compute kernel value between training instances ``i`` and ``j``.
 
-        Args:
-            i: Index of first instance
-            j: Index of second instance
+        Parameters
+        ----------
+        i : int
+            Index of first instance.
+        j : int
+            Index of second instance.
 
-        Returns:
-            K(X[i], X[j])
+        Returns
+        -------
+        value : float
+            Kernel value ``K(X[i], X[j])``.
         """
         self._check_is_built()
         return self.evaluate(self.X_[i], self.X_[j])
 
     def compute_row(self, i: int) -> np.ndarray:
-        """
-        Compute kernel values between instance i and all training instances.
+        """Compute kernel values between instance ``i`` and all training instances.
 
-        Args:
-            i: Index of query instance
+        Parameters
+        ----------
+        i : int
+            Index of query instance.
 
-        Returns:
-            Array of kernel values [K(X[i], X[0]), K(X[i], X[1]), ...]
+        Returns
+        -------
+        row : np.ndarray of shape (n_samples,)
+            Kernel values ``[K(X[i], X[0]), K(X[i], X[1]), ...]``.
         """
         self._check_is_built()
         return np.array([self.evaluate(self.X_[i], self.X_[j])
                         for j in range(self.n_samples_)])
 
     def compute_matrix(self) -> np.ndarray:
-        """
-        Compute the full kernel (Gram) matrix.
+        """Compute the full kernel (Gram) matrix.
 
-        Returns:
-            Kernel matrix K where K[i,j] = K(X[i], X[j])
+        Returns
+        -------
+        K : np.ndarray of shape (n_samples, n_samples)
+            Kernel matrix where ``K[i, j] = K(X[i], X[j])``.
         """
         self._check_is_built()
         K = np.zeros((self.n_samples_, self.n_samples_))
@@ -156,14 +184,17 @@ class Kernel(ABC):
         return K
 
     def compute_with_point(self, x: np.ndarray) -> np.ndarray:
-        """
-        Compute kernel values between a point and all training instances.
+        """Compute kernel values between a point and all training instances.
 
-        Args:
-            x: Query point (n_features,)
+        Parameters
+        ----------
+        x : np.ndarray of shape (n_features,)
+            Query point.
 
-        Returns:
-            Array of kernel values
+        Returns
+        -------
+        values : np.ndarray of shape (n_samples,)
+            Kernel values between ``x`` and each training instance.
         """
         self._check_is_built()
         x = np.asarray(x, dtype=float)
@@ -172,11 +203,18 @@ class Kernel(ABC):
 
     @classmethod
     def get_parameter_schema(cls) -> Dict[str, Dict[str, Any]]:
-        """Return parameter schema for the kernel."""
+        """Return parameter schema for the kernel.
+
+        Returns
+        -------
+        schema : dict of str to dict
+            Mapping of constructor parameter names to JSON-Schema-style
+            descriptions. Empty for kernels without hyperparameters.
+        """
         return {}
 
     def _check_is_built(self):
-        """Check if kernel has been built with training data."""
+        """Raise ``RuntimeError`` if the kernel has not been built with training data."""
         if not self._is_built:
             raise RuntimeError("Kernel not built. Call build() first.")
 
@@ -192,28 +230,31 @@ class Kernel(ABC):
         return ""
 
     def __repr__(self) -> str:
-        """String representation."""
+        """Return string representation of the kernel."""
         name = self.__class__.__name__
         if self._is_built:
             return f"{name}(n_samples={self.n_samples_})"
         return f"{name}(not built)"
 
 class CachedKernel(Kernel):
-    """
-    Kernel with caching for repeated evaluations.
+    """Kernel with caching for repeated evaluations.
 
     Stores computed kernel values to avoid redundant calculations.
 
-    Parameters:
-        cache_size: Size of the cache (0 for full cache, -1 for no cache)
+    Parameters
+    ----------
+    cache_size : int, default=250007
+        Size of the cache. Use ``0`` for an unbounded (full) cache and
+        ``-1`` to disable caching entirely.
     """
 
     def __init__(self, cache_size: int = 250007):
-        """
-        Initialize cached kernel.
+        """Initialize cached kernel.
 
-        Args:
-            cache_size: Size of cache (prime number recommended)
+        Parameters
+        ----------
+        cache_size : int, default=250007
+            Size of the cache (a prime number is recommended).
         """
         super().__init__()
         self.cache_size = cache_size
@@ -222,7 +263,18 @@ class CachedKernel(Kernel):
         self._cache_misses = 0
 
     def build(self, X: np.ndarray) -> "CachedKernel":
-        """Build kernel and initialize cache."""
+        """Build kernel with training data and initialize an empty cache.
+
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Training data.
+
+        Returns
+        -------
+        self : CachedKernel
+            The built kernel, for method chaining.
+        """
         super().build(X)
         self._cache = {}
         self._cache_hits = 0
@@ -230,7 +282,20 @@ class CachedKernel(Kernel):
         return self
 
     def compute(self, i: int, j: int) -> float:
-        """Compute kernel value with caching."""
+        """Compute kernel value between training instances ``i`` and ``j`` with caching.
+
+        Parameters
+        ----------
+        i : int
+            Index of first instance.
+        j : int
+            Index of second instance.
+
+        Returns
+        -------
+        value : float
+            Kernel value ``K(X[i], X[j])``, served from the cache when available.
+        """
         self._check_is_built()
 
         if self.cache_size == -1:
@@ -254,13 +319,24 @@ class CachedKernel(Kernel):
         return value
 
     def clear_cache(self) -> None:
-        """Clear the kernel cache."""
+        """Clear the kernel cache and reset hit/miss counters.
+
+        Returns
+        -------
+        None
+        """
         self._cache = {}
         self._cache_hits = 0
         self._cache_misses = 0
 
     def get_cache_stats(self) -> Dict[str, int]:
-        """Get cache statistics."""
+        """Get cache statistics.
+
+        Returns
+        -------
+        stats : dict of str to int
+            Dictionary with ``"hits"``, ``"misses"``, and ``"size"`` counts.
+        """
         return {
             "hits": self._cache_hits,
             "misses": self._cache_misses,

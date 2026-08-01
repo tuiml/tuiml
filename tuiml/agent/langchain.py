@@ -1,4 +1,4 @@
-"""LangChain / LangGraph adapter — TuiML tools as ``StructuredTool`` objects.
+"""LangChain / LangGraph adapter, TuiML tools as ``StructuredTool`` objects.
 
 LangGraph consumes LangChain tools directly (``ToolNode(tools=[...])``), so
 this module covers both frameworks.
@@ -25,7 +25,27 @@ from tuiml.agent._core import build_args_model, invoke, iter_tools, load_skill, 
 
 
 def get_tools() -> List[Any]:
-    """Return every TuiML workflow tool wrapped in a LangChain ``StructuredTool``."""
+    """Return every TuiML workflow tool wrapped in a LangChain ``StructuredTool``.
+
+    Returns
+    -------
+    list of langchain_core.tools.StructuredTool
+        One StructuredTool per workflow tool, each with a Pydantic args
+        schema and a function that routes to the TuiML executor. Pass
+        directly to LangChain agents or LangGraph ``ToolNode(tools=[...])``.
+
+    Raises
+    ------
+    ImportError
+        If ``langchain_core`` is not installed.
+
+    Examples
+    --------
+    >>> from tuiml.agent.langchain import get_tools
+    >>> tools = get_tools()
+    >>> [t.name for t in tools][:2]  # doctest: +SKIP
+    ['tuiml_train', 'tuiml_predict']
+    """
     require("langchain_core", "langchain")
     from langchain_core.tools import StructuredTool  # type: ignore
 
@@ -38,7 +58,25 @@ def get_tools() -> List[Any]:
 
 def _make_structured_tool(StructuredTool: Any, name: str, description: str, args_model: Any) -> Any:
     """Helper that captures ``name`` in its own closure so each tool routes
-    to the right executor."""
+    to the right executor.
+
+    Parameters
+    ----------
+    StructuredTool : type
+        The ``langchain_core.tools.StructuredTool`` class (passed in to
+        keep the import lazy).
+    name : str
+        Workflow tool name (e.g. "tuiml_train").
+    description : str
+        Tool description shown to the model.
+    args_model : type
+        Pydantic model describing the tool's arguments.
+
+    Returns
+    -------
+    StructuredTool
+        Tool whose function invokes the named TuiML executor.
+    """
 
     def _run(**kwargs: Any) -> Any:
         return invoke(name, **kwargs)
@@ -52,7 +90,13 @@ def _make_structured_tool(StructuredTool: Any, name: str, description: str, args
 
 
 def system_prompt() -> str:
-    """Return the canonical TuiML system prompt (SKILL.md) for ``prompt=``."""
+    """Return the canonical TuiML system prompt (SKILL.md) for ``prompt=``.
+
+    Returns
+    -------
+    str
+        The contents of the canonical ``SKILL.md`` system prompt.
+    """
     return load_skill()
 
 

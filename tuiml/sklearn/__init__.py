@@ -4,16 +4,16 @@ Importing this package registers the wrapped scikit-learn estimators into the
 TuiML hub under ``sklearn.<ClassName>`` keys, so they never collide with the
 native TuiML algorithms of the same name.
 
-The wrapper modules mirror TuiML's own taxonomy — ``linear``, ``svm``,
+The wrapper modules mirror TuiML's own taxonomy, ``linear``, ``svm``,
 ``trees``, ``ensemble``, ``bayesian``, ``neighbors``, ``neural``,
-``clustering``, ``anomaly``, plus ``preprocessing/`` and ``features/`` — so a
-wrapped estimator sits in the same place as its native counterpart. Those
-modules are **generated** from :mod:`tuiml.sklearn.specs` by
-``scripts/generate_sklearn_wrappers.py``; edit the spec table, not the modules.
+``clustering``, ``anomaly``, plus ``preprocessing/`` and ``features/``: so a
+wrapped estimator sits in the same place as its native counterpart. The
+wrapper classes are driven by the spec rows in :mod:`tuiml.sklearn.specs`;
+keep a module's classes and its spec rows in sync when editing either.
 
 TuiML is native-first: its own algorithms are the primary implementations, and
 estimators are addressed by their namespaced hub key. Raw scikit-learn estimator
-*objects* are not accepted by ``tuiml.train`` / ``tuiml.experiment`` — to reach
+*objects* are not accepted by ``tuiml.train`` / ``tuiml.benchmark``: to reach
 an estimator that is not yet wrapped, add a row to
 :mod:`tuiml.sklearn.specs` rather than passing an instance.
 

@@ -9,20 +9,17 @@ Three levels of API:
     3. Low-Level (OOP): Direct class imports - fit/predict/score/save/load
 """
 
-from tuiml.hub import registry, ComponentType
+from tuiml.registry import registry, ComponentType
 
-# High-level API
-from tuiml.api import (
-    train,
-    experiment,
+# High-level API, one root module per concern
+from tuiml.training import train, PRESETS
+from tuiml.benchmarking import Benchmark
+from tuiml.discovery import (
     list_algorithms,
     describe_algorithm,
     search_algorithms,
-    serve,
-    stop_server,
-    server_status,
-    PRESETS,
 )
+from tuiml.serving import serve, stop_server, server_status
 
 # Mid-level API
 from tuiml.workflow import Workflow, On
@@ -52,7 +49,7 @@ __all__ = [
 
     # High-level API (one-liner functions)
     "train",
-    "experiment",
+    "Benchmark",
     "list_algorithms",
     "describe_algorithm",
     "search_algorithms",

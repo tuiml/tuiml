@@ -45,6 +45,8 @@ def cosine_distance(x1: np.ndarray, x2: np.ndarray) -> float:
     --------
     Orthogonal vectors have cosine distance 1.0:
 
+    >>> import numpy as np
+    >>> from tuiml.algorithms.clustering.distance import cosine_distance
     >>> x1 = np.array([1, 0])
     >>> x2 = np.array([0, 1])
     >>> cosine_distance(x1, x2)

@@ -66,6 +66,7 @@ def get_distance_function(name: str) -> Callable:
 
     Examples
     --------
+    >>> from tuiml.algorithms.clustering.distance import get_distance_function
     >>> dist_fn = get_distance_function('euclidean')
     >>> dist_fn(np.array([0, 0]), np.array([3, 4]))
     5.0
@@ -100,6 +101,8 @@ def pairwise_distances(
 
     Examples
     --------
+    >>> import numpy as np
+    >>> from tuiml.algorithms.clustering.distance import pairwise_distances
     >>> X = np.array([[0, 0], [1, 1], [2, 2]])
     >>> pairwise_distances(X, metric='euclidean')
     array([[0.        , 1.41421356, 2.82842712],

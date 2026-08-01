@@ -1,7 +1,9 @@
 """
-LED (Light Emitting Diode) data generator.
+LED generator: seven-segment digit recognition.
 
-Generates data simulating a seven-segment LED display.
+Encodes the digits 0-9 as the seven segments of an LED display, inverting each
+segment with a fixed probability. Irrelevant attributes can be appended on top,
+making it a common benchmark for feature selection and for noise robustness.
 """
 
 import numpy as np
@@ -16,14 +18,15 @@ class LED(ClassificationGenerator):
     Generates data simulating a seven-segment LED display that shows
     digits 0-9. Each segment has a probability of being inverted (noise).
 
-    The seven segments are arranged as:
-        _0_
-       |   |
-       1   2
-       |_3_|
-       |   |
-       4   5
-       |_6_|
+    The seven segments are numbered clockwise from the top::
+
+         _0_
+        |   |
+        1   2
+        |_3_|
+        |   |
+        4   5
+        |_6_|
 
     Parameters
     ----------
@@ -38,8 +41,13 @@ class LED(ClassificationGenerator):
 
     Examples
     --------
-    >>> gen = LED(n_samples=1000, noise=0.1)
+    >>> from tuiml.datasets.generators.classification import LED
+    >>> gen = LED(n_samples=1000, noise=0.1, random_state=0)
     >>> data = gen.generate()
+    >>> data.X.shape          # 7 segments + 17 irrelevant attributes
+    (1000, 24)
+    >>> data.feature_names[:3]
+    ['seg0', 'seg1', 'seg2']
     """
 
     # LED patterns for digits 0-9 (7 segments)

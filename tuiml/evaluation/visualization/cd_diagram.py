@@ -1,10 +1,50 @@
 """
-Critical Difference diagram visualization.
+Critical Difference (CD) diagrams: the standard way to report a benchmark of
+many algorithms over many datasets.
+
+Averaging accuracy across datasets is misleading — the scale of a metric differs
+per dataset, and one easy dataset can dominate the mean. Demšar (2006) instead
+recommends **ranking** the algorithms *within* each dataset, averaging those
+ranks, running a Friedman test for "are any of them different at all?", and
+following up with a Nemenyi post-hoc test that yields a single *critical
+difference* (CD): the smallest gap between two average ranks that counts as
+significant.
+
+This module provides the three pieces of that recipe plus the plot:
+
+- :func:`compute_ranks` — per-dataset ranks with ties averaged.
+- :func:`critical_difference` — the CD value for ``k`` algorithms over ``n``
+  datasets at a significance level.
+- :func:`plot_critical_difference` — the diagram itself, returning a
+  :class:`CDDiagramResult` with ranks, CD, cliques, and the Friedman statistic.
+
+**Reading the diagram.** Algorithms sit on a horizontal *rank* axis running from
+1 (best) on the left to ``k`` (worst) on the right; each one is connected by a
+line to its average rank. A ``CD``-wide reference bar is drawn at the top for
+scale. Thick horizontal bars underneath join algorithms whose average ranks
+differ by **less than** the CD — those are the groups that are *not*
+statistically distinguishable. So the claim "A beats B" is only supported when A
+is to the left of B **and** no thick bar joins them.
+
+Notes
+-----
+The tabulated Studentised-range critical values used here cover 2-20
+algorithms; beyond that the value is extrapolated crudely (see
+:func:`critical_difference`).
+
+See Also
+--------
+:func:`~tuiml.evaluation.statistics.friedman_test` : The omnibus test the
+    diagram summarises; check it is significant before interpreting the ranks.
+:func:`~tuiml.evaluation.statistics.nemenyi_post_hoc` : Pairwise p-values behind
+    the "not significantly different" bars.
+:func:`~tuiml.evaluation.visualization.plot_ranking_table` : The same score
+    matrix as a table of raw values and ranks.
 
 References
 ----------
-Demsar, J. (2006). Statistical comparisons of classifiers over multiple data sets.
-Journal of Machine Learning Research, 7, 1-30.
+.. [Demsar2006] Demšar, J. (2006). "Statistical comparisons of classifiers over
+   multiple data sets." *Journal of Machine Learning Research*, 7, 1-30.
 """
 
 import numpy as np
@@ -23,7 +63,55 @@ from ._style import apply_style, setup_figure, SEMANTIC_COLORS
 
 @dataclass
 class CDDiagramResult:
-    """Result from Critical Difference diagram computation."""
+    """Numbers behind a Critical Difference diagram.
+
+    Returned by :func:`plot_critical_difference` so the statistics shown in the
+    figure can be reported in text or asserted on in tests.
+
+    Attributes
+    ----------
+    avg_ranks : dict of {str: float}
+        Average rank of each algorithm across datasets, keyed by the name given
+        to :func:`plot_critical_difference`. Lower is better; 1.0 means the
+        algorithm won on every dataset. Keys follow the *input* order, not the
+        sorted order drawn in the figure.
+    critical_difference : float
+        The Nemenyi critical difference. Two algorithms are declared
+        significantly different only if their average ranks differ by at least
+        this much.
+    groups : list of list of str
+        Cliques of algorithm names that are **not** significantly different from
+        one another — each list corresponds to one thick bar in the diagram.
+        Groups may overlap, and an algorithm distinguishable from all others
+        appears in none of them.
+    p_value : float
+        P-value of the Friedman omnibus test. If this is above your
+        :math:`\\alpha`, the ranking as a whole is not significant and the
+        pairwise reading of the diagram should not be trusted.
+    test_statistic : float
+        The Friedman :math:`\\chi^2` statistic, with ``n_algorithms - 1``
+        degrees of freedom.
+
+    See Also
+    --------
+    :func:`~tuiml.evaluation.visualization.plot_critical_difference` : Produces
+        this result.
+    :func:`~tuiml.evaluation.statistics.friedman_test` : Standalone Friedman
+        test with the same statistic.
+
+    Examples
+    --------
+    >>> from tuiml.evaluation.visualization import CDDiagramResult
+    >>> res = CDDiagramResult(
+    ...     avg_ranks={'A': 1.0, 'B': 2.0, 'C': 3.0},
+    ...     critical_difference=1.5,
+    ...     groups=[['A', 'B'], ['B', 'C']],
+    ...     p_value=0.03,
+    ...     test_statistic=6.0,
+    ... )
+    >>> min(res.avg_ranks, key=res.avg_ranks.get)
+    'A'
+    """
     avg_ranks: Dict[str, float]
     critical_difference: float
     groups: List[List[str]]
@@ -32,13 +120,12 @@ class CDDiagramResult:
 
     @classmethod
     def get_parameter_schema(cls) -> Dict:
-        """
-        Get JSON Schema for the dataclass fields.
+        """Return JSON Schema for the dataclass fields.
 
         Returns
         -------
-        dict
-            JSON Schema describing the dataclass fields.
+        schema : dict
+            JSON Schema describing the fields of :class:`CDDiagramResult`.
         """
         return {
             "type": "object",
@@ -80,19 +167,57 @@ def compute_ranks(
     lower_better: bool = False
 ) -> np.ndarray:
     """
-    Compute ranks for each algorithm across datasets.
+    Rank algorithms **within each dataset**, averaging tied ranks.
+
+    This is the first step of the Demšar (2006) comparison protocol: ranking
+    per dataset removes the effect of datasets having wildly different score
+    scales, which is what makes a plain average across datasets untrustworthy.
+
+    Each row of ``scores`` is ranked independently. The best algorithm on a row
+    gets rank 1, the worst gets rank ``n_algorithms``. Ties share the mean of
+    the ranks they span, so two algorithms tying for first both get 1.5 and the
+    next one gets 3 — rank sums stay comparable across rows.
 
     Parameters
     ----------
     scores : ndarray of shape (n_datasets, n_algorithms)
-        Performance scores matrix.
+        Performance scores; one row per dataset, one column per algorithm.
     lower_better : bool, default=False
-        If True, lower scores are better (e.g., error rates).
+        Direction of the metric. Leave False for accuracy, F1, AUC, …; set True
+        for error rates, RMSE, log-loss and other "smaller is better" metrics.
 
     Returns
     -------
     ranks : ndarray of shape (n_datasets, n_algorithms)
-        Rank matrix (1 = best).
+        Rank matrix aligned with ``scores``; 1 is best. Fractional values
+        indicate ties.
+
+    Notes
+    -----
+    Column ``j`` of the result always refers to the same algorithm as column
+    ``j`` of the input — nothing is sorted. The dtype follows ``scores`` (via
+    ``np.zeros_like``), so pass a float array: an integer score matrix cannot
+    represent the fractional ranks produced by ties.
+
+    See Also
+    --------
+    :func:`~tuiml.evaluation.visualization.plot_critical_difference` : Consumes
+        these ranks and tests which differences are significant.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from tuiml.evaluation.visualization import compute_ranks
+    >>> scores = np.array([[0.90, 0.85, 0.80],
+    ...                    [0.70, 0.70, 0.65]])
+    >>> compute_ranks(scores)
+    array([[1. , 2. , 3. ],
+           [1.5, 1.5, 3. ]])
+
+    With an error metric, flip the direction:
+
+    >>> compute_ranks(np.array([[0.10, 0.15, 0.20]]), lower_better=True)
+    array([[1., 2., 3.]])
     """
     n_datasets, n_algorithms = scores.shape
     ranks = np.zeros_like(scores)
@@ -125,23 +250,72 @@ def critical_difference(
     test: str = 'nemenyi'
 ) -> float:
     """
-    Compute critical difference for Nemenyi or Bonferroni-Dunn test.
+    Smallest gap between two average ranks that counts as significant.
+
+    Implements the Nemenyi critical difference of Demšar (2006). For :math:`k`
+    algorithms compared over :math:`N` datasets,
+
+    .. math::
+        CD = q_{\\alpha} \\sqrt{\\frac{k(k+1)}{6N}}
+
+    where :math:`q_{\\alpha}` is the Studentised range statistic at level
+    :math:`\\alpha` divided by :math:`\\sqrt{2}`, tabulated below. Two
+    algorithms whose average ranks differ by at least ``CD`` are declared
+    significantly different; anything closer is joined by a bar in the diagram.
+
+    Two consequences worth internalising: the CD *shrinks* as you add datasets
+    (:math:`\\propto 1/\\sqrt{N}`) and *grows* as you add algorithms — throwing
+    extra baselines into a benchmark makes every comparison harder to call.
 
     Parameters
     ----------
     n_datasets : int
-        Number of datasets.
+        Number of datasets :math:`N` (rows of the score matrix).
     n_algorithms : int
-        Number of algorithms.
-    alpha : float
-        Significance level.
-    test : str
-        'nemenyi' or 'bonferroni-dunn'.
+        Number of algorithms :math:`k` (columns of the score matrix).
+    alpha : float, default=0.05
+        Significance level. Only two tables exist: ``alpha <= 0.05`` selects the
+        0.05 critical values, anything larger selects the 0.10 values. Values
+        such as 0.01 therefore behave exactly like 0.05.
+    test : str, default='nemenyi'
+        Accepted for interface compatibility. The Nemenyi critical values are
+        used regardless of what is passed; this argument does not currently
+        change the result.
 
     Returns
     -------
     cd : float
-        Critical difference value.
+        The critical difference, in units of average rank.
+
+    Notes
+    -----
+    Tabulated :math:`q_{\\alpha}` values cover ``n_algorithms`` from 2 to 20.
+    Above 20 the value is approximated by a linear extrapolation, and an
+    unlisted count falls back to 3.5 — treat results for very large ``k`` as
+    indicative only.
+
+    See Also
+    --------
+    :func:`~tuiml.evaluation.visualization.plot_critical_difference` : Draws the
+        diagram this value scales.
+    :func:`~tuiml.evaluation.statistics.nemenyi_post_hoc` : Exact pairwise
+        p-values instead of a single threshold.
+
+    References
+    ----------
+    .. [Demsar2006] Demšar, J. (2006). "Statistical comparisons of classifiers
+       over multiple data sets." *Journal of Machine Learning Research*, 7, 1-30.
+
+    Examples
+    --------
+    >>> from tuiml.evaluation.visualization import critical_difference
+    >>> round(float(critical_difference(n_datasets=20, n_algorithms=5)), 3)
+    1.364
+
+    More datasets tighten the threshold:
+
+    >>> round(float(critical_difference(n_datasets=80, n_algorithms=5)), 3)
+    0.682
     """
     q_alpha_005 = {
         2: 1.960, 3: 2.343, 4: 2.569, 5: 2.728, 6: 2.850,
@@ -173,11 +347,32 @@ def critical_difference(
     return cd
 
 def _find_cliques(adj_matrix: np.ndarray) -> List[List[int]]:
-    """
-    Find maximal cliques in the adjacency matrix using a greedy approach.
+    """Group mutually-indistinguishable algorithms into cliques.
 
-    Algorithms that are not significantly different are connected.
-    Returns groups (cliques) of algorithms that form connected components.
+    An edge means "these two are not significantly different". Each returned
+    clique becomes one thick bar in the diagram, so a bar may only span
+    algorithms that are *all* pairwise indistinguishable.
+
+    Parameters
+    ----------
+    adj_matrix : ndarray of shape (n_algorithms, n_algorithms) of bool
+        Symmetric adjacency matrix indexed by rank order, where
+        ``adj_matrix[i, j]`` is True when the average ranks of ``i`` and ``j``
+        differ by less than the critical difference.
+
+    Returns
+    -------
+    cliques : list of list of int
+        Cliques of size two or more, each a sorted list of indices into the
+        rank-sorted algorithm order. Cliques that are subsets of another clique
+        are dropped; singletons are never returned.
+
+    Notes
+    -----
+    Uses a greedy sweep (seed at each vertex, absorb every later vertex adjacent
+    to the whole current clique) rather than full Bron-Kerbosch enumeration, so
+    for general graphs it can miss a maximal clique. On the interval graph
+    produced by a one-dimensional rank axis the greedy sweep is adequate.
     """
     n = len(adj_matrix)
     cliques = []
@@ -217,49 +412,146 @@ def plot_critical_difference(
     save_path: str = None,
 ) -> Optional[CDDiagramResult]:
     """
-    Plot Critical Difference diagram for comparing multiple classifiers.
+    Draw a Critical Difference diagram comparing algorithms over many datasets.
 
-    Uses the aeon/Demšar (2006) style with algorithms listed on left and right
-    sides, connected by horizontal lines to their rank positions on the axis.
-    Thick bars connect algorithms that are NOT significantly different.
+    The plot answers one question: *which of these algorithms can I actually
+    claim are different?* Each algorithm is ranked within every dataset (see
+    :func:`compute_ranks`), the ranks are averaged, and a Nemenyi critical
+    difference is computed from the number of algorithms and datasets.
+
+    **How to read it.** The horizontal axis is average rank, best (1) on the
+    left, worst (``k``) on the right. Every algorithm hangs off the axis by a
+    connector line ending at its average rank, with names printed on the left
+    for the better half and on the right for the worse half. The short bar
+    labelled ``CD`` at the top is a ruler showing how wide the critical
+    difference is in rank units. The **thick horizontal bars underneath join
+    algorithms that are NOT significantly different** — if a bar spans two
+    algorithms, the data does not support preferring one over the other, no
+    matter how their average ranks are ordered::
+
+                            |------ CD ------|
+
+        1        2        3        4        5        6
+        |--------|--------|--------|--------|--------|
+        |        |        |             |        |
+      SVM      Forest   Boosting      kNN    NaiveBayes
+                 |________|             |________|
+                  (tied)                 (tied)
+
+    Here SVM is significantly better than everything to the right of Forest,
+    Forest and Boosting are indistinguishable, and so are kNN and NaiveBayes.
 
     Parameters
     ----------
-    scores : ndarray of shape (n_datasets, n_algorithms) or dict
-        Performance scores matrix, or dict of {algorithm: scores_array}.
+    scores : ndarray of shape (n_datasets, n_algorithms) or dict of {str: ndarray}
+        Performance scores; one row per dataset, one column per algorithm. If a
+        dict is given, keys become the algorithm names and each value is that
+        algorithm's score across the datasets (all values must be the same
+        length), overriding ``names``.
     names : list of str, optional
-        Algorithm names (required if scores is ndarray).
+        Algorithm names in column order. Required when ``scores`` is an array.
     lower_better : bool, default=False
-        If True, lower scores are better (e.g., error rates).
+        Set True when smaller scores are better (error rate, RMSE, log-loss).
     alpha : float, default=0.05
-        Significance level.
+        Significance level driving the critical difference. Note the
+        implementation only distinguishes ``<= 0.05`` from larger values — see
+        :func:`critical_difference`.
     test : {'nemenyi', 'wilcoxon'}, default='nemenyi'
-        Statistical test to use.
+        Accepted for interface compatibility; the critical difference is always
+        computed from the Nemenyi statistic. Passing ``'wilcoxon'`` does not
+        currently change the figure.
     correction : {'holm', 'bonferroni', 'none'}, default='holm'
-        Multiple comparison correction method.
+        Accepted for interface compatibility; multiple-comparison correction is
+        implicit in the Nemenyi critical value and this argument is not
+        currently applied.
     title : str, optional
-        Plot title.
-    figsize : tuple, optional
-        Figure size. Auto-calculated based on number of algorithms if not provided.
+        Figure title. Title-cased before rendering. No title is drawn if None.
+    figsize : tuple of (float, float), optional
+        Figure size in inches. When None, it scales with the number of
+        algorithms — width ``max(8, k)``, height ``max(3, 0.4 * k)`` — which is
+        usually the right thing, since the diagram grows vertically with ``k``.
     save_path : str, optional
-        Path to save the figure.
+        If given, the figure is also written to this path as a 300-dpi PNG with
+        a white background and tight bounding box, before being shown.
 
     Returns
     -------
-    result : CDDiagramResult or None
-        Computation results.
+    result : CDDiagramResult
+        Average ranks, the critical difference, the cliques drawn as bars, and
+        the Friedman test statistic and p-value. Check ``result.p_value`` first:
+        if the Friedman test is not significant, the ordering shown carries no
+        statistical weight.
+
+    Raises
+    ------
+    ImportError
+        If matplotlib is not installed (it is imported lazily).
+    ValueError
+        If ``names`` is None while ``scores`` is an array, or if ``len(names)``
+        does not match the number of columns in ``scores``.
+
+    Notes
+    -----
+    Side effects: this function mutates the global matplotlib style (see
+    ``apply_style``), calls ``matplotlib.pyplot.show()`` before returning — so
+    it blocks in a GUI backend and renders inline in a notebook — and writes a
+    file when ``save_path`` is given. Use a non-interactive backend such as
+    ``Agg`` to render headlessly. The figure object itself is not returned; grab
+    it with ``matplotlib.pyplot.gcf()`` before ``show()`` clears the display if
+    you need to post-process it.
+
+    Bars are computed from the pairwise rank gaps directly, so with many
+    algorithms the bars can overlap; each one is drawn on its own row below the
+    labels to keep them legible.
+
+    See Also
+    --------
+    :func:`~tuiml.evaluation.visualization.compute_ranks` : The per-dataset
+        ranking step.
+    :func:`~tuiml.evaluation.visualization.critical_difference` : The CD value
+        that sets the width of the bars.
+    :func:`~tuiml.evaluation.statistics.friedman_test` : The omnibus test whose
+        statistic and p-value are reported in the result.
+    :func:`~tuiml.evaluation.statistics.nemenyi_post_hoc` : Pairwise p-values
+        for a numeric write-up of the same comparison.
+    :func:`~tuiml.evaluation.visualization.plot_boxplot_comparison` : Score
+        spread per algorithm, a useful companion figure.
+
+    References
+    ----------
+    .. [Demsar2006] Demšar, J. (2006). "Statistical comparisons of classifiers
+       over multiple data sets." *Journal of Machine Learning Research*, 7, 1-30.
 
     Examples
     --------
-    >>> from tuiml.evaluation.visualization import plot_critical_difference
     >>> import numpy as np
+    >>> from tuiml.evaluation.visualization import plot_critical_difference
     >>> scores = np.array([
     ...     [0.85, 0.82, 0.78],
     ...     [0.87, 0.84, 0.80],
     ...     [0.83, 0.81, 0.79],
     ... ])
     >>> names = ['Algorithm A', 'Algorithm B', 'Algorithm C']
-    >>> plot_critical_difference(scores, names, lower_better=False)
+    >>> result = plot_critical_difference(scores, names)   # doctest: +SKIP
+    >>> result.avg_ranks                                   # doctest: +SKIP
+    {'Algorithm A': 1.0, 'Algorithm B': 2.0, 'Algorithm C': 3.0}
+
+    Passing a dict names the algorithms for you, and saves the figure:
+
+    >>> results = {
+    ...     'SVM': np.array([0.91, 0.88, 0.93]),
+    ...     'Forest': np.array([0.89, 0.90, 0.88]),
+    ...     'kNN': np.array([0.80, 0.79, 0.84]),
+    ... }
+    >>> res = plot_critical_difference(
+    ...     results, title='Accuracy over 3 datasets',
+    ...     save_path='cd.png')                            # doctest: +SKIP
+
+    For an error metric, flip the direction so rank 1 is the smallest value:
+
+    >>> errors = np.array([[0.15, 0.18, 0.22], [0.13, 0.16, 0.21]])
+    >>> res = plot_critical_difference(
+    ...     errors, names=['A', 'B', 'C'], lower_better=True)   # doctest: +SKIP
     """
     if not HAS_MATPLOTLIB:
         raise ImportError("matplotlib is required for plotting")

@@ -4,7 +4,7 @@ import numpy as np
 from typing import Dict, List, Any, Optional, Type
 
 from tuiml.base.algorithms import Classifier, classifier
-from tuiml.hub import registry
+from tuiml.registry import registry
 
 @classifier(tags=["meta", "filter", "preprocessing"], version="1.0.0")
 class FilteredClassifier(Classifier):

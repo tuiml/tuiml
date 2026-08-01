@@ -20,15 +20,18 @@ from typing import Dict, List, Optional
 def find_mcp_processes(exclude_self: bool = True) -> List[Dict]:
     """Return a list of running tuiml-mcp processes.
 
-    Each entry: {pid: int, ppid: int, command: str}.
-    Empty list on Windows / failure.
-
     Parameters
     ----------
-    exclude_self : bool
+    exclude_self : bool, default=True
         When True, omit the current process so a tuiml_restart MCP call
         running inside one of the targets doesn't kill itself before
         returning a response.
+
+    Returns
+    -------
+    procs : List[Dict]
+        One dict per process with keys ``pid`` (int), ``ppid`` (int), and
+        ``command`` (str). Empty list on Windows or if ``ps`` fails.
     """
     self_pid = os.getpid()
     try:
@@ -71,24 +74,26 @@ def kill_mcp_processes(
 
     Parameters
     ----------
-    procs : list, optional
+    procs : list of dict, optional
         Explicit list of process dicts to kill. If None, the function
         re-discovers running tuiml-mcp processes itself (excluding the
         current one).
-    grace_seconds : float
+    grace_seconds : float, default=2.0
         How long to wait between SIGTERM and SIGKILL for each PID.
-    include_self : bool
+    include_self : bool, default=False
         If True, schedule a delayed self-exit AFTER killing other
         processes. Used by the MCP tool so the agent receives the
         response before the server dies.
-    self_delay_seconds : float
+    self_delay_seconds : float, default=0.5
         Delay before the deferred self-exit (allows the caller to
         flush a response).
 
     Returns
     -------
-    dict
-        {killed: [pid, ...], failed: [{pid, error}, ...], self_exit_scheduled: bool}
+    result : Dict
+        Dict with keys ``killed`` (list of PIDs successfully terminated),
+        ``failed`` (list of dicts with ``pid`` and ``error``), and
+        ``self_exit_scheduled`` (bool).
     """
     if procs is None:
         procs = find_mcp_processes(exclude_self=True)
@@ -101,7 +106,7 @@ def kill_mcp_processes(
         try:
             os.kill(pid, signal.SIGTERM)
         except ProcessLookupError:
-            # Already gone — fine
+            # Already gone, fine
             continue
         except PermissionError as e:
             failed.append({"pid": pid, "error": f"permission denied: {e}"})

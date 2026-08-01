@@ -49,6 +49,8 @@ def minkowski_distance(x1: np.ndarray, x2: np.ndarray, p: float = 2) -> float:
     --------
     Euclidean distance (p=2) and Manhattan distance (p=1):
 
+    >>> import numpy as np
+    >>> from tuiml.algorithms.clustering.distance import minkowski_distance
     >>> x1 = np.array([0, 0])
     >>> x2 = np.array([3, 4])
     >>> minkowski_distance(x1, x2, p=2)

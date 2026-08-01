@@ -1,5 +1,7 @@
-"""
-Base classes for data splitting.
+"""Base classes for data splitting.
+
+Defines ``BaseSplitter``, the interface implemented by the train/test
+splitters in ``tuiml.evaluation.splitting`` (KFold, StratifiedKFold, etc.).
 """
 
 import numpy as np
@@ -7,11 +9,10 @@ from abc import ABC, abstractmethod
 from typing import List, Optional, Tuple, Iterator
 
 class BaseSplitter(ABC):
-    """
-    Base class for all data splitters.
+    """Base class for all data splitters.
 
-    All splitters implement the split() method that yields
-    (train_indices, test_indices) tuples.
+    All splitters implement the ``split()`` method that yields
+    ``(train_indices, test_indices)`` tuples.
     """
 
     @abstractmethod
@@ -21,8 +22,7 @@ class BaseSplitter(ABC):
         y: Optional[np.ndarray] = None,
         groups: Optional[np.ndarray] = None
     ) -> Iterator[Tuple[np.ndarray, np.ndarray]]:
-        """
-        Generate train/test indices.
+        """Generate train/test indices.
 
         Parameters
         ----------
@@ -49,8 +49,7 @@ class BaseSplitter(ABC):
         y: Optional[np.ndarray] = None,
         groups: Optional[np.ndarray] = None
     ) -> int:
-        """
-        Get the number of splits.
+        """Get the number of splits.
 
         Parameters
         ----------
@@ -73,7 +72,22 @@ class BaseSplitter(ABC):
         X: np.ndarray,
         y: Optional[np.ndarray] = None
     ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
-        """Validate and convert input to numpy arrays."""
+        """Validate lengths and convert ``X`` and ``y`` to numpy arrays.
+
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Training data.
+        y : np.ndarray of shape (n_samples,), optional
+            Target values.
+
+        Returns
+        -------
+        X : np.ndarray
+            Validated training data.
+        y : np.ndarray or None
+            Validated target values.
+        """
         X = np.asarray(X)
         if y is not None:
             y = np.asarray(y)
@@ -84,7 +98,7 @@ class BaseSplitter(ABC):
         return X, y
 
     def _is_classification(self, y: np.ndarray) -> bool:
-        """Check if task is classification based on y values."""
+        """Heuristically check if the task is classification based on ``y`` values."""
         unique = np.unique(y)
         # Classification if few unique values or integer type
         return (

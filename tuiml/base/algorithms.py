@@ -1,9 +1,9 @@
 """
-Base classes and registry for machine learning algorithms.
+Base classes and registration decorators for machine learning algorithms.
 
 This module provides the foundation for the plugin-based algorithm system.
-All base classes (Classifier, Clusterer, Regressor, Associator) are defined here
-with proper hub integration.
+All base classes (``Classifier``, ``Clusterer``, ``Regressor``, ``Associator``)
+are defined here and integrate with the component registry (``tuiml.registry``).
 """
 
 from abc import ABC, abstractmethod
@@ -14,7 +14,7 @@ import threading
 import time
 import asyncio
 
-from tuiml.hub import registry, ComponentType, Registrable
+from tuiml.registry import registry, ComponentType, Registrable
 
 def call_metric(metric_func, y_true, y_pred):
     """Call a metric function, choosing macro averaging for multiclass data.
@@ -58,7 +58,7 @@ def call_metric(metric_func, y_true, y_pred):
         try:
             return metric_func(y_true, y_pred, average="macro")
         except TypeError:
-            pass  # took **kwargs but not ``average`` — use the plain call
+            pass  # took **kwargs but not ``average``: use the plain call
     return metric_func(y_true, y_pred)
 
 
@@ -69,23 +69,31 @@ def call_metric(metric_func, y_true, y_pred):
 class Algorithm(Registrable, ABC):
     """Abstract base class for all machine learning algorithms.
 
-    Provides a unified interface for model lifecycle management, including 
-    training, prediction, serving, and hub registration.
+    Provides a unified interface for model lifecycle management, including
+    training, prediction, evaluation, persistence, REST serving, and
+    registration with the component registry.
 
     Overview
     --------
-    This class serves as the foundation for specialized thinkers like 
-    Classifiers and Regressors. It defines standard methods for metadata 
-    retrieval, parameter handling, and REST serving.
+    This class serves as the foundation for the specialized base classes
+    such as :class:`Classifier` and :class:`Regressor`. It defines standard
+    methods for metadata retrieval, parameter handling, and REST serving.
 
     Attributes
     ----------
     _is_fitted : bool
-        Internal flag indicating if the model has been trained.
+        Internal flag indicating whether the model has been trained.
 
     Notes
     -----
     Subclasses MUST implement :meth:`fit` and :meth:`predict`.
+
+    See Also
+    --------
+    :class:`~tuiml.base.algorithms.Classifier` : Base class for classification.
+    :class:`~tuiml.base.algorithms.Regressor` : Base class for regression.
+    :class:`~tuiml.base.algorithms.Clusterer` : Base class for clustering.
+    :class:`~tuiml.base.algorithms.Associator` : Base class for association rule mining.
     """
 
     _component_type = ComponentType.ALGORITHM
@@ -96,11 +104,13 @@ class Algorithm(Registrable, ABC):
 
     @classmethod
     def get_metadata(cls) -> Dict[str, Any]:
-        """
-        Return algorithm metadata for registration.
+        """Return algorithm metadata for registration.
 
-        Returns:
-            Dictionary with algorithm information
+        Returns
+        -------
+        metadata : dict
+            Dictionary with the algorithm's name, type, description,
+            parameter schema, capabilities, complexity, and references.
         """
         return {
             "name": cls.__name__,
@@ -114,105 +124,112 @@ class Algorithm(Registrable, ABC):
 
     @classmethod
     def get_parameter_schema(cls) -> Dict[str, Dict[str, Any]]:
-        """
-        Return JSON Schema for algorithm parameters.
+        """Return JSON Schema for algorithm parameters.
 
-        Returns:
-            Dictionary mapping parameter names to their schemas
+        Returns
+        -------
+        schema : dict
+            Dictionary mapping parameter names to their JSON Schemas,
+            for example::
 
-        Example::
-
-            {
-                "n_trees": {
-                    "type": "integer",
-                    "default": 100,
-                    "minimum": 1,
-                    "maximum": 1000,
-                    "description": "Number of trees in the forest"
+                {
+                    "n_trees": {
+                        "type": "integer",
+                        "default": 100,
+                        "minimum": 1,
+                        "maximum": 1000,
+                        "description": "Number of trees in the forest"
+                    }
                 }
-            }
         """
         return {}
 
     @classmethod
     def get_capabilities(cls) -> List[str]:
-        """
-        Return list of algorithm capabilities.
+        """Return the list of algorithm capabilities.
 
-        Returns:
-            List of capability strings
+        Returns
+        -------
+        capabilities : list of str
+            Capability strings, for example::
 
-        Example::
-
-            ["numeric", "nominal", "missing_values", "binary_class", "multiclass"]
+                ["numeric", "nominal", "missing_values", "binary_class", "multiclass"]
         """
         return []
 
     @classmethod
     def get_complexity(cls) -> str:
-        """
-        Return time/space complexity.
+        """Return the algorithm's time/space complexity.
 
-        Returns:
-            String describing complexity
-
-        Example::
-
-            "O(n * m * log(n))"
+        Returns
+        -------
+        complexity : str
+            String describing complexity, e.g. ``"O(n * m * log(n))"``.
         """
         return "Not specified"
 
     @classmethod
     def get_references(cls) -> List[str]:
-        """
-        Return list of academic references.
+        """Return the list of academic references.
 
-        Returns:
-            List of citation strings
+        Returns
+        -------
+        references : list of str
+            Citation strings, for example::
 
-        Example::
-
-            ["Breiman, L. (2001). Random Forests. Machine Learning, 45(1), 5-32."]
+                ["Breiman, L. (2001). Random Forests. Machine Learning, 45(1), 5-32."]
         """
         return []
 
     @abstractmethod
     def fit(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> "Algorithm":
-        """
-        Train the algorithm on data.
+        """Train the algorithm on data.
 
-        Args:
-            X: Training features (n_samples, n_features)
-            y: Training labels (n_samples,) - optional for unsupervised
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Training features.
+        y : np.ndarray of shape (n_samples,), optional
+            Training labels or target values. Optional for unsupervised
+            algorithms.
 
-        Returns:
-            Self (for method chaining)
+        Returns
+        -------
+        self : Algorithm
+            The fitted estimator (for method chaining).
         """
         pass
 
     @abstractmethod
     def predict(self, X: np.ndarray) -> np.ndarray:
-        """
-        Make predictions on new data.
+        """Make predictions on new data.
 
-        Args:
-            X: Test features (n_samples, n_features)
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Test features.
 
-        Returns:
-            Predictions (n_samples,)
+        Returns
+        -------
+        predictions : np.ndarray of shape (n_samples,)
+            Predicted labels or values.
         """
         pass
 
     def fit_predict(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> np.ndarray:
-        """
-        Fit and predict in one step (useful for clustering).
+        """Fit and predict in one step (useful for clustering).
 
-        Args:
-            X: Training features
-            y: Training labels (optional)
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Training features.
+        y : np.ndarray of shape (n_samples,), optional
+            Training labels or target values.
 
-        Returns:
-            Predictions
+        Returns
+        -------
+        predictions : np.ndarray of shape (n_samples,)
+            Predictions on the training data.
         """
         self.fit(X, y)
         return self.predict(X)
@@ -342,11 +359,26 @@ class Algorithm(Registrable, ABC):
         return model
 
     def partial_fit(self, X: np.ndarray, y: Optional[np.ndarray] = None, classes: Optional[np.ndarray] = None) -> "Algorithm":
-        """
-        Incrementally fit the model on a batch of samples.
+        """Incrementally fit the model on a batch of samples.
 
-        For algorithms that do not support online learning natively, this fallback
-        accumulates the samples in memory and calls fit() on the entire accumulated dataset.
+        For algorithms that do not support online learning natively, this
+        fallback accumulates the samples in memory and calls :meth:`fit` on
+        the entire accumulated dataset.
+
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Batch of training features.
+        y : np.ndarray of shape (n_samples,), optional
+            Batch of training labels or target values.
+        classes : np.ndarray, optional
+            Full array of possible class labels (classifiers only). Used to
+            populate ``classes_`` before all classes have been seen.
+
+        Returns
+        -------
+        self : Algorithm
+            The fitted estimator (for method chaining).
         """
         import warnings
         warnings.warn(
@@ -402,14 +434,23 @@ class Algorithm(Registrable, ABC):
         }
 
     def set_params(self, **params) -> "Algorithm":
-        """
-        Set algorithm parameters.
+        """Set algorithm parameters.
 
-        Args:
-            **params: Parameters to set
+        Parameters
+        ----------
+        **params : dict
+            Parameter names mapped to their new values. Each name must be
+            an existing attribute of the estimator.
 
-        Returns:
-            Self (for method chaining)
+        Returns
+        -------
+        self : Algorithm
+            The estimator (for method chaining).
+
+        Raises
+        ------
+        ValueError
+            If a parameter name is not a valid attribute.
         """
         for key, value in params.items():
             if hasattr(self, key):
@@ -419,7 +460,7 @@ class Algorithm(Registrable, ABC):
         return self
 
     def _check_is_fitted(self):
-        """Check if algorithm has been fitted."""
+        """Raise ``RuntimeError`` if the algorithm has not been fitted yet."""
         if not self._is_fitted:
             raise RuntimeError(
                 f"{self.__class__.__name__} must be fitted before calling predict"
@@ -465,6 +506,10 @@ class Algorithm(Registrable, ABC):
 
         Examples
         --------
+        >>> from tuiml.algorithms.bayesian import NaiveBayesClassifier
+        >>> from tuiml.datasets import load_iris
+        >>> from tuiml.evaluation.splitting import train_test_split
+        >>> X_train, X_test, y_train, y_test = train_test_split(*load_iris())
         >>> model = NaiveBayesClassifier().fit(X_train, y_train)   # doctest: +SKIP
         >>> info = model.serve(port=8000)                          # doctest: +SKIP
         >>> info["endpoints"]["predict"]                           # doctest: +SKIP
@@ -479,7 +524,7 @@ class Algorithm(Registrable, ABC):
             except RuntimeError:
                 background = False
 
-        from tuiml.api import serve as _serve
+        from tuiml.serving import serve as _serve
 
         return _serve(
             self,
@@ -496,28 +541,40 @@ class Algorithm(Registrable, ABC):
 class Classifier(Algorithm):
     """Base class for supervised classification algorithms.
 
-    Classifiers learn to assign categorical labels (classes) to instances 
-    based on training data.
+    Classifiers learn to assign categorical labels (classes) to instances
+    based on training data. The default :meth:`~Algorithm.score` is
+    accuracy.
+
+    Attributes
+    ----------
+    classes_ : np.ndarray
+        Class labels known to the classifier, when set by the subclass
+        during :meth:`~Algorithm.fit`.
 
     See Also
     --------
     :class:`~tuiml.base.algorithms.Regressor` : For continuous output.
+    :class:`~tuiml.base.algorithms.Algorithm` : Common algorithm interface.
     """
 
     _component_type = ComponentType.CLASSIFIER
 
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
-        """
-        Predict class probabilities.
+        """Predict class probabilities.
 
-        If the specific classifier does not support probability prediction natively,
-        this method returns a "one-hot" probability representation based on the predicted class labels.
+        If the specific classifier does not support probability prediction
+        natively, this method returns a one-hot probability representation
+        based on the predicted class labels.
 
-        Args:
-            X: Test features
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Test features.
 
-        Returns:
-            Class probabilities (n_samples, n_classes)
+        Returns
+        -------
+        proba : np.ndarray of shape (n_samples, n_classes)
+            Class membership probabilities.
         """
         import warnings
         warnings.warn(
@@ -557,12 +614,12 @@ class Classifier(Algorithm):
 class Clusterer(Algorithm):
     """Base class for unsupervised clustering algorithms.
 
-    Clustering groups similar instances together without the need for 
+    Clustering groups similar instances together without the need for
     pre-defined labels, discovering the underlying structure of the data.
 
     Overview
     --------
-    Algorithms in this category typically handle partition-based (e.g., K-Means) 
+    Algorithms in this category typically handle partition-based (e.g., K-Means)
     or hierarchical grouping.
 
     Attributes
@@ -573,6 +630,11 @@ class Clusterer(Algorithm):
         The labels assigned to each instance in the training set.
     cluster_centers_ : np.ndarray, optional
         Coordinates of the cluster centroids.
+
+    See Also
+    --------
+    :class:`~tuiml.base.algorithms.DensityBasedClusterer` : Probabilistic cluster membership.
+    :class:`~tuiml.base.algorithms.UpdateableClusterer` : Incremental clustering.
     """
 
     _component_type = ComponentType.CLUSTERER
@@ -585,96 +647,133 @@ class Clusterer(Algorithm):
         self.cluster_centers_ = None
 
     def fit(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> "Clusterer":
-        """
-        Build the clustering model from training data.
+        """Build the clustering model from training data.
 
-        Args:
-            X: Training data (n_samples, n_features)
-            y: Ignored (unsupervised learning)
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Training data.
+        y : None
+            Ignored (unsupervised learning).
 
-        Returns:
-            Self for method chaining
+        Returns
+        -------
+        self : Clusterer
+            The fitted clusterer (for method chaining).
         """
         pass
 
     def fit_predict(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> np.ndarray:
-        """
-        Fit the model and return cluster labels.
+        """Fit the model and return cluster labels.
 
-        Args:
-            X: Training data (n_samples, n_features)
-            y: Ignored
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Training data.
+        y : None
+            Ignored.
 
-        Returns:
-            Cluster labels (n_samples,)
+        Returns
+        -------
+        labels : np.ndarray of shape (n_samples,)
+            Cluster label of each training instance.
         """
         self.fit(X)
         return self.labels_
 
     def __repr__(self) -> str:
-        """String representation."""
+        """Return a string representation showing fit status and cluster count."""
         name = self.__class__.__name__
         if self._is_fitted:
             return f"{name}(n_clusters={self.n_clusters_})"
         return f"{name}(not fitted)"
 
 class DensityBasedClusterer(Clusterer):
-    """
-    Base class for density-based clusterers.
+    """Base class for density-based clusterers.
 
-    Density-based clusterers can estimate the probability of
-    cluster membership for each instance.
+    Density-based clusterers can estimate the probability of cluster
+    membership for each instance.
+
+    See Also
+    --------
+    :class:`~tuiml.base.algorithms.Clusterer` : General clustering base class.
     """
 
     @abstractmethod
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
-        """
-        Predict cluster membership probabilities.
+        """Predict cluster membership probabilities.
 
-        Args:
-            X: Data (n_samples, n_features)
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Data to score.
 
-        Returns:
-            Probability matrix (n_samples, n_clusters)
+        Returns
+        -------
+        proba : np.ndarray of shape (n_samples, n_clusters)
+            Cluster membership probability matrix.
         """
         pass
 
     def log_likelihood(self, X: np.ndarray) -> float:
-        """
-        Compute log-likelihood of data under the model.
+        """Compute the log-likelihood of data under the model.
 
-        Args:
-            X: Data (n_samples, n_features)
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Data to score.
 
-        Returns:
-            Log-likelihood value
+        Returns
+        -------
+        log_likelihood : float
+            Total log-likelihood of the data.
         """
         self._check_is_fitted()
         proba = self.predict_proba(X)
         return np.sum(np.log(np.sum(proba, axis=1) + 1e-10))
 
 class UpdateableClusterer(Clusterer):
-    """
-    Base class for clusterers that support incremental updates.
+    """Base class for clusterers that support incremental updates.
+
+    See Also
+    --------
+    :class:`~tuiml.base.algorithms.Clusterer` : General clustering base class.
     """
 
     @abstractmethod
     def update(self, X: np.ndarray) -> "UpdateableClusterer":
-        """
-        Update the model with new instances.
+        """Update the model with new instances.
 
-        Args:
-            X: New data (n_samples, n_features)
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            New data.
 
-        Returns:
-            Self for method chaining
+        Returns
+        -------
+        self : UpdateableClusterer
+            The updated clusterer (for method chaining).
         """
         pass
 
     def partial_fit(self, X: np.ndarray, y: Optional[np.ndarray] = None, classes: Optional[np.ndarray] = None) -> "UpdateableClusterer":
         """Incrementally fit the model on a batch of samples.
 
-        Delegates to the native update() method of the clusterer.
+        Delegates to the clusterer's native :meth:`update` method.
+
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Batch of training data.
+        y : None
+            Ignored (unsupervised learning).
+        classes : None
+            Ignored; accepted for API symmetry with classifiers.
+
+        Returns
+        -------
+        self : UpdateableClusterer
+            The updated clusterer (for method chaining).
         """
         self.update(X)
         self._is_fitted = True
@@ -685,7 +784,17 @@ class UpdateableClusterer(Clusterer):
 # =============================================================================
 
 class Regressor(Algorithm):
-    """Base class for regression algorithms."""
+    """Base class for supervised regression algorithms.
+
+    Regressors learn to predict continuous target values from training
+    data. The default :meth:`~Algorithm.score` is R². Timeseries models
+    also use this base class.
+
+    See Also
+    --------
+    :class:`~tuiml.base.algorithms.Classifier` : For categorical output.
+    :class:`~tuiml.base.algorithms.Algorithm` : Common algorithm interface.
+    """
 
     _component_type = ComponentType.REGRESSOR
 
@@ -702,7 +811,7 @@ class FrequentItemset:
     items : frozenset of int
         The set of item identifiers included in the itemset.
     support : float
-        The proportion of transactions containing this itemset: 
+        The proportion of transactions containing this itemset:
         :math:`P(items)`.
     count : int, default=0
         The absolute frequency count of the itemset.
@@ -712,15 +821,19 @@ class FrequentItemset:
     count: int = 0
 
     def __repr__(self) -> str:
+        """Return a string representation showing items and support."""
         return f"Itemset({set(self.items)}, sup={self.support:.3f})"
 
     def __len__(self) -> int:
+        """Return the number of items in the itemset."""
         return len(self.items)
 
     def __hash__(self) -> int:
+        """Return a hash based on the item set."""
         return hash(self.items)
 
     def __eq__(self, other) -> bool:
+        """Compare itemsets by their item sets."""
         if isinstance(other, FrequentItemset):
             return self.items == other.items
         return False
@@ -731,7 +844,7 @@ class AssociationRule:
 
     Overview
     --------
-    Association rules quantify how likely the consequent ($C$) is to appear 
+    Association rules quantify how likely the consequent ($C$) is to appear
     given the presence of the antecedent ($A$).
 
     Parameters
@@ -751,6 +864,14 @@ class AssociationRule:
         The difference from independence: :math:`P(A \\cup C) - P(A)P(C)`.
     conviction : float, default=1.0
         Implication strength: :math:`\\frac{1 - P(C)}{1 - \\text{confidence}}`.
+    jaccard : float, default=0.0
+        Jaccard coefficient:
+        :math:`\\frac{P(A \\cup C)}{P(A) + P(C) - P(A \\cup C)}`.
+    kulczynski : float, default=0.0
+        Average of the two conditional confidences :math:`P(C|A)` and
+        :math:`P(A|C)`.
+    all_confidence : float, default=0.0
+        Minimum of the two conditional confidences.
     """
     antecedent: FrozenSet[int]
     consequent: FrozenSet[int]
@@ -764,13 +885,16 @@ class AssociationRule:
     all_confidence: float = 0.0
 
     def __repr__(self) -> str:
+        """Return a string representation showing the rule and its metrics."""
         return (f"{set(self.antecedent)} -> {set(self.consequent)} "
                 f"(conf={self.confidence:.3f}, lift={self.lift:.3f})")
 
     def __hash__(self) -> int:
+        """Return a hash based on antecedent and consequent."""
         return hash((self.antecedent, self.consequent))
 
     def __eq__(self, other) -> bool:
+        """Compare rules by antecedent and consequent."""
         if isinstance(other, AssociationRule):
             return (self.antecedent == other.antecedent and
                     self.consequent == other.consequent)
@@ -779,7 +903,7 @@ class AssociationRule:
 class Associator(Algorithm):
     """Base class for Association Rule Mining.
 
-    Discovers interesting patterns and relationships between items in 
+    Discovers interesting patterns and relationships between items in
     large datasets (e.g., market basket analysis).
 
     Theory
@@ -808,26 +932,31 @@ class Associator(Algorithm):
 
     @abstractmethod
     def fit(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> "Associator":
-        """
-        Find frequent itemsets and generate association rules.
+        """Find frequent itemsets and generate association rules.
 
-        Args:
-            X: Transaction data. Can be:
-               - Binary matrix (n_transactions, n_items)
-               - List of lists containing item indices
-            y: Ignored
+        Parameters
+        ----------
+        X : np.ndarray or list of list of int
+            Transaction data, either a binary matrix of shape
+            (n_transactions, n_items) or a list of lists of item indices.
+        y : None
+            Ignored.
 
-        Returns:
-            Self for method chaining
+        Returns
+        -------
+        self : Associator
+            The fitted associator (for method chaining).
         """
         pass
 
     def predict(self, X: np.ndarray) -> np.ndarray:
-        """
-        Not applicable for association mining.
+        """Not applicable for association mining.
 
-        Raises:
-            NotImplementedError: Association miners don't predict
+        Raises
+        ------
+        NotImplementedError
+            Always; use :meth:`get_frequent_itemsets` or :meth:`get_rules`
+            instead.
         """
         raise NotImplementedError(
             "Association rule miners don't support predict(). "
@@ -836,15 +965,19 @@ class Associator(Algorithm):
 
     def get_frequent_itemsets(self, min_size: int = 1,
                               max_size: Optional[int] = None) -> List[FrequentItemset]:
-        """
-        Get discovered frequent itemsets.
+        """Return the discovered frequent itemsets.
 
-        Args:
-            min_size: Minimum itemset size
-            max_size: Maximum itemset size (None for no limit)
+        Parameters
+        ----------
+        min_size : int, default=1
+            Minimum itemset size.
+        max_size : int, optional
+            Maximum itemset size (``None`` for no limit).
 
-        Returns:
-            List of frequent itemsets
+        Returns
+        -------
+        itemsets : list of FrequentItemset
+            Frequent itemsets within the requested size range.
         """
         self._check_is_fitted()
         result = [fs for fs in self.frequent_itemsets_ if len(fs) >= min_size]
@@ -854,15 +987,19 @@ class Associator(Algorithm):
 
     def get_rules(self, min_confidence: Optional[float] = None,
                   min_lift: Optional[float] = None) -> List[AssociationRule]:
-        """
-        Get discovered association rules.
+        """Return the discovered association rules.
 
-        Args:
-            min_confidence: Minimum confidence threshold
-            min_lift: Minimum lift threshold
+        Parameters
+        ----------
+        min_confidence : float, optional
+            Minimum confidence threshold.
+        min_lift : float, optional
+            Minimum lift threshold.
 
-        Returns:
-            List of association rules
+        Returns
+        -------
+        rules : list of AssociationRule
+            Rules passing all requested thresholds.
         """
         self._check_is_fitted()
         result = self.rules_
@@ -873,10 +1010,20 @@ class Associator(Algorithm):
         return result
 
     def _preprocess_transactions(self, X) -> List[FrozenSet[int]]:
-        """
-        Convert input to list of transaction sets.
+        """Convert input to a list of transaction sets.
 
-        Handles both binary matrix and list-of-lists formats.
+        Handles both binary matrix and list-of-lists formats; empty
+        transactions are dropped.
+
+        Parameters
+        ----------
+        X : np.ndarray or list of list of int
+            Transaction data.
+
+        Returns
+        -------
+        transactions : list of frozenset of int
+            One frozenset of item indices per non-empty transaction.
         """
         if isinstance(X, np.ndarray):
             # Binary matrix format
@@ -891,7 +1038,7 @@ class Associator(Algorithm):
             return [frozenset(t) for t in X if t]
 
     def __repr__(self) -> str:
-        """String representation."""
+        """Return a string representation showing itemset and rule counts."""
         name = self.__class__.__name__
         if self._is_fitted:
             return (f"{name}(n_itemsets={len(self.frequent_itemsets_)}, "
@@ -903,25 +1050,30 @@ class Associator(Algorithm):
 # =============================================================================
 
 class AlgorithmRegistry:
-    """
-    Central registry for all algorithms.
+    """Central registry for all algorithms (legacy wrapper).
 
     Provides discovery, registration, and instantiation of algorithms.
 
-    Note: This class now wraps the unified Hub for backward compatibility.
-    New code should use the Hub directly.
+    Notes
+    -----
+    This class now wraps the unified component registry
+    (``tuiml.registry``) for backward compatibility. New code should use
+    the registry directly.
     """
 
     @classmethod
     def register(cls, algorithm_class: Type[Algorithm]) -> Type[Algorithm]:
-        """
-        Register an algorithm.
+        """Register an algorithm class with the component registry.
 
-        Args:
-            algorithm_class: Algorithm class to register
+        Parameters
+        ----------
+        algorithm_class : type
+            Algorithm class to register.
 
-        Returns:
-            The algorithm class (for decorator usage)
+        Returns
+        -------
+        algorithm_class : type
+            The same class (for decorator usage).
         """
         # Determine component type
         algorithm_type = getattr(algorithm_class, "_algorithm_type", "algorithm")
@@ -933,23 +1085,28 @@ class AlgorithmRegistry:
         }
         component_type = type_map.get(algorithm_type, ComponentType.ALGORITHM)
 
-        # Register with hub
+        # Register with the component registry
         registry.register_class(algorithm_class, component_type)
         return algorithm_class
 
     @classmethod
     def get(cls, name: str) -> Type[Algorithm]:
-        """
-        Get algorithm class by name.
+        """Get an algorithm class by name.
 
-        Args:
-            name: Algorithm name
+        Parameters
+        ----------
+        name : str
+            Registered algorithm name.
 
-        Returns:
-            Algorithm class
+        Returns
+        -------
+        algorithm_class : type
+            The algorithm class.
 
-        Raises:
-            ValueError: If algorithm not found
+        Raises
+        ------
+        ValueError
+            If no algorithm with that name is registered.
         """
         try:
             return registry.get(name)
@@ -958,14 +1115,18 @@ class AlgorithmRegistry:
 
     @classmethod
     def list(cls, type: Optional[str] = None) -> List[Dict[str, Any]]:
-        """
-        List all algorithms, optionally filtered by type.
+        """List all algorithms, optionally filtered by type.
 
-        Args:
-            type: Filter by type ('classifier', 'clusterer', 'regressor', 'associator')
+        Parameters
+        ----------
+        type : str, optional
+            Filter by type (``'classifier'``, ``'clusterer'``,
+            ``'regressor'``, ``'associator'``).
 
-        Returns:
-            List of algorithm metadata dictionaries
+        Returns
+        -------
+        algorithms : list of dict
+            Algorithm metadata dictionaries.
         """
         type_map = {
             "classifier": ComponentType.CLASSIFIER,
@@ -988,27 +1149,34 @@ class AlgorithmRegistry:
 
     @classmethod
     def search(cls, query: str) -> List[Dict[str, Any]]:
-        """
-        Search algorithms by keyword.
+        """Search algorithms by keyword.
 
-        Args:
-            query: Search query
+        Parameters
+        ----------
+        query : str
+            Search query.
 
-        Returns:
-            List of matching algorithm metadata
+        Returns
+        -------
+        matches : list of dict
+            Metadata of matching algorithms.
         """
         return registry.search(query)
 
     @classmethod
     def get_by_type(cls, algorithm_type: str) -> List[str]:
-        """
-        Get all algorithm names of a specific type.
+        """Get all algorithm names of a specific type.
 
-        Args:
-            algorithm_type: Type to filter by
+        Parameters
+        ----------
+        algorithm_type : str
+            Type to filter by (``'classifier'``, ``'clusterer'``,
+            ``'regressor'``, ``'associator'``).
 
-        Returns:
-            List of algorithm names
+        Returns
+        -------
+        names : list of str
+            Registered algorithm names of that type.
         """
         type_map = {
             "classifier": ComponentType.CLASSIFIER,
@@ -1025,24 +1193,29 @@ class AlgorithmRegistry:
         registry.clear()
 
 # =============================================================================
-# Decorators (with hub registration)
+# Decorators (with registry registration)
 # =============================================================================
 
 def algorithm(type: str = "classifier"):
-    """
-    Decorator to register an algorithm.
+    """Decorator to register an algorithm with the component registry.
 
-    Args:
-        type: Algorithm type ('classifier', 'clusterer', 'regressor', 'associator')
+    Parameters
+    ----------
+    type : str, default="classifier"
+        Algorithm type (``'classifier'``, ``'clusterer'``, ``'regressor'``,
+        ``'associator'``).
 
-    Returns:
-        Decorator function
+    Returns
+    -------
+    decorator : callable
+        Class decorator that registers the algorithm.
 
-    Example::
-
-        @algorithm(type="classifier")
-        class RandomForest(Classifier):
-            pass
+    Examples
+    --------
+    >>> from tuiml.base.algorithms import algorithm, Classifier
+    >>> @algorithm(type="classifier")
+    ... class RandomForest(Classifier):
+    ...     pass
     """
     type_map = {
         "classifier": ComponentType.CLASSIFIER,
@@ -1064,14 +1237,30 @@ def classifier(
     version: str = "1.0.0",
     author: Optional[str] = None,
 ):
-    """
-    Decorator to register a classifier.
+    """Decorator to register a classifier with the component registry.
 
-    Example::
+    Parameters
+    ----------
+    name : str, optional
+        Registry name. Defaults to the class name.
+    tags : list of str, optional
+        Tags for discovery and search.
+    version : str, default="1.0.0"
+        Component version string.
+    author : str, optional
+        Component author.
 
-        @classifier(tags=["ensemble", "tree"])
-        class RandomForest(Classifier):
-            pass
+    Returns
+    -------
+    decorator : callable
+        Class decorator that registers the classifier.
+
+    Examples
+    --------
+    >>> from tuiml.base.algorithms import classifier, Classifier
+    >>> @classifier(tags=["ensemble", "tree"])
+    ... class RandomForest(Classifier):
+    ...     pass
     """
     return registry.register(
         ComponentType.CLASSIFIER,
@@ -1087,14 +1276,30 @@ def clusterer(
     version: str = "1.0.0",
     author: Optional[str] = None,
 ):
-    """
-    Decorator to register a clusterer.
+    """Decorator to register a clusterer with the component registry.
 
-    Example::
+    Parameters
+    ----------
+    name : str, optional
+        Registry name. Defaults to the class name.
+    tags : list of str, optional
+        Tags for discovery and search.
+    version : str, default="1.0.0"
+        Component version string.
+    author : str, optional
+        Component author.
 
-        @clusterer(tags=["partitioning"])
-        class KMeans(Clusterer):
-            pass
+    Returns
+    -------
+    decorator : callable
+        Class decorator that registers the clusterer.
+
+    Examples
+    --------
+    >>> from tuiml.base.algorithms import clusterer, Clusterer
+    >>> @clusterer(tags=["partitioning"])
+    ... class KMeans(Clusterer):
+    ...     pass
     """
     return registry.register(
         ComponentType.CLUSTERER,
@@ -1110,14 +1315,30 @@ def regressor(
     version: str = "1.0.0",
     author: Optional[str] = None,
 ):
-    """
-    Decorator to register a regressor.
+    """Decorator to register a regressor with the component registry.
 
-    Example::
+    Parameters
+    ----------
+    name : str, optional
+        Registry name. Defaults to the class name.
+    tags : list of str, optional
+        Tags for discovery and search.
+    version : str, default="1.0.0"
+        Component version string.
+    author : str, optional
+        Component author.
 
-        @regressor(tags=["linear"])
-        class LinearRegression(Regressor):
-            pass
+    Returns
+    -------
+    decorator : callable
+        Class decorator that registers the regressor.
+
+    Examples
+    --------
+    >>> from tuiml.base.algorithms import regressor, Regressor
+    >>> @regressor(tags=["linear"])
+    ... class LinearRegression(Regressor):
+    ...     pass
     """
     return registry.register(
         ComponentType.REGRESSOR,
@@ -1133,14 +1354,30 @@ def associator(
     version: str = "1.0.0",
     author: Optional[str] = None,
 ):
-    """
-    Decorator to register an associator.
+    """Decorator to register an associator with the component registry.
 
-    Example::
+    Parameters
+    ----------
+    name : str, optional
+        Registry name. Defaults to the class name.
+    tags : list of str, optional
+        Tags for discovery and search.
+    version : str, default="1.0.0"
+        Component version string.
+    author : str, optional
+        Component author.
 
-        @associator(tags=["itemset", "frequent"])
-        class Apriori(Associator):
-            pass
+    Returns
+    -------
+    decorator : callable
+        Class decorator that registers the associator.
+
+    Examples
+    --------
+    >>> from tuiml.base.algorithms import associator, Associator
+    >>> @associator(tags=["itemset", "frequent"])
+    ... class Apriori(Associator):
+    ...     pass
     """
     return registry.register(
         ComponentType.ASSOCIATOR,
@@ -1155,37 +1392,47 @@ def associator(
 # =============================================================================
 
 def get_algorithm(name: str) -> Type[Algorithm]:
-    """
-    Get algorithm class by name.
+    """Get an algorithm class by name from the component registry.
 
-    Args:
-        name: Algorithm name
+    Parameters
+    ----------
+    name : str
+        Registered algorithm name.
 
-    Returns:
-        Algorithm class
+    Returns
+    -------
+    algorithm_class : type
+        The algorithm class.
     """
     return registry.get(name)
 
 def list_algorithms(type: Optional[str] = None) -> List[Dict[str, Any]]:
-    """
-    List available algorithms.
+    """List available algorithms.
 
-    Args:
-        type: Filter by type
+    Parameters
+    ----------
+    type : str, optional
+        Filter by type (``'classifier'``, ``'clusterer'``, ``'regressor'``,
+        ``'associator'``).
 
-    Returns:
-        List of algorithm metadata
+    Returns
+    -------
+    algorithms : list of dict
+        Algorithm metadata dictionaries.
     """
     return AlgorithmRegistry.list(type)
 
 def search_algorithms(query: str) -> List[Dict[str, Any]]:
-    """
-    Search algorithms by keyword.
+    """Search algorithms by keyword.
 
-    Args:
-        query: Search query
+    Parameters
+    ----------
+    query : str
+        Search query.
 
-    Returns:
-        List of matching algorithms
+    Returns
+    -------
+    matches : list of dict
+        Metadata of matching algorithms.
     """
     return registry.search(query)

@@ -38,9 +38,9 @@ class EllipticEnvelopeDetector(Classifier):
 
     where:
 
-    - :math:`\\mu` — Estimated location (mean vector)
-    - :math:`\\Sigma` — Estimated covariance matrix
-    - :math:`\\Sigma^{-1}` — Precision matrix (inverse covariance)
+    - :math:`\\mu`: Estimated location (mean vector)
+    - :math:`\\Sigma`: Estimated covariance matrix
+    - :math:`\\Sigma^{-1}`: Precision matrix (inverse covariance)
 
     Squared Mahalanobis distances :math:`D_M(x)^2` for Gaussian data follow a 
     **chi-square distribution** with :math:`p` degrees of freedom (where :math:`p` is the 
@@ -60,8 +60,8 @@ class EllipticEnvelopeDetector(Classifier):
     support_fraction : float or None, default=None
         Proportion of points to include in the support of the raw MCD estimate:
         
-        - ``None`` — Uses ``min(n_samples, n_features + 1) / 2``
-        - ``float`` — Between 0 and 1, specifies the fraction of samples
+        - ``None``: Uses ``min(n_samples, n_features + 1) / 2``
+        - ``float``: Between 0 and 1, specifies the fraction of samples
 
     random_state : int or None, default=None
         Random seed for reproducibility. Set for consistent results when 

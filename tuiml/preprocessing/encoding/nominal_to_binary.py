@@ -95,7 +95,7 @@ class OneHotEncoder(Transformer):
     def _validate_input(self, X: np.ndarray) -> np.ndarray:
         """Validate input without forcing a float cast.
 
-        Categories are frequently strings — the base validator's float
+        Categories are frequently strings, the base validator's float
         coercion would make encoding them impossible.
         """
         X = np.asarray(X)
@@ -174,7 +174,7 @@ class OneHotEncoder(Transformer):
         if not output_parts:
             raise ValueError(
                 "OneHotEncoder produced no output columns. The fitted data "
-                "had no categories — check that the selected columns contain "
+                "had no categories, check that the selected columns contain "
                 "categorical values."
             )
         output = np.hstack(output_parts)

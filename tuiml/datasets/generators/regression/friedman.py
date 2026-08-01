@@ -1,7 +1,10 @@
 """
-Friedman data generators.
+Friedman generators: the three classic regression benchmarks.
 
-Classic benchmark functions for regression.
+Implements Friedman's three test functions, which combine sine, square, and
+reciprocal terms so that no linear model fits them well. Extra features beyond
+those the function reads are pure noise, so the generators also measure how
+well a model ignores irrelevant inputs.
 """
 
 import numpy as np
@@ -37,8 +40,11 @@ class Friedman(RegressionGenerator):
 
     Examples
     --------
-    >>> gen = Friedman(n_samples=1000, function=1, noise=1.0)
+    >>> from tuiml.datasets.generators.regression import Friedman
+    >>> gen = Friedman(n_samples=1000, function=1, noise=1.0, random_state=0)
     >>> data = gen.generate()
+    >>> data.X.shape                 # only the first 5 features matter
+    (1000, 10)
     """
 
     def __init__(

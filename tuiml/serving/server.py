@@ -19,7 +19,7 @@ Usage:
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 
@@ -67,6 +67,7 @@ class ModelServer:
 
     Examples
     --------
+    >>> from tuiml.serving import ModelServer
     >>> server = ModelServer()
     >>> server.load_model("clf", "classifier.pkl")
     >>> app = server.create_app()
@@ -432,6 +433,7 @@ def create_app(
 
     Examples
     --------
+    >>> from tuiml.serving import create_app
     >>> app = create_app("classifier.pkl")
     >>> # Run with: uvicorn module:app --port 8000
     """
@@ -443,44 +445,111 @@ def create_app(
     return server.create_app()
 
 
+# Module-level state for tracking running servers
+_SERVERS: Dict[str, Dict] = {}
+
+
 def serve(
-    model_path: Union[str, Path],
-    model_id: str = "default",
+    model_or_path,
     host: str = "127.0.0.1",
     port: int = 8000,
+    model_id: str = "default",
+    background: bool = True,
     reload: bool = False,
     workers: int = 1,
-    log_level: str = "info",
 ):
-    """
-    Serve a trained model via REST API.
+    """Serve a trained model via REST API.
 
-    Starts a uvicorn server to serve predictions from the model.
+    Accepts a file path, a fitted ``Workflow``, or a model object and starts
+    a uvicorn server exposing prediction endpoints.
 
     Parameters
     ----------
-    model_path : str or Path
-        Path to the saved model file.
-    model_id : str, default="default"
-        Identifier for the model.
+    model_or_path : str, Workflow, or model object
+        The model to serve:
+
+        - ``str``: Path to a saved model file
+        - ``Workflow``: a fitted pipeline from ``train()`` or ``Workflow.fit()``
+        - model object, Any object with a ``predict()`` method
+
     host : str, default="127.0.0.1"
         Host to bind the server to.
+
     port : int, default=8000
         Port to listen on.
+
+    model_id : str, default="default"
+        Identifier for the model in the server.
+
+    background : bool, default=True
+        If True, run the server in a daemon thread and return immediately.
+        If False, block until the server is stopped.
+
     reload : bool, default=False
-        Enable auto-reload for development.
+        Enable auto-reload for development. Only applies when
+        ``background=False``.
+
     workers : int, default=1
-        Number of worker processes.
-    log_level : str, default="info"
-        Logging level.
+        Number of worker processes. Only applies when ``background=False``.
+
+    Returns
+    -------
+    dict or None
+        If ``background=True``, returns a dict with ``server_id``, ``url``,
+        and ``endpoints``. If ``background=False``, blocks and returns None.
 
     Examples
     --------
-    >>> from tuiml.serving import serve
-    >>> serve("classifier.pkl", port=8000)
-    # Server running at http://127.0.0.1:8000
-    # API docs at http://127.0.0.1:8000/docs
+    Serve the pipeline that ``train()`` returned:
+
+    >>> import tuiml
+    >>> model = tuiml.train({
+    ...     "model": {"name": "NaiveBayesClassifier"},
+    ...     "data": {"source": "iris"},
+    ... })                                                # doctest: +SKIP
+    >>> info = tuiml.serve(model, port=8000)              # doctest: +SKIP
+    >>> info["url"]                                       # doctest: +SKIP
+    'http://127.0.0.1:8000'
+
+    Serve any fitted model. Every algorithm works, with or without a
+    pipeline around it (models also carry their own ``.serve()`` method):
+
+    >>> from tuiml.algorithms.trees import RandomForestClassifier
+    >>> clf = RandomForestClassifier(n_estimators=100)    # doctest: +SKIP
+    >>> clf = clf.fit(X_train, y_train)                   # doctest: +SKIP
+    >>> info = tuiml.serve(clf, port=8001)                # doctest: +SKIP
+
+    Serve a fitted pipeline built from objects; the fitted preprocessing
+    travels with it, so the API accepts raw rows:
+
+    >>> from tuiml import Workflow
+    >>> from tuiml.preprocessing import StandardScaler    # doctest: +SKIP
+    >>> wf = Workflow([StandardScaler(), RandomForestClassifier()])
+    ...                                                   # doctest: +SKIP
+    >>> wf = wf.fit(X_train, y_train)                     # doctest: +SKIP
+    >>> info = tuiml.serve(wf, port=8002)                 # doctest: +SKIP
+
+    Serve a model saved earlier with ``model.save(path)``:
+
+    >>> info = tuiml.serve("model.pkl", port=8003)        # doctest: +SKIP
+
+    Then manage the running servers:
+
+    >>> tuiml.server_status()                             # doctest: +SKIP
+    >>> tuiml.stop_server("127.0.0.1:8001")               # doctest: +SKIP
+    >>> tuiml.stop_server()                               # doctest: +SKIP
     """
+    import tempfile
+
+    from tuiml.utils.serialization import save_model
+    from tuiml.workflow import Workflow
+
+    if not FASTAPI_AVAILABLE:
+        raise ImportError(
+            "FastAPI is required for model serving. "
+            "Install with: pip install fastapi uvicorn"
+        )
+
     try:
         import uvicorn
     except ImportError:
@@ -489,34 +558,173 @@ def serve(
             "Install with: pip install uvicorn"
         )
 
-    if not FASTAPI_AVAILABLE:
-        raise ImportError(
-            "FastAPI is required for model serving. "
-            "Install with: pip install fastapi uvicorn"
+    server = ModelServer()
+
+    if isinstance(model_or_path, (str, Path)):
+        # File path, load directly
+        server.load_model(model_id, model_or_path)
+    elif isinstance(model_or_path, Workflow):
+        # Fitted Workflow, serialize the whole pipeline so the served model
+        # applies its transformations too.
+        if not model_or_path._is_fitted:
+            raise RuntimeError("This Workflow is not fitted yet. Call fit() first.")
+        tmp = tempfile.NamedTemporaryFile(suffix=".pkl", delete=False)
+        tmp.close()
+        save_model(model_or_path, tmp.name)
+        server.load_model(model_id, tmp.name)
+    else:
+        # Assume it's a model object with predict()
+        if not hasattr(model_or_path, 'predict'):
+            raise ValueError("Object does not have a predict() method.")
+        tmp = tempfile.NamedTemporaryFile(suffix=".pkl", delete=False)
+        tmp.close()
+        save_model(model_or_path, tmp.name)
+        server.load_model(model_id, tmp.name)
+
+    app = server.create_app()
+    server_id = f"{host}:{port}"
+
+    if not background:
+        _SERVERS[server_id] = {
+            "server_id": server_id,
+            "host": host,
+            "port": port,
+            "model_id": model_id,
+            "url": f"http://{host}:{port}",
+            "server_obj": server,
+        }
+        try:
+            uvicorn.run(app, host=host, port=port, reload=reload,
+                        workers=workers, log_level="info")
+        finally:
+            _SERVERS.pop(server_id, None)
+        return None
+
+    # Background mode, run in daemon thread
+    import asyncio
+    import threading
+    import time
+
+    config = uvicorn.Config(app, host=host, port=port, log_level="warning")
+    uvicorn_server = uvicorn.Server(config)
+
+    def run_server():
+        """Run uvicorn server with proper event loop handling."""
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            loop.run_until_complete(uvicorn_server.serve())
+        finally:
+            loop.close()
+
+    thread = threading.Thread(target=run_server, daemon=True)
+    thread.start()
+
+    # Wait for uvicorn to actually bind before reporting success. Without this
+    # a failure in the background thread, most often the port already being in
+    # use, would go unnoticed and this call would hand back a URL for a server
+    # that never started.
+    deadline = time.monotonic() + 10.0
+    while time.monotonic() < deadline:
+        if getattr(uvicorn_server, "started", False):
+            break
+        if not thread.is_alive():
+            raise RuntimeError(
+                f"The server failed to start on {host}:{port}. The port is "
+                f"most likely already in use, pick another port, or call "
+                f"tuiml.stop_server() to shut down servers started earlier."
+            )
+        time.sleep(0.05)
+    else:
+        uvicorn_server.should_exit = True
+        raise RuntimeError(
+            f"The server did not become ready on {host}:{port} within 10s."
         )
 
-    # Validate model exists before starting server
-    model_path = Path(model_path)
-    if not model_path.exists():
-        raise FileNotFoundError(f"Model file not found: {model_path}")
+    info = {
+        "server_id": server_id,
+        "host": host,
+        "port": port,
+        "model_id": model_id,
+        "url": f"http://{host}:{port}",
+        "endpoints": {
+            "predict": f"http://{host}:{port}/models/{model_id}/predict",
+            "health": f"http://{host}:{port}/health",
+            "docs": f"http://{host}:{port}/docs",
+        },
+        "server_obj": server,
+        "uvicorn_server": uvicorn_server,
+        "thread": thread,
+    }
+    _SERVERS[server_id] = info
 
-    # Create app with model loaded
-    app = create_app(model_path, model_id)
+    # Return a clean dict without internal objects
+    return {
+        "server_id": server_id,
+        "host": host,
+        "port": port,
+        "model_id": model_id,
+        "url": f"http://{host}:{port}",
+        "endpoints": info["endpoints"],
+    }
 
-    logger.info("Starting TuiML Model Server...")
-    logger.info("  Model: %s", model_path)
-    logger.info("  Model ID: %s", model_id)
-    logger.info("  Server: http://%s:%s", host, port)
-    logger.info("  API Docs: http://%s:%s/docs", host, port)
 
-    uvicorn.run(
-        app,
-        host=host,
-        port=port,
-        reload=reload,
-        workers=workers,
-        log_level=log_level,
-    )
+def stop_server(server_id: Optional[str] = None) -> None:
+    """Stop running model server(s).
+
+    Parameters
+    ----------
+    server_id : str, optional
+        The server ID (``"host:port"``) to stop. If None, stops all
+        running servers.
+
+    Examples
+    --------
+    Stop a specific server:
+
+    >>> import tuiml
+    >>> tuiml.stop_server("127.0.0.1:9999")
+
+    Stop all servers:
+
+    >>> tuiml.stop_server()
+    """
+    if server_id is not None:
+        info = _SERVERS.pop(server_id, None)
+        if info and "uvicorn_server" in info:
+            info["uvicorn_server"].should_exit = True
+    else:
+        for sid in list(_SERVERS.keys()):
+            info = _SERVERS.pop(sid, None)
+            if info and "uvicorn_server" in info:
+                info["uvicorn_server"].should_exit = True
+
+
+def server_status() -> List[Dict]:
+    """Get status of running model servers.
+
+    Returns
+    -------
+    list of dict
+        List of server info dicts, each containing ``server_id``,
+        ``host``, ``port``, ``model_id``, and ``url``.
+
+    Examples
+    --------
+    >>> import tuiml
+    >>> tuiml.server_status()
+    [{'server_id': '127.0.0.1:9999', 'url': 'http://127.0.0.1:9999', ...}]
+    """
+    return [
+        {
+            "server_id": info["server_id"],
+            "host": info["host"],
+            "port": info["port"],
+            "model_id": info["model_id"],
+            "url": info["url"],
+        }
+        for info in _SERVERS.values()
+    ]
 
 
 if __name__ == "__main__":
@@ -534,4 +742,5 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     serve(args.model, model_id=args.model_id, host=args.host,
-          port=args.port, workers=args.workers, reload=args.reload)
+          port=args.port, workers=args.workers, reload=args.reload,
+          background=False)

@@ -1,13 +1,13 @@
 """Declarative specification layer for the scikit-learn bridge.
 
-The wrapper modules in this package are **generated** from the rows in
-:mod:`tuiml.sklearn.specs` by ``scripts/generate_sklearn_wrappers.py``. This
-module holds the pieces those generated classes rely on at runtime:
+The wrapper modules in this package are built from the rows in
+:mod:`tuiml.sklearn.specs`. This module holds the pieces those wrapper
+classes rely on at runtime:
 
-* :class:`SklearnSpec` — the declarative description of one wrapped estimator.
-* :func:`build_estimator` — resolves the backing scikit-learn class and
+* :class:`SklearnSpec`: the declarative description of one wrapped estimator.
+* :func:`build_estimator`: resolves the backing scikit-learn class and
   constructs it, validating parameter names against the real signature.
-* :func:`derive_schema` — derives a JSON Schema for an estimator's constructor
+* :func:`derive_schema`: derives a JSON Schema for an estimator's constructor
   from scikit-learn's own signature and ``_parameter_constraints`` metadata, so
   the schema can never drift from the installed scikit-learn version.
 
@@ -64,7 +64,7 @@ class SklearnSpec:
         Parameters surfaced first in the derived schema. Also the offline
         fallback when scikit-learn is not installed.
     exclude : tuple of str
-        Parameters omitted from the derived schema — either meaningless through
+        Parameters omitted from the derived schema, either meaningless through
         TuiML (``n_jobs``, ``verbose``) or unsupported (a ``precomputed`` kernel
         needs a kernel matrix rather than a feature array).
     tier : int
@@ -247,7 +247,7 @@ def derive_schema(
     """Derive a JSON Schema for an estimator's constructor parameters.
 
     Reads the live scikit-learn signature and, when available, the estimator's
-    ``_parameter_constraints`` metadata — which supplies real enums and numeric
+    ``_parameter_constraints`` metadata, which supplies real enums and numeric
     bounds. Because it is derived rather than hand-written, the schema cannot
     drift from the installed scikit-learn version.
 

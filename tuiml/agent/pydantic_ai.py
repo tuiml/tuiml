@@ -1,11 +1,11 @@
-"""Pydantic-AI adapter — TuiML tools + a one-liner ``tuiml.agent()`` agent.
+"""Pydantic-AI adapter, TuiML tools + a one-liner ``tuiml.agent()`` agent.
 
 Pydantic-AI is model-agnostic (works with Anthropic, OpenAI, Google, Groq,
 etc.), uses Pydantic models for schemas natively, and is our chosen substrate
 for the one-liner agent. This module exposes both the plain tools list and a
 pre-wired ``Agent`` instance.
 
-Example — plug tools into your own agent
+Example, plug tools into your own agent
 ----------------------------------------
 >>> from tuiml.agent.pydantic_ai import get_tools, system_prompt
 >>> from pydantic_ai import Agent
@@ -13,7 +13,7 @@ Example — plug tools into your own agent
 ...               tools=get_tools(), system_prompt=system_prompt())
 >>> agent.run_sync("Train a random forest on iris and report accuracy using TuiML")
 
-Example — one-liner
+Example, one-liner
 -------------------
 >>> import tuiml
 >>> tuiml.agent().run_sync("Predict churn on customers.csv")
@@ -27,7 +27,26 @@ from tuiml.agent._core import build_args_model, invoke, iter_tools, load_skill, 
 
 
 def get_tools() -> List[Any]:
-    """Return every TuiML workflow tool as a ``pydantic_ai.Tool``."""
+    """Return every TuiML workflow tool as a ``pydantic_ai.Tool``.
+
+    Returns
+    -------
+    list of pydantic_ai.Tool
+        One Tool per workflow tool, each routing to the TuiML executor.
+        Pass directly as ``Agent(tools=get_tools(), ...)``.
+
+    Raises
+    ------
+    ImportError
+        If ``pydantic_ai`` is not installed.
+
+    Examples
+    --------
+    >>> from tuiml.agent.pydantic_ai import get_tools, system_prompt
+    >>> from pydantic_ai import Agent
+    >>> agent = Agent("anthropic:claude-sonnet-4-6",
+    ...               tools=get_tools(), system_prompt=system_prompt())
+    """
     require("pydantic_ai", "pydantic-ai")
     from pydantic_ai import Tool  # type: ignore
 
@@ -39,7 +58,24 @@ def get_tools() -> List[Any]:
 
 
 def _make_tool(Tool: Any, name: str, description: str, args_model: Any) -> Any:
-    """Build one ``pydantic_ai.Tool`` using a closure that captures ``name``."""
+    """Build one ``pydantic_ai.Tool`` using a closure that captures ``name``.
+
+    Parameters
+    ----------
+    Tool : type
+        The ``pydantic_ai.Tool`` class (passed in to keep the import lazy).
+    name : str
+        Workflow tool name (e.g. "tuiml_train").
+    description : str
+        Tool description shown to the model.
+    args_model : type
+        Pydantic model describing the tool's arguments.
+
+    Returns
+    -------
+    pydantic_ai.Tool
+        Tool whose async function invokes the named TuiML executor.
+    """
     from pydantic_ai import RunContext  # type: ignore
 
     async def _run(ctx: RunContext[Any], **kwargs: Any) -> Any:  # noqa: ARG001
@@ -56,7 +92,13 @@ def _make_tool(Tool: Any, name: str, description: str, args_model: Any) -> Any:
 
 
 def system_prompt() -> str:
-    """Return the canonical TuiML system prompt (SKILL.md)."""
+    """Return the canonical TuiML system prompt (SKILL.md).
+
+    Returns
+    -------
+    str
+        The contents of the canonical ``SKILL.md`` system prompt.
+    """
     return load_skill()
 
 
@@ -74,8 +116,14 @@ def agent(model: Optional[str] = None, **kwargs: Any) -> Any:
     **kwargs
         Passed through to ``pydantic_ai.Agent``.
 
-    Example
+    Returns
     -------
+    pydantic_ai.Agent
+        Agent configured with all TuiML workflow tools and the canonical
+        system prompt.
+
+    Examples
+    --------
     >>> import tuiml
     >>> result = tuiml.agent().run_sync("Compare RandomForestClassifier and XGBoost on iris.")
     >>> print(result.output)

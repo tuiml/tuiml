@@ -1,5 +1,20 @@
-"""
-Random search cross-validation.
+"""Randomized cross-validated search over hyperparameter distributions.
+
+This module provides :class:`~tuiml.evaluation.tuning.RandomSearchCV`, which
+draws a fixed budget of ``n_iter`` configurations from the distributions you
+declare instead of enumerating a grid. Because the budget is decoupled from
+the dimensionality of the space, it is the practical default when some
+parameters are continuous, when you do not know in advance which parameters
+matter, or when you simply want to cap the number of model fits.
+
+The classic argument (Bergstra & Bengio, 2012) is that when only a few of the
+tuned parameters actually influence the score, a random draw of :math:`n`
+points explores :math:`n` distinct values of *each* important parameter, while
+a grid re-tests the same handful of values over and over.
+
+Search spaces are expressed with :class:`~tuiml.base.tuning.ParameterDistribution`,
+which accepts explicit value lists as well as ``(low, high)``,
+``(low, high, 'log')`` and ``(low, high, 'int')`` range tuples.
 """
 
 import numpy as np
@@ -10,84 +25,192 @@ import time
 from tuiml.base.tuning import BaseTuner, ParameterDistribution, TuningResult
 
 class RandomSearchCV(BaseTuner):
-    """
-    Random search over hyperparameter distributions.
+    """**Randomized** cross-validated search over hyperparameter distributions.
 
-    More efficient than grid search when not all parameters
-    are equally important.
+    Draws ``n_iter`` independent configurations from the declared
+    distributions, cross-validates each, and keeps the best. Unlike
+    :class:`~tuiml.evaluation.tuning.GridSearchCV`, the cost is fixed by
+    ``n_iter`` rather than by the size of the space, so continuous parameters
+    and high-dimensional spaces are affordable.
+
+    Overview
+    --------
+    1. Seed a random generator from ``random_seed`` (or the global TuiML seed).
+    2. Repeat ``n_iter`` times: sample one value per parameter from its
+       distribution, then cross-validate a copy of the estimator configured
+       with that sample.
+    3. Log the mean score, its standard deviation, and the mean per-fold fit
+       time into ``cv_results_``, and track the running best.
+    4. Rank all samples in ``cv_results_['rank_test_score']`` (rank 1 is best).
+    5. If ``refit=True``, refit a fresh copy of the estimator on the full
+       training set with ``best_params_`` and store it as ``best_estimator_``.
+
+    Search space
+    ------------
+    ``param_distributions`` maps a parameter name to one of the forms accepted
+    by :class:`~tuiml.base.tuning.ParameterDistribution`::
+
+        {'criterion':  ['gini', 'entropy'],   # list  -> uniform choice
+         'max_depth':  (2, 20, 'int'),        # 3-tuple 'int'   -> uniform integer, high INCLUSIVE
+         'C':          (0.001, 100, 'log'),   # 3-tuple 'log'   -> log-uniform (low > 0 required)
+         'max_features': (0.1, 1.0),          # 2-tuple numeric -> uniform continuous, high exclusive
+         'alpha':      lambda: 10 ** -3}      # callable        -> called with no arguments
+
+    Two subtleties follow from how a tuple is classified. A 2-tuple of
+    *numbers* is always read as a continuous range, so use a **list** when you
+    mean "choose one of these two numbers". A tuple of non-numbers such as
+    ``('linear', 'rbf')`` is not a range and is treated as a choice. Sampled
+    choices come back as NumPy scalars (``np.str_('gini')``, ``np.int64(5)``)
+    because the draw goes through ``numpy.random.RandomState.choice``.
+
+    Cost
+    ----
+    The search performs exactly :math:`\\text{n\\_iter} \\times \\text{cv}` model
+    fits, plus one more when ``refit=True`` — independent of how many
+    parameters are tuned. That is the whole point: with ``n_iter=20, cv=5``
+    you pay 101 fits whether the space has two dimensions or twenty, whereas
+    :class:`~tuiml.evaluation.tuning.GridSearchCV` would need the full
+    cartesian product.
 
     Parameters
     ----------
     estimator : object
-        Estimator to tune. Must have fit() and predict() methods.
+        Estimator to tune. Must expose ``fit(X, y)`` and ``predict(X)`` and
+        accept the sampled parameter names as writable attributes. The
+        instance is never modified; every evaluation works on a deep copy.
     param_distributions : dict
-        Dictionary with parameters as keys and distributions as values.
-        Values can be:
-        - List: uniform choice from list
-        - Tuple (low, high): uniform continuous
-        - Tuple (low, high, 'log'): log-uniform
-        - Tuple (low, high, 'int'): uniform integer
+        Search space. Keys are parameter names; values are lists, range
+        tuples, or zero-argument callables as described above. Wrapped in
+        :class:`~tuiml.base.tuning.ParameterDistribution`.
     n_iter : int, default=10
-        Number of parameter combinations to sample.
+        Number of configurations to sample, i.e. the search budget. Samples
+        are independent, so repeated values are possible in small discrete
+        spaces.
     scoring : str or callable, default='accuracy'
-        Scoring metric.
+        Metric maximized by the search. Built-ins are ``'accuracy'``,
+        ``'neg_mse'`` and ``'r2'``; a callable must have the signature
+        ``scorer(y_true, y_pred) -> float`` and follow the higher-is-better
+        convention. An unrecognized string falls back to ``'accuracy'``.
     cv : int, default=5
-        Number of cross-validation folds.
+        Number of cross-validation folds per sampled configuration.
     refit : bool, default=True
-        Refit estimator with best parameters.
+        Whether to refit the estimator on the full training data with
+        ``best_params_`` after the search. Required for ``predict``/``score``.
     verbose : int, default=0
-        Verbosity level.
-    random_state : int, optional
-        Random seed.
+        Verbosity. ``0`` is silent; any value above ``0`` prints one line per
+        sample plus a final summary.
+    n_jobs : int, default=1
+        Number of folds evaluated in parallel via ``joblib``. ``1`` runs
+        sequentially; other values fall back to sequential execution with a
+        warning when ``joblib`` is not installed.
+    random_seed : int, optional
+        Seed for both the parameter sampling and the cross-validation
+        shuffling, making a whole search reproducible. If ``None``, the global
+        TuiML seed is used, falling back to ``42``. The legacy keyword
+        ``random_state`` is still accepted as an alias and is stored on the
+        instance as ``self.random_state``.
+    progress_callback : callable, optional
+        Called after each sample with a dictionary containing ``'type'``,
+        ``'iteration'``, ``'total'``, ``'params'``, ``'mean_score'``,
+        ``'std_score'`` and ``'best_score'``.
 
     Attributes
     ----------
+    param_distributions : ParameterDistribution
+        The wrapped search space that configurations are drawn from.
+    n_iter : int
+        The configured search budget.
     best_params_ : dict
-        Best parameters found.
+        Sampled configuration with the highest mean cross-validation score.
+        ``None`` before ``fit`` is called.
     best_score_ : float
-        Best cross-validation score.
+        Mean cross-validation score of ``best_params_``.
     best_estimator_ : object
-        Estimator fitted with best parameters.
+        Copy of ``estimator`` refitted on the full training data with
+        ``best_params_``. Only set when ``refit=True``.
     cv_results_ : dict
-        Cross-validation results.
+        Per-sample log with parallel lists of length ``n_iter``:
+
+        - ``'params'`` : list of dict, the sampled configuration.
+        - ``'mean_test_score'`` : list of float, mean score across folds.
+        - ``'std_test_score'`` : list of float, standard deviation of the
+          fold scores.
+        - ``'mean_fit_time'`` : list of float, mean seconds per fold.
+        - ``'rank_test_score'`` : list of int, 1 for the best sample.
+    total_time_ : float
+        Wall-clock seconds consumed by the whole search, including the refit.
+
+    Notes
+    -----
+    **Complexity.** :math:`O(\\text{n\\_iter} \\cdot \\text{cv} \\cdot C)` where
+    :math:`C` is the cost of a single estimator fit; memory is
+    :math:`O(\\text{n\\_iter})` for the result log.
+
+    **When to use.** The pragmatic default: any continuous parameter, more
+    than a couple of tuned parameters, or a hard budget on training time.
+    Prefer :class:`~tuiml.evaluation.tuning.GridSearchCV` when the space is
+    tiny and you want guaranteed coverage, and
+    :class:`~tuiml.evaluation.tuning.BayesianSearchCV` when each fit is
+    expensive enough to justify modelling the score surface.
+
+    References
+    ----------
+    .. [Bergstra2012] Bergstra, J., & Bengio, Y. (2012). Random Search for
+       Hyper-Parameter Optimization. *Journal of Machine Learning Research*,
+       13, 281-305.
+
+    See Also
+    --------
+    :class:`~tuiml.evaluation.tuning.GridSearchCV` : Exhaustive sweep of a
+        discrete grid.
+    :class:`~tuiml.evaluation.tuning.BayesianSearchCV` : Gaussian-Process
+        guided search that chooses each next configuration.
+    :class:`~tuiml.base.tuning.ParameterDistribution` : The sampler backing
+        ``param_distributions``.
+    :class:`~tuiml.base.tuning.TuningResult` : Structured result returned by
+        :meth:`get_results`.
 
     Examples
     --------
+    Sample four decision-tree configurations from a mixed space:
+
     >>> from tuiml.evaluation.tuning import RandomSearchCV
-    >>> from tuiml.algorithms.trees import RandomForestClassifier
-    >>>
-    >>> # Define parameter distributions
-    >>> param_distributions = {
-    ...     'n_estimators': (10, 200, 'int'),     # Uniform integer 10-200
-    ...     'max_depth': [None, 5, 10, 20],       # Choice from list
-    ...     'min_samples_split': (2, 20, 'int'),  # Uniform integer 2-20
-    ...     'max_features': (0.1, 1.0)            # Uniform continuous 0.1-1.0
-    ... }
-    >>>
-    >>> # Create and fit random search
+    >>> from tuiml.algorithms.trees import DecisionTreeClassifier
+    >>> from tuiml.datasets import load_iris
+    >>> data = load_iris()
+    >>> X, y = data.X, data.y
     >>> search = RandomSearchCV(
-    ...     estimator=RandomForestClassifier(),
-    ...     param_distributions=param_distributions,
-    ...     n_iter=20,
-    ...     cv=5,
-    ...     scoring='accuracy'
+    ...     estimator=DecisionTreeClassifier(),
+    ...     param_distributions={
+    ...         'max_depth': (2, 8, 'int'),
+    ...         'criterion': ['gini', 'entropy'],
+    ...     },
+    ...     n_iter=4,
+    ...     cv=3,
+    ...     scoring='accuracy',
+    ...     random_seed=0,
     ... )
-    >>> search.fit(X_train, y_train)
-    >>>
-    >>> print(f"Best params: {search.best_params_}")
-    >>> print(f"Best score: {search.best_score_:.4f}")
+    >>> search = search.fit(X, y)
+    >>> sorted(search.best_params_)
+    ['criterion', 'max_depth']
+    >>> str(search.best_params_['criterion'])
+    'entropy'
+    >>> round(float(search.best_score_), 2)
+    0.94
+
+    The budget, not the size of the space, fixes the amount of work:
+
+    >>> len(search.cv_results_['params'])
+    4
+    >>> min(search.cv_results_['rank_test_score'])
+    1
+    >>> search.predict(X).shape
+    (150,)
     """
 
     @classmethod
     def get_parameter_schema(cls) -> dict:
-        """
-        Return JSON Schema for RandomSearchCV parameters.
-
-        Returns
-        -------
-        dict
-            JSON Schema describing all __init__ parameters.
-        """
+        """Return JSON Schema for constructor parameters."""
         return {
             "estimator": {
                 "type": "object",
@@ -151,6 +274,7 @@ class RandomSearchCV(BaseTuner):
         progress_callback: Optional[Callable] = None,
         **kwargs
     ):
+        """Initialize the random search; see the class docstring for parameters."""
         legacy_random_state = kwargs.pop('random_state', None)
         if random_seed is None:
             random_seed = legacy_random_state
@@ -169,19 +293,25 @@ class RandomSearchCV(BaseTuner):
         self.n_iter = n_iter
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> "RandomSearchCV":
-        """
-        Fit random search to find best parameters.
+        """Sample ``n_iter`` configurations and keep the best-scoring one.
+
+        Runs exactly ``n_iter * cv`` estimator fits, then one extra fit on the
+        full data when ``refit=True``.
 
         Parameters
         ----------
-        X : ndarray of shape (n_samples, n_features)
+        X : np.ndarray of shape (n_samples, n_features)
             Training features.
-        y : ndarray of shape (n_samples,)
-            Target values.
+        y : np.ndarray of shape (n_samples,)
+            Target values. Integer, boolean, or object dtype (or few unique
+            values) selects stratified folds; otherwise plain k-fold is used.
 
         Returns
         -------
-        self
+        self : RandomSearchCV
+            The fitted searcher, with ``best_params_``, ``best_score_``,
+            ``cv_results_`` and ``total_time_`` populated (and
+            ``best_estimator_`` when ``refit=True``).
         """
         X = np.asarray(X)
         y = np.asarray(y)
@@ -258,12 +388,20 @@ class RandomSearchCV(BaseTuner):
         return self
 
     def get_results(self) -> TuningResult:
-        """
-        Get tuning results as TuningResult object.
+        """Bundle the fitted search state into a :class:`~tuiml.base.tuning.TuningResult`.
 
         Returns
         -------
         result : TuningResult
+            Container holding ``best_params``, ``best_score``,
+            ``best_estimator``, ``cv_results``, ``n_iterations`` (equal to
+            ``n_iter``), and the total search time in seconds.
+
+        Raises
+        ------
+        AttributeError
+            If called before :meth:`fit`, because ``total_time_`` does not
+            exist yet.
         """
         return TuningResult(
             best_params=self.best_params_,
@@ -275,6 +413,14 @@ class RandomSearchCV(BaseTuner):
         )
 
     def __repr__(self) -> str:
+        """Return a short summary of the searcher's configuration.
+
+        Returns
+        -------
+        text : str
+            String of the form ``RandomSearchCV(estimator=..., n_iter=...,
+            cv=..., scoring='...')``.
+        """
         return (
             f"RandomSearchCV(estimator={self.estimator.__class__.__name__}, "
             f"n_iter={self.n_iter}, cv={self.cv}, scoring='{self.scoring}')"

@@ -1,13 +1,35 @@
 """
-Feature scoring metrics for univariate feature selection.
+Univariate feature scoring for feature selection.
 
-This module provides metrics for scoring individual features in feature selection tasks.
-Compatible with WEKA's attribute evaluation methods.
-- chi2: ChiSquaredAttributeEval.java
-- f_classif: ANOVA F-test
-- f_regression: F-statistic for regression
-- oner_score: OneRAttributeEval.java
-- relief_f: ReliefFAttributeEval.java
+Each function scores every column of ``X`` independently against the target and
+returns one number per feature, so the columns can be ranked and the weakest
+dropped before a model ever sees them. Because the scoring is univariate, these
+metrics are fast but blind to interactions: a feature that is useless alone yet
+informative in combination will score low.
+
+Which one to reach for:
+
+- :func:`chi2` -- non-negative / count features against a class label.
+  Continuous columns are binned first.
+- :func:`f_classif` -- continuous features against a class label (ANOVA F).
+- :func:`f_regression` -- continuous features against a continuous target.
+- :func:`correlation` -- absolute Pearson correlation; linear relationships only.
+- :func:`oner_score` -- accuracy of a one-rule classifier built on the feature
+  alone; captures non-linear but axis-aligned structure.
+- :func:`relief_f` -- nearest-neighbour based; the only one here that is
+  sensitive to feature interactions.
+
+The statistical tests return a ``(scores, pvalues)`` pair; the ranking-style
+scorers return scores alone.
+
+Examples
+--------
+>>> from tuiml.datasets import load_iris
+>>> from tuiml.evaluation.metrics import f_classif
+>>> X, y = load_iris()
+>>> scores, pvalues = f_classif(X, y)
+>>> int(scores.argmax())          # petal length is the most discriminative
+2
 """
 
 import numpy as np
@@ -31,6 +53,22 @@ def chi2(X: np.ndarray, y: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         Chi-squared statistic for each feature.
     pvalues : ndarray of shape (n_features,)
         p-values corresponding to the chi-squared statistics.
+
+    Raises
+    ------
+    ValueError
+        If any value in ``X`` is negative.
+
+    Examples
+    --------
+    >>> from tuiml.datasets import load_iris
+    >>> from tuiml.evaluation.metrics import chi2
+    >>> X, y = load_iris()
+    >>> scores, pvalues = chi2(X, y)
+    >>> [round(float(v), 1) for v in scores]
+    [134.4, 78.0, 244.0, 241.7]
+    >>> int(scores.argmax())
+    2
     """
     if np.any(X < 0):
         raise ValueError("chi2 requires non-negative feature values")
@@ -106,6 +144,15 @@ def f_classif(X: np.ndarray, y: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         F-statistic for each feature.
     pvalues : ndarray of shape (n_features,)
         p-values associated with the F-statistic.
+
+    Examples
+    --------
+    >>> from tuiml.datasets import load_iris
+    >>> from tuiml.evaluation.metrics import f_classif
+    >>> X, y = load_iris()
+    >>> scores, pvalues = f_classif(X, y)
+    >>> [round(float(v)) for v in scores]
+    [119, 47, 1179, 959]
     """
     n_samples, n_features = X.shape
     classes = np.unique(y)
@@ -181,6 +228,21 @@ def f_regression(X: np.ndarray, y: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         F-statistic for each feature.
     pvalues : ndarray of shape (n_features,)
         p-values associated with the F-statistic.
+
+    Notes
+    -----
+    Use this when the target is continuous. For a class label use
+    :func:`f_classif` instead. The statistic tests a LINEAR relationship, so a
+    strong non-linear dependence can still score near zero.
+
+    Examples
+    --------
+    >>> from tuiml.datasets import load_iris
+    >>> from tuiml.evaluation.metrics import f_regression
+    >>> X, y = load_iris()
+    >>> scores, pvalues = f_regression(X, y.astype(float))
+    >>> [round(float(v)) for v in scores]
+    [234, 32, 1342, 1590]
     """
     n_samples, n_features = X.shape
     f_scores = np.zeros(n_features)
@@ -258,7 +320,24 @@ def correlation(X: np.ndarray, y: np.ndarray) -> np.ndarray:
     Returns
     -------
     scores : ndarray of shape (n_features,)
-        Absolute Pearson correlation coefficient for each feature.
+        Absolute Pearson correlation coefficient for each feature, in [0, 1].
+        The sign is discarded, so a strong negative correlation ranks as highly
+        as a strong positive one.
+
+    Notes
+    -----
+    Measures LINEAR association only: a feature related to the target through a
+    curve can score near zero. :func:`relief_f` and :func:`oner_score` pick up
+    relationships this misses.
+
+    Examples
+    --------
+    >>> from tuiml.datasets import load_iris
+    >>> from tuiml.evaluation.metrics import correlation
+    >>> X, y = load_iris()
+    >>> scores = correlation(X, y.astype(float))
+    >>> [round(float(v), 2) for v in scores]
+    [0.78, 0.42, 0.95, 0.96]
     """
     n_samples, n_features = X.shape
     scores = np.zeros(n_features)
@@ -312,7 +391,25 @@ def oner_score(X: np.ndarray, y: np.ndarray, n_bins: int = 10) -> np.ndarray:
     Returns
     -------
     scores : ndarray of shape (n_features,)
-        OneR accuracy for each feature (between 0 and 1).
+        OneR accuracy for each feature, between 0 and 1.
+
+    Notes
+    -----
+    Builds a one-rule classifier on each feature alone -- discretize, then
+    predict the majority class of the bin a sample falls in -- and reports its
+    training accuracy. Unlike :func:`correlation` this captures non-linear
+    structure, provided it is axis-aligned. Scores are not comparable across
+    datasets with different class balance, since the floor is the
+    majority-class rate.
+
+    Examples
+    --------
+    >>> from tuiml.datasets import load_iris
+    >>> from tuiml.evaluation.metrics import oner_score
+    >>> X, y = load_iris()
+    >>> scores = oner_score(X, y)
+    >>> [round(float(v), 2) for v in scores]
+    [0.73, 0.59, 0.91, 0.9]
     """
     n_samples, n_features = X.shape
     classes, y_encoded = np.unique(y, return_inverse=True)
@@ -387,7 +484,28 @@ def relief_f(
     Returns
     -------
     scores : ndarray of shape (n_features,)
-        ReliefF score for each feature.
+        ReliefF score for each feature. Higher is better; a score can be
+        negative for a feature that separates samples of the same class.
+
+    Notes
+    -----
+    For each sampled instance ReliefF looks at its nearest neighbours of the
+    same class (near hits) and of other classes (near misses), rewarding
+    features that differ on misses and agree on hits. Because it works from
+    neighbourhoods rather than one column at a time, it is the only scorer in
+    this module sensitive to feature INTERACTIONS -- at the cost of a distance
+    computation over the sampled instances.
+
+    Examples
+    --------
+    >>> from tuiml.datasets import load_iris
+    >>> from tuiml.evaluation.metrics import relief_f
+    >>> X, y = load_iris()
+    >>> scores = relief_f(X, y, random_state=0)
+    >>> len(scores)
+    4
+    >>> int(scores.argmax())
+    3
     """
     n_total, n_features = X.shape
     classes = np.unique(y)

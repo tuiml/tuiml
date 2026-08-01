@@ -1,5 +1,9 @@
 """
-Mexican Hat (Ricker wavelet) data generator.
+Mexican hat generator: the Ricker wavelet surface.
+
+Evaluates the negative second derivative of a Gaussian, a radially symmetric
+surface with a central peak ringed by a trough. Its sharp curvature near the
+origin makes it a good stress test for smoothers and local regressors.
 """
 
 import numpy as np
@@ -36,8 +40,11 @@ class MexicanHat(RegressionGenerator):
 
     Examples
     --------
-    >>> gen = MexicanHat(n_samples=1000, sigma=1.0)
+    >>> from tuiml.datasets.generators.regression import MexicanHat
+    >>> gen = MexicanHat(n_samples=1000, sigma=1.0, random_state=0)
     >>> data = gen.generate()
+    >>> data.X.shape
+    (1000, 2)
     """
 
     def __init__(

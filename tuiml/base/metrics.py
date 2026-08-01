@@ -41,62 +41,100 @@ class Metric(ABC):
     """
 
     def __init__(self, name: str, metric_type: MetricType):
-        """
-        Initialize a metric.
+        """Initialize a metric.
 
-        Args:
-            name: Name of the metric
-            metric_type: Type of metric (classification, regression, etc.)
+        Parameters
+        ----------
+        name : str
+            Name of the metric.
+        metric_type : MetricType
+            Task category the metric applies to (classification, regression, etc.).
         """
         self.name = name
         self.metric_type = metric_type
 
     @abstractmethod
     def compute(self, y_true: np.ndarray, y_pred: np.ndarray, **kwargs) -> float:
-        """
-        Compute the metric value.
+        """Compute the metric value.
 
-        Args:
-            y_true: Ground truth labels
-            y_pred: Predicted labels or probabilities
-            **kwargs: Additional metric-specific parameters
+        Parameters
+        ----------
+        y_true : np.ndarray of shape (n_samples,)
+            Ground truth labels.
+        y_pred : np.ndarray of shape (n_samples,)
+            Predicted labels or probabilities.
+        **kwargs : dict
+            Additional metric-specific parameters.
 
-        Returns:
-            The computed metric value
+        Returns
+        -------
+        score : float
+            The computed metric value.
         """
         pass
 
     def __call__(self, y_true: np.ndarray, y_pred: np.ndarray, **kwargs) -> float:
-        """Allow calling the metric directly."""
+        """Compute the metric by calling the object directly.
+
+        Parameters
+        ----------
+        y_true : np.ndarray of shape (n_samples,)
+            Ground truth labels.
+        y_pred : np.ndarray of shape (n_samples,)
+            Predicted labels or probabilities.
+        **kwargs : dict
+            Additional metric-specific parameters.
+
+        Returns
+        -------
+        score : float
+            The computed metric value.
+        """
         return self.compute(y_true, y_pred, **kwargs)
 
     def __repr__(self) -> str:
+        """Return string representation of the metric."""
         return f"{self.__class__.__name__}(name='{self.name}')"
 
 def check_consistent_length(*arrays) -> None:
-    """
-    Check that all arrays have consistent first dimensions.
+    """Check that all arrays have consistent first dimensions.
 
-    Args:
-        *arrays: Arrays to check
+    Parameters
+    ----------
+    *arrays : sequence of array-like
+        Arrays to check. ``None`` entries are ignored.
 
-    Raises:
-        ValueError: If arrays have inconsistent lengths
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    ValueError
+        If arrays have inconsistent lengths.
     """
     lengths = [len(arr) for arr in arrays if arr is not None]
     if len(set(lengths)) > 1:
         raise ValueError(f"Found input arrays with inconsistent numbers of samples: {lengths}")
 
 def check_classification_targets(y_true: np.ndarray, y_pred: np.ndarray) -> None:
-    """
-    Check that y_true and y_pred are valid classification targets.
+    """Check that ``y_true`` and ``y_pred`` are valid classification targets.
 
-    Args:
-        y_true: Ground truth labels
-        y_pred: Predicted labels
+    Parameters
+    ----------
+    y_true : np.ndarray of shape (n_samples,)
+        Ground truth labels.
+    y_pred : np.ndarray of shape (n_samples,)
+        Predicted labels.
 
-    Raises:
-        ValueError: If inputs are invalid
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    ValueError
+        If inputs are empty or have inconsistent lengths.
     """
     check_consistent_length(y_true, y_pred)
 
@@ -104,15 +142,19 @@ def check_classification_targets(y_true: np.ndarray, y_pred: np.ndarray) -> None
         raise ValueError("y_true and y_pred cannot be empty")
 
 def get_num_classes(y_true: np.ndarray, y_pred: Optional[np.ndarray] = None) -> int:
-    """
-    Get the number of unique classes in the data.
+    """Get the number of unique classes in the data.
 
-    Args:
-        y_true: Ground truth labels
-        y_pred: Predicted labels (optional)
+    Parameters
+    ----------
+    y_true : np.ndarray of shape (n_samples,)
+        Ground truth labels.
+    y_pred : np.ndarray of shape (n_samples,), optional
+        Predicted labels. If given, classes from both arrays are counted.
 
-    Returns:
-        Number of unique classes
+    Returns
+    -------
+    n_classes : int
+        Number of unique classes.
     """
     if y_pred is not None:
         classes = np.unique(np.concatenate([y_true, y_pred]))
@@ -121,59 +163,77 @@ def get_num_classes(y_true: np.ndarray, y_pred: Optional[np.ndarray] = None) -> 
     return len(classes)
 
 def get_class_labels(y_true: np.ndarray, y_pred: Optional[np.ndarray] = None) -> np.ndarray:
-    """
-    Get sorted unique class labels from the data.
+    """Get sorted unique class labels from the data.
 
-    Args:
-        y_true: Ground truth labels
-        y_pred: Predicted labels (optional)
+    Parameters
+    ----------
+    y_true : np.ndarray of shape (n_samples,)
+        Ground truth labels.
+    y_pred : np.ndarray of shape (n_samples,), optional
+        Predicted labels. If given, labels from both arrays are included.
 
-    Returns:
-        Sorted array of unique class labels
+    Returns
+    -------
+    labels : np.ndarray
+        Sorted array of unique class labels.
     """
     if y_pred is not None:
         return np.unique(np.concatenate([y_true, y_pred]))
     return np.unique(y_true)
 
 def is_binary(y_true: np.ndarray, y_pred: Optional[np.ndarray] = None) -> bool:
-    """
-    Check if this is a binary classification problem.
+    """Check if this is a binary classification problem.
 
-    Args:
-        y_true: Ground truth labels
-        y_pred: Predicted labels (optional)
+    Parameters
+    ----------
+    y_true : np.ndarray of shape (n_samples,)
+        Ground truth labels.
+    y_pred : np.ndarray of shape (n_samples,), optional
+        Predicted labels.
 
-    Returns:
-        True if binary classification
+    Returns
+    -------
+    binary : bool
+        True if the data contains exactly two classes.
     """
     return get_num_classes(y_true, y_pred) == 2
 
 def weighted_sum(values: np.ndarray, weights: np.ndarray) -> float:
-    """
-    Compute weighted sum of values.
+    """Compute the weighted average of values.
 
-    Args:
-        values: Values to sum
-        weights: Weights for each value
+    Parameters
+    ----------
+    values : np.ndarray
+        Values to aggregate.
+    weights : np.ndarray
+        Weight for each value.
 
-    Returns:
-        Weighted sum
+    Returns
+    -------
+    result : float
+        Sum of ``values * weights`` normalized by the total weight.
     """
     return np.sum(values * weights) / np.sum(weights)
 
 def safe_divide(numerator: Union[float, np.ndarray],
                 denominator: Union[float, np.ndarray],
                 zero_division: float = 0.0) -> Union[float, np.ndarray]:
-    """
-    Safely divide, handling division by zero.
+    """Safely divide, handling division by zero.
 
-    Args:
-        numerator: Numerator
-        denominator: Denominator
-        zero_division: Value to return when denominator is zero
+    Parameters
+    ----------
+    numerator : float or np.ndarray
+        Numerator.
+    denominator : float or np.ndarray
+        Denominator.
+    zero_division : float, default=0.0
+        Value to return where the denominator is zero.
 
-    Returns:
-        Result of division
+    Returns
+    -------
+    result : float or np.ndarray
+        Element-wise result of the division, with ``zero_division``
+        substituted wherever the denominator is zero.
     """
     if isinstance(denominator, np.ndarray):
         # Use np.divide with out and where to avoid RuntimeWarning

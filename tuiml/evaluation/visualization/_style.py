@@ -1,7 +1,36 @@
 """
-Modern visualization styling for TuiML.
+Shared matplotlib stylesheet backing every plot in ``tuiml.evaluation.visualization``.
 
-Provides consistent, publication-quality plot styling across all visualizations.
+Private module (maintainer-facing): the public API re-exports ``apply_style``,
+``reset_style``, ``get_colors``, ``setup_figure``, ``style_axis``, ``PALETTES``
+and ``SEMANTIC_COLORS`` from :mod:`tuiml.evaluation.visualization`.
+
+What lives here:
+
+- ``PALETTES`` — four named categorical colour cycles (``'default'``,
+  ``'vibrant'``, ``'muted'``, ``'scientific'``), each a list of hex strings.
+- ``SEMANTIC_COLORS`` — role-based tokens (``'primary'``, ``'danger'``,
+  ``'text'``, ``'grid'``, …) so plots reference *meaning*, not a hex literal.
+- ``STYLE_CONFIG`` — the rcParams dict applied by :func:`apply_style`
+  (sans-serif fonts, bold labels, top/right spines removed, 300-dpi savefig).
+- Helpers to build a styled figure (:func:`setup_figure`) and to finish an axis
+  consistently (:func:`style_axis`, :func:`annotate_bars`).
+
+Side effects to be aware of when maintaining this module:
+
+1. Importing it calls :func:`apply_style` once, mutating the **global**
+   ``matplotlib.rcParams``. Anything that imports ``tuiml.evaluation.visualization``
+   therefore inherits TuiML styling. :func:`reset_style` undoes it.
+2. matplotlib is imported lazily behind ``try/except ImportError``; the module
+   still imports without it (``HAS_MATPLOTLIB is False``). :func:`apply_style`
+   and :func:`reset_style` then no-op, while :func:`setup_figure` raises
+   :exc:`ImportError`.
+
+Notes
+-----
+Every plotting function in the package calls :func:`apply_style` (directly or
+via :func:`setup_figure`) on entry, so palette changes made by a caller are
+overwritten unless passed through the function's own arguments.
 """
 
 import numpy as np
@@ -154,20 +183,44 @@ STYLE_CONFIG = {
 
 def apply_style(palette: str = 'default', dark_mode: bool = False) -> None:
     """
-    Apply modern styling to matplotlib plots.
+    Install the TuiML stylesheet into the global matplotlib rcParams.
+
+    Writes every entry of ``STYLE_CONFIG`` into ``matplotlib.rcParams``, then
+    sets ``axes.prop_cycle`` from the requested palette. Unknown or rejected
+    rcParams keys are skipped silently, so the call is safe across matplotlib
+    versions.
 
     Parameters
     ----------
-    palette : str, default='default'
-        Color palette name. Options: 'default', 'vibrant', 'muted', 'scientific'.
+    palette : {'default', 'vibrant', 'muted', 'scientific'}, default='default'
+        Categorical colour cycle to install. An unrecognised name falls back to
+        ``'default'`` rather than raising.
     dark_mode : bool, default=False
-        Enable dark mode styling.
+        If True, overlay dark figure/axes/text/grid colours on top of the base
+        configuration.
+
+    Returns
+    -------
+    None
+        The function mutates global state and returns nothing.
+
+    Notes
+    -----
+    This is a **global, process-wide side effect** — every subsequent matplotlib
+    figure is affected, not just TuiML plots. Call :func:`reset_style` to
+    restore matplotlib's own defaults. If matplotlib is not installed the call
+    returns immediately without error.
+
+    See Also
+    --------
+    reset_style : Undo this, restoring matplotlib defaults.
+    setup_figure : Apply the style *and* create a figure in one call.
 
     Examples
     --------
-    >>> from tuiml.evaluation.visualization._style import apply_style
-    >>> apply_style()  # Apply default modern style
-    >>> apply_style(palette='vibrant')  # Use vibrant colors
+    >>> from tuiml.evaluation.visualization import apply_style, reset_style
+    >>> apply_style(palette='vibrant', dark_mode=True)
+    >>> reset_style()
     """
     if not HAS_MATPLOTLIB:
         return
@@ -211,26 +264,44 @@ def apply_style(palette: str = 'default', dark_mode: bool = False) -> None:
 
 
 def reset_style() -> None:
-    """Reset matplotlib to default styling."""
+    """Restore matplotlib's factory rcParams, discarding the TuiML style.
+
+    Returns
+    -------
+    None
+        Mutates global ``matplotlib.rcParams``; no-ops if matplotlib is absent.
+
+    See Also
+    --------
+    apply_style : Re-install the TuiML stylesheet.
+    """
     if HAS_MATPLOTLIB:
         mpl.rcdefaults()
 
 
 def get_colors(n: int = None, palette: str = 'default') -> list:
     """
-    Get colors from the specified palette.
+    Draw ``n`` colours from a named palette, cycling when more are requested.
 
     Parameters
     ----------
     n : int, optional
-        Number of colors to return. If None, returns all colors.
-    palette : str, default='default'
-        Palette name.
+        Number of colours to return. If None, the whole palette is returned
+        (the caller gets the module's own list object, so do not mutate it).
+        When ``n`` exceeds the palette length the colours repeat from the start.
+    palette : {'default', 'vibrant', 'muted', 'scientific'}, default='default'
+        Palette name; an unknown name falls back to ``'default'``.
 
     Returns
     -------
-    colors : list
-        List of color hex codes.
+    colors : list of str
+        Hex colour strings such as ``'#4C72B0'``, of length ``n``.
+
+    Examples
+    --------
+    >>> from tuiml.evaluation.visualization import get_colors
+    >>> get_colors(3, palette='scientific')
+    ['#1f77b4', '#ff7f0e', '#2ca02c']
     """
     colors = PALETTES.get(palette, PALETTES['default'])
     if n is None:
@@ -248,32 +319,46 @@ def setup_figure(
     style: str = None
 ) -> tuple:
     """
-    Create a styled figure and axes.
+    Apply the TuiML style and create a single-axes figure in one call.
+
+    Equivalent to :func:`apply_style` followed by ``plt.subplots(figsize=...)``.
+    This is the entry point every TuiML plotting function uses, which is why all
+    of them share the same fonts, colour cycle and spine treatment.
 
     Parameters
     ----------
-    figsize : tuple, default=(10, 6)
-        Figure size (width, height) in inches.
-    palette : str, default='default'
-        Color palette name.
+    figsize : tuple of (float, float), default=(10, 6)
+        Figure size ``(width, height)`` in inches.
+    palette : {'default', 'vibrant', 'muted', 'scientific'}, default='default'
+        Categorical colour cycle installed before the figure is created.
     dark_mode : bool, default=False
-        Enable dark mode.
+        Use the dark colour overlay.
     style : str, optional
-        Additional matplotlib style to apply (e.g., 'seaborn-v0_8-whitegrid').
+        Name of an extra matplotlib style sheet layered on top (e.g.
+        ``'seaborn-v0_8-whitegrid'``). An unknown name is ignored silently.
 
     Returns
     -------
-    fig : Figure
-        Matplotlib figure.
-    ax : Axes
-        Matplotlib axes.
+    fig : matplotlib.figure.Figure
+        The newly created figure.
+    ax : matplotlib.axes.Axes
+        Its single axes.
+
+    Raises
+    ------
+    ImportError
+        If matplotlib is not installed.
+
+    Notes
+    -----
+    Also mutates global rcParams (see :func:`apply_style`). The figure is
+    created but never shown or closed — the caller owns it.
 
     Examples
     --------
-    >>> from tuiml.evaluation.visualization._style import setup_figure
-    >>> fig, ax = setup_figure(figsize=(12, 8))
-    >>> ax.plot([1, 2, 3], [1, 4, 9])
-    >>> plt.show()
+    >>> from tuiml.evaluation.visualization import setup_figure
+    >>> fig, ax = setup_figure(figsize=(6, 4))          # doctest: +SKIP
+    >>> _ = ax.plot([1, 2, 3], [1, 4, 9])               # doctest: +SKIP
     """
     if not HAS_MATPLOTLIB:
         raise ImportError("matplotlib is required for plotting")
@@ -303,26 +388,33 @@ def style_axis(
     despine: bool = True,
 ) -> None:
     """
-    Apply consistent styling to an axis.
+    Finish an axis: titles, grid, spines and legend, all in the house style.
 
     Parameters
     ----------
-    ax : Axes
-        Matplotlib axes object.
+    ax : matplotlib.axes.Axes
+        Axes to restyle, modified in place.
     title : str, optional
-        Axis title.
+        Axis title. **Title-cased before display** (``str.title()``), so
+        acronyms such as ``'ROC Curve'`` come out as ``'Roc Curve'``.
     xlabel : str, optional
-        X-axis label.
+        X-axis label; also title-cased.
     ylabel : str, optional
-        Y-axis label.
+        Y-axis label; also title-cased.
     legend : bool, default=True
-        Show legend if handles exist.
+        Draw a legend, but only if the axis already has labelled artists.
     legend_loc : str, default='best'
-        Legend location.
+        Any matplotlib legend location string, e.g. ``'lower right'``.
     grid : bool, default=False
-        Show grid.
+        Show grid lines using ``STYLE_CONFIG``'s grid colour, width and alpha.
+        Explicitly turned off when False.
     despine : bool, default=True
-        Remove top and right spines.
+        Hide the top and right spines.
+
+    Returns
+    -------
+    None
+        ``ax`` is modified in place.
     """
     if title:
         ax.set_title(title.title(), fontsize=16, fontweight='bold', pad=14)
@@ -360,22 +452,33 @@ def annotate_bars(
     color: str = '#111111',
 ) -> None:
     """
-    Add value annotations to bar chart.
+    Write each bar's height as a text label just above the bar.
 
     Parameters
     ----------
-    ax : Axes
-        Matplotlib axes.
-    bars : BarContainer
-        Bar container from ax.bar().
+    ax : matplotlib.axes.Axes
+        Axes holding the bars; annotations are added in place.
+    bars : matplotlib.container.BarContainer
+        The container returned by ``ax.bar(...)``. Any iterable of
+        ``Rectangle`` patches works.
     fmt : str, default='.2f'
-        Number format string.
+        Format spec applied to each bar height, e.g. ``'.1%'`` or ``'d'``.
     offset : float, default=3
-        Vertical offset for text.
-    fontsize : int, default=9
-        Font size for annotations.
-    color : str, default='#333333'
-        Text color.
+        Vertical offset in typographic points between the bar top and the text.
+    fontsize : int, default=11
+        Font size of the annotation text.
+    color : str, default='#111111'
+        Text colour.
+
+    Returns
+    -------
+    None
+        ``ax`` is modified in place.
+
+    Notes
+    -----
+    Labels are anchored at the top of the bar, so negative bars get their label
+    inside the bar rather than below it.
     """
     for bar in bars:
         height = bar.get_height()

@@ -15,7 +15,7 @@ TuiML is a Python ML framework with 200+ components across algorithms, preproces
 
 ### Install
 
-One-liner (recommended — installs `uv` if missing, pulls the latest TuiML from GitHub, builds C++ extensions):
+One-liner (recommended, installs `uv` if missing, pulls the latest TuiML from GitHub, builds C++ extensions):
 
 ```bash
 curl -fsSL https://tuiml.ai/install.sh | bash
@@ -31,7 +31,7 @@ pip install tuiml            # inside any existing Python environment
 ### Wire TuiML into your AI client
 
 ```bash
-tuiml setup          # opens an Auto / Manual / Quit menu — default Auto
+tuiml setup          # opens an Auto / Manual / Quit menu, default Auto
 tuiml setup -y       # skip the menu and configure every detected client
 tuiml setup --manual # prompt per-client (old one-by-one behaviour)
 tuiml setup --list   # just show what's detected without writing anything
@@ -42,7 +42,7 @@ Detects Claude Desktop, Claude Code (skill file), OpenClaw, Cursor, ChatGPT Desk
 ### Update / uninstall
 
 ```bash
-tuiml self_update         # via the MCP tool — tells the agent `restart_required: true`
+tuiml self_update         # via the MCP tool, tells the agent `restart_required: true`
 uv tool install --reinstall --force tuiml   # from the shell
 tuiml uninstall           # remove TuiML from every wired AI client
                           # (does NOT remove the Python package itself)
@@ -51,18 +51,23 @@ uv tool uninstall tuiml   # finally, remove the package
 
 ### Three API Levels
 
-All three levels drive the same engine — a pipeline whose last step is the model.
+All three levels drive the same engine, a pipeline whose last step is the model.
 
 ```python
 # High-level: one declarative spec (strings + dicts, fully serializable)
 from tuiml import train
-model = train({"name": "RandomForestClassifier"}, {"source": "iris"},
-              evaluation={"cv": 10})
+model = train({
+    "model": {"name": "RandomForestClassifier"},
+    "data": {"source": "iris"},
+    "evaluation": {"cv": 10},
+})
 
 # Mid-level: a pipeline of objects (imports give autocomplete + type checking)
 from tuiml import Workflow
-wf = Workflow(["SimpleImputer", "StandardScaler",
-               {"name": "RandomForestClassifier", "params": {"n_estimators": 100}}])
+from tuiml.preprocessing import SimpleImputer, StandardScaler
+from tuiml.algorithms.trees import RandomForestClassifier
+wf = Workflow([SimpleImputer(), StandardScaler(),
+               RandomForestClassifier(n_estimators=100)])
 wf.fit("iris", cv=10, metrics=["accuracy_score", "f1_score"])
 print(wf.metrics_)
 
@@ -86,7 +91,7 @@ All top-level functions are importable from `tuiml` directly.
 
 ```python
 from tuiml import (
-    train, experiment,
+    train, benchmark,
     list_algorithms, describe_algorithm, search_algorithms,
     serve, stop_server, server_status,
     PRESETS,
@@ -97,69 +102,91 @@ from tuiml import (
 ```
 
 `predict` / `evaluate` / `save` / `load` are **methods on the model**, not
-top-level functions — see §3. `run()` is gone: pass the spec dict straight to
+top-level functions, see §3. `run()` is gone: pass the spec dict straight to
 `train()`.
 
 ### train()
 
-Every component is `{"name": ..., "params": {...}}`. Hyperparameters go inside
-`"params"` — loose keys are rejected.
-
-```python
-model = train(
-    {"name": "RandomForestClassifier", "params": {"n_estimators": 100}},
-    {"source": "iris", "target": "class"},   # data spec: source + target
-    #   also accepts "features": [...] to restrict columns,
-    #   or {"X": X_array, "y": y_array} for in-memory arrays.
-    pipeline=[                               # ordered steps, all feature engineering
-        {"name": "SimpleImputer", "params": {"strategy": "mean"}},
-        {"name": "StandardScaler"},
-        {"name": "PCAExtractor", "params": {"n_components": 5}},
-        {"name": "SelectKBestSelector", "params": {"k": 10}},
-    ],
-    evaluation={                             # cv OR test_size/stratify, plus metrics
-        "cv": 10,
-        "metrics": ["accuracy_score", "f1_score"],
-    },
-    random_seed=42,
-)
-# Returns a FITTED Workflow: model.metrics_, model.predict(X), model.save(path)
-```
-
-The whole call can also be **one dict** (or a path to a `.json` file holding it):
+`train()` takes exactly **one argument**: the spec dict (or a path to a
+`.json` file holding it). Every component is `{"name": ..., "params": {...}}`.
+Hyperparameters go inside `"params"`: loose keys are rejected, and so are
+unknown top-level keys.
 
 ```python
 model = train({
     "model": {"name": "RandomForestClassifier", "params": {"n_estimators": 100}},
     "data": {"source": "sales.csv", "target": "label"},
-    "pipeline": [{"name": "MinMaxScaler"}],
-    "evaluation": {"cv": 10},
+    #   data also accepts {"X": X_array, "y": y_array} for in-memory arrays,
+    #   and "features": [...] restricts the input columns.
+    "pipeline": [                            # ordered steps, all feature engineering
+        {"name": "SimpleImputer", "params": {"strategy": "mean"}},
+        {"name": "StandardScaler"},
+        {"name": "PCAExtractor", "params": {"n_components": 5}},
+        {"name": "SelectKBestSelector", "params": {"k": 10}},
+    ],
+    "evaluation": {                          # cv OR test_size/stratify, plus metrics
+        "cv": 10,
+        "metrics": ["accuracy_score", "f1_score"],
+    },
     "random_seed": 42,
 })
-model = train("experiment.json")
+model = train("spec.json")                   # same spec from a file
+# Returns a FITTED Workflow: model.metrics_, model.predict(X), model.save(path)
 ```
 
-### experiment()
+Spec keys: `model` (required), `data` (required), `target`, `features`,
+`pipeline`, `evaluation`, `random_seed`. The model and every pipeline step
+use one shape only: `{"name": ..., "params": {...}}` (`params` optional). To work with imported classes and
+configured instances instead of strings, use `Workflow` (section 3).
+
+### Benchmark
+
+Compare models across datasets with per-fold scoring. Configure the class,
+then execute with `.run()`. Model specs are strict `{"name", "params"}` dicts
+and dataset specs are always dicts (bare strings are rejected).
 
 ```python
-result = experiment(
-    algorithms=[                          # names, {"name","params"} specs,
-        "RandomForestClassifier",         # (label, component) tuples,
-        {"name": "SVC", "params": {"kernel": "rbf"}},
-        ("NB", "NaiveBayesClassifier"),   # or dict of {"label": instance}
+from tuiml import Benchmark
+
+bench = Benchmark(
+    models=[                                   # strict {"name","params"} specs
+        {"name": "NaiveBayesClassifier"},
+        {"name": "RandomForestClassifier", "params": {"n_estimators": 100}},
+        {"name": "DecisionTreeClassifier",     # optional per-model tuning (nested,
+         "tune": {"method": "grid",            #  runs on training folds only;
+                  "space": {"max_depth": [3, 5, 8]}}},   # also "random" + "iterations")
+        {"name": "SVC",                        # optional per-model pipeline
+         "pipeline": [{"name": "StandardScaler"}],
+         "label": "SVC-scaled"},               # optional display name
     ],
-    datasets={                            # dict of {"name": (X, y)},
-        "iris": (X, y),                  # list of built-in name strings,
-    },                                   # or list of {"source": ..., "target": ...} dicts
-    pipeline=None,                       # preset name or step list applied to all datasets
-    cv=10,
-    metrics=["accuracy_score", "f1_score"],
-    n_jobs=1,                            # -1 to use all CPUs
-    verbose=0,                           # int verbosity level
-    random_seed=None,
-    progress_callback=None,
-    experiment_type=None,                # "classification"/"regression"/"clustering";
-)                                        # inferred from the models when omitted
+    datasets=[                                 # ALWAYS spec dicts
+        {"source": "iris"},                    # builtin (defines its own target)
+        {"source": "glass", "features": ["RI", "Na"]},
+        {"source": "data.csv", "target": "label", "features": [...], "name": "sales"},
+        {"name": "custom", "X": X, "y": y},    # in-memory arrays
+    ],
+    pipeline=[{"name": "SimpleImputer"}],      # shared steps or preset name
+    evaluation={"cv": 10,                      # OR {"test_size": 0.2}
+                "repeats": 3,                  # repeated scheme -> spread + stats
+                "metrics": ["accuracy_score", "f1_score"]},
+    random_seed=42,                            # fully reproducible
+    task=None,                                 # optional override; inferred from models
+)
+bench.run()                                    # executes; returns self
+```
+
+Results live on the instance (all pandas DataFrames where tabular):
+
+```python
+bench.scores_                    # tidy per-fold df: dataset|model|metric|fold|value
+bench.table(metric=None, formatted=True)     # datasets x models, "mean ± std"
+bench.best(metric=None)          # winner per dataset + overall mean rank
+bench.best_params_               # tuning choices per dataset/model/fold
+bench.compare(baseline="...", metric=None)   # paired t-test table (readable df)
+bench.summary()                  # text report, best marked
+bench.to_markdown() / bench.to_latex() / bench.to_csv() / bench.to_html()
+bench.plot_critical_difference() / bench.plot_boxplot() / bench.plot_ranking()
+bench.task, bench.metrics, bench.random_seed
 ```
 
 ### serve()
@@ -203,32 +230,37 @@ results = search_algorithms("ensemble")
 
 ---
 
-## 3. Workflow — the pipeline
+## 3. Workflow, the pipeline
 
 A `Workflow` is an ordered list of steps whose **last step is the model**.
 Everything before it transforms. A `Workflow` *is* a model: same
 `fit`/`predict`/`score`/`save` interface as any single algorithm, so it works
-anywhere one does — including nested inside another `Workflow`.
+anywhere one does, including nested inside another `Workflow`.
 
-A step can be written three ways, and they mix freely:
+Steps are **configured instances**. Strings and spec dicts belong to
+`train()`; passing them here raises a `TypeError` pointing you there.
 
 ```python
 from tuiml import Workflow
+from tuiml.preprocessing import StandardScaler
+from tuiml.algorithms.trees import RandomForestClassifier
+from tuiml.algorithms.svm import SVC
 
-Workflow(["StandardScaler", "RandomForestClassifier"])                  # class names
-Workflow([{"name": "PCAExtractor", "params": {"n_components": 5}}, "SVC"])   # spec dicts
-Workflow([StandardScaler(), RandomForestClassifier(n_estimators=100)])  # instances
-Workflow([("scale", "StandardScaler"), ("clf", "SVC")])                 # explicit names
+Workflow([StandardScaler(), RandomForestClassifier(n_estimators=100)])
+Workflow([("scale", StandardScaler()), ("clf", SVC())])   # explicit step names
 ```
 
-### fit() — the only execution method
+### fit(): the only execution method
 
 `fit()` always leaves the pipeline fitted on **all** the data given, and
 returns `self`. Passing `cv` or `test_size` *additionally* measures held-out
 performance into `metrics_` first.
 
 ```python
-wf = Workflow(["SimpleImputer", "StandardScaler", "RandomForestClassifier"])
+from tuiml.preprocessing import SimpleImputer, StandardScaler
+from tuiml.algorithms.trees import RandomForestClassifier
+
+wf = Workflow([SimpleImputer(), StandardScaler(), RandomForestClassifier()])
 
 wf.fit(X, y)                                      # plain fit, no evaluation
 wf.fit("sales.csv", target="label", cv=10)        # k-fold, then refit on all
@@ -236,7 +268,7 @@ wf.fit("iris", test_size=0.2, stratify=True)      # holdout, then refit on all
 wf.fit("iris", features=["sepallength"], metrics=["accuracy_score"], random_seed=42)
 ```
 
-### Results — fitted attributes (trailing underscore)
+### Results, fitted attributes (trailing underscore)
 
 ```python
 wf.metrics_            # held-out scores, or None if no cv/test_size was given
@@ -278,27 +310,31 @@ wf.to_config()         # export back to a train() spec dict
 wf._repr_html_()       # pipeline diagram (renders automatically in notebooks)
 ```
 
-### On — per-column steps
+### On, per-column steps
 
 Mixed-type tables need different treatment per column. `On` wraps a
 transformer so it sees only the columns you name, and is itself a normal step.
 
 ```python
 from tuiml import Workflow, On
+from tuiml.preprocessing import (
+    MinMaxScaler, OneHotEncoder, SimpleImputer, StandardScaler,
+)
+from tuiml.algorithms.trees import RandomForestClassifier
 
 Workflow([
-    On("number", "SimpleImputer"),              # every numeric column
-    On("category", "OneHotEncoder"),            # every non-numeric column
-    On(["age", "fare"], "StandardScaler"),      # these named columns
-    On([0, 3], "MinMaxScaler"),                 # these positions
-    On("number", "StandardScaler", remainder="drop"),   # discard the rest
-    "RandomForestClassifier",
+    On("number", SimpleImputer()),              # every numeric column
+    On("category", OneHotEncoder()),            # every non-numeric column
+    On(["age", "fare"], StandardScaler()),      # these named columns
+    On([0, 3], MinMaxScaler()),                 # these positions
+    On("number", StandardScaler(), remainder="drop"),   # discard the rest
+    RandomForestClassifier(),
 ])
 ```
 
 Transformed columns come first in the output, then the untouched ones
 (`remainder="passthrough"`, the default). Selecting by **name** needs the
-original column names, so put name-based `On` steps first — before anything
+original column names, so put name-based `On` steps first, before anything
 that changes the column layout. Type- and position-based selection works
 anywhere.
 
@@ -696,22 +732,28 @@ grid.fit(X_train, y_train)
 print(grid.best_params_, grid.best_score_)
 ```
 
-### Experiments
+### Benchmarking
+
+Multi-model comparison lives in the `tuiml.Benchmark` class (section 2). The old
+`Experiment` / `run_experiment` / `ExperimentConfig` names are gone from
+`tuiml.evaluation`.
 
 ```python
-from tuiml.evaluation import (
-    Experiment, run_experiment,
-    ExperimentConfig, ExperimentResults, ExperimentType, ValidationMethod,
-)
+import tuiml
 
-results = run_experiment(
-    models={"RF": RandomForestClassifier(), "SVM": SVC(), "NB": NaiveBayesClassifier()},
-    datasets={"iris": (X, y)},
-    n_folds=10,
-    metrics=["accuracy_score", "f1_score"],   # exact function names from tuiml.evaluation.metrics
-)
-print(results.to_latex())
-print(results.to_markdown())
+bench = tuiml.Benchmark(
+    models=[
+        {"name": "RandomForestClassifier"},
+        {"name": "SVC"},
+        {"name": "NaiveBayesClassifier"},
+    ],
+    datasets=[{"name": "iris", "X": X, "y": y}],
+    evaluation={"cv": 10,
+                "metrics": ["accuracy_score", "f1_score"]},  # exact function names
+)                                                            # from tuiml.evaluation.metrics
+bench.run()
+print(bench.to_latex())
+print(bench.to_markdown())
 ```
 
 ### Statistics
@@ -792,7 +834,7 @@ class MyClassifier(Classifier):
         # prediction logic
         return predictions
 
-# Automatically registered and discoverable via tuiml_list, tuiml_train, tuiml_experiment
+# Automatically registered and discoverable via tuiml_list, tuiml_train, tuiml_benchmark
 ```
 
 ### Custom Preprocessor
@@ -899,8 +941,10 @@ tuiml describe RandomForestClassifier
 tuiml predict model.pkl data.csv
 tuiml evaluate RandomForestClassifier data.csv class --cv 10
 
-# Experiment
-tuiml experiment --models RF SVC NB --datasets iris.csv --n-folds 10
+# Benchmark
+tuiml benchmark -a RandomForestClassifier -a SVC -a NaiveBayesClassifier -d iris.csv -t class --cv 10
+tuiml benchmark -a SVC -a RandomForestClassifier -d iris -d glass --baseline SVC
+# also: --test-size, --repeats, -m metrics, -o out -f markdown|latex|csv|html, --plot
 
 # Tuning
 tuiml tune RandomForestClassifier data.csv class --method grid
@@ -953,7 +997,7 @@ tuiml restart
 ## 11. Local Registry
 
 ```python
-from tuiml.hub import registry, ComponentType
+from tuiml.registry import registry, ComponentType
 
 # Local, in-process registry (no network calls)
 classifiers = registry.list(ComponentType.CLASSIFIER)          # metadata dicts
@@ -962,7 +1006,7 @@ cls = registry.get("RandomForestClassifier")                   # the class itsel
 names = registry.list_names(ComponentType.CLASSIFIER)
 ```
 
-The remote community hub is currently decommissioned — use agent-authored algorithms (section 12 + 14) to add algorithms to the registry at runtime instead.
+The remote community hub is currently decommissioned, use agent-authored algorithms (section 12 + 14) to add algorithms to the registry at runtime instead.
 
 ### Optional algorithm backends (scikit-learn, CapyMOA)
 
@@ -977,14 +1021,15 @@ pip install tuiml[capymoa]    # CapyMOA streaming learners (needs Java)
 ```
 
 ```python
-# Curated, namespaced wrappers — discoverable via tuiml_list / train / experiment
+# Curated, namespaced wrappers, discoverable via tuiml_list / train / benchmark
 from tuiml.sklearn import RandomForestClassifier      # sklearn-backed
 from tuiml.algorithms import RandomForestClassifier   # native (no clash)
 train("sklearn.RandomForestClassifier", {"source": "iris", "target": "class"}, cv=5)
 train("capymoa.HoeffdingTree", {"source": "electricity", "target": "class"})
 
 # Generic adapter: wrap ANY scikit-learn-compatible estimator (incl. pipelines,
-# GridSearchCV, third-party). train()/experiment() also auto-wrap a passed estimator.
+# GridSearchCV, third-party). train() also auto-wraps a passed estimator;
+# benchmark() takes name specs only, so use the namespaced "sklearn.<Name>" keys there.
 from sklearn.svm import SVC
 train(SVC(C=2.0), {"source": "iris", "target": "class"}, cv=10)   # no wrapper needed
 ```
@@ -1021,7 +1066,7 @@ If you prefer editing the client config by hand, add the following to any MCP cl
 }
 ```
 
-OpenClaw uses the key `mcp.servers`, Zed uses `context_servers`, Codex CLI uses a TOML `[mcp_servers.tuiml]` block, and Goose takes YAML. `tuiml setup` handles all of these — the JSON above is shown for reference only.
+OpenClaw uses the key `mcp.servers`, Zed uses `context_servers`, Codex CLI uses a TOML `[mcp_servers.tuiml]` block, and Goose takes YAML. `tuiml setup` handles all of these, the JSON above is shown for reference only.
 
 ### MCP Tools
 
@@ -1034,7 +1079,7 @@ OpenClaw uses the key `mcp.servers`, Zed uses `context_servers`, Codex CLI uses 
 | `tuiml_train` | Train any model with preprocessing and CV |
 | `tuiml_predict` | Predict using model_id or model path |
 | `tuiml_evaluate` | Evaluate trained model with metrics |
-| `tuiml_experiment` | Compare multiple algorithms across datasets |
+| `tuiml_benchmark` | Compare multiple algorithms across datasets (Python twin: `tuiml.Benchmark`) |
 | `tuiml_tune` | Grid, random, or bayesian search over hyperparameters |
 | `tuiml_test_statistics` | Friedman / Wilcoxon / Nemenyi / Quade / ANOVA / aligned-Friedman test on experiment results |
 
@@ -1091,7 +1136,7 @@ OpenClaw uses the key `mcp.servers`, Zed uses `context_servers`, Codex CLI uses 
 |------|---------|
 | `tuiml_get_skeleton` | Return a fill-in-the-blanks algorithm template (classifier or regressor) |
 | `tuiml_create_algorithm` | AST-validate and register new Python source as a named + versioned algorithm |
-| `tuiml_edit_algorithm` | str_replace patch on a user algorithm — read first, then edit a unique string |
+| `tuiml_edit_algorithm` | str_replace patch on a user algorithm, read first, then edit a unique string |
 | `tuiml_read_algorithm` | Get full source of any algorithm (user or built-in) with line numbers |
 | `tuiml_list_files` | List all algorithm source files (built-in and user) with paths |
 | `tuiml_search_source` | Grep inside algorithm source files by regex pattern |
@@ -1099,11 +1144,11 @@ OpenClaw uses the key `mcp.servers`, Zed uses `context_servers`, Codex CLI uses 
 
 ### Auto-Discovery
 
-Any component registered with `@classifier`, `@regressor`, `@transformer`, etc. is automatically discoverable through all MCP tools. No tool definitions need updating. This is how agent-authored algorithms become first-class citizens of `tuiml_train` / `tuiml_experiment` the moment they are registered.
+Any component registered with `@classifier`, `@regressor`, `@transformer`, etc. is automatically discoverable through all MCP tools. No tool definitions need updating. This is how agent-authored algorithms become first-class citizens of `tuiml_train` / `tuiml_benchmark` the moment they are registered.
 
 ### Keeping this skill fresh
 
-This `SKILL.md` is bundled with the `tuiml` package — its `version:` frontmatter matches the installed package version. Refresh workflow:
+This `SKILL.md` is bundled with the `tuiml` package, its `version:` frontmatter matches the installed package version. Refresh workflow:
 
 ```bash
 # 1. Upgrade the package (or call tuiml_self_update from the agent)
@@ -1113,7 +1158,7 @@ uv tool install --reinstall --force tuiml
 tuiml setup -y
 ```
 
-For pure MCP clients (Claude Desktop, Cursor, OpenClaw, …) the tool schemas are fetched live from the MCP server on every connection — no skill file to refresh.
+For pure MCP clients (Claude Desktop, Cursor, OpenClaw, …) the tool schemas are fetched live from the MCP server on every connection, no skill file to refresh.
 
 ### MCP Tool Examples
 
@@ -1141,7 +1186,7 @@ Compare algorithms:
 
 ```json
 {
-    "tool": "tuiml_experiment",
+    "tool": "tuiml_benchmark",
     "arguments": {
         "algorithms": ["RandomForestClassifier", "SVC", "NaiveBayesClassifier"],
         "data": "iris",
@@ -1293,9 +1338,9 @@ best = grid.best_estimator_
 
 ### Auto-Research Loop (agent-authored algorithms)
 
-**When to use:** the agent has an algorithmic idea ("what if I bag shallow decision trees with bootstrap weights proportional to label noise?") and wants to implement, run, and compare it against shipped algorithms — all without leaving the conversation.
+**When to use:** the agent has an algorithmic idea ("what if I bag shallow decision trees with bootstrap weights proportional to label noise?") and wants to implement, run, and compare it against shipped algorithms, all without leaving the conversation.
 
-**Prerequisite:** export `TUIML_ALLOW_USER_ALGORITHMS=1` in the shell that launches the MCP server, then restart the client. Source is AST-filtered, not sandboxed — the trust model is that the agent is local.
+**Prerequisite:** export `TUIML_ALLOW_USER_ALGORITHMS=1` in the shell that launches the MCP server, then restart the client. Source is AST-filtered, not sandboxed, the trust model is that the agent is local.
 
 **The loop**
 
@@ -1327,7 +1372,7 @@ best = grid.best_estimator_
                         new_string="...",
                         bump_version=True)            →  saved as v1.0.1, re-registered
 
-7. tuiml_experiment(
+7. tuiml_benchmark(
       algorithms=["NoisyTreeBag_v1_0_0",
                   "NoisyTreeBag_v1_0_1",
                   "RandomForestClassifier",
@@ -1351,10 +1396,10 @@ best = grid.best_estimator_
 
 **Versioning rules**
 
-- `name` must be a valid Python identifier — usually equal to the class name.
+- `name` must be a valid Python identifier, usually equal to the class name.
 - `version` must be semver (`MAJOR.MINOR.PATCH`). Bump it on every change.
 - Every version is kept on disk at `~/.tuiml/user_algorithms/<name>/<version>/algorithm.py` with a `metadata.json` next to it (class name, kind, source hash, description). Nothing is deleted until `tuiml_delete_algorithm` is called.
-- The bare class name (`NoisyTreeBag`) always resolves to the most recently registered version. Pinned aliases (`NoisyTreeBag_v1_0_0`) resolve to exact versions — use these when comparing variants in one `tuiml_experiment`.
+- The bare class name (`NoisyTreeBag`) always resolves to the most recently registered version. Pinned aliases (`NoisyTreeBag_v1_0_0`) resolve to exact versions, use these when comparing variants in one `tuiml_benchmark`.
 - All versions are re-registered at MCP server startup, so agent work survives restarts.
 
 **Guardrails enforced by `tuiml_create_algorithm`**
@@ -1369,23 +1414,30 @@ Any rejection returns `status: error, error_type: UnsafeSource` with the specifi
 ### Model Comparison with Statistical Testing
 
 ```python
-from tuiml.evaluation import run_experiment, friedman_test, nemenyi_post_hoc
+import tuiml
+from tuiml.evaluation import friedman_test, nemenyi_post_hoc
 
-results = run_experiment(
-    models={"RF": RandomForestClassifier(), "SVM": SVC(), "NB": NaiveBayesClassifier()},
-    datasets={"iris": (X, y)},
-    n_folds=10,
+bench = tuiml.Benchmark(
+    models=[{"name": "RandomForestClassifier"}, {"name": "SVC"},
+            {"name": "NaiveBayesClassifier"}],
+    datasets=[{"name": "iris", "X": X, "y": y}],
+    evaluation={"cv": 10},
+    random_seed=42,
 )
+bench.run()
 
-# Friedman test for overall significance
-f_stat, p_val = friedman_test(results.score_matrix)
+# Built-in paired t-tests against a baseline (readable DataFrame)
+print(bench.compare(baseline="RandomForestClassifier"))
 
-# Nemenyi post-hoc for pairwise differences
-nemenyi_post_hoc(results.score_matrix, alpha=0.05)
+# Friedman + Nemenyi on the per-fold scores (dict of {model: fold_scores})
+acc = bench.scores_[bench.scores_.metric == "accuracy_score"]
+per_model = {m: g["value"].to_numpy() for m, g in acc.groupby("model")}
+chi2, p_val, significant = friedman_test(per_model)
+pairwise = nemenyi_post_hoc(per_model, significance_level=0.05)
 
 # Publication-ready output
-print(results.to_latex())
-print(results.to_markdown())
+print(result.to_latex())
+print(result.to_markdown())
 ```
 
 ### Preprocessing Order

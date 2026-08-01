@@ -194,6 +194,8 @@ def friedman_test(
 
     Examples
     --------
+    >>> import numpy as np
+    >>> from tuiml.evaluation.statistics import friedman_test
     >>> results = {
     ...     'ModelA': np.array([0.85, 0.87, 0.83]),
     ...     'ModelB': np.array([0.82, 0.84, 0.81]),
@@ -411,6 +413,46 @@ def _f_cdf(f: float, d1: int, d2: int) -> float:
     from math import lgamma, exp
 
     def incomplete_beta(x, a, b, max_iter=100):
+        """Regularized incomplete beta function :math:`I_x(a, b)`.
+
+        Used by :func:`_f_cdf` to turn an F statistic into a tail probability,
+        since the F-distribution CDF is a regularized incomplete beta function
+        of a transform of the statistic.
+
+        .. math::
+            I_x(a, b) = \\frac{1}{B(a, b)} \\int_0^x t^{a-1} (1-t)^{b-1}\\,dt
+
+        Evaluated with the power series
+
+        .. math::
+            I_x(a, b) = \\frac{x^{a}(1-x)^{b}}{a\\,B(a, b)}
+                \\left(1 + \\sum_{n=1}^{\\infty} t_n\\right), \\quad
+            t_n = t_{n-1}\\,\\frac{(a + b + n - 1)\\,x}{a + n}
+
+        summed until a term falls below ``1e-10`` or ``max_iter`` terms have
+        been added. The series converges quickly only for
+        :math:`x \\leq (a+1)/(a+b+2)`; for larger ``x`` the function instead
+        recurses on the complementary argument via the reflection identity
+        :math:`I_x(a, b) = 1 - I_{1-x}(b, a)`, which is what the first
+        ``if x > (a + 1) / (a + b + 2)`` branch below does.
+
+        Parameters
+        ----------
+        x : float
+            Upper limit of integration, in :math:`[0, 1]`.
+        a : float
+            First shape parameter, :math:`a > 0`.
+        b : float
+            Second shape parameter, :math:`b > 0`.
+        max_iter : int, default=100
+            Maximum number of series terms to sum before giving up on
+            convergence.
+
+        Returns
+        -------
+        value : float
+            :math:`I_x(a, b)`, in :math:`[0, 1]`.
+        """
         if x <= 0:
             return 0.0
         if x >= 1:

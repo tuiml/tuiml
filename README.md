@@ -99,7 +99,7 @@ Everything TuiML can do, your agent can do &mdash; the MCP server exposes **200+
 
 **100% Local &amp; Private** &mdash; your data, your machine. No cloud, no API keys, no telemetry.
 
-Key workflow tools: `tuiml_train`, `tuiml_predict`, `tuiml_evaluate`, `tuiml_experiment`, `tuiml_tune`, `tuiml_plot`, `tuiml_list`, `tuiml_describe`, `tuiml_search`.
+Key workflow tools: `tuiml_train`, `tuiml_predict`, `tuiml_evaluate`, `tuiml_benchmark`, `tuiml_tune`, `tuiml_plot`, `tuiml_list`, `tuiml_describe`, `tuiml_search`.
 
 Works with anything that speaks MCP &mdash; `tuiml setup` auto-detects Claude Desktop, Claude Code, Cursor, ChatGPT Desktop, Codex CLI, Zed, Continue, Windsurf, VS Code Copilot, Perplexity, Goose, and OpenClaw / NemoClaw. For manual setup, add this to your client's MCP config:
 

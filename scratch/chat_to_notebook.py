@@ -209,7 +209,7 @@ def mcp_to_cli(tool_name: str, arguments: Dict[str, Any]) -> str:
             elif v is not False and v is not None:
                 cmd_parts.append(f"--{k.replace('_', '-')} {v}")
 
-    elif tool_name == "execute_experiment":
+    elif tool_name == "execute_benchmark":
         cmd_parts.append("experiment")
         for opt in ['stage', 'name', 'output']:
             val = arguments.get(opt)

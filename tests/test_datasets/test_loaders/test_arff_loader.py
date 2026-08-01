@@ -15,6 +15,7 @@ _BUILTIN_DIR = (
     / "tuiml"
     / "datasets"
     / "builtin"
+    / "data"
     / "classification"
 )
 

@@ -20,7 +20,7 @@ from algorithms import ALGORITHMS
 
 import tuiml  # noqa: F401
 import tuiml.algorithms  # noqa: F401  triggers registration
-from tuiml.hub import registry
+from tuiml.registry import registry
 
 
 def build_and_run(X_tr, X_te, y_tr, task, meta):

@@ -10,7 +10,7 @@ from tuiml.base.algorithms import Classifier, classifier
 class CategoricalNBClassifier(Classifier):
     """Categorical Naive Bayes classifier for **discrete / nominal** features.
 
-    Suitable for data whose features are **categorical** — each feature takes
+    Suitable for data whose features are **categorical**, each feature takes
     one of a finite set of integer-coded values. A separate **categorical
     distribution** is estimated per feature and class, making it the natural
     Naive Bayes variant for nominal data (unlike the Gaussian variant, which

@@ -52,15 +52,7 @@ class AdditiveRegression(Regressor):
         shrinkage: float = 1.0,
         minimize_absolute_error: bool = False,
     ):
-        """
-        Initialize AdditiveRegression.
-
-        Args:
-            base_regressor: Base regressor instance
-            n_estimators: Number of boosting iterations
-            shrinkage: Learning rate
-            minimize_absolute_error: Use L1 loss
-        """
+        """Store the boosting configuration. See the class docstring."""
         super().__init__()
         self.base_regressor = base_regressor
         self.n_estimators = n_estimators

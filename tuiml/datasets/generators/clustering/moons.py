@@ -1,7 +1,9 @@
 """
-Two Moons data generator.
+Moons generator: two interleaving half circles.
 
-Generates two interleaving half circles (moons).
+Produces a pair of crescents that curve into one another, with Gaussian jitter.
+Like :mod:`~tuiml.datasets.generators.clustering.circles` it is not linearly
+separable, but the clusters are elongated rather than nested.
 """
 
 import numpy as np
@@ -29,8 +31,13 @@ class Moons(ClusteringGenerator):
 
     Examples
     --------
-    >>> gen = Moons(n_samples=1000, noise=0.1)
+    >>> from tuiml.datasets.generators.clustering import Moons
+    >>> gen = Moons(n_samples=1000, noise=0.1, random_state=0)
     >>> data = gen.generate()
+    >>> data.X.shape
+    (1000, 2)
+    >>> sorted(set(data.y.tolist()))
+    [0, 1]
     """
 
     def __init__(

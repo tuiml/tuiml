@@ -42,6 +42,8 @@ def euclidean_distance(x1: np.ndarray, x2: np.ndarray) -> float:
     --------
     Compute distance between two 2D points:
 
+    >>> import numpy as np
+    >>> from tuiml.algorithms.clustering.distance import euclidean_distance
     >>> x1 = np.array([0, 0])
     >>> x2 = np.array([3, 4])
     >>> euclidean_distance(x1, x2)

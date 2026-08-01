@@ -24,6 +24,13 @@ class TimeSeriesSplit(BaseSplitter):
     max_train_size : int, optional
         Maximum size for a single training set.
 
+    Raises
+    ------
+    ValueError
+        From :meth:`split` when ``n_splits * test_size + gap`` leaves no room
+        for a training set, since that configuration cannot yield the promised
+        number of folds.
+
     Notes
     -----
     Unlike regular K-Fold, training set grows with each split:
@@ -39,6 +46,9 @@ class TimeSeriesSplit(BaseSplitter):
     >>> tss = TimeSeriesSplit(n_splits=3)
     >>> for train_idx, test_idx in tss.split(X):
     ...     print(f"Train: {train_idx}, Test: {test_idx}")
+    Train: [0 1 2 3], Test: [4 5]
+    Train: [0 1 2 3 4 5], Test: [6 7]
+    Train: [0 1 2 3 4 5 6 7], Test: [8 9]
     """
 
     def __init__(
@@ -48,6 +58,7 @@ class TimeSeriesSplit(BaseSplitter):
         gap: int = 0,
         max_train_size: Optional[int] = None
     ):
+        """Store the split count, test size, gap and max train size. See the class docstring."""
         if n_splits < 1:
             raise ValueError("n_splits must be at least 1")
         if gap < 0:
@@ -98,6 +109,18 @@ class TimeSeriesSplit(BaseSplitter):
         test_size = self.test_size or n_samples // (self.n_splits + 1)
         test_size = max(1, test_size)
 
+        # The first fold needs room for a non-empty training set before it:
+        # test_start = n_samples - n_splits * test_size, and train_end is that
+        # minus the gap. Without this check the leading folds are silently
+        # dropped and split() yields fewer pairs than get_n_splits() promises.
+        if n_samples <= self.n_splits * test_size + self.gap:
+            raise ValueError(
+                f"Cannot produce {self.n_splits} splits from {n_samples} samples "
+                f"with test_size={test_size} and gap={self.gap}: "
+                f"{self.n_splits} * {test_size} + {self.gap} leaves no room for a "
+                f"training set. Reduce n_splits, test_size, or gap."
+            )
+
         # Calculate test start positions
         test_starts = range(
             n_samples - self.n_splits * test_size,
@@ -128,10 +151,35 @@ class TimeSeriesSplit(BaseSplitter):
         y: Optional[np.ndarray] = None,
         groups: Optional[np.ndarray] = None
     ) -> int:
-        """Get number of splits."""
+        """Get the number of splits this splitter yields.
+
+        Parameters
+        ----------
+        X : np.ndarray, optional
+            Ignored, present for API consistency.
+        y : np.ndarray, optional
+            Ignored, present for API consistency.
+        groups : np.ndarray, optional
+            Ignored, present for API consistency.
+
+        Returns
+        -------
+        n_splits : int
+            Number of train/test pairs :meth:`split` yields. Configurations
+            that could not deliver this count raise in :meth:`split` rather
+            than silently yielding fewer folds.
+        """
         return self.n_splits
 
     def __repr__(self) -> str:
+        """Return a reproducible string form of the splitter.
+
+        Returns
+        -------
+        repr_str : str
+            Constructor-style representation, e.g.
+            ``TimeSeriesSplit(n_splits=5, test_size=None, gap=0)``.
+        """
         return (
             f"TimeSeriesSplit(n_splits={self.n_splits}, "
             f"test_size={self.test_size}, gap={self.gap})"

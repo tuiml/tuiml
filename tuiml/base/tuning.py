@@ -29,12 +29,16 @@ class TuningResult:
     best_estimator : Any
         The model instance retrained on the full dataset using ``best_params``.
     cv_results : dict
-        A comprehensive log of all evaluation scores, split times, and 
+        A comprehensive log of all evaluation scores, split times, and
         parameter combinations.
     n_iterations : int
         The total number of parameter variations explored.
     total_time : float
         The wall-clock time consumed by the entire search in seconds.
+
+    See Also
+    --------
+    :class:`~tuiml.base.tuning.BaseTuner` : Produces these results.
     """
     best_params: Dict[str, Any]
     best_score: float
@@ -46,15 +50,20 @@ class TuningResult:
 class ParameterGrid:
     """Cartesian product of parameter values for exhaustive search.
 
-    Generates every possible combination of parameter values defined in the 
+    Generates every possible combination of parameter values defined in the
     search space.
 
     Parameters
     ----------
     param_grid : dict or list of dict
-        A dictionary where keys are parameter names and values are lists 
-        of settings to try. Alternatively, a list of such dictionaries 
+        A dictionary where keys are parameter names and values are lists
+        of settings to try. Alternatively, a list of such dictionaries
         to define disjoint search spaces.
+
+    See Also
+    --------
+    :class:`~tuiml.base.tuning.ParameterDistribution` : Sampled search spaces
+        for random search.
 
     Examples
     --------
@@ -69,18 +78,25 @@ class ParameterGrid:
     """
 
     def __init__(self, param_grid: Union[Dict, List[Dict]]):
+        """Initialize the grid from one or more parameter mappings."""
         if isinstance(param_grid, dict):
             self.param_grids = [param_grid]
         else:
             self.param_grids = list(param_grid)
 
     def __iter__(self) -> Iterator[Dict[str, Any]]:
-        """Generate all parameter combinations."""
+        """Iterate over all parameter combinations.
+
+        Returns
+        -------
+        combinations : Iterator of dict
+            One dictionary per parameter combination.
+        """
         for grid in self.param_grids:
             yield from self._product_dict(grid)
 
     def _product_dict(self, d: Dict) -> Iterator[Dict[str, Any]]:
-        """Generate cartesian product of dictionary values."""
+        """Yield the cartesian product of a dictionary's value lists."""
         keys = list(d.keys())
         if not keys:
             yield {}
@@ -103,7 +119,13 @@ class ParameterGrid:
                 break
 
     def __len__(self) -> int:
-        """Get total number of parameter combinations."""
+        """Return the total number of parameter combinations.
+
+        Returns
+        -------
+        n_combinations : int
+            Number of distinct parameter combinations in the grid.
+        """
         total = 0
         for grid in self.param_grids:
             n = 1
@@ -114,18 +136,24 @@ class ParameterGrid:
         return total
 
 class ParameterDistribution:
-    """
-    Distribution of parameters for random search.
+    """Distribution of parameters for random search.
 
     Parameters
     ----------
     param_distributions : dict
         Dictionary with parameters as keys and distributions as values.
         Values can be:
+
         - List: uniform choice from list
-        - Tuple (low, high): uniform continuous
-        - Tuple (low, high, 'log'): log-uniform
+        - Tuple ``(low, high)``: uniform continuous
+        - Tuple ``(low, high, 'log')``: log-uniform
+        - Tuple ``(low, high, 'int')``: uniform integer
         - Callable: distribution that returns a sample
+
+    See Also
+    --------
+    :class:`~tuiml.base.tuning.ParameterGrid` : Exhaustive search spaces
+        for grid search.
 
     Examples
     --------
@@ -139,10 +167,22 @@ class ParameterDistribution:
     """
 
     def __init__(self, param_distributions: Dict):
+        """Initialize the distribution from a parameter mapping."""
         self.param_distributions = param_distributions
 
     def sample(self, random_state: Optional[int] = None) -> Dict[str, Any]:
-        """Sample a parameter combination."""
+        """Sample one parameter combination from the distributions.
+
+        Parameters
+        ----------
+        random_state : int, optional
+            Seed for the random number generator used for sampling.
+
+        Returns
+        -------
+        params : dict
+            One sampled value per parameter.
+        """
         rng = np.random.RandomState(random_state)
         params = {}
 
@@ -166,7 +206,7 @@ class ParameterDistribution:
         return params
 
     def _is_range(self, t: tuple) -> bool:
-        """Check if tuple represents a range (low, high) or (low, high, type)."""
+        """Check if a tuple represents a range ``(low, high)`` or ``(low, high, type)``."""
         if len(t) == 2:
             return isinstance(t[0], (int, float)) and isinstance(t[1], (int, float))
         if len(t) == 3:
@@ -178,7 +218,7 @@ class ParameterDistribution:
 class BaseTuner(ABC):
     """Abstract base class for hyperparameter optimization strategies.
 
-    Tuners manage the selection of parameters, the execution of 
+    Tuners manage the selection of parameters, the execution of
     cross-validation, and the selection of the 'best' model configuration.
 
     Parameters
@@ -186,18 +226,44 @@ class BaseTuner(ABC):
     estimator : Algorithm
         The model template to optimize.
     scoring : str or callable, default="accuracy"
-        The evaluation metric used to rank parameter combinations.
+        The evaluation metric used to rank parameter combinations. Built-in
+        options are ``"accuracy"``, ``"neg_mse"``, and ``"r2"``; a callable
+        must accept ``(y_true, y_pred)`` and return a float.
     cv : int, default=5
         The number of folds for cross-validation.
     refit : bool, default=True
-        Whether to retrain the model on the entire training set using the 
+        Whether to retrain the model on the entire training set using the
         best found parameters after the search completes.
     verbose : int, default=0
         The level of progress logging (higher values produce more detail).
     n_jobs : int, default=1
         The number of parallel processes to use during cross-validation.
-    random_state : int, optional, default=42
-        Seed for reproducible random sampling.
+        Requires ``joblib``; falls back to sequential execution otherwise.
+    random_seed : int, optional
+        Seed for reproducible random sampling. If ``None``, the global TuiML
+        seed is used, falling back to ``42``.
+    progress_callback : callable, optional
+        Function invoked with a progress dictionary after each evaluated
+        parameter combination.
+
+    Attributes
+    ----------
+    best_params_ : dict
+        Parameter combination with the highest mean cross-validation score.
+    best_score_ : float
+        Mean cross-validation score of ``best_params_``.
+    best_estimator_ : Any
+        Estimator refitted on the full training data with ``best_params_``
+        (available when ``refit=True``).
+    cv_results_ : dict
+        Log of scores, timings, and parameters for every combination tried.
+
+    See Also
+    --------
+    :class:`~tuiml.base.tuning.ParameterGrid` : Search space for grid search.
+    :class:`~tuiml.base.tuning.ParameterDistribution` : Search space for
+        random search.
+    :class:`~tuiml.base.tuning.TuningResult` : Structured result container.
     """
 
     def __init__(
@@ -211,13 +277,14 @@ class BaseTuner(ABC):
         random_seed: Optional[int] = None,
         progress_callback: Optional[Callable] = None
     ):
+        """Initialize the tuner with an estimator and search settings."""
         self.estimator = estimator
         self.scoring = scoring
         self.cv = cv
         self.refit = refit
         self.verbose = verbose
         self.n_jobs = n_jobs
-        
+
         if random_seed is None:
             from tuiml.utils.seed import get_global_seed
             seed = get_global_seed()
@@ -235,7 +302,7 @@ class BaseTuner(ABC):
 
     def _notify_progress(self, iteration: int, total: int, params: Dict,
                          mean_score: float, std_score: float, best_score: float):
-        """Invoke progress callback if set."""
+        """Invoke the progress callback with the current search state, if set."""
         if self.progress_callback is not None:
             self.progress_callback({
                 'type': 'tune_progress',
@@ -249,24 +316,31 @@ class BaseTuner(ABC):
 
     @abstractmethod
     def fit(self, X: np.ndarray, y: np.ndarray) -> "BaseTuner":
-        """
-        Fit the tuner to find best parameters.
+        """Run the search to find the best parameters.
 
         Parameters
         ----------
-        X : ndarray
+        X : np.ndarray of shape (n_samples, n_features)
             Training features.
-        y : ndarray
+        y : np.ndarray of shape (n_samples,)
             Target values.
 
         Returns
         -------
-        self
+        self : BaseTuner
+            The fitted tuner, with ``best_params_``, ``best_score_``,
+            ``best_estimator_``, and ``cv_results_`` populated.
         """
         pass
 
     def _get_scorer(self) -> Callable:
-        """Get scoring function."""
+        """Resolve ``self.scoring`` to a scoring callable.
+
+        Returns
+        -------
+        scorer : callable
+            Function accepting ``(y_true, y_pred)`` and returning a float.
+        """
         if callable(self.scoring):
             return self.scoring
 
@@ -286,14 +360,27 @@ class BaseTuner(ABC):
         y: np.ndarray,
         params: Dict[str, Any]
     ) -> Tuple[float, float, float]:
-        """
-        Perform cross-validation for a parameter combination.
+        """Perform cross-validation for a parameter combination.
+
+        Parameters
+        ----------
+        estimator : Algorithm
+            Estimator template to evaluate (copied for each fold).
+        X : np.ndarray of shape (n_samples, n_features)
+            Training features.
+        y : np.ndarray of shape (n_samples,)
+            Target values.
+        params : dict
+            Parameter combination to set on the estimator before fitting.
 
         Returns
         -------
         mean_score : float
+            Mean score across folds.
         std_score : float
+            Standard deviation of the fold scores.
         fit_time : float
+            Total wall-clock time for the cross-validation, in seconds.
         """
         from tuiml.evaluation.splitting import StratifiedKFold, KFold
 
@@ -333,20 +420,49 @@ class BaseTuner(ABC):
         return np.mean(scores), np.std(scores), total_time
 
     def _is_classification(self, y: np.ndarray) -> bool:
-        """Check if task is classification."""
+        """Heuristically check whether the target represents a classification task."""
         unique = np.unique(y)
         if np.issubdtype(y.dtype, np.integer) or np.issubdtype(y.dtype, np.bool_) or y.dtype == object:
             return True
         return len(unique) < max(20, len(y) * 0.05)
 
     def predict(self, X: np.ndarray) -> np.ndarray:
-        """Predict using best estimator."""
+        """Predict with the best estimator found by the search.
+
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Input samples.
+
+        Returns
+        -------
+        y_pred : np.ndarray of shape (n_samples,)
+            Predictions from ``best_estimator_``.
+
+        Raises
+        ------
+        RuntimeError
+            If the tuner has not been fitted yet.
+        """
         if self.best_estimator_ is None:
             raise RuntimeError("Tuner has not been fitted yet")
         return self.best_estimator_.predict(X)
 
     def score(self, X: np.ndarray, y: np.ndarray) -> float:
-        """Score using best estimator."""
+        """Score the best estimator on the given data.
+
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Input samples.
+        y : np.ndarray of shape (n_samples,)
+            True target values.
+
+        Returns
+        -------
+        score : float
+            Score of ``best_estimator_`` under the tuner's scoring metric.
+        """
         y_pred = self.predict(X)
         scorer = self._get_scorer()
         return scorer(y, y_pred)
@@ -361,10 +477,7 @@ __all__ = [
 ]
 
 def _fit_and_score(estimator, X, y, train_idx, test_idx, scorer, params):
-    """
-    Fit estimator and compute score for a single fold.
-    Used for parallel execution.
-    """
+    """Fit an estimator on one fold and return its test score (parallel helper)."""
     X_train, X_test = X[train_idx], X[test_idx]
     y_train, y_test = y[train_idx], y[test_idx]
 

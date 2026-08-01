@@ -54,14 +54,7 @@ class RegressionByDiscretization(Regressor):
         n_bins: int = 10,
         use_equal_frequency: bool = True,
     ):
-        """
-        Initialize RegressionByDiscretization.
-
-        Args:
-            base_classifier: Classifier to use
-            n_bins: Number of bins
-            use_equal_frequency: Use equal-frequency binning
-        """
+        """Store the base classifier and binning configuration. See the class docstring."""
         super().__init__()
         self.base_classifier = base_classifier
         self.n_bins = n_bins
@@ -120,11 +113,23 @@ class RegressionByDiscretization(Regressor):
         return _SimpleNBClassifier()
 
     def _discretize(self, y: np.ndarray) -> tuple:
-        """
-        Discretize continuous target values into bins.
+        """Discretize continuous target values into bins.
 
-        Returns:
-            Tuple of (bin_indices, bin_edges, bin_centers)
+        Parameters
+        ----------
+        y : np.ndarray of shape (n_samples,)
+            Continuous target values to bin.
+
+        Returns
+        -------
+        bin_indices : np.ndarray of shape (n_samples,)
+            Zero-based bin index each value falls into. This is the class label
+            handed to the base classifier.
+        bin_edges : np.ndarray
+            Boundaries separating the bins.
+        bin_centers : np.ndarray of shape (n_bins,)
+            Representative value per bin, used to map a predicted class back to a
+            continuous prediction.
         """
         n_samples = len(y)
 

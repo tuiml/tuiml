@@ -5,7 +5,7 @@ from typing import Dict, List, Any, Optional, Type
 from collections import Counter
 
 from tuiml.base.algorithms import Classifier, classifier
-from tuiml.hub import registry
+from tuiml.registry import registry
 
 @classifier(tags=["ensemble", "boosting", "logistic"], version="1.0.0")
 class LogitBoostClassifier(Classifier):

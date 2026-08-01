@@ -1,15 +1,43 @@
-"""
-Bayesian optimization for hyperparameter tuning.
+"""Sequential model-based hyperparameter search using Gaussian Processes.
 
-Implements Gaussian Process-based Bayesian Optimization from scratch.
-No external optimization libraries required.
+Where :class:`~tuiml.evaluation.tuning.GridSearchCV` enumerates and
+:class:`~tuiml.evaluation.tuning.RandomSearchCV` samples blindly, Bayesian
+optimization *learns as it goes*: it fits a cheap probabilistic surrogate to
+the (configuration, score) pairs observed so far and spends its next expensive
+model fit wherever that surrogate says the payoff is greatest.
+
+The module supplies the three pieces of that loop:
+
+- :class:`GaussianProcess` — the surrogate. A from-scratch GP regressor with
+  an RBF kernel that returns a posterior mean and standard deviation for any
+  untried configuration.
+- :class:`AcquisitionFunction` — the decision rule. Turns the surrogate's mean
+  and uncertainty into a single "how promising is this point" score, trading
+  exploitation of good regions against exploration of uncertain ones.
+- :class:`~tuiml.evaluation.tuning.BayesianSearchCV` — the tuner. Warms up
+  with random configurations, then repeatedly refits the GP, maximizes the
+  acquisition function with L-BFGS-B restarts, and cross-validates the winner.
+
+Reach for this module when a single estimator fit is expensive enough that
+thinking about the next configuration is cheaper than trying another one at
+random — large models, big datasets, or budgets in the tens of evaluations
+rather than thousands. For cheap fits the GP overhead dominates and random
+search is the better tool.
+
+Everything is implemented on NumPy and SciPy; no external Bayesian
+optimization library is required.
 
 References
 ----------
-- Snoek, J., Larochelle, H., & Adams, R. P. (2012). Practical Bayesian 
-  optimization of machine learning algorithms. NeurIPS.
-- Brochu, E., Cora, V. M., & De Freitas, N. (2010). A tutorial on 
-  Bayesian optimization of expensive cost functions.
+.. [Snoek2012] Snoek, J., Larochelle, H., & Adams, R. P. (2012). Practical
+   Bayesian Optimization of Machine Learning Algorithms. *Advances in Neural
+   Information Processing Systems (NeurIPS)*, 25, 2951-2959.
+.. [Brochu2010] Brochu, E., Cora, V. M., & de Freitas, N. (2010). A Tutorial
+   on Bayesian Optimization of Expensive Cost Functions, with Application to
+   Active User Modeling and Hierarchical Reinforcement Learning.
+   *arXiv:1012.2599*. https://doi.org/10.48550/arXiv.1012.2599
+.. [Rasmussen2006] Rasmussen, C. E., & Williams, C. K. I. (2006). *Gaussian
+   Processes for Machine Learning*. MIT Press.
 """
 
 import numpy as np
@@ -23,31 +51,124 @@ import warnings
 from tuiml.base.tuning import BaseTuner, ParameterDistribution, TuningResult
 
 class GaussianProcess:
-    """
-    Gaussian Process for Bayesian Optimization.
-    
-    Simple GP implementation with RBF (squared exponential) kernel.
-    
+    """**Gaussian Process** surrogate model with an RBF kernel.
+
+    A GP places a distribution over functions and, conditioned on the points
+    observed so far, returns for any new point both a predicted mean and an
+    honest estimate of how uncertain that prediction is. That uncertainty is
+    exactly what an :class:`AcquisitionFunction` needs in order to decide
+    where to sample next.
+
+    Overview
+    --------
+    1. ``fit`` builds the kernel matrix :math:`K` over the training inputs and
+       adds ``noise`` to its diagonal for numerical stability.
+    2. It inverts that matrix once and caches the result in ``K_inv``.
+    3. ``predict`` forms the cross-kernel :math:`K_*` between the query points
+       and the training inputs and applies the standard GP posterior formulas.
+
+    Theory
+    ------
+    The squared-exponential (RBF) kernel with length scale :math:`\\ell` is
+
+    .. math::
+        k(x, x') = \\exp\\!\\left(
+            -\\frac{\\lVert x - x' \\rVert^{2}}{2\\,\\ell^{2}}
+        \\right)
+
+    Conditioning a zero-mean GP prior on observations
+    :math:`(X, y)` gives the posterior at test points :math:`X_*`
+
+    .. math::
+        \\mu_* = K_*\\,(K + \\sigma_n^{2} I)^{-1}\\, y
+
+    .. math::
+        \\Sigma_* = K_{**} - K_*\\,(K + \\sigma_n^{2} I)^{-1}\\,K_*^{\\top}
+
+    where :math:`K = k(X, X)`, :math:`K_* = k(X_*, X)`,
+    :math:`K_{**} = k(X_*, X_*)` and :math:`\\sigma_n^{2}` is ``noise``.
+    ``predict`` returns :math:`\\mu_*` and, on request, the square root of the
+    diagonal of :math:`\\Sigma_*`, clipped at zero so round-off cannot produce
+    a negative variance.
+
+    A small :math:`\\ell` makes the surrogate wiggly and trusts observations
+    only very locally; a large :math:`\\ell` smooths the surface and lets a
+    single observation influence distant regions.
+
     Parameters
     ----------
     kernel : str, default='rbf'
-        Kernel type. Currently only 'rbf' supported.
+        Kernel type. Only ``'rbf'`` (squared exponential) is implemented; the
+        value is stored but not otherwise consulted.
     length_scale : float, default=1.0
-        Length scale for RBF kernel.
+        Length scale :math:`\\ell` of the RBF kernel. Inputs are used on their
+        raw scale, so a single length scale is shared by all dimensions.
     noise : float, default=1e-10
-        Noise level for numerical stability.
+        Variance :math:`\\sigma_n^{2}` added to the diagonal of :math:`K`. Acts
+        as a jitter that keeps the inversion well conditioned; raise it if
+        ``numpy.linalg.inv`` complains about a singular matrix.
+
+    Attributes
+    ----------
+    X_train : np.ndarray of shape (n_samples, n_features) or None
+        Training inputs retained from the last :meth:`fit`. ``None`` before
+        fitting.
+    y_train : np.ndarray of shape (n_samples,) or None
+        Training targets retained from the last :meth:`fit`.
+    K_inv : np.ndarray of shape (n_samples, n_samples) or None
+        Cached inverse of the noise-augmented kernel matrix.
+
+    Notes
+    -----
+    **Complexity.** :meth:`fit` is :math:`O(n^{3})` for the explicit matrix
+    inversion and :math:`O(n^{2})` in memory; :meth:`predict` is
+    :math:`O(m\\,n)` for the mean and :math:`O(m^{2} + m\\,n^{2})` when
+    standard deviations are requested. This is fine for the tens to low
+    hundreds of observations a hyperparameter search produces, and unsuitable
+    for large-scale regression.
+
+    **When to use.** As the surrogate inside
+    :class:`~tuiml.evaluation.tuning.BayesianSearchCV`. It is a deliberately
+    minimal implementation: no kernel hyperparameter marginal-likelihood
+    optimization, no Cholesky solve, no per-dimension length scales.
+
+    References
+    ----------
+    .. [Rasmussen2006] Rasmussen, C. E., & Williams, C. K. I. (2006).
+       *Gaussian Processes for Machine Learning*, chapter 2. MIT Press.
+
+    See Also
+    --------
+    :class:`~tuiml.evaluation.tuning.bayesian_search.AcquisitionFunction` :
+        Consumes this model's mean and standard deviation.
+    :class:`~tuiml.evaluation.tuning.BayesianSearchCV` : Uses the GP as the
+        surrogate for the score surface.
+
+    Examples
+    --------
+    Fit the surrogate to four observations and query an untried point:
+
+    >>> import numpy as np
+    >>> from tuiml.evaluation.tuning.bayesian_search import GaussianProcess
+    >>> X = np.array([[0.0], [1.0], [2.0], [3.0]])
+    >>> y = np.array([0.0, 0.8, 0.9, 0.1])
+    >>> gp = GaussianProcess(length_scale=1.0, noise=1e-6)
+    >>> gp.fit(X, y)
+    >>> mu, sigma = gp.predict(np.array([[1.5]]), return_std=True)
+    >>> round(float(mu[0]), 3)
+    1.019
+    >>> round(float(sigma[0]), 3)
+    0.1
+
+    The posterior interpolates the observations it has already seen:
+
+    >>> round(float(gp.predict(np.array([[1.0]]))[0]), 3)
+    0.8
     """
-    
+
     @classmethod
     def get_parameter_schema(cls) -> dict:
-        """
-        Return JSON Schema for GaussianProcess parameters.
-
-        Returns
-        -------
-        dict
-            JSON Schema describing all __init__ parameters.
-        """
+        """Return JSON Schema for constructor parameters."""
         return {
             "kernel": {
                 "type": "string",
@@ -75,6 +196,7 @@ class GaussianProcess:
         length_scale: float = 1.0,
         noise: float = 1e-10
     ):
+        """Initialize the GP; see the class docstring for parameters."""
         self.kernel = kernel
         self.length_scale = length_scale
         self.noise = noise
@@ -84,10 +206,24 @@ class GaussianProcess:
         self.K_inv = None
         
     def _rbf_kernel(self, X1: np.ndarray, X2: np.ndarray) -> np.ndarray:
-        """
-        Compute RBF (Radial Basis Function) kernel.
-        
-        k(x1, x2) = exp(-||x1 - x2||^2 / (2 * length_scale^2))
+        """Compute the RBF (squared exponential) kernel matrix between two sets of points.
+
+        Implements
+        :math:`k(x_1, x_2) = \\exp(-\\lVert x_1 - x_2 \\rVert^{2} / (2\\,\\ell^{2}))`
+        using the expanded form of the squared Euclidean distance so the whole
+        matrix is produced with one matrix product.
+
+        Parameters
+        ----------
+        X1 : np.ndarray of shape (n1, n_features)
+            First set of points.
+        X2 : np.ndarray of shape (n2, n_features)
+            Second set of points.
+
+        Returns
+        -------
+        K : np.ndarray of shape (n1, n2)
+            Kernel (covariance) matrix with entries in :math:`(0, 1]`.
         """
         # Compute squared Euclidean distances
         dists = np.sum(X1**2, axis=1)[:, np.newaxis] + \
@@ -98,15 +234,30 @@ class GaussianProcess:
         return np.exp(-dists / (2 * self.length_scale**2))
     
     def fit(self, X: np.ndarray, y: np.ndarray):
-        """
-        Fit Gaussian Process to training data.
-        
+        """Condition the Gaussian Process on observed points.
+
+        Stores the training data, builds the noise-augmented kernel matrix
+        :math:`K + \\sigma_n^{2} I`, and caches its inverse in ``K_inv``. Each
+        call replaces any previous fit.
+
         Parameters
         ----------
-        X : ndarray of shape (n_samples, n_features)
-            Training features.
-        y : ndarray of shape (n_samples,)
-            Training targets.
+        X : np.ndarray of shape (n_samples, n_features)
+            Observed inputs.
+        y : np.ndarray of shape (n_samples,)
+            Observed targets.
+
+        Returns
+        -------
+        None
+            The model is updated in place; ``X_train``, ``y_train`` and
+            ``K_inv`` are set.
+
+        Raises
+        ------
+        numpy.linalg.LinAlgError
+            If the kernel matrix is singular. Increase ``noise`` or drop
+            duplicate rows from ``X``.
         """
         self.X_train = np.asarray(X)
         self.y_train = np.asarray(y)
@@ -121,22 +272,30 @@ class GaussianProcess:
         self.K_inv = np.linalg.inv(K)
         
     def predict(self, X: np.ndarray, return_std: bool = False) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
-        """
-        Predict using Gaussian Process.
-        
+        """Evaluate the GP posterior at new points.
+
         Parameters
         ----------
-        X : ndarray of shape (n_samples, n_features)
-            Test features.
+        X : np.ndarray of shape (n_samples, n_features)
+            Query points. Must have the same number of columns as the data
+            passed to :meth:`fit`.
         return_std : bool, default=False
-            If True, return standard deviation along with mean.
-            
+            If ``True``, also return the posterior standard deviation, which
+            is what acquisition functions use to quantify exploration value.
+
         Returns
         -------
-        y_mean : ndarray
-            Predicted mean.
-        y_std : ndarray (if return_std=True)
-            Predicted standard deviation.
+        y_mean : np.ndarray of shape (n_samples,)
+            Posterior mean :math:`\\mu_*`. Returned on its own when
+            ``return_std=False``.
+        y_std : np.ndarray of shape (n_samples,)
+            Posterior standard deviation, clipped at zero. Only returned when
+            ``return_std=True``, as the second element of a tuple.
+
+        Raises
+        ------
+        ValueError
+            If :meth:`fit` has not been called yet.
         """
         if self.X_train is None:
             raise ValueError("GP not fitted yet!")
@@ -160,32 +319,127 @@ class GaussianProcess:
         return y_mean, y_std
 
 class AcquisitionFunction:
-    """
-    Acquisition functions for Bayesian Optimization.
-    
+    """**Acquisition functions** that turn a GP posterior into a sampling decision.
+
+    A callable policy for Bayesian optimization. Given a fitted
+    :class:`GaussianProcess` and the best score observed so far, it scores
+    candidate points so that *higher is better*; the optimizer then maximizes
+    it to choose the next configuration to actually train. All three variants
+    balance the same tension: the posterior mean :math:`\\mu(x)` pulls toward
+    regions already known to be good (exploitation) while the posterior
+    standard deviation :math:`\\sigma(x)` pulls toward regions the surrogate
+    has not pinned down (exploration).
+
+    Theory
+    ------
+    Write :math:`y^{+}` for the incumbent best observed score and
+
+    .. math::
+        Z = \\frac{\\mu(x) - y^{+} - \\xi}{\\sigma(x)}
+
+    **Expected Improvement** (``kind='ei'``) is the expected amount by which
+    :math:`x` beats the incumbent, which has the closed form
+
+    .. math::
+        \\text{EI}(x) = \\left(\\mu(x) - y^{+} - \\xi\\right)\\,\\Phi(Z)
+                      + \\sigma(x)\\,\\phi(Z)
+
+    where :math:`\\Phi` and :math:`\\phi` are the standard normal CDF and PDF.
+    The first term rewards a high mean, the second rewards uncertainty, and
+    :math:`\\xi` sets how much improvement must be expected before a point
+    counts as promising. EI is the usual default because it is scale-aware:
+    it answers "by how much", not merely "how likely".
+
+    **Probability of Improvement** (``kind='poi'``) keeps only the probability
+    that the incumbent is beaten,
+
+    .. math::
+        \\text{PI}(x) = P\\!\\left(f(x) \\geq y^{+} + \\xi\\right) = \\Phi(Z)
+
+    which ignores the size of the gain and therefore exploits greedily unless
+    :math:`\\xi` is raised.
+
+    **Upper Confidence Bound** (``kind='ucb'``) is an explicit optimistic
+    bound and the only variant that does not reference :math:`y^{+}`,
+
+    .. math::
+        \\text{UCB}(x) = \\mu(x) + \\kappa\\,\\sigma(x)
+
+    with :math:`\\kappa` directly dialing exploration. The default
+    :math:`\\kappa = 2.576` is the two-sided 99% normal quantile.
+
     Parameters
     ----------
-    kind : str, default='ei'
-        Type of acquisition function:
-        - 'ei': Expected Improvement
-        - 'ucb': Upper Confidence Bound
-        - 'poi': Probability of Improvement
+    kind : {'ei', 'ucb', 'poi'}, default='ei'
+        Which policy to evaluate: ``'ei'`` for Expected Improvement,
+        ``'ucb'`` for Upper Confidence Bound, ``'poi'`` for Probability of
+        Improvement. Any other value raises at call time, not at construction.
     xi : float, default=0.01
-        Exploration-exploitation trade-off parameter.
+        Minimum improvement margin :math:`\\xi` for ``'ei'`` and ``'poi'``.
+        Larger values explore more; ``0.0`` is purely greedy. Ignored by
+        ``'ucb'``.
     kappa : float, default=2.576
-        Exploration parameter for UCB (higher = more exploration).
+        Exploration weight :math:`\\kappa` for ``'ucb'``; larger values favor
+        uncertain regions. Ignored by ``'ei'`` and ``'poi'``.
+
+    Notes
+    -----
+    **Complexity.** One GP prediction with standard deviations plus
+    :math:`O(m)` arithmetic for :math:`m` candidate points, so the cost is
+    dominated by :meth:`GaussianProcess.predict`.
+
+    **When to use.** Keep ``'ei'`` unless you have a reason not to. Choose
+    ``'ucb'`` when you want a single, interpretable exploration knob, and
+    ``'poi'`` when any improvement at all is what matters. Standard deviations
+    are floored at ``1e-9`` before division, so already-observed points where
+    :math:`\\sigma \\to 0` yield a near-zero score rather than a divide-by-zero.
+
+    References
+    ----------
+    .. [Jones1998] Jones, D. R., Schonlau, M., & Welch, W. J. (1998).
+       Efficient Global Optimization of Expensive Black-Box Functions.
+       *Journal of Global Optimization*, 13(4), 455-492.
+       https://doi.org/10.1023/A:1008306431147
+    .. [Srinivas2010] Srinivas, N., Krause, A., Kakade, S., & Seeger, M.
+       (2010). Gaussian Process Optimization in the Bandit Setting: No Regret
+       and Experimental Design. *ICML*, 1015-1022.
+
+    See Also
+    --------
+    :class:`~tuiml.evaluation.tuning.bayesian_search.GaussianProcess` :
+        Supplies the mean and standard deviation this class consumes.
+    :class:`~tuiml.evaluation.tuning.BayesianSearchCV` : Maximizes this
+        function to pick each next configuration.
+
+    Examples
+    --------
+    Score two candidate points against a surrogate whose incumbent is 0.9:
+
+    >>> import numpy as np
+    >>> from tuiml.evaluation.tuning.bayesian_search import (
+    ...     AcquisitionFunction, GaussianProcess)
+    >>> X = np.array([[0.0], [1.0], [2.0], [3.0]])
+    >>> y = np.array([0.0, 0.8, 0.9, 0.1])
+    >>> gp = GaussianProcess(length_scale=1.0, noise=1e-6)
+    >>> gp.fit(X, y)
+    >>> candidates = np.array([[1.5], [2.5]])
+    >>> ei = AcquisitionFunction(kind='ei', xi=0.01)
+    >>> [round(float(v), 4) for v in ei(candidates, gp, y_best=0.9)]
+    [0.1157, 0.0]
+
+    UCB and POI rank the same candidates with different appetites for risk:
+
+    >>> ucb = AcquisitionFunction(kind='ucb', kappa=2.576)
+    >>> [round(float(v), 4) for v in ucb(candidates, gp, y_best=0.9)]
+    [1.2752, 0.8316]
+    >>> poi = AcquisitionFunction(kind='poi')
+    >>> [round(float(v), 4) for v in poi(candidates, gp, y_best=0.9)]
+    [0.8626, 0.0006]
     """
-    
+
     @classmethod
     def get_parameter_schema(cls) -> dict:
-        """
-        Return JSON Schema for AcquisitionFunction parameters.
-
-        Returns
-        -------
-        dict
-            JSON Schema describing all __init__ parameters.
-        """
+        """Return JSON Schema for constructor parameters."""
         return {
             "kind": {
                 "type": "string",
@@ -213,6 +467,7 @@ class AcquisitionFunction:
         xi: float = 0.01,
         kappa: float = 2.576
     ):
+        """Initialize the acquisition policy; see the class docstring for parameters."""
         self.kind = kind
         self.xi = xi
         self.kappa = kappa
@@ -223,22 +478,31 @@ class AcquisitionFunction:
         gp: GaussianProcess,
         y_best: float
     ) -> np.ndarray:
-        """
-        Compute acquisition function value.
-        
+        """Score candidate points with the configured acquisition policy.
+
+        Dispatches on ``self.kind`` to Expected Improvement, Upper Confidence
+        Bound, or Probability of Improvement.
+
         Parameters
         ----------
-        X : ndarray of shape (n_samples, n_features)
-            Points to evaluate.
+        X : np.ndarray of shape (n_samples, n_features)
+            Candidate points to score.
         gp : GaussianProcess
-            Fitted Gaussian Process.
+            Surrogate already fitted on the observations so far.
         y_best : float
-            Best observed value so far.
-            
+            Incumbent best observed score :math:`y^{+}`. Used by ``'ei'`` and
+            ``'poi'``; ignored by ``'ucb'``.
+
         Returns
         -------
-        values : ndarray
-            Acquisition function values (higher is better).
+        values : np.ndarray of shape (n_samples,)
+            Acquisition values, higher meaning more promising. Not comparable
+            across different ``kind`` settings.
+
+        Raises
+        ------
+        ValueError
+            If ``self.kind`` is not one of ``'ei'``, ``'ucb'`` or ``'poi'``.
         """
         if self.kind == 'ei':
             return self._expected_improvement(X, gp, y_best)
@@ -366,27 +630,29 @@ class BayesianSearchCV(BaseTuner):
         
     Examples
     --------
-    >>> from tuiml.algorithms.ensemble import XGBoostClassifier
+    >>> from tuiml.algorithms.ensemble import BaggingClassifier
+    >>> from tuiml.datasets import load_iris
+    >>> from tuiml.evaluation.splitting import train_test_split
     >>> from tuiml.evaluation.tuning import BayesianSearchCV
-    >>> 
-    >>> # Define search space
+    >>> X, y = load_iris()
+    >>> X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+
+    A search space maps each parameter to a ``(low, high)`` range for floats
+    or a ``(low, high, 'int')`` triple for integers:
+
     >>> param_space = {
-    ...     'n_estimators': (50, 500, 'int'),
-    ...     'max_depth': (3, 10, 'int'),
-    ...     'learning_rate': (0.01, 0.3),
+    ...     'n_estimators': (5, 20, 'int'),
+    ...     'bag_size_percent': (50.0, 100.0),
     ... }
-    >>> 
-    >>> # Create Bayesian search
-    >>> bayes = BayesianSearchCV(
-    ...     estimator=XGBoostClassifier(),
+    >>> search = BayesianSearchCV(
+    ...     estimator=BaggingClassifier(),
     ...     param_space=param_space,
-    ...     n_iterations=30,
-    ...     cv=5
+    ...     n_iterations=5,
+    ...     cv=2,
     ... )
-    >>> bayes.fit(X_train, y_train)
-    >>> 
-    >>> print(f"Best params: {bayes.best_params_}")
-    >>> print(f"Best score: {bayes.best_score_:.4f}")
+    >>> search = search.fit(X_train, y_train)              # doctest: +SKIP
+    >>> sorted(search.best_params_)                        # doctest: +SKIP
+    ['bag_size_percent', 'n_estimators']
     """
     
     @classmethod
@@ -490,10 +756,11 @@ class BayesianSearchCV(BaseTuner):
         progress_callback: Optional[Callable] = None,
         **kwargs
     ):
+        """Initialize the tuner; see the class docstring for parameters."""
         legacy_random_state = kwargs.pop('random_state', None)
         if random_seed is None:
             random_seed = legacy_random_state
-            
+
         super().__init__(
             estimator=estimator,
             scoring=scoring,
@@ -607,6 +874,26 @@ class BayesianSearchCV(BaseTuner):
             
             # Optimize (minimize negative acquisition function)
             def neg_acquisition(x):
+                """Negated acquisition value at one point, for use with a minimizer.
+
+                :func:`scipy.optimize.minimize` only minimizes, but the search
+                wants the point where ``acquisition_func`` is *largest*. Negating
+                the score turns "maximize acquisition" into the minimization
+                problem L-BFGS-B actually solves, without changing where the
+                optimum sits.
+
+                Parameters
+                ----------
+                x : np.ndarray of shape (n_params,)
+                    Flat parameter vector proposed by the optimizer, in the same
+                    order as ``self._param_names``.
+
+                Returns
+                -------
+                neg_value : float
+                    ``-acquisition_func(x, gp, y_best)``, i.e. the negated
+                    acquisition score at ``x``. Smaller is more promising.
+                """
                 x_2d = x.reshape(1, -1)
                 return -acquisition_func(x_2d, gp, y_best)[0]
             
@@ -794,6 +1081,15 @@ class BayesianSearchCV(BaseTuner):
         )
     
     def __repr__(self) -> str:
+        """Return a short constructor-like summary of the search.
+
+        Returns
+        -------
+        repr : str
+            ``"BayesianSearchCV(estimator=..., n_iterations=..., acquisition='...')"``,
+            showing the wrapped estimator's class name and the two settings
+            that most affect how the search behaves.
+        """
         return (
             f"BayesianSearchCV(estimator={self.estimator.__class__.__name__}, "
             f"n_iterations={self.n_iterations}, acquisition='{self.acquisition}')"

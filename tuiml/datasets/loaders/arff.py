@@ -1,7 +1,10 @@
 """
-ARFF (Attribute-Relation File Format) loader.
+ARFF (Attribute-Relation File Format) reader and writer.
 
-WEKA's native file format for datasets.
+ARFF is WEKA's native text format: a header naming each attribute and its type,
+followed by comma-separated rows. It is the format every dataset bundled with
+TuiML ships in, and this module also defines :class:`Dataset`, the container
+that every loader in this package returns.
 """
 
 import re
@@ -101,9 +104,9 @@ def load_arff(
     target_column : int, default=-1
         The index of the column to treat as the target variable:
         
-        - ``-1`` — Use the last column (standard for most ARFFs)
-        - ``int`` — Use specific zero-based index
-        - ``None`` — Do not extract a target (X will contain all columns)
+        - ``-1``: Use the last column (standard for most ARFFs)
+        - ``int``: Use specific zero-based index
+        - ``None``: Do not extract a target (X will contain all columns)
 
     Returns
     -------

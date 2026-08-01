@@ -1,7 +1,10 @@
 """
-Hyperplane data generator.
+Hyperplane generator: points split by a random linear boundary.
 
-Generates data separated by a random hyperplane.
+Labels each point by the side of a randomly oriented hyperplane it lands on,
+giving a linearly separable problem in any number of dimensions. Weights can
+be made to drift between samples, which turns it into a concept-drift stream
+for testing incremental learners.
 """
 
 import numpy as np
@@ -37,8 +40,13 @@ class Hyperplane(ClassificationGenerator):
 
     Examples
     --------
-    >>> gen = Hyperplane(n_samples=1000, n_features=10)
+    >>> from tuiml.datasets.generators.classification import Hyperplane
+    >>> gen = Hyperplane(n_samples=1000, n_features=10, random_state=0)
     >>> data = gen.generate()
+    >>> data.X.shape
+    (1000, 10)
+    >>> sorted(set(data.y.tolist()))
+    [0, 1]
     """
 
     def __init__(

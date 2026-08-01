@@ -1,4 +1,4 @@
-"""OpenAI adapter — TuiML tools in OpenAI's function-calling shape.
+"""OpenAI adapter, TuiML tools in OpenAI's function-calling shape.
 
 Works with both the Chat Completions API (``client.chat.completions.create``)
 and the new Agents SDK (``agents.Agent(tools=[...])``). For the Agents SDK, the
@@ -26,12 +26,29 @@ from tuiml.agent._core import invoke, iter_tools, load_skill
 def get_tools() -> List[Dict[str, Any]]:
     """Return every TuiML workflow tool as an OpenAI function-calling dict.
 
-    Shape::
+    Returns
+    -------
+    list of dict
+        One dict per workflow tool in OpenAI's function-calling shape::
 
-        {"type": "function",
-         "function": {"name": ..., "description": ..., "parameters": {...}}}
+            {"type": "function",
+             "function": {"name": ..., "description": ..., "parameters": {...}}}
 
-    OpenAI accepts this format on both Chat Completions and the Responses API.
+        where ``"parameters"`` is a JSON Schema object. OpenAI accepts this
+        format on both Chat Completions and the Responses API.
+
+    Examples
+    --------
+    >>> from tuiml.agent import openai as tuiml_openai
+    >>> tools = tuiml_openai.get_tools()
+    >>> response = client.chat.completions.create(
+    ...     model="gpt-4o",
+    ...     tools=tools,
+    ...     messages=[
+    ...         {"role": "system", "content": tuiml_openai.system_prompt()},
+    ...         {"role": "user", "content": "Train a model on iris"},
+    ...     ],
+    ... )
     """
     out: List[Dict[str, Any]] = []
     for name, description, schema in iter_tools():
@@ -49,9 +66,18 @@ def get_tools() -> List[Dict[str, Any]]:
 def dispatch_tool_call(tool_call: Any) -> Dict[str, Any]:
     """Execute an OpenAI tool-call object and return the structured result.
 
-    Accepts either a Chat Completions ``tool_calls[i]`` entry (a Pydantic-like
-    object with ``.function.name`` and ``.function.arguments``) or a raw dict
-    of the same shape.
+    Parameters
+    ----------
+    tool_call : Any
+        Either a Chat Completions ``tool_calls[i]`` entry (a Pydantic-like
+        object with ``.function.name`` and ``.function.arguments``) or a
+        raw dict of the same shape. JSON-string arguments are decoded.
+
+    Returns
+    -------
+    dict
+        The TuiML structured result dict for the tool call (with a
+        ``"status"`` key plus tool-specific fields).
     """
     if hasattr(tool_call, "function"):
         name = tool_call.function.name
@@ -67,6 +93,11 @@ def dispatch_tool_call(tool_call: Any) -> Dict[str, Any]:
 def system_prompt() -> str:
     """Return the canonical TuiML system prompt (SKILL.md) for use as
     ``messages[0] = {"role": "system", "content": tuiml_openai.system_prompt()}``.
+
+    Returns
+    -------
+    str
+        The contents of the canonical ``SKILL.md`` system prompt.
     """
     return load_skill()
 
