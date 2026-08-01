@@ -3,7 +3,7 @@
 Exposes workflow and discovery tools that give LLMs access to all TuiML
 components (algorithms, preprocessors, datasets, features). New algorithms
 added to the component registry are automatically discoverable via
-``tuiml_list`` / ``tuiml_search`` / ``tuiml_describe`` and usable via
+``tuiml_list`` / ``tuiml_describe`` and usable via
 ``tuiml_train`` / ``tuiml_benchmark``.
 
 Usage
@@ -237,7 +237,7 @@ def create_server() -> "Server":
 
     Only workflow and discovery tools are exposed as MCP tools (11 total).
     The internal registry still tracks all 200+ components so that
-    tuiml_list, tuiml_search, tuiml_describe, and tuiml_train
+    tuiml_list, tuiml_describe, and tuiml_train
     can dynamically access any algorithm - including new ones added later.
 
     Returns
@@ -524,7 +524,7 @@ async def run_server():
     def _preload_components():
         try:
             from tuiml.agent.tools import get_workflow_tools
-            from tuiml.agent.registry import get_all_tools
+            from tuiml.agent.tools._components import get_all_tools
             exposed = len(get_workflow_tools())
             discoverable = len(get_all_tools())
             print(f"✓ {exposed} MCP tools exposed, {discoverable} components discoverable", file=sys.stderr)
@@ -574,7 +574,7 @@ def main():
             print(f"  - {name}")
         print()
         print("All components are accessible via tuiml_train, tuiml_list,")
-        print("tuiml_describe, and tuiml_search.")
+        print("and tuiml_describe.")
         print()
         print("To run the server:")
         print("  tuiml-mcp")
@@ -612,7 +612,7 @@ def get_server_info() -> Dict[str, Any]:
         with ``"exposed_tools"``, ``"discoverable_components"``, and
         ``"components_by_category"`` counts).
     """
-    from tuiml.agent.registry import get_tool_count
+    from tuiml.agent.tools._components import get_tool_count
     from tuiml.agent.tools import get_workflow_tools
 
     workflow_count = len(get_workflow_tools())

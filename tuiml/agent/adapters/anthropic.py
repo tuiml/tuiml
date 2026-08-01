@@ -8,7 +8,7 @@ outside an MCP-aware client.
 
 Example
 -------
->>> from tuiml.agent import anthropic as tuiml_anthropic
+>>> from tuiml.agent.adapters import anthropic as tuiml_anthropic
 >>> from tuiml.agent import invoke as tuiml_invoke
 >>> tools = tuiml_anthropic.get_tools()
 >>> # In your tool-use loop: when response.stop_reason == "tool_use",
@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
-from tuiml.agent._core import invoke, iter_tools, load_skill
+from ._base import invoke, iter_tools, load_skill
 
 
 def get_tools() -> List[Dict[str, Any]]:
@@ -37,7 +37,7 @@ def get_tools() -> List[Dict[str, Any]]:
 
     Examples
     --------
-    >>> from tuiml.agent import anthropic as tuiml_anthropic
+    >>> from tuiml.agent.adapters import anthropic as tuiml_anthropic
     >>> tools = tuiml_anthropic.get_tools()
     >>> response = client.messages.create(
     ...     model="claude-sonnet-4-6",

@@ -24,8 +24,11 @@ from tuiml.serving import serve, stop_server, server_status
 # Mid-level API
 from tuiml.workflow import Workflow, On
 
-# Agent entry points (tools for every major framework + one-liner agent)
-from tuiml.agent import agent
+# Agent entry points (tools for every major framework + one-liner agent).
+# Imported as a module, not as a name: binding the agent() function here would
+# shadow the tuiml.agent package, so `import tuiml.agent as x` would hand back
+# the function. Use `from tuiml.agent import agent` or `tuiml.agent.agent()`.
+import tuiml.agent  # noqa: F401
 
 # Optional third-party bridges. Each registers its wrappers into the hub under a
 # namespaced key (``sklearn.*`` / ``capymoa.*``) when its backing library is
@@ -63,5 +66,4 @@ __all__ = [
     "On",
 
     # Agent / framework integration
-    "agent",
 ]

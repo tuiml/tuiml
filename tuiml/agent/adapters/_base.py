@@ -21,22 +21,27 @@ from typing import Any, Callable, Dict, Iterator, List, Tuple, Type
 # ---------------------------------------------------------------------------
 
 def iter_tools() -> Iterator[Tuple[str, str, Dict[str, Any]]]:
-    """Yield ``(name, description, input_schema)`` for every workflow tool.
+    """Yield ``(name, description, input_schema)`` for every TuiML tool.
 
     A single place every adapter should consume. If we ever add new tools they
     automatically show up in every framework integration.
+
+    Deliberately the same surface an MCP client sees -- workflow, discovery
+    *and* code tools. Exposing only the workflow group left framework agents
+    without ``tuiml_list`` / ``tuiml_describe``, so they could train an
+    algorithm only if they already knew its exact class name and parameters.
 
     Yields
     ------
     name : str
         Tool name (e.g. ``tuiml_train``).
     description : str
-        Tool description from ``WORKFLOW_TOOLS``.
+        Tool description from the tool's spec.
     input_schema : Dict[str, Any]
         JSON Schema for the tool's arguments (empty object schema if unset).
     """
-    from tuiml.agent.tools import WORKFLOW_TOOLS
-    for name, spec in WORKFLOW_TOOLS.items():
+    from tuiml.agent.tools import get_workflow_tools
+    for name, spec in get_workflow_tools().items():
         yield name, spec["description"], spec.get("inputSchema", {"type": "object", "properties": {}})
 
 
@@ -201,7 +206,7 @@ def load_skill() -> str:
     skill : str
         Full text of the ``SKILL.md`` file shipped with ``tuiml.agent``.
     """
-    return resources.files("tuiml.agent").joinpath("SKILL.md").read_text(encoding="utf-8")
+    return resources.files("tuiml.agent.prompts").joinpath("SKILL.md").read_text(encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------

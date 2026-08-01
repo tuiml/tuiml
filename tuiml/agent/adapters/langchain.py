@@ -5,7 +5,7 @@ this module covers both frameworks.
 
 Example
 -------
->>> from tuiml.agent.langchain import get_tools, system_prompt
+>>> from tuiml.agent.adapters.langchain import get_tools, system_prompt
 >>> from langgraph.prebuilt import create_react_agent
 >>> from langchain_anthropic import ChatAnthropic
 >>>
@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from typing import Any, List
 
-from tuiml.agent._core import build_args_model, invoke, iter_tools, load_skill, require
+from ._base import build_args_model, invoke, iter_tools, load_skill, require
 
 
 def get_tools() -> List[Any]:
@@ -41,7 +41,7 @@ def get_tools() -> List[Any]:
 
     Examples
     --------
-    >>> from tuiml.agent.langchain import get_tools
+    >>> from tuiml.agent.adapters.langchain import get_tools
     >>> tools = get_tools()
     >>> [t.name for t in tools][:2]  # doctest: +SKIP
     ['tuiml_train', 'tuiml_predict']

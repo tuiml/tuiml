@@ -2,7 +2,7 @@
 
 Most useful right after ``tuiml update`` to pick up the new code without
 manually quitting each AI client. The process discovery and signalling live in
-``tuiml.agent.restart_util``; this module is only the CLI front end.
+``tuiml.agent.tools.system.restart``; this module is only the CLI front end.
 """
 from __future__ import annotations
 
@@ -42,7 +42,7 @@ def restart(as_json: bool, grace: float) -> None:
 
     $ tuiml restart --json
     """
-    from tuiml.agent.restart_util import find_mcp_processes, kill_mcp_processes
+    from tuiml.agent.tools.system.restart import find_mcp_processes, kill_mcp_processes
 
     procs = find_mcp_processes(exclude_self=True)
 
