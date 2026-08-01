@@ -1,7 +1,7 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/tuiml/tuiml/main/assets/tuiml_logo.png" alt="TuiML Logo" width="320">
+  <img src="https://raw.githubusercontent.com/tuiml/tuiml/main/assets/tuiml_logo.png" alt="TuiML Logo" width="180">
 </p>
-<p align="center"><strong>Machine Learning for AI Agents.</strong></p>
+<p align="center"><strong>TuiML - Machine Learning for AI Agents.</strong></p>
 
 <p align="center">
 Ask your agent to train a model, tune it, compare it to the last run, or find an algorithm that fits your data. It just does it. No code. No guesswork. No forgotten context.
