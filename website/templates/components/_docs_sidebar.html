@@ -1,0 +1,140 @@
+{#
+    Documentation Sidebar Component
+    Usage: {% include 'components/_docs_sidebar.html' %}
+
+    Variables:
+    - current_page: Current page path for active highlighting
+#}
+<aside class="w-64 flex-shrink-0 hidden lg:block">
+    <nav class="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto pr-4 scrollbar-hide">
+        <!-- Getting Started -->
+        <div class="mb-6">
+            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Getting Started</h4>
+            <ul class="space-y-1">
+                <li>
+                    <a href="/docs/getting_started.html"
+                        class="sidebar-link block px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors {{ 'active' if current_page == 'readme' }}">
+                        <i class="fa-solid fa-house w-4 mr-2 text-gray-400"></i>Overview
+                    </a>
+                </li>
+                <li>
+                    <a href="/docs/api-reference.html"
+                        class="sidebar-link block px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors {{ 'active' if current_page == 'api-reference' }}">
+                        <i class="fa-solid fa-book w-4 mr-2 text-gray-400"></i>API Reference
+                    </a>
+                </li>
+                <li>
+                    <a href="/docs/benchmarks.html"
+                        class="sidebar-link block px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors {{ 'active' if current_page == 'benchmarks' }}">
+                        <i class="fa-solid fa-chart-column w-4 mr-2 text-gray-400"></i>Benchmarks
+                    </a>
+                </li>
+                <li>
+                    <a href="/docs/changelog.html"
+                        class="sidebar-link block px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors {{ 'active' if current_page == 'changelog' }}">
+                        <i class="fa-solid fa-clock-rotate-left w-4 mr-2 text-gray-400"></i>Changelog
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Core Modules -->
+        <div class="mb-6">
+            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Core Modules</h4>
+            <ul class="space-y-1">
+                <li>
+                    <a href="/docs/algorithms/__init__.html"
+                        class="sidebar-link block px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors">
+                        <i class="fa-solid fa-brain w-4 mr-2 text-gray-400"></i>Algorithms
+                    </a>
+                </li>
+                <li>
+                    <a href="/docs/preprocessing/__init__.html"
+                        class="sidebar-link block px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors">
+                        <i class="fa-solid fa-wand-magic-sparkles w-4 mr-2 text-gray-400"></i>Preprocessing
+                    </a>
+                </li>
+                <li>
+                    <a href="/docs/features/__init__.html"
+                        class="sidebar-link block px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors">
+                        <i class="fa-solid fa-layer-group w-4 mr-2 text-gray-400"></i>Features
+                    </a>
+                </li>
+                <li>
+                    <a href="/docs/evaluation/__init__.html"
+                        class="sidebar-link block px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors">
+                        <i class="fa-solid fa-chart-line w-4 mr-2 text-gray-400"></i>Evaluation
+                    </a>
+                </li>
+                <li>
+                    <a href="/docs/datasets/__init__.html"
+                        class="sidebar-link block px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors">
+                        <i class="fa-solid fa-database w-4 mr-2 text-gray-400"></i>Datasets
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Integration -->
+        <div class="mb-6">
+            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Integration</h4>
+            <ul class="space-y-1">
+                <li>
+                    <a href="/docs/agent/__init__.html"
+                        class="sidebar-link block px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors">
+                        <i class="fa-solid fa-robot w-4 mr-2 text-gray-400"></i>LLM Tools
+                    </a>
+                </li>
+                <li>
+                    <a href="/docs/cli/__init__.html"
+                        class="sidebar-link block px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors">
+                        <i class="fa-solid fa-terminal w-4 mr-2 text-gray-400"></i>CLI
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Advanced -->
+        <div class="mb-6">
+            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Advanced</h4>
+            <ul class="space-y-1">
+                <li>
+                    <a href="/docs/api.html"
+                        class="sidebar-link block px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors">
+                        <i class="fa-solid fa-code w-4 mr-2 text-gray-400"></i>High-Level API
+                    </a>
+                </li>
+                <li>
+                    <a href="/docs/workflow.html"
+                        class="sidebar-link block px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors">
+                        <i class="fa-solid fa-diagram-project w-4 mr-2 text-gray-400"></i>Workflow API
+                    </a>
+                </li>
+                <li>
+                    <a href="/docs/base/__init__.html"
+                        class="sidebar-link block px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors">
+                        <i class="fa-solid fa-cubes w-4 mr-2 text-gray-400"></i>Base Classes
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- External Links -->
+        <div class="pt-4 border-t border-gray-200">
+            <ul class="space-y-1">
+                <li>
+                    <a href="{{ config.github_url }}"
+                        class="block px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors">
+                        <i class="fa-brands fa-github w-4 mr-2"></i>GitHub
+                    </a>
+                </li>
+                <li>
+                    <a href="/"
+                        class="block px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors">
+                        <i class="fa-solid fa-arrow-left w-4 mr-2"></i>Back Home
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+</aside>

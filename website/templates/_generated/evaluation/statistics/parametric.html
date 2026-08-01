@@ -1,0 +1,1800 @@
+{% extends 'layouts/docs_generated.html' %}
+
+{% set active_nav = 'api' %}
+{% set breadcrumb_html = '<a href="../../api-reference.html" class="hover:text-gray-900">API Reference</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="../index.html" class="hover:text-gray-900">evaluation</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="index.html" class="hover:text-gray-900">statistics</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">parametric</span>' %}
+
+{% block title %}parametric - API Documentation{% endblock %}
+
+{% block content %}
+<p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a> / <a href="index.html">statistics</a></p>
+<h1 class="oc-display" style="margin-bottom: 32px;">parametric</h1>
+<nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
+<div class="oc-toc-label">On this page</div>
+<a href="#class-SignificanceLevel">SignificanceLevel</a>
+<a href="#class-PairedStats">PairedStats</a>
+<a href="#func-paired_t_test">paired_t_test</a>
+<a href="#func-corrected_paired_t_test">corrected_paired_t_test</a>
+<a href="#func-one_way_anova">one_way_anova</a>
+</nav>
+<main>
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Parametric significance tests for comparing learning algorithms.</p>
+<div class="doc-extended">
+<p class="mb-4">
+A <em>parametric</em> test assumes an explicit distributional form for the data. The tests here assume the quantity being tested (the per-fold or per-dataset score difference, or the within-group residual) is drawn from a <strong>normal</strong> distribution. When that assumption is reasonable these tests are the most powerful option available; when it fails -- heavy tails, a handful of datasets, accuracies saturating near 1.0, or an outlier dataset -- they become anti-conservative and report &quot;significant&quot; far too often. In that regime use the rank-based tests in <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">nonparametric</code> instead.
+</p>
+
+<p class="mb-4">
+Contents:
+</p>
+<div class="bg-slate-900 rounded-lg p-4 my-3 overflow-x-auto"><pre class="text-sm font-mono text-slate-100 leading-relaxed">paired_t_test            Student&#x27;s paired t-test on matched scores
+corrected_paired_t_test  Paired t-test with the Nadeau &amp; Bengio variance
+                         correction for resampled / cross-validated scores
+one_way_anova            Omnibus F-test across k independent groups
+PairedStats              Result container returned by the paired tests
+SignificanceLevel        WIN / LOSS / TIE verdict enum</pre></div></div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+<strong>Choosing a test.</strong> Two algorithms scored on the <em>same</em> folds or the <em>same</em> datasets are <em>paired</em> -- use <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">paired_t_test</code>. If those scores come from resampling that reuses training data (k-fold CV, repeated random splits), the folds are not independent, the ordinary t-test&#x27;s variance estimate is too small and its Type I error rate is badly inflated; use <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">corrected_paired_t_test</code>. For more than two algorithms an omnibus test comes first: <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">one_way_anova</code> for independent groups, or -- much more commonly in machine learning, where the same datasets are reused across algorithms -- <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">friedman_test</code>.
+</p>
+
+<p class="mb-4">
+<strong>Multiplicity.</strong> Running every pairwise t-test over k algorithms performs <span class="katex-inline">k(k-1)/2</span> tests, so the probability of at least one false positive grows quickly. Always feed the resulting p-values through one of the procedures in <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">corrections</code>.
+</p>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-book text-amber-500 mr-2"></i>References</h4>
+            </div>
+            <div class="p-4"><div class="reference-list space-y-2">
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">Student1908</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Student (W. S. Gosset) (1908). &quot;The Probable Error of a Mean&quot;.
+   Biometrika, 6(1), 1-25.</div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">Dietterich1998</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Dietterich, T. G. (1998). &quot;Approximate Statistical Tests for
+   Comparing Supervised Classification Learning Algorithms&quot;. Neural
+   Computation, 10(7), 1895-1923.</div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">Demsar2006</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Demsar, J. (2006). &quot;Statistical Comparisons of Classifiers over
+   Multiple Data Sets&quot;. Journal of Machine Learning Research, 7, 1-30.</div>
+                    </div>
+                </div>
+                </div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/evaluation/statistics/nonparametric.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">nonparametric</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Rank-based counterparts that make no normality assumption.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/evaluation/statistics/corrections.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">corrections</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Family-wise error rate and false discovery rate control for many pairwise tests.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; from tuiml.evaluation.statistics import paired_t_test
+&gt;&gt;&gt; model_a = np.array([0.85, 0.87, 0.83, 0.86, 0.84])
+&gt;&gt;&gt; model_b = np.array([0.82, 0.84, 0.81, 0.83, 0.82])
+&gt;&gt;&gt; stats = paired_t_test(model_a, model_b, significance_level=0.05)
+&gt;&gt;&gt; round(float(stats.p_value), 4)
+0.0004
+&gt;&gt;&gt; stats.x_better()
+True</code></pre>
+            </div>
+        </div>
+        </div></div>
+<div class="mb-12">
+<h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-cubes text-indigo-500"></i> Classes</h2>
+<div class="mb-12 scroll-mt-24" id="class-SignificanceLevel">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">SignificanceLevel</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">evaluation.statistics.parametric.SignificanceLevel</span>(<span class="text-cyan-400">Enum</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed">Verdict of a two-sided paired comparison between two algorithms.</p>
+<div class="text-gray-600 mb-8 leading-relaxed">A test does not simply return &quot;different&quot;/&quot;not different&quot;: once the null hypothesis of equal performance is rejected, the <em>sign</em> of the mean difference says which algorithm won. This enum encodes both facts in one value, always from the point of view of the <strong>first</strong> argument (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">x</code>) of the test.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-list-check text-blue-500 mr-2"></i>Attributes</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">TIE</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Value <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">0</code>. The null hypothesis was <strong>not</strong> rejected (:math:`p \geq \alpha`). This is <em>not</em> evidence that the two algorithms are equal, only that the data are too few or too noisy to distinguish them.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">WIN</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Value <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">1</code>. The null hypothesis was rejected and <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">x</code> is the better algorithm. &quot;Better&quot; is decided by the <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">higher_better</code> flag of the test: with <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">higher_better=True</code> (accuracy, F1) this means <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">mean(x) &gt; mean(y)</code>; with <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">higher_better=False</code> (error rate, RMSE) it means <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">mean(x) &lt; mean(y)</code>.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">LOSS</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Value <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">-1</code>. The null hypothesis was rejected and <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">y</code> is the better algorithm.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">The comparison performed is always <strong>two-sided</strong>, so <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">WIN</code> and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">LOSS</code> partition the same rejection region; the enum records which tail the observed difference fell into. Do not read a <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">WIN</code> at <span class="katex-inline">\alpha = 0.05</span> as a one-sided claim at <span class="katex-inline">\alpha = 0.025</span>.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/evaluation/statistics/parametric.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">PairedStats</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Container that carries this verdict alongside the statistic and p-value.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; from tuiml.evaluation.statistics import SignificanceLevel, paired_t_test
+&gt;&gt;&gt; a = np.array([0.85, 0.87, 0.83, 0.86, 0.84])
+&gt;&gt;&gt; b = np.array([0.82, 0.84, 0.81, 0.83, 0.82])
+&gt;&gt;&gt; paired_t_test(a, b).significance is SignificanceLevel.WIN
+True
+&gt;&gt;&gt; paired_t_test(b, a).significance is SignificanceLevel.LOSS
+True
+&gt;&gt;&gt; SignificanceLevel.TIE.value
+0</code></pre>
+            </div>
+        </div>
+        </div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-SignificanceLevel-get_parameter_schema">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_parameter_schema</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; dict</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return JSON Schema for the SignificanceLevel enum.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">dict</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    JSON Schema describing the enum values.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+</div></div>
+</div>
+<div class="mb-12 scroll-mt-24" id="class-PairedStats">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">PairedStats</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">evaluation.statistics.parametric.PairedStats</span></p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed">Complete result of a paired comparison between two algorithms.</p>
+<div class="text-gray-600 mb-8 leading-relaxed">Returned by every paired test in this package -- <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">paired_t_test</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">corrected_paired_t_test</code> and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">wilcoxon_signed_rank_test</code> -- so that the three are drop-in interchangeable. It bundles the descriptive statistics of both samples, the test statistic, the two-sided p-value and the WIN/LOSS/TIE verdict.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-list-check text-blue-500 mr-2"></i>Attributes</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">x_mean</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Sample mean of the first algorithm&#x27;s scores.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y_mean</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Sample mean of the second algorithm&#x27;s scores.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">x_std</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Sample standard deviation of the first algorithm&#x27;s scores, computed with <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">ddof=1</code> (unbiased, divides by :math:`n - 1`).
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y_std</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Sample standard deviation of the second algorithm&#x27;s scores (<code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">ddof=1</code>).
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">diff_mean</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Mean of the paired differences :math:`d_i = x_i - y_i`. This is the effect size in the original units of the score; its <strong>sign</strong> decides WIN vs LOSS. Note it is <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">x_mean - y_mean</code>, not the other way round.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">diff_std</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Spread of the paired differences. For <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">paired_t_test</code> and <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">wilcoxon_signed_rank_test</code> this is the ordinary <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">ddof=1</code> standard deviation of :math:`d_i`. For <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">corrected_paired_t_test</code> it is instead the <strong>corrected standard error</strong> :math:`\sqrt{(1/n + n_{test}/n_{train})\, s_d^2}`, which is why the two are not comparable across tests.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">t_statistic</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    The test statistic. For the two t-tests this is Student&#x27;s :math:`t`, distributed with :math:`n - 1` degrees of freedom under the null. For the Wilcoxon test the field instead carries the <strong>normal approximation z-score</strong> of the signed-rank statistic (the name is kept only so the container stays uniform).
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">p_value</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    <strong>Two-sided</strong> p-value: the probability, <em>assuming the null hypothesis of no difference is true</em>, of observing a statistic at least as extreme as this one in either direction. It is not the probability that the null is true, and <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">1 - p_value</code> is not the probability that the difference is real. Lies in :math:`[0, 1]`.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">correlation</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Pearson correlation between the two score vectors, in :math:`[-1, 1]`. High positive correlation (the usual case when both algorithms are scored on the same folds) is precisely what makes the <em>paired</em> design more powerful than an unpaired one, because the dataset-to-dataset variance cancels in :math:`d_i`. Reported as <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">0.0</code> when either sample is constant.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">significance</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">SignificanceLevel</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Verdict at the <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">significance_level</code> supplied to the test: <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">WIN</code> (<code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">x</code> better), <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">LOSS</code> (<code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">y</code> better) or <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">TIE</code> (null not rejected). See <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">SignificanceLevel</code>.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">n</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Number of paired observations actually used, <strong>after</strong> dropping pairs containing NaN. For the Wilcoxon test, pairs with a zero difference are dropped as well, so <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">n</code> can be smaller than the input length.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+The verdict is computed with a strict comparison, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">p_value &lt; significance_level</code>; a p-value exactly equal to <span class="katex-inline">\alpha</span> is reported as <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">TIE</code>.
+</p>
+
+<p class="mb-4">
+Because the whole object is derived from one <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">significance_level</code>, re-reading <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">significance</code> under a different <span class="katex-inline">\alpha</span> is invalid -- re-run the test, or threshold <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">p_value</code> yourself.
+</p>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/evaluation/statistics/paired_t_test.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">paired_t_test</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Parametric producer of this result.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/evaluation/statistics/wilcoxon_signed_rank_test.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">wilcoxon_signed_rank_test</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Non-parametric producer of this result.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; from tuiml.evaluation.statistics import paired_t_test
+&gt;&gt;&gt; a = np.array([0.85, 0.87, 0.83, 0.86, 0.84])
+&gt;&gt;&gt; b = np.array([0.82, 0.84, 0.81, 0.83, 0.82])
+&gt;&gt;&gt; stats = paired_t_test(a, b)
+&gt;&gt;&gt; stats.n
+5
+&gt;&gt;&gt; round(float(stats.diff_mean), 4)
+0.026
+&gt;&gt;&gt; round(float(stats.t_statistic), 4)
+10.6145
+&gt;&gt;&gt; round(float(stats.p_value), 4)
+0.0004
+&gt;&gt;&gt; stats.is_significant(), stats.x_better(), stats.y_better()
+(True, True, False)</code></pre>
+            </div>
+        </div>
+        </div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-PairedStats-get_parameter_schema">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_parameter_schema</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; dict</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return JSON Schema for PairedStats dataclass fields.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">dict</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    JSON Schema describing all dataclass fields.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-PairedStats-is_significant">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">is_significant</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self) -&gt; bool</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Report whether the null hypothesis of no difference was rejected.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">significant</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">bool</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">True</code> if <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">p_value</code> fell below the significance level supplied to the test (equivalently, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">significance</code> is not <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">TIE</code>). <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">False</code> means the evidence was insufficient -- <strong>not</strong> that the two algorithms perform equally.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-PairedStats-x_better">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">x_better</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self) -&gt; bool</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Report whether the first algorithm won significantly.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">better</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">bool</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">True</code> only if the difference was significant <em>and</em> pointed in <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">x</code>&#x27;s favour, as judged by the <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">higher_better</code> flag of the test. <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">False</code> covers both &quot;<code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">y</code> won&quot; and &quot;tie&quot;.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-PairedStats-y_better">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">y_better</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self) -&gt; bool</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Report whether the second algorithm won significantly.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">better</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">bool</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">True</code> only if the difference was significant <em>and</em> pointed in <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">y</code>&#x27;s favour. <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">False</code> covers both &quot;<code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">x</code> won&quot; and &quot;tie&quot;.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+</div></div>
+</div>
+</div>
+<div class="mb-12">
+<h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-code text-indigo-500"></i> Functions</h2>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-paired_t_test">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">paired_t_test</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 465</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">paired_t_test(x: np.ndarray, y: np.ndarray, significance_level: float=0.05, higher_better: bool=True) -&gt; PairedStats</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Student&#x27;s <strong>paired</strong> t-test comparing two algorithms on matched scores.</p>
+<div class="doc-extended">Tests whether the mean of the per-pair differences <span class="katex-inline">d_i = x_i - y_i</span> differs from zero. Pairing means observation <span class="katex-inline">i</span> of <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">x</code> and observation <span class="katex-inline">i</span> of <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">y</code> must refer to the <em>same</em> fold, split or dataset; the shared difficulty of that fold then cancels out of <span class="katex-inline">d_i</span>, which is what makes the paired design far more sensitive than comparing two independent samples.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Hypotheses</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+The test is <strong>two-sided</strong>:
+</p>
+
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<span class="katex-inline">H_0: \mu_d = 0</span> -- the two algorithms have the same expected
+</li>
+
+</ul>
+score, any observed gap is sampling noise.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<span class="katex-inline">H_1: \mu_d \neq 0</span> -- their expected scores differ, in either
+</li>
+
+</ul>
+direction.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Theory</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+With <span class="katex-inline">\bar{d}</span> the mean and <span class="katex-inline">s_d</span> the <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ddof=1</code> standard deviation of the <span class="katex-inline">n</span> differences, the statistic is
+</p>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">t = \frac{\bar{d}}{s_d / \sqrt{n}}</span>
+</div>
+
+<p class="mb-4">
+which follows a Student t-distribution with <span class="katex-inline">\nu = n - 1</span> degrees of freedom under <span class="katex-inline">H_0</span>. The two-sided p-value is <span class="katex-inline">p = 2\,[1 - F_{\nu}(|t|)]</span>.
+</p>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">x</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">ndarray of shape (n,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Scores of the first algorithm, one entry per fold or dataset (e.g. accuracies of model A).
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">ndarray of shape (n,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Scores of the second algorithm, <strong>aligned element-wise</strong> with <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">x</code>. Must have the same length as <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">x</code>.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">significance_level</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 0.05</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    The :math:`\alpha` against which the p-value is thresholded to produce the WIN/LOSS/TIE verdict. It does not change the p-value itself.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">higher_better</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">bool</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= True</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Orientation of the score. <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">True</code> for accuracy, F1, AUC; <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">False</code> for error rate, RMSE, log-loss. Only affects which of <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">WIN</code>/<code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">LOSS</code> is reported, never the statistic or the p-value.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-arrow-right-from-bracket text-green-500 mr-2"></i>Returns</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">stats</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">PairedStats</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Full result: <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">t_statistic</code>, the two-sided <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">p_value</code>, the means and standard deviations of both samples, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">diff_mean</code>, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">correlation</code>, the <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">significance</code> verdict and the effective sample size <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">n</code>. Read <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">stats.p_value &lt; alpha</code> or <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">stats.is_significant()</code> for the decision and <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">stats.x_better()</code> for its direction.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-triangle-exclamation text-red-500 mr-2"></i>Raises</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">ValueError</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    If <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">x</code> and <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">y</code> have different lengths, if fewer than 2 observations are supplied, or if fewer than 2 complete pairs survive NaN removal.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+<strong>Assumptions.</strong>
+</p>
+
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+<em>Paired</em> data -- <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">x[i]</code> and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">y[i]</code> measured on the same fold or
+</li>
+
+</ol>
+dataset. Comparing unrelated runs violates this and inflates    significance.
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+The differences <span class="katex-inline">d_i</span> are approximately <strong>normally distributed</strong>.
+</li>
+
+</ol>
+The test is fairly robust for <span class="katex-inline">n \gtrsim 30</span>, but with the 5-10    datasets typical of a machine-learning study a single outlier dominates    both <span class="katex-inline">\bar{d}</span> and <span class="katex-inline">s_d</span>.
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+The differences are <strong>independent</strong> across <span class="katex-inline">i</span>. This is the
+</li>
+
+</ol>
+assumption that k-fold cross-validation breaks, because the training    sets overlap; see <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">corrected_paired_t_test</code>.
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+Scores are on an interval scale and commensurable across datasets.
+</li>
+
+</ol>
+Averaging accuracy differences over heterogeneous datasets is exactly    the practice [Demsar2006]_ argues against.
+<p class="mb-4">
+<strong>Complexity.</strong> <span class="katex-inline">O(n)</span> time and memory.
+</p>
+
+<p class="mb-4">
+<strong>Handling of degenerate input.</strong> Pairs containing NaN in either vector are dropped. If every difference is identical (zero standard error), the test returns <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">t = 0</code> and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">p = 1</code> rather than dividing by zero -- note this makes a perfect, perfectly consistent win look like a tie.
+</p>
+
+<p class="mb-4">
+<strong>When to prefer something else.</strong> Use <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">wilcoxon_signed_rank_test</code> when normality is doubtful or <span class="katex-inline">n</span> is small -- [Demsar2006]_ recommends it as the default for comparing two classifiers over multiple datasets. Use <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">corrected_paired_t_test</code> for cross-validated or repeated-resampling scores. For three or more algorithms run an omnibus test first (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">friedman_test</code>) rather than all pairwise t-tests.
+</p>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-book text-amber-500 mr-2"></i>References</h4>
+            </div>
+            <div class="p-4"><div class="reference-list space-y-2">
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">Student1908</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Student (W. S. Gosset) (1908). &quot;The Probable Error of a
+   Mean&quot;. Biometrika, 6(1), 1-25.</div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">Dietterich1998</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Dietterich, T. G. (1998). &quot;Approximate Statistical
+   Tests for Comparing Supervised Classification Learning Algorithms&quot;.
+   Neural Computation, 10(7), 1895-1923.</div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">Demsar2006</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Demsar, J. (2006). &quot;Statistical Comparisons of Classifiers
+   over Multiple Data Sets&quot;. Journal of Machine Learning Research, 7, 1-30.</div>
+                    </div>
+                </div>
+                </div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/evaluation/statistics/corrected_paired_t_test.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">corrected_paired_t_test</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Same test with the Nadeau &amp; Bengio variance correction for overlapping training sets.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/evaluation/statistics/wilcoxon_signed_rank_test.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">wilcoxon_signed_rank_test</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Non-parametric counterpart; drops the normality assumption.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/evaluation/statistics/one_way_anova.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">one_way_anova</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Extension to more than two <em>independent</em> groups.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/evaluation/statistics/holm_correction.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">holm_correction</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Adjust the p-values when many pairs are tested.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; from tuiml.evaluation.statistics import paired_t_test
+&gt;&gt;&gt; model_a_acc = np.array([0.85, 0.87, 0.83, 0.86, 0.84])
+&gt;&gt;&gt; model_b_acc = np.array([0.82, 0.84, 0.81, 0.83, 0.82])
+&gt;&gt;&gt; stats = paired_t_test(model_a_acc, model_b_acc, significance_level=0.05)
+&gt;&gt;&gt; round(float(stats.t_statistic), 4)
+10.6145
+&gt;&gt;&gt; round(float(stats.p_value), 4)
+0.0004
+&gt;&gt;&gt; stats.is_significant()
+True
+&gt;&gt;&gt; stats.x_better()
+True</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">With an error-style metric, flip <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">higher_better</code> so the verdict points at</p>
+<p class="text-gray-600 my-2">the algorithm with the <em>lower</em> score:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; err_a = np.array([0.15, 0.13, 0.17, 0.14, 0.16])
+&gt;&gt;&gt; err_b = np.array([0.18, 0.16, 0.19, 0.17, 0.18])
+&gt;&gt;&gt; paired_t_test(err_a, err_b, higher_better=False).x_better()
+True</code></pre>
+            </div>
+        </div>
+        </div></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-corrected_paired_t_test">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">corrected_paired_t_test</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 682</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">corrected_paired_t_test(x: np.ndarray, y: np.ndarray, n_train: int, n_test: int, significance_level: float=0.05, higher_better: bool=True) -&gt; PairedStats</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Corrected resampled paired t-test for cross-validated scores.</p>
+<div class="doc-extended">The ordinary paired t-test assumes the <span class="katex-inline">n</span> score differences are independent. Scores produced by k-fold cross-validation or repeated random subsampling are <strong>not</strong>: the training sets overlap, so the differences are positively correlated. The usual variance estimator is therefore too small, <span class="katex-inline">|t|</span> is too large, and the test declares differences significant far more often than <span class="katex-inline">\alpha</span> allows -- [Dietterich1998]_ measured Type I error rates several times the nominal level. This function applies the [NadeauBengio2003]_ correction, which inflates the variance estimate to account for that overlap.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Hypotheses</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+Identical to <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">paired_t_test</code> and still <strong>two-sided</strong>:
+</p>
+
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<span class="katex-inline">H_0: \mu_d = 0</span> -- both algorithms have the same expected
+</li>
+
+</ul>
+generalization performance.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<span class="katex-inline">H_1: \mu_d \neq 0</span>.
+</li>
+
+</ul>
+Only the standard error in the denominator changes.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Theory</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+With <span class="katex-inline">s_d^2</span> the ordinary <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ddof=1</code> variance of the differences, the corrected statistic replaces <span class="katex-inline">s_d^2/n</span> by
+</p>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">\widehat{\sigma}^2 = \left(\frac{1}{n}         + \frac{n_{test}}{n_{train}}\right) s_d^2</span>
+</div>
+
+<p class="mb-4">
+giving
+</p>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">t = \frac{\bar{d}}{\sqrt{\widehat{\sigma}^2}}</span>
+</div>
+
+<p class="mb-4">
+compared against a t-distribution with <span class="katex-inline">n - 1</span> degrees of freedom. The extra <span class="katex-inline">n_{test}/n_{train}</span> term is the price of reusing training data; it never vanishes with more resampling rounds, which is why simply repeating cross-validation cannot buy unlimited significance.
+</p>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">x</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">ndarray of shape (n,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Per-fold scores of the first algorithm.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">ndarray of shape (n,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Per-fold scores of the second algorithm, aligned element-wise with <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">x</code> (same folds, same order).
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">n_train</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Number of training examples in <strong>one</strong> resampling round. For 10-fold CV on 1000 examples this is 900.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">n_test</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Number of test examples in one resampling round. For 10-fold CV on 1000 examples this is 100. The ratio :math:`n_{test}/n_{train}` -- not the absolute sizes -- drives the correction; for k-fold CV it equals :math:`1/(k-1)`.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">significance_level</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 0.05</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    :math:`\alpha` used to turn the p-value into the WIN/LOSS/TIE verdict.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">higher_better</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">bool</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= True</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">True</code> when larger scores are better (accuracy), <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">False</code> for error metrics. Affects only the direction of the verdict.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-arrow-right-from-bracket text-green-500 mr-2"></i>Returns</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">stats</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">PairedStats</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Same container as <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">paired_t_test</code>, with two differences worth noting: <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">t_statistic</code> and <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">p_value</code> are the <em>corrected</em> ones, and <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">diff_std</code> holds the corrected <strong>standard error</strong> :math:`\sqrt{\widehat{\sigma}^2}` rather than a standard deviation, so it is not comparable to the <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">diff_std</code> of the uncorrected test.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-triangle-exclamation text-red-500 mr-2"></i>Raises</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">ValueError</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    If <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">x</code> and <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">y</code> have different lengths, or if fewer than 2 complete pairs survive NaN removal.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+<strong>Assumptions.</strong>
+</p>
+
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+Paired, element-wise aligned scores from a resampling scheme with a
+</li>
+
+</ol>
+constant train/test split ratio.
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+Approximately normal differences, as for the uncorrected test.
+</li>
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">n_train</code> and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">n_test</code> describe a <em>single</em> round, not the totals
+</li>
+
+</ol>
+accumulated over all rounds. Passing the totals silently shrinks the    correction toward nothing.
+<p class="mb-4">
+<strong>Complexity.</strong> <span class="katex-inline">O(n)</span> time and memory.
+</p>
+
+<p class="mb-4">
+<strong>When to prefer it.</strong> Use this instead of <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">paired_t_test</code> whenever the scores come from k-fold CV, repeated k-fold CV, or 5x2 CV -- i.e. almost every model comparison run on a single dataset. If the <span class="katex-inline">n</span> scores are one-per-dataset over <span class="katex-inline">n</span> genuinely distinct datasets there is no training-set overlap and the plain paired t-test is appropriate. [BouckaertFrank2004]_ found 10x10-fold CV with this correction to give the best replicability among the schemes they compared.
+</p>
+
+<p class="mb-4">
+<strong>Degenerate input.</strong> If the corrected variance is zero the function returns <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">t = 0</code> and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">p = 1</code>.
+</p>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-book text-amber-500 mr-2"></i>References</h4>
+            </div>
+            <div class="p-4"><div class="reference-list space-y-2">
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">NadeauBengio2003</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Nadeau, C., &amp; Bengio, Y. (2003). &quot;Inference for the
+   Generalization Error&quot;. Machine Learning, 52(3), 239-281.</div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">Dietterich1998</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Dietterich, T. G. (1998). &quot;Approximate Statistical
+   Tests for Comparing Supervised Classification Learning Algorithms&quot;.
+   Neural Computation, 10(7), 1895-1923.</div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">BouckaertFrank2004</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Bouckaert, R. R., &amp; Frank, E. (2004). &quot;Evaluating
+   the Replicability of Significance Tests for Comparing Learning
+   Algorithms&quot;. Advances in Knowledge Discovery and Data Mining (PAKDD),
+   LNCS 3056, 3-12.</div>
+                    </div>
+                </div>
+                </div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/evaluation/statistics/paired_t_test.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">paired_t_test</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Uncorrected version; valid only when the folds are independent.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/evaluation/statistics/wilcoxon_signed_rank_test.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">wilcoxon_signed_rank_test</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Distribution-free alternative when normality is doubtful.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0"><p class="text-gray-600 my-2">10-fold cross-validation on 1000 examples, so <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">n_train=900</code> and</p>
+<p class="text-gray-600 my-2"><code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">n_test=100</code> per round:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; from tuiml.evaluation.statistics import (
+...     corrected_paired_t_test, paired_t_test)
+&gt;&gt;&gt; fold_a = np.array([0.85, 0.87, 0.83, 0.86, 0.84])
+&gt;&gt;&gt; fold_b = np.array([0.82, 0.84, 0.81, 0.83, 0.82])
+&gt;&gt;&gt; stats = corrected_paired_t_test(fold_a, fold_b, n_train=900, n_test=100)
+&gt;&gt;&gt; round(float(stats.t_statistic), 4)
+8.5105
+&gt;&gt;&gt; round(float(stats.p_value), 4)
+0.001</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">The correction always shrinks the statistic relative to the uncorrected</p>
+<p class="text-gray-600 my-2">test, so it can only ever make a result <em>less</em> significant:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; plain = paired_t_test(fold_a, fold_b)
+&gt;&gt;&gt; bool(abs(stats.t_statistic) &lt; abs(plain.t_statistic))
+True</code></pre>
+            </div>
+        </div>
+        </div></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-one_way_anova">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">one_way_anova</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 904</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">one_way_anova(*groups, significance_level: float=0.05) -&gt; Tuple[float, float, bool]</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">One-way ANOVA: omnibus F-test across :math:`k` <strong>independent</strong> groups.</p>
+<div class="doc-extended">Answers a single question -- &quot;is <em>any</em> of these groups different from the others?&quot; -- without saying which. It is the multi-group generalisation of the unpaired t-test, and the parametric analogue of <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">friedman_test</code>.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Hypotheses</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<span class="katex-inline">H_0: \mu_1 = \mu_2 = \dots = \mu_k</span> -- every group has the
+</li>
+
+</ul>
+same population mean.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<span class="katex-inline">H_1</span>: at least one <span class="katex-inline">\mu_i</span> differs. Rejecting says nothing
+</li>
+
+</ul>
+about <em>which</em> group, or about how many; that needs a post-hoc test.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Theory</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+The total variability is split into a between-group and a within-group part. With <span class="katex-inline">\bar{X}</span> the grand mean, <span class="katex-inline">n_i</span> and <span class="katex-inline">\bar{X}_i</span> the size and mean of group <span class="katex-inline">i</span>, and <span class="katex-inline">N = \sum_i n_i</span>:
+</p>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">SS_B = \sum_{i=1}^{k} n_i (\bar{X}_i - \bar{X})^2, \quad     SS_W = \sum_{i=1}^{k} \sum_{j=1}^{n_i} (X_{ij} - \bar{X}_i)^2</span>
+</div>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">F = \frac{SS_B / (k - 1)}{SS_W / (N - k)}</span>
+</div>
+
+<p class="mb-4">
+Under <span class="katex-inline">H_0</span>, <span class="katex-inline">F</span> follows an F-distribution with <span class="katex-inline">(k-1, N-k)</span> degrees of freedom. Large <span class="katex-inline">F</span> means the group means are spread out relative to the noise within groups. The p-value is the <strong>upper tail</strong> <span class="katex-inline">P(F_{k-1,\,N-k} &gt; F)</span> -- one-sided by construction, because only large <span class="katex-inline">F</span> contradicts <span class="katex-inline">H_0</span>, even though the underlying alternative is two-sided in each mean.
+</p>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">*groups</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">array-like</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Two or more 1-D arrays of scores, passed as separate positional arguments (<code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">one_way_anova(a, b, c)</code>). Groups may have <strong>different lengths</strong> and are treated as mutually <strong>independent</strong> samples -- entries are not paired across groups.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">significance_level</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 0.05</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    :math:`\alpha` used only to compute the returned boolean; it does not affect <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">f_statistic</code> or <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">p_value</code>. Keyword-only.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-arrow-right-from-bracket text-green-500 mr-2"></i>Returns</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">f_statistic</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    The F-ratio :math:`MS_B / MS_W`. Always non-negative; <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">0.0</code> when the within-group mean square is zero. Values near 1 are what :math:`H_0` predicts.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">p_value</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Upper-tail probability :math:`P(F_{k-1,\,N-k} &gt; F)` under :math:`H_0`, in :math:`[0, 1]`.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">significant</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">bool</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">p_value &lt; significance_level</code>. <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">True</code> means &quot;the groups are not all equal&quot;; it does <strong>not</strong> identify the winner.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-triangle-exclamation text-red-500 mr-2"></i>Raises</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">ValueError</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    If fewer than two groups are supplied.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+<strong>Assumptions.</strong>
+</p>
+
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+<strong>Independence</strong> between and within groups. This is the assumption that
+</li>
+
+</ol>
+rules ANOVA out for the usual machine-learning layout, where the same    datasets or folds are reused by every algorithm -- those samples are    matched, not independent. Use    <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">friedman_test</code> (or a repeated    measures design) there.
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+<strong>Normality</strong> of the residuals within each group.
+</li>
+
+<li class="text-gray-700">
+<strong>Homoscedasticity</strong> -- equal variance across groups. ANOVA tolerates
+</li>
+
+</ol>
+moderate violations when group sizes are balanced and degrades quickly    when they are not.
+<p class="mb-4">
+<strong>Complexity.</strong> <span class="katex-inline">O(N)</span> in the total number of observations.
+</p>
+
+<p class="mb-4">
+<strong>After a rejection.</strong> A significant omnibus result licenses post-hoc pairwise comparisons, but each of those is a fresh test, so their p-values must be adjusted -- see <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">holm_correction</code>.
+</p>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-book text-amber-500 mr-2"></i>References</h4>
+            </div>
+            <div class="p-4"><div class="reference-list space-y-2">
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">Fisher1925</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Fisher, R. A. (1925). &quot;Statistical Methods for Research
+   Workers&quot;. Oliver and Boyd, Edinburgh.</div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">Demsar2006</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Demsar, J. (2006). &quot;Statistical Comparisons of Classifiers
+   over Multiple Data Sets&quot;. Journal of Machine Learning Research, 7, 1-30.</div>
+                    </div>
+                </div>
+                </div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/evaluation/statistics/friedman_test.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">friedman_test</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Non-parametric omnibus test for <em>matched</em> samples; the right choice for comparing several algorithms over shared datasets.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/evaluation/statistics/paired_t_test.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">paired_t_test</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Two-algorithm case.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/evaluation/statistics/bonferroni_correction.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">bonferroni_correction</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Adjust post-hoc pairwise p-values.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; from tuiml.evaluation.statistics import one_way_anova
+&gt;&gt;&gt; group_a = np.array([0.85, 0.87, 0.83])
+&gt;&gt;&gt; group_b = np.array([0.82, 0.84, 0.81])
+&gt;&gt;&gt; group_c = np.array([0.75, 0.78, 0.74])
+&gt;&gt;&gt; f_stat, p_value, significant = one_way_anova(group_a, group_b, group_c)
+&gt;&gt;&gt; round(float(f_stat), 4)
+19.5
+&gt;&gt;&gt; round(float(p_value), 4)
+0.0024
+&gt;&gt;&gt; bool(significant)
+True</code></pre>
+            </div>
+        </div>
+        </div></div>
+</div></div>
+</div>
+</main>
+{% endblock %}

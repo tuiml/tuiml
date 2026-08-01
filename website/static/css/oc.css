@@ -1,0 +1,706 @@
+    /* ==================================================================
+       TuiML site design system ("oc") — shared by the landing page, the
+       build board, and any future page. See website/DESIGN.md.
+
+       One font (JetBrains Mono), flat-on-canvas, hairline rules,
+       ASCII bracket markers. Pair with /static/js/oc.js for tabs,
+       copy buttons, and scroll-reveal terminals.
+
+       Usage: <body class="landing-page"> + one .oc-wrap column of
+       .oc-section blocks.
+       ================================================================== */
+    :root {
+        /* TuiML palette — blue family, keyed to the logo badge (#1049a2) */
+        --canvas: #eef4fa;
+        --soft: #e3edf7;
+        --card: #d7e4f2;
+        --ink: #0a2245;
+        --body: #33517a;
+        --mute: #5f7699;
+        --hairline: rgba(10, 34, 69, 0.13);
+        --hairline-strong: rgba(10, 34, 69, 0.38);
+        --accent: #2563c4;
+        --accent-deep: #1049a2;
+        --green: #0d9488;
+        --orange: #c2620c;
+        /* Dark surface = ink, one notch of elevation inside it */
+        --dark: #0a2245;
+        --dark-elev: #133566;
+        --on-dark: #eef4fa;
+        --on-dark-body: #c7d6ea;
+        --on-dark-mute: #7e94b8;
+    }
+
+    .landing-page {
+        font-family: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        font-size: 16px;
+        line-height: 1.5;
+        color: var(--body);
+        background: var(--canvas);
+    }
+    .landing-page ::selection { background: rgba(37, 99, 196, 0.22); }
+
+    /* Anchor navigation: smooth scroll, and keep targets clear of the
+       sticky nav when jumped to. */
+    html { scroll-behavior: smooth; }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    .landing-page [id] { scroll-margin-top: 96px; }
+
+    /* Layout: one 960px column framed by hairline side rails, with a rule
+       above every section — each section reads as an outlined box. */
+    .oc-wrap {
+        max-width: 960px;
+        margin: 0 auto;
+        border-left: 1px solid var(--hairline);
+        border-right: 1px solid var(--hairline);
+        border-bottom: 1px solid var(--hairline);
+    }
+    .oc-section { padding: 96px 24px; border-top: 1px solid var(--hairline); }
+    @media (max-width: 850px) { .oc-section { padding: 64px 24px; } }
+    @media (max-width: 640px) { .oc-section { padding: 48px 20px; } }
+
+    /* Type roles — size and weight only, one face. */
+    .oc-display {
+        font-size: 38px;
+        font-weight: 700;
+        line-height: 1.5;
+        color: var(--ink);
+        margin: 0;
+    }
+    @media (max-width: 640px) { .oc-display { font-size: 28px; } }
+    .oc-h {
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 1.5;
+        color: var(--ink);
+        margin: 0 0 4px 0;
+    }
+    .oc-h::before { content: "## "; color: var(--mute); font-weight: 400; }
+    .oc-rule {
+        height: 1px;
+        background: var(--hairline);
+        border: 0;
+        margin: 0 0 24px 0;
+    }
+    .oc-body { font-size: 16px; line-height: 1.5; color: var(--body); margin: 0; }
+    .oc-body strong { color: var(--ink); font-weight: 500; }
+    .oc-caption { font-size: 14px; line-height: 2; color: var(--mute); }
+    .oc-max { max-width: 720px; }
+
+    .landing-page a:focus-visible,
+    .landing-page button:focus-visible,
+    .landing-page summary:focus-visible {
+        outline: 2px solid var(--accent-deep);
+        outline-offset: 2px;
+    }
+
+    /* Inline code on the light canvas */
+    body.landing-page code:not(pre code) {
+        font-family: inherit;
+        font-size: 0.875em;
+        background: var(--soft);
+        color: var(--accent-deep);
+        border: 1px solid var(--hairline);
+        padding: 1px 6px;
+        border-radius: 4px;
+    }
+
+    /* Buttons — 4px radius, line-height 2, nothing floats. */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: inherit;
+        font-size: 16px;
+        font-weight: 500;
+        line-height: 2;
+        padding: 4px 20px;
+        border-radius: 4px;
+        text-decoration: none;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+    }
+    .btn-primary { background: var(--ink); color: var(--canvas); border: 1px solid var(--ink); }
+    .btn-primary:hover { background: #041c23; }
+    .btn-secondary { background: var(--canvas); color: var(--ink); border: 1px solid var(--hairline-strong); }
+    .btn-secondary:hover { background: var(--soft); }
+    .btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+    /* Tab strip — transparent tabs, 2px underline on the active one,
+       a strong hairline under the whole strip. */
+    .oc-tabs {
+        display: flex;
+        gap: 4px;
+        border-bottom: 1px solid var(--hairline-strong);
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+    .oc-tabs::-webkit-scrollbar { display: none; }
+    .oc-tab {
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 2;
+        padding: 8px 16px;
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        color: var(--mute);
+        cursor: pointer;
+        white-space: nowrap;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+    }
+    .oc-tab:hover { color: var(--ink); }
+    .oc-tab.active { color: var(--ink); border-bottom-color: var(--ink); }
+    .oc-panel { display: none; }
+    .oc-panel.active { display: block; }
+
+    /* Install snippet pill */
+    .snippet {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: var(--card);
+        color: var(--ink);
+        font-size: 14px;
+        padding: 12px 16px;
+        border-radius: 4px;
+        margin-top: 16px;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    .snippet .dollar { color: var(--mute); flex-shrink: 0; }
+    .snippet .cmd { flex: 1; }
+    .copy-btn {
+        font-family: inherit;
+        font-size: 13px;
+        color: var(--mute);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        flex-shrink: 0;
+    }
+    .copy-btn:hover { color: var(--ink); }
+
+    /* ============================ Hero TUI session ============================
+       A looping animated agent session on the same light card surface as the
+       rest of the page. The prompt types itself, TuiML tools run with a
+       spinner, results land, a pixel bar chart draws, the agent answers,
+       then the loop restarts. */
+    .tui {
+        background: var(--card);
+        border-radius: 4px;
+        margin: 48px 0 0;
+        overflow: hidden;
+    }
+    .tui-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 10px 16px;
+        border-bottom: 1px solid var(--hairline);
+        font-size: 13px;
+        color: var(--mute);
+        white-space: nowrap;
+        overflow: hidden;
+    }
+    .tui-chat {
+        padding: 20px 16px 16px;
+        height: 400px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        font-size: 13.5px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(10, 34, 69, 0.25) transparent;
+    }
+    .tui-chat::-webkit-scrollbar { width: 6px; }
+    .tui-chat::-webkit-scrollbar-thumb { background: rgba(10, 34, 69, 0.25); border-radius: 3px; }
+    @media (max-width: 640px) { .tui-chat { font-size: 12px; height: 360px; } }
+    .tl {
+        line-height: 1.55;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex-shrink: 0;
+        opacity: 0;
+        transform: translateY(4px);
+        transition: opacity 0.25s, transform 0.25s;
+    }
+    .tl.show { opacity: 1; transform: none; }
+    .tl-user { color: var(--ink); font-weight: 500; }
+    .tl-user .tl-prompt { color: var(--green); font-weight: 700; }
+    .tl-cursor {
+        display: inline-block;
+        color: var(--accent);
+        animation: tl-blink 1s steps(1) infinite;
+    }
+    @keyframes tl-blink { 50% { opacity: 0; } }
+    .tl-call .tl-tool { color: var(--accent-deep); font-weight: 700; }
+    .tl-call .tl-args { color: var(--mute); }
+    .tl-call .tl-spin { color: var(--accent-deep); }
+    .tl-ok { color: var(--body); }
+    .tl-ok .ok { color: var(--green); font-weight: 700; }
+    .tl-ok .num { color: var(--orange); }
+    .tl-agent { color: var(--body); }
+    .tl-agent .who { color: var(--accent-deep); font-weight: 700; }
+    /* Pixel bar chart: block-character bars, winner in accent. */
+    .tl-chart div { white-space: pre; line-height: 1.6; color: var(--body); }
+    .tl-chart .bar { color: var(--mute); letter-spacing: 1px; }
+    .tl-chart .bar.top { color: var(--accent-deep); }
+    .tl-chart .val { color: var(--orange); }
+    /* Pixel sparkline: block-height trend line. */
+    .tl-spark { color: var(--body); }
+    .tl-spark .spark { color: var(--accent-deep); letter-spacing: 2px; }
+    .tl-spark .val { color: var(--orange); }
+
+    /* Ready-for row: model-provider marks in muted ink, ink on hover. */
+    .ready-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px 20px;
+        margin-top: 8px;
+        color: var(--mute);
+    }
+    .ready-row span { display: inline-flex; transition: color 0.15s; }
+    .ready-row span:hover { color: var(--ink); }
+    .ready-row svg { width: 24px; height: 24px; display: block; }
+
+    /* ============================ List rows ============================
+       [+] marker, bold label, plain description. The brackets ARE the icons. */
+    .list-row {
+        display: flex;
+        gap: 12px;
+        padding: 8px 0;
+        font-size: 16px;
+        line-height: 1.5;
+    }
+    .list-row .m { color: var(--accent-deep); font-weight: 700; flex-shrink: 0; }
+    .list-row .lbl { color: var(--ink); font-weight: 700; }
+    .list-row .txt { color: var(--body); }
+    @media (min-width: 851px) {
+        .list-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 48px; }
+    }
+
+    /* ============================ Why cards ============================
+       Three flat hairline tiles for the design principles. */
+    .why-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 24px; }
+    @media (max-width: 850px) { .why-grid { grid-template-columns: 1fr; } }
+    .why-card {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        border: 1px solid var(--hairline);
+        border-radius: 4px;
+        background: var(--canvas);
+        padding: 20px 16px;
+    }
+    .why-card:hover { border-color: var(--hairline-strong); }
+    .why-num { font-size: 13px; font-weight: 700; color: var(--accent-deep); }
+    .why-title { font-size: 16px; font-weight: 700; color: var(--ink); line-height: 1.5; }
+    .why-text { font-size: 14px; line-height: 1.6; color: var(--body); margin: 0; }
+
+    /* ============================ Code samples ============================
+       Same light surface as the install snippet and demo terminals. */
+    .code-block {
+        background: var(--card);
+        border-radius: 4px;
+        padding: 16px;
+        overflow-x: auto;
+        font-size: 12.5px;
+        line-height: 1.7;
+        color: var(--body);
+        white-space: pre;
+        -webkit-overflow-scrolling: touch;
+        margin-top: 24px;
+    }
+    .code-block { position: relative; padding-right: 64px; }
+    .code-copy {
+        position: absolute;
+        top: 8px;
+        right: 10px;
+        font-family: inherit;
+        font-size: 12px;
+        color: var(--mute);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+    }
+    .code-copy:hover { color: var(--ink); }
+    .code-block .kw { color: var(--accent-deep); font-weight: 700; }
+    .code-block .fn { color: var(--accent); }
+    .code-block .str { color: var(--green); }
+    .code-block .cm { color: var(--mute); }
+    .code-block .num { color: var(--orange); }
+    .code-block .op { color: var(--body); }
+    .code-block .key { color: var(--accent-deep); }
+
+    /* Setup terminal: lines reveal one by one when scrolled into view. */
+    .term-reveal .sl {
+        opacity: 0;
+        transform: translateY(4px);
+        transition: opacity 0.25s, transform 0.25s;
+    }
+    .term-reveal .sl.show { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) {
+        .term-reveal .sl { opacity: 1; transform: none; transition: none; }
+    }
+
+    /* ============================ Chart tiles ============================ */
+    .fig-grid { display: grid; grid-template-columns: repeat(3, 1fr); }
+    @media (max-width: 640px) { .fig-grid { grid-template-columns: 1fr; } }
+    .fig-tile { padding: 16px; }
+    .fig-grid .fig-tile + .fig-tile { border-left: 1px solid var(--hairline); }
+    @media (max-width: 640px) {
+        .fig-grid .fig-tile + .fig-tile { border-left: none; border-top: 1px solid var(--hairline); }
+    }
+    .fig-spark { font-size: 14px; color: var(--accent-deep); letter-spacing: 2px; }
+    .fig-num { font-size: 28px; font-weight: 700; color: var(--ink); line-height: 1.5; }
+    .fig-cap { font-size: 14px; line-height: 1.6; color: var(--mute); }
+
+    /* ============================ FAQ rows ============================ */
+    .faq-item { border-bottom: 1px solid var(--hairline); }
+    .faq-summary {
+        list-style: none;
+        cursor: pointer;
+        display: flex;
+        gap: 12px;
+        padding: 12px 0;
+        font-size: 16px;
+        font-weight: 500;
+        color: var(--ink);
+        line-height: 1.5;
+    }
+    .faq-summary::-webkit-details-marker { display: none; }
+    .faq-summary:hover { color: var(--accent-deep); }
+    .faq-summary .fq-m { flex-shrink: 0; font-weight: 700; color: var(--accent-deep); }
+    .faq-summary .fq-m::before { content: "+"; }
+    .faq-item[open] .fq-m::before { content: "\2212"; }
+    .faq-body { padding: 0 0 16px 28px; font-size: 15px; line-height: 1.6; color: var(--body); }
+    .faq-body p { margin: 0 0 8px 0; }
+    .faq-body p:last-child { margin-bottom: 0; }
+    .faq-body strong { color: var(--ink); font-weight: 700; }
+    .faq-body a { color: var(--ink); text-decoration: underline; }
+
+    /* ============================ Build board ============================
+       Auto-scrolling marquee of flat hairline cards; pauses on hover and
+       respects reduced motion. The two duplicated sets make the loop seamless. */
+    .bb-mq-wrap { position: relative; overflow: hidden; margin-top: 16px; }
+    .bb-mq-wrap::before, .bb-mq-wrap::after {
+        content: ""; position: absolute; top: 0; bottom: 0; width: 8%;
+        z-index: 2; pointer-events: none;
+    }
+    .bb-mq-wrap::before { left: 0;  background: linear-gradient(90deg, var(--canvas), transparent); }
+    .bb-mq-wrap::after  { right: 0; background: linear-gradient(270deg, var(--canvas), transparent); }
+    .bb-track {
+        display: flex; gap: 12px; width: max-content;
+        animation: bb-scroll 48s linear infinite;
+    }
+    .bb-mq-wrap:hover .bb-track { animation-play-state: paused; }
+    @keyframes bb-scroll { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+    @media (prefers-reduced-motion: reduce) {
+        .bb-track { animation: none; }
+        .bb-mq-wrap { overflow-x: auto; }
+    }
+    .bb-card {
+        display: flex; flex-direction: column; gap: 6px;
+        width: 290px; flex-shrink: 0;
+        background: var(--canvas);
+        border: 1px solid var(--hairline);
+        border-radius: 4px;
+        padding: 14px 16px;
+        text-decoration: none;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--body);
+    }
+    .bb-card:hover { border-color: var(--hairline-strong); }
+    .bb-card:hover .bb-title { color: var(--accent-deep); }
+    .bb-card-top {
+        display: flex; justify-content: space-between; gap: 8px;
+        font-size: 12px; white-space: nowrap;
+    }
+    .bb-card-foot {
+        display: flex; justify-content: space-between; gap: 8px;
+        margin-top: auto; padding-top: 8px;
+        border-top: 1px solid var(--hairline);
+        font-size: 12px; color: var(--mute);
+    }
+    .bb-cat { color: var(--mute); font-size: 12px; }
+    .bb-title { color: var(--ink); font-weight: 700; }
+    .bb-sub { color: var(--body); font-weight: 400; margin: 0; }
+    .bb-open { color: var(--green); }
+    .bb-testing { color: var(--accent-deep); }
+    .bb-planned { color: var(--mute); }
+    .bb-num { color: var(--mute); }
+    .bb-sync { font-size: 14px; color: var(--mute); }
+    .bb-sync a { color: var(--ink); text-decoration: underline; }
+    .bb-sync .dot { color: var(--green); }
+    .bb-sync.stale .dot { color: var(--orange); }
+
+    /* ============================ Supported by ============================ */
+    .logo-grid { display: grid; grid-template-columns: repeat(4, 1fr); }
+    @media (max-width: 640px) { .logo-grid { grid-template-columns: repeat(2, 1fr); } }
+    .logo-cell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 88px;
+        padding: 16px;
+        border: 1px solid var(--hairline);
+        margin: 0 -1px -1px 0;
+    }
+    .logo-cell img { max-height: 44px; max-width: 100%; object-fit: contain; }
+    /* Squarer artwork (Weka) needs a taller cap to read at the same optical size
+       as the wide wordmark logos beside it. */
+    .logo-cell img.logo-tall { max-height: 64px; }
+
+    /* ============================ Board components ============================
+       Reusable pieces for filterable card boards (used by /projects). */
+    .oc-search {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: var(--card);
+        border-radius: 4px;
+        padding: 10px 16px;
+        border: 1px solid transparent;
+    }
+    .oc-search:focus-within { border-color: var(--hairline-strong); }
+    .oc-search .oc-search-mark { color: var(--mute); flex-shrink: 0; }
+    .oc-search input {
+        flex: 1;
+        width: 100%;
+        background: transparent;
+        border: none;
+        outline: none;
+        font-family: inherit;
+        font-size: 14px;
+        color: var(--ink);
+    }
+    .oc-search input::placeholder { color: var(--mute); }
+
+    .oc-pill {
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 500;
+        line-height: 2;
+        padding: 2px 12px;
+        border-radius: 4px;
+        background: transparent;
+        border: 1px solid var(--hairline);
+        color: var(--body);
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .oc-pill:hover { color: var(--ink); border-color: var(--hairline-strong); }
+    .oc-pill.active { background: var(--ink); color: var(--canvas); border-color: var(--ink); }
+    .oc-pill .count { color: var(--mute); }
+    .oc-pill.active .count { color: var(--on-dark-mute); }
+
+    .pcard {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        background: var(--canvas);
+        border: 1px solid var(--hairline);
+        border-radius: 4px;
+        padding: 16px;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--body);
+    }
+    .pcard:hover { border-color: var(--hairline-strong); }
+    .pcard-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+    .pcard-cat { color: var(--mute); }
+    .pcard-title { font-size: 16px; font-weight: 700; color: var(--ink); line-height: 1.4; margin: 0; }
+    .pcard-sub { color: var(--accent-deep); font-size: 13px; margin: 0; }
+    .pcard-desc { font-size: 13px; line-height: 1.6; color: var(--body); margin: 0; flex: 1; }
+    .pcard-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .pcard-tag {
+        font-size: 12px;
+        background: var(--soft);
+        color: var(--accent-deep);
+        border: 1px solid var(--hairline);
+        border-radius: 4px;
+        padding: 0 6px;
+    }
+    .pcard-foot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        margin-top: auto;
+        padding-top: 10px;
+        border-top: 1px solid var(--hairline);
+        font-size: 12px;
+        color: var(--mute);
+    }
+    .pcard-foot a { color: var(--ink); text-decoration: underline; }
+    .pcard-foot a:hover { color: var(--accent-deep); }
+
+    /* Status + difficulty markers: plain bracketed text in system colors. */
+    .st-open { color: var(--green); }
+    .st-testing { color: var(--accent-deep); }
+    .st-progress { color: var(--orange); }
+    .st-planned { color: var(--mute); }
+    .df-first { color: var(--green); }
+    .df-inter { color: var(--accent-deep); }
+    .df-adv { color: var(--orange); }
+
+    /* Light skeleton shimmer for loading card grids. */
+    .oc-skel {
+        height: 200px;
+        border-radius: 4px;
+        border: 1px solid var(--hairline);
+        background: linear-gradient(100deg, var(--soft) 30%, var(--card) 50%, var(--soft) 70%);
+        background-size: 200% 100%;
+        animation: oc-shimmer 1.3s linear infinite;
+    }
+    @keyframes oc-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+    @media (prefers-reduced-motion: reduce) { .oc-skel { animation: none; } }
+
+    .pcard-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    @media (max-width: 850px) { .pcard-grid { grid-template-columns: 1fr; } }
+
+    /* Small in-section subhead (docs pages): bold ink, no "##" prefix. */
+    .oc-sub { font-size: 14px; font-weight: 700; color: var(--ink); line-height: 2; margin: 32px 0 4px; }
+
+    /* ============================ On-this-page TOC ============================
+       A fixed rail to the left of the .oc-wrap column. Only shows when the
+       viewport is wide enough to fit it beside the 960px column; narrower
+       screens simply go without. Scrollspy highlighting via oc.js. */
+    .oc-toc {
+        position: fixed;
+        top: 120px;
+        left: calc(50% - 480px - 204px);
+        width: 180px;
+        display: none;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+    @media (min-width: 1400px) { .oc-toc { display: block; } }
+    .oc-toc-label { font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+    .oc-toc a {
+        display: block;
+        color: var(--mute);
+        text-decoration: none;
+        padding: 3px 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .oc-toc a::before { content: "[+] "; color: var(--accent-deep); font-weight: 700; }
+    .oc-toc a:hover { color: var(--ink); }
+    .oc-toc a.active { color: var(--accent-deep); font-weight: 700; }
+    /* Subsection entries: indented, dashed marker. */
+    .oc-toc .sub { padding-left: 26px; font-size: 12px; }
+    .oc-toc .sub::before { content: "[-] "; font-weight: 400; }
+
+    /* ============================ Person cards ============================
+       Flat hairline profile rows (about page): photo + name/role/bio. */
+    .person-list { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
+    .person {
+        display: flex;
+        gap: 16px;
+        background: var(--canvas);
+        border: 1px solid var(--hairline);
+        border-radius: 4px;
+        padding: 16px;
+    }
+    .person:hover { border-color: var(--hairline-strong); }
+    .person img {
+        width: 112px;
+        height: 112px;
+        border-radius: 4px;
+        object-fit: cover;
+        border: 1px solid var(--hairline);
+        flex-shrink: 0;
+    }
+    .person-name { font-size: 16px; font-weight: 700; color: var(--ink); line-height: 1.4; }
+    .person-role { font-size: 13px; color: var(--accent-deep); }
+    .person-org { font-size: 12px; color: var(--mute); margin-bottom: 8px; }
+    .person-bio { font-size: 13px; line-height: 1.6; color: var(--body); margin: 0; }
+    @media (max-width: 640px) {
+        .person { flex-direction: column; }
+        .person img { width: 96px; height: 96px; }
+    }
+
+    /* ============================ Data tables ============================
+       Flat hairline results table (benchmarks page). */
+    .oc-table-wrap { border: 1px solid var(--hairline); border-radius: 4px; overflow-x: auto; }
+    .oc-table { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 1.5; }
+    .oc-table th {
+        text-align: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--mute);
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--hairline-strong);
+        white-space: nowrap;
+    }
+    .oc-table th:first-child { text-align: left; }
+    .oc-table td { padding: 8px 12px; border-bottom: 1px solid var(--hairline); text-align: center; white-space: nowrap; }
+    .oc-table td:first-child { text-align: left; color: var(--ink); font-weight: 500; }
+    .oc-table tbody tr:last-child td { border-bottom: none; }
+    .oc-table tbody tr:hover { background: var(--soft); }
+    .oc-table .size { text-align: right; color: var(--mute); font-size: 12px; }
+    .oc-table .std { color: var(--mute); font-size: 11px; }
+    .oc-table .best { color: var(--green); font-weight: 700; background: rgba(13, 148, 136, 0.08); }
+    .oc-table .na { color: var(--mute); }
+    .oc-table .tmo { color: var(--orange); font-size: 12px; }
+
+    /* TOC variant that also styles buttons (interactive selectors, e.g. the
+       benchmarks algorithm rail) and, with .oc-toc-flow, falls back to an
+       in-flow block on narrow screens instead of disappearing. */
+    .oc-toc .oc-toc-label { margin-top: 16px; }
+    .oc-toc .oc-toc-label:first-child { margin-top: 0; }
+    .oc-toc button {
+        display: block;
+        width: 100%;
+        text-align: left;
+        font-family: inherit;
+        font-size: inherit;
+        line-height: inherit;
+        background: none;
+        border: none;
+        border-radius: 0;
+        color: var(--mute);
+        cursor: pointer;
+        padding: 3px 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .oc-toc button::before { content: "[+] "; color: var(--accent-deep); font-weight: 700; }
+    .oc-toc button:hover { color: var(--ink); }
+    .oc-toc button.active { color: var(--accent-deep); font-weight: 700; }
+    .oc-toc.oc-toc-flow { display: block; position: static; top: auto; left: auto; width: auto; margin: 24px 0 32px; }
+    @media (min-width: 1400px) {
+        .oc-toc.oc-toc-flow {
+            position: fixed;
+            top: 120px;
+            left: calc(50% - 480px - 204px);
+            width: 180px;
+            margin-bottom: 0;
+        }
+    }
+
+    /* Non-interactive section rows in the rail (e.g. "Classification"):
+       same [+] marker, ink text, not clickable. */
+    .oc-toc .head { display: block; color: var(--mute); padding: 3px 0; }
+    .oc-toc .head::before { content: "[+] "; color: var(--accent-deep); font-weight: 700; }
