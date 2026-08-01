@@ -66,6 +66,10 @@
 
     <div class="oc-wrap">
         <section class="oc-section api-doc" style="padding-top: 48px;">
+            {# Directory pages carry no rail of their own, so they get the
+               package rail. Module pages already ship an "On this page" rail
+               (.api-rail) and must not get a second fixed column. #}
+            {% if not has_own_rail %}{% include 'components/_api_sidebar.html' %}{% endif %}
             {% block content %}{% endblock %}
         </section>
     </div>

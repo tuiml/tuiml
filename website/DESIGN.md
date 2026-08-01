@@ -40,9 +40,14 @@ hairline rules, ASCII bracket markers instead of icon fonts.
 ```
 
 Pages currently on the system: `pages/index.html`, `pages/projects.html`,
-`pages/getting_started.html`, `pages/about.html`, `pages/benchmarks.html`
-(docs pages keep their hand-written SEO `<head>` and include
-`_docs_navbar.html` for the breadcrumb strip).
+`pages/getting_started.html`, `pages/about.html`, `pages/benchmarks.html`,
+`pages/contributing.html` (docs pages keep their hand-written SEO `<head>` and
+include `_docs_navbar.html` for the breadcrumb strip).
+
+The footer is pinned to the bottom of the viewport on short pages: `oc.css`
+makes `body.landing-page` a flex column and gives `> footer` an auto top
+margin, so a 404 or a stub page no longer leaves it floating mid-screen. It
+carries the copyright line plus the Privacy Policy and Terms of Service links.
 
 ## Palette (CSS variables on `:root`)
 
@@ -76,6 +81,9 @@ One face everywhere: JetBrains Mono. Roles by class, not by element:
 - `.oc-sub` — 14px/700 ink in-section subhead (docs pages), no `##` prefix
 - `.oc-max` — caps a text block at 720px
 - `.oc-rule` — 1px hairline `<hr>` under section headings
+- Inline links in running text (`.oc-body`, `.oc-caption`, `.why-text`,
+  `.list-row`) render ink and underlined, brand blue on hover. Buttons and the
+  TOC rail keep their own treatment.
 
 ## Layout
 
@@ -83,6 +91,10 @@ One face everywhere: JetBrains Mono. Roles by class, not by element:
 - `.oc-section` — 96px vertical padding, hairline top rule; every section reads
   as an outlined box. First section on a page usually overrides to
   `padding-top: 64px` since the nav already provides space.
+- Several `.oc-h` headings may share ONE section when each block is a short
+  piece of running text (the privacy and terms pages: a section box per clause
+  is mostly padding). CSS gives every heading after the first 56px of air;
+  hang the `#anchor` id on the `<h2>` so the TOC rail still works.
 
 ## Components
 
@@ -107,7 +119,9 @@ One face everywhere: JetBrains Mono. Roles by class, not by element:
 - **List rows** `.list-row` with `.m` bracket marker, `.lbl` bold label,
   `.txt` description. Two-column via `.list-grid` (collapses under 851px), or
   single column capped at the body measure via `.list-col` when each row's
-  description is a full sentence.
+  description is a full sentence. Add `.ok` or `.no` to the marker for a green
+  affirmative (`[x]`) or an orange caution (`[!]`): do/don't lists, checklists
+  and inline notes are the same component, only the bracket color changes.
 - **Why cards** `.why-grid` of `.why-card` (`.why-num`, `.why-title`,
   `.why-text`) — 3-up principle tiles.
 - **Figure tiles** `.fig-grid` of `.fig-tile` (`.fig-spark`, `.fig-num`,

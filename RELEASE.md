@@ -35,7 +35,7 @@ carries one. Current tracked files:
 - `tuiml/__init__.py`
 - `tuiml/_cpp/module.cpp` (`m.attr("__version__")`)
 - `tuiml/agent/prompts/SKILL.md` (frontmatter `version:`)
-- `tutorials/llm_friendly/02_mcp_server.ipynb` (a stored output cell prints
+- `tutorials/mcp_server.ipynb` (a stored output cell prints
   the version, and the tutorial is published on the site)
 - `CHANGELOG.md` (adds an empty section)
 

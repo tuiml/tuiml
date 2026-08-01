@@ -1,0 +1,30 @@
+{#
+    API reference rail, the ONE package navigation.
+
+    Used by /api-reference.html and by every generated /docs/ directory page
+    (layouts/docs_generated.html includes it when the page does not already
+    carry its own "On this page" rail — module pages do, and two fixed rails
+    would sit on top of each other).
+
+    Entries come from build.py's api_packages / api_root_modules, which are
+    scanned off the generated docs tree, so a new package appears here on its
+    own. Same shape as the benchmarks rail: one label, [+] group rows, [-]
+    entries under them.
+
+    Variables:
+    - api_package: name of the package/module being viewed, marks it active
+#}
+<nav class="oc-toc oc-toc-flow" aria-label="API reference">
+    <div class="oc-toc-label">API Reference</div>
+    <a href="/api-reference.html"{% if not api_package %} class="active"{% endif %}>Overview</a>
+
+    <span class="head">Packages</span>
+    {%- for name, _ in api_packages %}
+    <a href="/docs/{{ name }}/index.html" class="sub{% if api_package == name %} active{% endif %}">{{ name }}</a>
+    {%- endfor %}
+
+    <span class="head">Root modules</span>
+    {%- for name, _ in api_root_modules %}
+    <a href="/docs/{{ name }}.html" class="sub{% if api_package == name %} active{% endif %}">{{ name }}</a>
+    {%- endfor %}
+</nav>

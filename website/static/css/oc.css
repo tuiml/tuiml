@@ -40,6 +40,17 @@
     }
     .landing-page ::selection { background: rgba(37, 99, 196, 0.22); }
 
+    /* Sticky footer: a short page (404, a stub docs page) still puts the
+       footer on the bottom edge of the viewport instead of floating it
+       halfway up. The column body grows to fill, the footer takes the slack.
+       Does not depend on Tailwind's mt-auto, tutorial pages ship less CSS. */
+    body.landing-page {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+    body.landing-page > footer { margin-top: auto; }
+
     /* Anchor navigation: smooth scroll, and keep targets clear of the
        sticky nav when jumped to. */
     html { scroll-behavior: smooth; }
@@ -76,6 +87,10 @@
         margin: 0 0 4px 0;
     }
     .oc-h::before { content: "## "; color: var(--mute); font-weight: 400; }
+    /* Several headings stacked inside ONE section (the legal pages: short
+       clauses that would each be mostly padding as their own section box).
+       Every heading after the first opens a new block, so it needs air. */
+    .oc-section .oc-h ~ .oc-h { margin-top: 56px; }
     .oc-rule {
         height: 1px;
         background: var(--hairline);
@@ -86,6 +101,15 @@
     .oc-body strong { color: var(--ink); font-weight: 500; }
     .oc-caption { font-size: 14px; line-height: 2; color: var(--mute); }
     .oc-max { max-width: 720px; }
+    /* Inline links in running text: ink and underlined, the same treatment the
+       FAQ and board cards already use. Buttons and rails opt out on their own. */
+    .oc-body a, .oc-caption a, .why-text a, .list-row a {
+        color: var(--ink);
+        text-decoration: underline;
+    }
+    .oc-body a:hover, .oc-caption a:hover, .why-text a:hover, .list-row a:hover {
+        color: var(--accent-deep);
+    }
     .landing-page a:focus-visible,
     .landing-page button:focus-visible,
     .landing-page summary:focus-visible {
@@ -289,6 +313,10 @@
        sentence rather than a label: two columns halve the measure and make
        prose hard to read. */
     .list-col { max-width: 720px; }
+    /* Do / don't rows: only the bracket color carries the polarity, so a
+       checklist and its warnings stay the same component. */
+    .list-row .m.ok { color: var(--green); }
+    .list-row .m.no { color: var(--orange); }
 
     /* ============================ Why cards ============================
        Three flat hairline tiles for the design principles. */

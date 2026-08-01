@@ -2,11 +2,29 @@
     Shared site footer, the ONE footer, pale blue-green to match the site nav.
     Used on the landing page, the build board, every docs page, and (via
     build.py) every tutorial page.
+
+    oc.css pins it to the bottom of short pages (body is a flex column and
+    this element takes the slack). Its link styles live inline here so the
+    footer looks the same on tutorial pages, which ship a different CSS set.
 #}
+<style>
+    .oc-footer-link {
+        color: #5f7699;
+        text-decoration: none;
+        transition: color 0.15s;
+    }
+    .oc-footer-link:hover { color: #0a2245; text-decoration: underline; }
+    .oc-footer-sep { color: rgba(10, 34, 69, 0.28); }
+</style>
 <footer class="mt-auto" style="background: #e3edf7; border-top: 1px solid rgba(10,34,69,0.10);">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-3">
-        <div class="text-center text-[11px] sm:text-xs" style="color: #5f7699;">
-            &copy; {{ config.copyright_year }} {{ config.project_name }}.ai. All rights reserved.
+        <div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-[11px] sm:text-xs"
+            style="color: #5f7699;">
+            <span>&copy; {{ config.copyright_year }} {{ config.project_name }}.ai. All rights reserved.</span>
+            <span class="oc-footer-sep" aria-hidden="true">|</span>
+            <a href="/privacy.html" class="oc-footer-link">Privacy Policy</a>
+            <span class="oc-footer-sep" aria-hidden="true">|</span>
+            <a href="/terms.html" class="oc-footer-link">Terms of Service</a>
         </div>
     </div>
 </footer>

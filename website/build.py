@@ -26,6 +26,7 @@ import os
 import re
 import shutil
 from datetime import datetime
+from html import unescape
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
@@ -53,7 +54,8 @@ GITHUB_URL = "https://github.com/tuiml/tuiml"
 # The Tutorials nav opens the first notebook directly — there is no index page
 # to step through, since every tutorial already carries the full sidebar.
 # Kept in sync with TUTORIALS by an assertion below.
-FIRST_TUTORIAL = "quickstart/01_hello_tuiml"
+FIRST_TUTORIAL = "hello_tuiml"
+
 TUTORIALS_URL = f"/tutorials/{FIRST_TUTORIAL}"
 
 # Rendered separately from PAGES (it needs the parsed CHANGELOG), but still a
@@ -81,8 +83,49 @@ CONFIG = {
 # a CNAME is written instead. Set via the BASE_PATH env var.
 BASE = "/" + os.environ.get("BASE_PATH", "").strip("/") if os.environ.get("BASE_PATH", "").strip("/") else ""
 
+_DOC_SUMMARY_RE = re.compile(r'class="doc-summary[^"]*">(.*?)</p>', re.S)
+
+
+def _api_summary(page: Path) -> str:
+    """First docstring line of a generated API page, as plain text.
+
+    ``generate_docs.py`` renders it into a ``.doc-summary`` paragraph, so the
+    blurb shown in the reference index is the package's own docstring rather
+    than a copy someone has to keep in sync.
+    """
+    match = _DOC_SUMMARY_RE.search(page.read_text(encoding="utf-8"))
+    if not match:
+        return ""
+    return unescape(re.sub(r"<[^>]+>", "", match.group(1))).strip()
+
+
+def _scan_api_index() -> tuple[list[tuple[str, str]], list[tuple[str, str]]]:
+    """Read the package/module index straight off the generated docs tree.
+
+    /api-reference.html builds its card grids from this, and
+    components/_api_sidebar.html builds the rail carried by every generated
+    /docs/ page. Both follow whatever generate_docs.py last produced: a new
+    package appears in both with no list to edit.
+    """
+    packages = [
+        (d.name, _api_summary(d / "index.html"))
+        for d in sorted(DOCS_API.iterdir())
+        if d.is_dir() and (d / "index.html").is_file()
+    ]
+    modules = [
+        (f.stem, _api_summary(f))
+        for f in sorted(DOCS_API.glob("*.html"))
+        if f.name != "index.html"
+    ]
+    return packages, modules
+
+
+API_PACKAGES, API_ROOT_MODULES = _scan_api_index()
+
 env = Environment(loader=FileSystemLoader(TEMPLATES), autoescape=True)
 env.globals["config"] = CONFIG
+env.globals["api_packages"] = API_PACKAGES
+env.globals["api_root_modules"] = API_ROOT_MODULES
 
 
 class _Request:
@@ -440,17 +483,36 @@ def parse_changelog() -> list[dict]:
 # but it is deliberately NOT grouped: the tracks split a short list into stubs
 # and forced readers to pick a lane before they knew which one they wanted.
 TUTORIALS = [
-    ("quickstart/01_hello_tuiml", "Hello TuiML", "fa-solid fa-play"),
-    ("llm_friendly/02_mcp_server", "Connect Your Agent", "fa-solid fa-bolt"),
-    ("llm_friendly/01_llm_tools", "Tools an Agent Can Call", "fa-solid fa-robot"),
-    ("ml_simplified/01_high_level_api", "High-Level API", "fa-solid fa-rocket"),
-    ("ml_simplified/02_workflow_builder", "Workflow Builder", "fa-solid fa-code"),
-    ("ml_simplified/08_preprocessing", "Preprocessing", "fa-solid fa-wand-magic-sparkles"),
-    ("ml_simplified/09_feature_engineering", "Feature Engineering", "fa-solid fa-filter"),
-    ("ml_simplified/10_benchmarking", "Benchmarking", "fa-solid fa-flask"),
-    ("deploy/02_model_serving", "Model Serving", "fa-solid fa-server"),
-    ("case_studies/01_diabetes_prediction", "Case Study: Diabetes", "fa-solid fa-heart-pulse"),
+    ("hello_tuiml", "Hello TuiML", "fa-solid fa-play"),
+    ("mcp_server", "Connect Your Agent", "fa-solid fa-bolt"),
+    ("llm_tools", "Tools an Agent Can Call", "fa-solid fa-robot"),
+    ("high_level_api", "High-Level API", "fa-solid fa-rocket"),
+    ("workflow_builder", "Workflow Builder", "fa-solid fa-code"),
+    ("preprocessing", "Preprocessing", "fa-solid fa-wand-magic-sparkles"),
+    ("feature_engineering", "Feature Engineering", "fa-solid fa-filter"),
+    ("benchmarking", "Benchmarking", "fa-solid fa-flask"),
+    ("model_serving", "Model Serving", "fa-solid fa-server"),
+    ("diabetes_prediction", "Case Study: Diabetes", "fa-solid fa-heart-pulse"),
 ]
+
+# Notebooks used to be filed in group folders with a numeric prefix
+# (tutorials/ml_simplified/02_workflow_builder.ipynb), served both at the
+# grouped URL and at the bare file name. Both are gone: tutorials/ is flat, the
+# numbers are dropped, and reading order lives in TUTORIALS above — so the file
+# name *is* the URL. Every previous form redirects to it.
+LEGACY_TUTORIAL_IDS = {
+    "quickstart/01_hello_tuiml": "hello_tuiml",
+    "llm_friendly/02_mcp_server": "mcp_server",
+    "llm_friendly/01_llm_tools": "llm_tools",
+    "llm_friendly/04_agent_doing_ml": "llm_tools",   # notebook removed
+    "ml_simplified/01_high_level_api": "high_level_api",
+    "ml_simplified/02_workflow_builder": "workflow_builder",
+    "ml_simplified/08_preprocessing": "preprocessing",
+    "ml_simplified/09_feature_engineering": "feature_engineering",
+    "ml_simplified/10_benchmarking": "benchmarking",
+    "deploy/02_model_serving": "model_serving",
+    "case_studies/01_diabetes_prediction": "diabetes_prediction",
+}
 
 # Head additions for tutorial pages: favicons, fonts, nav/footer chrome deps,
 # and a style block that maps nbconvert's exported JupyterLab CSS onto the oc
@@ -680,6 +742,25 @@ _on_disk = {
     for nb in TUTORIALS_DIR.rglob("*.ipynb")
     if ".ipynb_checkpoints" not in nb.parts
 }
+# tutorials/ is flat, so a notebook in a subfolder would render to a URL the
+# rail never links (and could collide with a top-level one).
+assert not any("/" in nb_id for nb_id in _on_disk), (
+    f"tutorials/ must stay flat — found notebooks in subfolders: "
+    f"{sorted(nb_id for nb_id in _on_disk if '/' in nb_id)}"
+)
+
+# Both previous URL shapes — the grouped path and the numbered file name —
+# redirect to the current one.
+REDIRECTS.update({
+    f"/tutorials/{old}": f"/tutorials/{new}"
+    for old, new in LEGACY_TUTORIAL_IDS.items()
+})
+REDIRECTS.update({
+    f"/tutorials/{old.rsplit('/', 1)[-1]}": f"/tutorials/{new}"
+    for old, new in LEGACY_TUTORIAL_IDS.items()
+})
+
+
 assert _listed == _on_disk, (
     f"TUTORIALS is out of sync with {TUTORIALS_DIR}/ — "
     f"listed but missing: {sorted(_listed - _on_disk)}; "
@@ -853,7 +934,17 @@ def freeze() -> None:
     # it picks up the shared navbar/footer components.
     for html in sorted(DOCS_API.rglob("*.html")):
         rel = html.relative_to(DOCS_API).as_posix()
-        render(f"/docs/{rel}", f"_generated/{rel}", active_nav="api", page_title="API Reference")
+        parts = rel.split("/")
+        render(
+            f"/docs/{rel}", f"_generated/{rel}",
+            active_nav="api", page_title="API Reference",
+            # Which package rail entry to mark: the top folder for anything
+            # inside a package, the file itself for a root module.
+            api_package=parts[0] if len(parts) > 1 else Path(parts[0]).stem,
+            # Module pages generate their own "On this page" rail; the layout
+            # only adds the package rail to pages that have none.
+            has_own_rail='class="oc-toc' in html.read_text(encoding="utf-8"),
+        )
         count += 1
 
     # Tutorials — notebooks converted to HTML at build time

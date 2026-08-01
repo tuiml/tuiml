@@ -45,7 +45,7 @@ VERSION_FILES = [
     # The published tutorial prints the version in a stored output cell, so a
     # reader on tuiml.ai sees whatever it last said.
     (
-        TUIML / "tutorials" / "llm_friendly" / "02_mcp_server.ipynb",
+        TUIML / "tutorials" / "mcp_server.ipynb",
         r'(TuiML version: )\d+\.\d+\.\d+',
         r"\g<1>{version}",
     ),
