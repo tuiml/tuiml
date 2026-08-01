@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Getting Started, TuiML Documentation</title>
+    <meta name="description" content="Install TuiML in one command, connect it to Claude, ChatGPT, Cursor, Codex, Windsurf, Perplexity, or any MCP agent, and run ML workflows through natural language.">
+    <meta name="keywords" content="TuiML install, tuiml setup, MCP setup, Claude Desktop MCP, ChatGPT MCP, Cursor MCP, agent-native ML, Model Context Protocol">
+    <meta name="robots" content="index,follow">
+    <meta name="author" content="TuiML Team, AI Institute, University of Waikato">
+    <meta name="theme-color" content="#0b1628">
+    <link rel="canonical" href="https://tuiml.ai/docs/getting_started.html">
+
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="{{ config.project_name }}">
+    <meta property="og:title" content="Getting Started, TuiML Documentation">
+    <meta property="og:description" content="Install TuiML, connect it to your AI agent, and run real ML workflows through natural language.">
+    <meta property="og:url" content="https://tuiml.ai/docs/getting_started.html">
+    <meta property="og:image" content="https://tuiml.ai/static/images/tuiml_logo.png">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Getting Started, TuiML Documentation">
+    <meta name="twitter:description" content="Install TuiML, connect it to your AI agent, and run real ML workflows through natural language.">
+    <meta name="twitter:image" content="https://tuiml.ai/static/images/tuiml_logo.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32.png?v=10">
+    <link rel="icon" type="image/png" sizes="512x512" href="/static/images/favicon.png?v=10">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png?v=10">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- FontAwesome (site nav icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Tailwind CSS (site nav / breadcrumb / footer chrome) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="landing-page antialiased overflow-x-hidden">
+
+    {% include 'components/_docs_navbar.html' %}
+
+    <link rel="stylesheet" href="/static/css/oc.css">
+    <script src="/static/js/oc.js"></script>
+
+    <div class="oc-wrap">
+
+        <!-- ===================== HEADER ===================== -->
+        <section class="oc-section" style="padding-top: 64px;" id="welcome">
+            <h1 class="oc-display">Getting started</h1>
+            <p class="oc-body oc-max" style="margin-top: 16px;">
+                {{ config.project_name }} is machine learning that agents can actually call.
+                Install it, connect your AI agent, and run real ML workflows in plain language.
+            </p>
+
+            <!-- On-this-page sidebar: fixed rail on wide screens, in-flow
+                 block here on narrow ones. Same component as /benchmarks. -->
+            <nav class="oc-toc oc-toc-flow" aria-label="On this page">
+                <div class="oc-toc-label">On this page</div>
+                <a href="#welcome">Welcome</a>
+                <a href="#installation">Installation</a>
+                <a href="#install-oneline" class="sub">One-line install</a>
+                <a href="#install-pip" class="sub">Via pip / uv</a>
+                <a href="#install-source" class="sub">From source</a>
+                <a href="#ai-agent-setup">AI agent setup</a>
+                <a href="#citation">Citation</a>
+                <a href="#license">License</a>
+            </nav>
+        </section>
+
+        <!-- ===================== INSTALLATION ===================== -->
+        <section class="oc-section" id="installation">
+            <h2 class="oc-h">Installation</h2>
+            <hr class="oc-rule">
+
+            <div class="oc-sub" id="install-oneline" style="margin-top: 0;">One-line install (recommended)</div>
+            <p class="oc-caption">Installs <code>uv</code> and TuiML globally. Works on macOS and Linux (including WSL).</p>
+            <div class="snippet">
+                <span class="dollar">$</span>
+                <span class="cmd">curl -fsSL https://tuiml.ai/install.sh | bash</span>
+                <button type="button" class="copy-btn" aria-label="Copy install command"
+                    onclick="navigator.clipboard.writeText('curl -fsSL https://tuiml.ai/install.sh | bash'); this.textContent='[ok]'; setTimeout(() => this.textContent='[copy]', 1500)">[copy]</button>
+            </div>
+
+            <div class="oc-sub" id="install-pip">Via pip / uv</div>
+            <p class="oc-caption">If you already have a Python environment.</p>
+<div class="code-block"><span class="cm"># Using pip</span>
+pip install tuiml
+
+<span class="cm"># Using uv</span>
+uv add tuiml</div>
+
+            <div class="oc-sub" id="install-source">From source (development)</div>
+<div class="code-block">git clone https://github.com/tuiml/tuiml.git
+cd tuiml
+uv sync          <span class="cm"># Install dependencies</span>
+uv run pytest    <span class="cm"># Run tests</span></div>
+        </section>
+
+        <!-- ===================== AI AGENT SETUP ===================== -->
+        <section class="oc-section" id="ai-agent-setup">
+            <h2 class="oc-h">AI agent setup</h2>
+            <hr class="oc-rule">
+            <p class="oc-body oc-max">
+                Connect TuiML to your favourite AI tool. Two pieces do the work:
+            </p>
+            <div style="margin: 16px 0 24px;">
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">SKILL.md</span><span class="txt">: a knowledge file that teaches your agent TuiML's API, patterns, base classes, and conventions.</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">MCP server</span><span class="txt">: a local server exposing 200+ ML tools (train, evaluate, preprocess, serve) your agent calls directly.</span></span></div>
+            </div>
+
+            <div data-tab-group>
+                <div class="oc-tabs" role="tablist">
+                    <button type="button" class="oc-tab active" data-tab="quick" role="tab">one-command setup</button>
+                    <button type="button" class="oc-tab" data-tab="openclaw" role="tab">openclaw</button>
+                    <button type="button" class="oc-tab" data-tab="nemoclaw" role="tab">nemoclaw</button>
+                </div>
+
+                <!-- One-command setup -->
+                <div class="oc-panel active" data-panel="quick">
+                    <div class="oc-sub">Step 1: Run the setup command</div>
+                    <div class="snippet">
+                        <span class="dollar">$</span>
+                        <span class="cmd">tuiml setup</span>
+                        <button type="button" class="copy-btn" aria-label="Copy setup command"
+                            onclick="navigator.clipboard.writeText('tuiml setup'); this.textContent='[ok]'; setTimeout(() => this.textContent='[copy]', 1500)">[copy]</button>
+                    </div>
+                    <p class="oc-caption" style="margin-top: 8px;">
+                        Detects and wires up 21 clients, safely and with backups: Claude Desktop, Claude Code,
+                        ChatGPT Desktop, Perplexity, Cursor, Windsurf, Zed, VS Code, Continue, Goose, Cline,
+                        Roo, Kilo, OpenCode, Codex, Gemini CLI, the Antigravity editors, OpenClaw and NemoClaw.
+                        Run <code>tuiml setup --list</code> to preview the changes,
+                        <code>tuiml setup --client claude-desktop</code> for one specific client,
+                        or <code>--yes</code> for a non-interactive run.
+                    </p>
+
+                    <div class="oc-sub">Step 2: Ask your agent to run something</div>
+                    <p class="oc-caption">No further wiring needed, the tools are already registered:</p>
+                    <div class="snippet">
+                        <span class="cmd">Train a classifier on the iris dataset, report accuracy, and save the model.</span>
+                        <button type="button" class="copy-btn" aria-label="Copy prompt"
+                            onclick="navigator.clipboard.writeText('Train a classifier on the iris dataset, report accuracy, and save the model.'); this.textContent='[ok]'; setTimeout(() => this.textContent='[copy]', 1500)">[copy]</button>
+                    </div>
+                    <p class="oc-caption" style="margin-top: 8px;">Your agent picks the algorithm, trains it, and reports back using TuiML tools.</p>
+
+                    <div class="oc-sub">Step 3: Optional, install the skill file by hand</div>
+                    <p class="oc-caption">
+                        Setup registers the MCP server for every client, and installs the skill file wherever the
+                        client has a skills directory (Claude Code, OpenClaw). Editors that read project rules
+                        instead want the file copied in by hand:
+                    </p>
+<div class="code-block"><span class="cm"># Cursor</span>
+cp path/to/tuiml/tuiml/agent/prompts/SKILL.md .cursor/rules/tuiml.md
+
+<span class="cm"># Windsurf</span>
+cp path/to/tuiml/tuiml/agent/prompts/SKILL.md .windsurf/rules/tuiml.md
+
+<span class="cm"># GitHub Copilot</span>
+cp path/to/tuiml/tuiml/agent/prompts/SKILL.md .github/copilot-instructions.md
+
+<span class="cm"># Cline</span>
+cp path/to/tuiml/tuiml/agent/prompts/SKILL.md .clinerules</div>
+                    <p class="oc-caption" style="margin-top: 8px;">Optional: the tools work without it; the agent just has less context on how to use them well.</p>
+                </div>
+
+                <!-- OpenClaw -->
+                <div class="oc-panel" data-panel="openclaw">
+                    <p class="oc-caption" style="margin-top: 16px;">The featured CLI agent partner. Routes any agent inside OpenClaw to all 200+ TuiML tools.</p>
+
+                    <div class="oc-sub">Step 1: Register the MCP server</div>
+                    <div class="snippet">
+                        <span class="dollar">$</span>
+                        <span class="cmd">tuiml setup --client openclaw</span>
+                        <button type="button" class="copy-btn" aria-label="Copy command"
+                            onclick="navigator.clipboard.writeText('tuiml setup --client openclaw'); this.textContent='[ok]'; setTimeout(() => this.textContent='[copy]', 1500)">[copy]</button>
+                    </div>
+                    <p class="oc-caption" style="margin-top: 8px;">Registers TuiML with OpenClaw's MCP registry. The native OpenClaw command does the same thing:</p>
+<div class="code-block">openclaw mcp set tuiml '{"command":"tuiml-mcp"}' &amp;&amp; openclaw gateway restart</div>
+                    <p class="oc-caption" style="margin-top: 8px;">Either command is enough, you do not need both.</p>
+
+                    <div class="oc-sub">Step 2: Or edit the config by hand</div>
+                    <p class="oc-caption">If you prefer, add this block to <code>~/.openclaw/openclaw.json</code>:</p>
+<div class="code-block">{
+  <span class="key">"mcp"</span>: {
+    <span class="key">"servers"</span>: {
+      <span class="key">"tuiml"</span>: { <span class="key">"command"</span>: <span class="str">"tuiml-mcp"</span> }
+    }
+  }
+}</div>
+
+                    <div class="oc-sub">Step 3: Verify</div>
+<div class="code-block">openclaw mcp list    <span class="cm"># should list tuiml</span>
+openclaw chat <span class="str">"train a random forest on iris and report accuracy using TuiML"</span></div>
+                </div>
+
+                <!-- NemoClaw -->
+                <div class="oc-panel" data-panel="nemoclaw">
+                    <p class="oc-caption" style="margin-top: 16px;">NVIDIA NemoClaw sandboxes are locked down by default, so PyPI has to be allowed before TuiML can be installed inside one.</p>
+
+                    <div class="oc-sub">Step 1: Allow PyPI on the host</div>
+<div class="code-block">nemoclaw &lt;sandbox-name&gt; policy-add pypi --yes
+nemoclaw &lt;sandbox-name&gt; connect</div>
+                    <p class="oc-caption" style="margin-top: 8px;">The <code>tuiml.ai/install.sh</code> curl installer can be blocked by NemoClaw policy, so the built-in <code>pypi</code> preset is the simpler supported path.</p>
+
+                    <div class="oc-sub">Step 2: Install TuiML inside the sandbox</div>
+<div class="code-block">python -m venv /sandbox/.openclaw/workspace/tuiml_venv
+. /sandbox/.openclaw/workspace/tuiml_venv/bin/activate
+pip install tuiml</div>
+
+                    <div class="oc-sub">Step 3: Register it with OpenClaw</div>
+<div class="code-block">openclaw mcp set tuiml '{"command":"/sandbox/.openclaw/workspace/tuiml_venv/bin/tuiml-mcp"}'
+openclaw gateway restart</div>
+                    <p class="oc-caption" style="margin-top: 8px;">Verify with <code>openclaw mcp list</code>, it should show <code>tuiml</code>.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================== CITATION ===================== -->
+        <section class="oc-section" id="citation">
+            <h2 class="oc-h">Scientific citation</h2>
+            <hr class="oc-rule">
+            <p class="oc-body oc-max">
+                If you use TuiML in your research, please cite the framework using the following BibTeX record:
+            </p>
+<div class="code-block">@software{tuiml2026,
+  <span class="key">title</span>={TuiML: Machine Learning that agents can actually call},
+  <span class="key">author</span>={Verma, Nilesh and Bifet, Albert and Pfahringer, Bernhard and Lim, Nick},
+  <span class="key">year</span>={2026},
+  <span class="key">url</span>={https://github.com/tuiml/tuiml}
+}</div>
+        </section>
+
+        <!-- ===================== LICENSE ===================== -->
+        <section class="oc-section" id="license">
+            <h2 class="oc-h">License</h2>
+            <hr class="oc-rule">
+            <p class="oc-body oc-max">TuiML is licensed under the BSD 3-Clause License.</p>
+            <p class="oc-caption" style="margin-top: 8px;">Copyright (c) 2026, The TuiML developers.</p>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    {% include 'components/_footer.html' %}
+
+</body>
+
+</html>

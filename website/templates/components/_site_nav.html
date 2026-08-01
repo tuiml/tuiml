@@ -1,68 +1,109 @@
 {#
-    Shared site navigation — the ONE navbar, used on the landing page, the
+    Shared site navigation, the ONE navbar, used on the landing page, the
     build board, every docs page, and (via build.py) every tutorial page.
-    Dark navy chrome on every surface so the site reads as one brand even
-    though docs content below stays light.
+    Pale blue-green chrome on every surface so the site reads as one brand.
 
     Variables:
     - active_nav: 'docs' | 'api' | 'tutorials' | 'benchmarks' | 'projects'
                   | 'changelog' | 'contributing' | 'about' (optional)
 #}
-<nav class="sticky top-0 z-50 border-b border-white/10"
-     style="background: rgba(11,22,40,0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
+<style>
+    /* Block-pixel ASCII wordmark, the same mark as the landing-page hero TUI,
+       scaled down to nav size (~120×30px). The brand is its own ASCII art. */
+    .brand-wordmark {
+        font-family: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace;
+        font-size: 6px;
+        line-height: 1;
+        color: #082a34;
+        margin: 0;
+        white-space: pre;
+        transition: transform 0.3s;
+    }
+    /* Two-tone wordmark, opencode style: "TUI" in the plain logo blue,
+       "ML" in whitish silver. */
+    .brand-wordmark .wm-tui { color: #1049a2; }
+    .brand-wordmark .wm-ml { color: #aebbc7; }
+    /* Superscript pixel "ALPHA" tag at the wordmark's top-right — plain
+       yellow text, no chip. */
+    .brand-alpha {
+        align-self: flex-start;
+        margin: 2px 0 0 2px;
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 8px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        line-height: 1;
+        color: #d97706;
+    }
+    .group:hover .brand-wordmark { transform: scale(1.06); }
+    .brand-icon {
+        height: 2.5rem;
+        width: 2.5rem;
+        border-radius: 50%;
+        flex-shrink: 0;
+        transition: transform 0.3s;
+    }
+    .group:hover .brand-icon { transform: scale(1.06); }
+</style>
+<nav class="sticky top-0 z-50" style="background: rgba(238,244,250,0.88); border-bottom: 1px solid rgba(10,34,69,0.10); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
     <div class="container mx-auto px-4 lg:px-6 h-16 flex items-center justify-between gap-4">
-        <!-- Logo (the real wordmark, same asset as the landing hero) -->
-        <a href="/" class="flex items-center gap-2 flex-shrink-0 group">
-            <img src="/static/images/tuiml_logo_full.png?v=3" alt="TuiML" class="h-9 w-auto transition-transform group-hover:scale-105 duration-300">
-            <span class="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-amber-400/15 text-amber-300 border border-amber-400/25 rounded-full leading-none">Alpha</span>
+        <!-- Logo: tui-bird badge icon + block-pixel ASCII wordmark. -->
+        <a href="/" class="flex items-center gap-2 flex-shrink-0 group" aria-label="TuiML home">
+            <img src="/static/images/tuiml_bird_logo.png?v=2" alt="" class="brand-icon">
+            <pre class="brand-wordmark" aria-hidden="true"><span class="wm-tui">█████ █   █ █████ </span><span class="wm-ml">█   █ █</span>
+<span class="wm-tui">  █   █   █   █   </span><span class="wm-ml">██ ██ █</span>
+<span class="wm-tui">  █   █   █   █   </span><span class="wm-ml">█ █ █ █</span>
+<span class="wm-tui">  █   █   █   █   </span><span class="wm-ml">█   █ █</span>
+<span class="wm-tui">  █   █████ █████ </span><span class="wm-ml">█   █ █████</span></pre>
+            <span class="brand-alpha" aria-label="alpha">ALPHA</span>
         </a>
 
         <!-- Desktop links -->
         <div class="hidden lg:flex items-center gap-1 text-sm font-medium">
             {% for key, href, label in [
                 ('projects', '/projects.html', 'Contribute'),
-                ('docs', '/docs/getting_started.html', 'Documentation'),
+                ('docs', '/docs/getting_started.html', 'Getting Started'),
                 ('api', '/docs/api-reference.html', 'API Reference'),
-                ('tutorials', '/docs/tutorials.html', 'Tutorials'),
+                ('tutorials', config.tutorials_url, 'Tutorials'),
                 ('benchmarks', '/docs/benchmarks.html', 'Benchmarks'),
                 ('changelog', '/docs/changelog.html', 'Changelog'),
                 ('about', '/docs/about.html', 'About'),
             ] %}
             <a href="{{ href }}"
-               class="px-3 py-1.5 rounded-full transition-colors {{ 'text-sky-300 bg-white/10' if active_nav == key else 'text-slate-300 hover:text-white hover:bg-white/5' }}">{{ label }}</a>
+               class="px-3 py-1.5 rounded-full transition-colors {{ 'text-cyan-800 bg-cyan-600/12' if active_nav == key else 'text-slate-600 hover:text-slate-900 hover:bg-slate-900/5' }}">{{ label }}</a>
             {% endfor %}
             <a href="{{ config.github_url }}" target="_blank" rel="noopener"
-               class="ml-1 px-2 text-slate-300 hover:text-white transition-all hover:scale-110" aria-label="GitHub">
+               class="ml-1 px-2 text-slate-600 hover:text-slate-900 transition-all hover:scale-110" aria-label="GitHub">
                 <i class="fa-brands fa-github text-xl"></i>
             </a>
         </div>
 
         <!-- Mobile menu button -->
-        <button id="site-nav-menu-btn" class="lg:hidden p-2 text-slate-300 rounded-full hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/20 transition-colors" aria-label="Menu">
+        <button id="site-nav-menu-btn" class="lg:hidden p-2 text-slate-600 rounded-full hover:bg-slate-900/5 focus:outline-none focus:ring-2 focus:ring-cyan-600/30 transition-colors" aria-label="Menu">
             <i class="fa-solid fa-bars text-xl"></i>
         </button>
     </div>
 
     <!-- Mobile dropdown -->
-    <div id="site-nav-menu" class="hidden lg:hidden border-t border-white/10" style="background: rgba(11,22,40,0.98);">
+    <div id="site-nav-menu" class="hidden lg:hidden" style="background: rgba(238,244,250,0.98); border-top: 1px solid rgba(10,34,69,0.10);">
         <div class="px-4 py-3 space-y-1 text-sm">
             {% for key, href, icon, label in [
                 ('projects', '/projects.html', 'fa-solid fa-hammer', 'Contribute'),
-                ('docs', '/docs/getting_started.html', 'fa-solid fa-book', 'Documentation'),
+                ('docs', '/docs/getting_started.html', 'fa-solid fa-book', 'Getting Started'),
                 ('api', '/docs/api-reference.html', 'fa-solid fa-code', 'API Reference'),
-                ('tutorials', '/docs/tutorials.html', 'fa-solid fa-graduation-cap', 'Tutorials'),
+                ('tutorials', config.tutorials_url, 'fa-solid fa-graduation-cap', 'Tutorials'),
                 ('benchmarks', '/docs/benchmarks.html', 'fa-solid fa-chart-bar', 'Benchmarks'),
                 ('changelog', '/docs/changelog.html', 'fa-solid fa-clock-rotate-left', 'Changelog'),
                 ('contributing', '/docs/contributing.html', 'fa-solid fa-hands-helping', 'Contributing Guide'),
                 ('about', '/docs/about.html', 'fa-solid fa-circle-info', 'About'),
             ] %}
             <a href="{{ href }}"
-               class="block px-3 py-2 rounded-lg transition-colors {{ 'text-sky-300 bg-white/10 font-semibold' if active_nav == key else 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+               class="block px-3 py-2 rounded-lg transition-colors {{ 'text-cyan-800 bg-cyan-600/12 font-semibold' if active_nav == key else 'text-slate-600 hover:bg-slate-900/5 hover:text-slate-900' }}">
                 <i class="{{ icon }} w-5 text-center mr-2"></i>{{ label }}
             </a>
             {% endfor %}
-            <hr class="my-2 border-white/10">
-            <a href="{{ config.github_url }}" target="_blank" rel="noopener" class="block px-3 py-2 rounded-lg text-slate-300 hover:bg-white/5 hover:text-white transition-colors">
+            <hr class="my-2" style="border-color: rgba(10,42,51,0.10);">
+            <a href="{{ config.github_url }}" target="_blank" rel="noopener" class="block px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-900/5 hover:text-slate-900 transition-colors">
                 <i class="fa-brands fa-github w-5 text-center mr-2"></i>GitHub
             </a>
         </div>
