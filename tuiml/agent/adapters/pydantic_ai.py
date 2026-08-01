@@ -1,4 +1,4 @@
-"""Pydantic-AI adapter, TuiML tools + a one-liner ``tuiml.agent()`` agent.
+"""Pydantic-AI adapter, TuiML tools + a one-liner ``tuiml.agent.agent()`` agent.
 
 Pydantic-AI is model-agnostic (works with Anthropic, OpenAI, Google, Groq,
 etc.), uses Pydantic models for schemas natively, and is our chosen substrate
@@ -7,7 +7,7 @@ pre-wired ``Agent`` instance.
 
 Example, plug tools into your own agent
 ----------------------------------------
->>> from tuiml.agent.pydantic_ai import get_tools, system_prompt
+>>> from tuiml.agent.adapters.pydantic_ai import get_tools, system_prompt
 >>> from pydantic_ai import Agent
 >>> agent = Agent("anthropic:claude-sonnet-4-6",
 ...               tools=get_tools(), system_prompt=system_prompt())
@@ -16,14 +16,14 @@ Example, plug tools into your own agent
 Example, one-liner
 -------------------
 >>> import tuiml
->>> tuiml.agent().run_sync("Predict churn on customers.csv")
+>>> tuiml.agent.agent().run_sync("Predict churn on customers.csv")
 """
 
 from __future__ import annotations
 
 from typing import Any, List, Optional
 
-from tuiml.agent._core import build_args_model, invoke, iter_tools, load_skill, require
+from ._base import build_args_model, invoke, iter_tools, load_skill, require
 
 
 def get_tools() -> List[Any]:
@@ -42,7 +42,7 @@ def get_tools() -> List[Any]:
 
     Examples
     --------
-    >>> from tuiml.agent.pydantic_ai import get_tools, system_prompt
+    >>> from tuiml.agent.adapters.pydantic_ai import get_tools, system_prompt
     >>> from pydantic_ai import Agent
     >>> agent = Agent("anthropic:claude-sonnet-4-6",
     ...               tools=get_tools(), system_prompt=system_prompt())
@@ -125,7 +125,7 @@ def agent(model: Optional[str] = None, **kwargs: Any) -> Any:
     Examples
     --------
     >>> import tuiml
-    >>> result = tuiml.agent().run_sync("Compare RandomForestClassifier and XGBoost on iris.")
+    >>> result = tuiml.agent.agent().run_sync("Compare RandomForestClassifier and XGBoost on iris.")
     >>> print(result.output)
     """
     require("pydantic_ai", "pydantic-ai")

@@ -8,7 +8,7 @@ and Responses paths that don't yet understand MCP.
 
 Example
 -------
->>> from tuiml.agent import openai as tuiml_openai
+>>> from tuiml.agent.adapters import openai as tuiml_openai
 >>> from tuiml.agent import invoke as tuiml_invoke
 >>> tools = tuiml_openai.get_tools()
 >>> # pass tools=tools to client.chat.completions.create(...)
@@ -20,7 +20,7 @@ from __future__ import annotations
 import json
 from typing import Any, Dict, List
 
-from tuiml.agent._core import invoke, iter_tools, load_skill
+from ._base import invoke, iter_tools, load_skill
 
 
 def get_tools() -> List[Dict[str, Any]]:
@@ -39,7 +39,7 @@ def get_tools() -> List[Dict[str, Any]]:
 
     Examples
     --------
-    >>> from tuiml.agent import openai as tuiml_openai
+    >>> from tuiml.agent.adapters import openai as tuiml_openai
     >>> tools = tuiml_openai.get_tools()
     >>> response = client.chat.completions.create(
     ...     model="gpt-4o",

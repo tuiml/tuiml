@@ -32,9 +32,8 @@ Exposed MCP Tools
 - tuiml_upload_data - Upload dataset content
 
 **Discovery Tools:**
-- tuiml_list - List all components (algorithms, preprocessors, etc.)
+- tuiml_list - List all components; pass search= to filter by keyword
 - tuiml_describe - Get component details and parameter schema
-- tuiml_search - Search components by keyword
 
 All 200+ algorithms, preprocessors, datasets, features, and splitters
 are accessible through these tools. When a new algorithm is added to
@@ -66,7 +65,7 @@ from tuiml.agent.tools import (
     DISCOVERY_TOOLS,
 )
 
-from tuiml.agent.registry import (
+from tuiml.agent.tools._components import (
     get_all_tools,
     get_tool,
     list_tools_by_category,
@@ -150,9 +149,9 @@ def get_tools_for_llm(format: str = "mcp") -> list:
     return tools
 
 # ---------------------------------------------------------------------------
-# Framework-agnostic helpers (re-exported from tuiml.agent._core)
+# Framework-agnostic helpers (re-exported from tuiml.agent.adapters._base)
 # ---------------------------------------------------------------------------
-from tuiml.agent._core import invoke, callables, load_skill
+from tuiml.agent.adapters._base import invoke, callables, load_skill
 
 
 # ---------------------------------------------------------------------------
@@ -181,13 +180,13 @@ def agent(model: "Optional[str]" = None, **kwargs):  # type: ignore[name-defined
 
     Examples
     --------
-    >>> import tuiml
-    >>> result = tuiml.agent().run_sync(
+    >>> from tuiml.agent import agent
+    >>> result = agent().run_sync(
     ...     "Train RandomForestClassifier on iris and report accuracy."
     ... )
     >>> print(result.output)
     """
-    from tuiml.agent.pydantic_ai import agent as _agent
+    from tuiml.agent.adapters.pydantic_ai import agent as _agent
     return _agent(model=model, **kwargs)
 
 

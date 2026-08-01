@@ -2,7 +2,7 @@
 
 Example
 -------
->>> from tuiml.agent.crewai import get_tools
+>>> from tuiml.agent.adapters.crewai import get_tools
 >>> from crewai import Agent, Task, Crew
 >>>
 >>> analyst = Agent(role="Data Scientist", goal="build good models",
@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import Any, List
 
-from tuiml.agent._core import build_args_model, invoke, iter_tools, load_skill, require
+from ._base import build_args_model, invoke, iter_tools, load_skill, require
 
 
 def get_tools() -> List[Any]:
@@ -33,7 +33,7 @@ def get_tools() -> List[Any]:
 
     Examples
     --------
-    >>> from tuiml.agent.crewai import get_tools
+    >>> from tuiml.agent.adapters.crewai import get_tools
     >>> tools = get_tools()
     >>> [t.name for t in tools][:2]  # doctest: +SKIP
     ['tuiml_train', 'tuiml_predict']
