@@ -120,6 +120,12 @@ def _inject_seed(model_cls, params: dict, seed: Optional[int]) -> dict:
     A parameter present but set to ``None`` counts as unset, that is the
     default for seed arguments, and ``get_params()`` reports every constructor
     parameter, not only the ones the caller passed.
+
+    A wrapper whose ``__init__`` only takes ``**params`` (the ``tuiml.sklearn``
+    bridge) advertises its real parameters through ``get_parameter_schema()``
+    instead, so that is consulted as well. Without it those wrappers would run
+    unseeded and ``random_seed`` would silently fail to make a run
+    reproducible.
     """
     if seed is None:
         return params
@@ -127,9 +133,22 @@ def _inject_seed(model_cls, params: dict, seed: Optional[int]) -> dict:
     import inspect
     params = dict(params)
     try:
-        accepted = inspect.signature(model_cls.__init__).parameters
+        signature = inspect.signature(model_cls.__init__)
     except Exception:
         return params
+
+    accepted = set(signature.parameters)
+    takes_kwargs = any(
+        p.kind is inspect.Parameter.VAR_KEYWORD
+        for p in signature.parameters.values()
+    )
+    if takes_kwargs:
+        schema = getattr(model_cls, "get_parameter_schema", None)
+        if callable(schema):
+            try:
+                accepted |= set(schema())
+            except Exception:
+                pass
 
     for key in ("random_seed", "random_state"):
         if key in accepted:

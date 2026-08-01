@@ -8,6 +8,126 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">features</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">selection/</h1>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Feature selection methods for tuiml.</p>
+<div class="doc-extended">This module provides a wide range of feature selection algorithms that follow the  scikit-learn fit/transform pattern. These filters and wrappers help in reducing  overfitting, improving accuracy, and reducing training time by identifying the  most relevant features.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Overview</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+The selectors are categorized into several strategies:
+</p>
+Univariate Selectors ~~~~~~~~~~~~~~~~~~~~ These score each feature independently using statistical tests:
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">SelectKBestSelector</code>: Keep top <span class="katex-inline">k</span> features.
+</li>
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">SelectPercentileSelector</code>: Keep top percentage.
+</li>
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">SelectThresholdSelector</code>: Keep by raw score.
+</li>
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">SelectFprSelector</code>: Keep by signicance (p-value).
+</li>
+
+</ul>
+Subset Selection (Filter &amp; Wrapper) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ These evaluate groups of features together:
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">CFSSelector</code>: Correlation-based Subset Selection.
+</li>
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">SequentialFeatureSelector</code>: Greedy forward/backward.
+</li>
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">BestFirstSelector</code>: Search with backtracking.
+</li>
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">WrapperSelector</code>: Evaluates subsets with an estimator.
+</li>
+
+</ul>
+Unsupervised &amp; Stochastic ~~~~~~~~~~~~~~~~~~~~~~~~~
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">VarianceThresholdSelector</code>: Removes constant features.
+</li>
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">RandomSubsetSelector</code>: Stochastic subsampling.
+</li>
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">BootstrapFeaturesSelector</code>: Sample with replacement.
+</li>
+
+</ul>
+</div>
+        </div>
+        
+<div class="mb-8 last:mb-0"><p class="text-gray-600 my-2">Univariate selection with Information Gain:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.features.selection import SelectKBestSelector
+&gt;&gt;&gt; from tuiml.evaluation.metrics import information_gain
+&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; X, y = np.random.randn(20, 10), np.random.randint(0, 2, 20)
+&gt;&gt;&gt; selector = SelectKBestSelector(score_func=information_gain, k=5)
+&gt;&gt;&gt; X_new = selector.fit_transform(X, y)</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">Automatic subset selection using CFS:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.features.selection import CFSSelector
+&gt;&gt;&gt; cfs = CFSSelector()
+&gt;&gt;&gt; X_new = cfs.fit_transform(X, y)
+&gt;&gt;&gt; print(f&quot;Selected: {cfs.get_support(indices=True)}&quot;)</code></pre>
+            </div>
+        </div>
+        </div></div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

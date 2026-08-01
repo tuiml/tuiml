@@ -8,6 +8,106 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../api-reference.html">API Reference</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">agent/</h1>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">LLM Integration for TuiML.</p>
+<div class="doc-extended">Provides MCP (Model Context Protocol) server and tools for LLM integration. Workflow/discovery tools are exposed as MCP tools, and ALL 200+ components are accessible through them. New algorithms registered via decorators or the component registry are automatically discoverable.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Quick Start</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+Run the MCP server:
+</p>
+<div class="bg-slate-900 rounded-lg p-4 my-3 overflow-x-auto"><pre class="text-sm font-mono text-slate-100 leading-relaxed">python -m tuiml.agent.mcp.server</pre></div>
+<p class="mb-4">
+Or configure in Claude Desktop (claude_desktop_config.json):
+</p>
+<div class="bg-slate-900 rounded-lg p-4 my-3 overflow-x-auto"><pre class="text-sm font-mono text-slate-100 leading-relaxed">{
+    &quot;mcpServers&quot;: {
+        &quot;tuiml&quot;: {
+            &quot;command&quot;: &quot;tuiml-mcp&quot;
+        }
+    }
+}</pre></div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Exposed MCP Tools</h4>
+            </div>
+            <div class="p-4"><strong>Workflow Tools:</strong>
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+tuiml_train - Train ML models with full workflow
+</li>
+
+<li class="text-gray-700">
+tuiml_predict - Make predictions
+</li>
+
+<li class="text-gray-700">
+tuiml_evaluate - Evaluate models
+</li>
+
+<li class="text-gray-700">
+tuiml_benchmark - Compare algorithms
+</li>
+
+<li class="text-gray-700">
+tuiml_upload_data - Upload dataset content
+</li>
+
+</ul>
+<strong>Discovery Tools:</strong>
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+tuiml_list - List all components; pass search= to filter by keyword
+</li>
+
+<li class="text-gray-700">
+tuiml_describe - Get component details and parameter schema
+</li>
+
+</ul>
+All 200+ algorithms, preprocessors, datasets, features, and splitters are accessible through these tools. When a new algorithm is added to the component registry or registered with a decorator, it is automatically available.</div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.agent import execute_tool
+&gt;&gt;&gt;
+&gt;&gt;&gt; # Train any algorithm by name
+&gt;&gt;&gt; result = execute_tool(
+...     &quot;tuiml_train&quot;,
+...     algorithm=&quot;RandomForestClassifier&quot;,
+...     data=&quot;iris&quot;,
+...     target=&quot;class&quot;,
+...     cv=10
+... )
+&gt;&gt;&gt;
+&gt;&gt;&gt; # List available algorithms
+&gt;&gt;&gt; result = execute_tool(&quot;tuiml_list&quot;, category=&quot;algorithm&quot;)</code></pre>
+            </div>
+        </div>
+        </div></div>
 <h2 class="oc-h">Packages</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0; margin-bottom: 48px;">

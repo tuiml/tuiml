@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import re
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -25,6 +26,7 @@ from tuiml.cli.setup import (
     describe_target,
     error,
     info,
+    resolve_client_ids,
     section,
     success,
     warn,
@@ -122,6 +124,64 @@ def remove_toml_entry(config_path: Path) -> tuple[bool, str]:
     return True, "removed [mcp_servers.tuiml] block"
 
 
+def remove_opencode_entry(config_path: Path) -> tuple[bool, str]:
+    """Remove the ``tuiml`` entry from OpenCode's ``opencode.json``.
+
+    OpenCode nests servers under a top-level ``"mcp"`` key rather than
+    ``"mcpServers"``, so it needs its own remover.
+
+    Parameters
+    ----------
+    config_path : Path
+        Path to ``opencode.json``.
+
+    Returns
+    -------
+    changed : bool
+        True if the file was modified.
+    reason : str
+        Short human-readable description of what happened.
+    """
+    return remove_json_entry(config_path, "mcp")
+
+
+def remove_openclaw_entry(spec: dict) -> tuple[bool, str]:
+    """Remove TuiML from OpenClaw, preferring its own CLI.
+
+    Uses ``openclaw mcp remove`` when the executable is on ``PATH``, and falls
+    back to editing the nested JSON config directly if that command is missing
+    or fails.
+
+    Parameters
+    ----------
+    spec : dict
+        Client spec, providing ``config`` and ``key``.
+
+    Returns
+    -------
+    changed : bool
+        True if the client configuration was modified.
+    reason : str
+        Short human-readable description of what happened.
+    """
+    openclaw = shutil.which("openclaw")
+    if openclaw:
+        result = subprocess.run(
+            [openclaw, "mcp", "remove", SERVER_NAME],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.returncode == 0:
+            return True, "removed via openclaw mcp remove"
+        detail = (result.stderr or result.stdout).strip()
+        if detail:
+            warn(f"  OpenClaw CLI removal failed: {detail}")
+        warn("  Falling back to direct config edit.")
+
+    return remove_json_entry(spec["config"], spec["key"])
+
+
 def remove_skill_dir(skills_dir: Path) -> tuple[bool, str]:
     """Delete the installed ``tuiml`` skill directory.
 
@@ -184,12 +244,16 @@ def unconfigure(spec: dict) -> tuple[bool, str]:
         Short human-readable description of what happened.
     """
     kind = spec["kind"]
+    if kind == "openclaw":
+        return remove_openclaw_entry(spec)
     if kind == "json-mcp":
         return remove_json_entry(spec["config"], "mcpServers")
     if kind == "json-key":
         return remove_json_entry(spec["config"], spec["key"])
     if kind == "toml-mcp":
         return remove_toml_entry(spec["config"])
+    if kind == "opencode":
+        return remove_opencode_entry(spec["config"])
     if kind == "skill":
         return remove_skill_dir(spec["skills_dir"])
     if kind == "yaml-instructions":
@@ -279,12 +343,12 @@ def uninstall(assume_yes: bool, force_manual: bool, clients: tuple[str, ...]) ->
     all_specs = client_specs()
 
     if clients:
-        unknown = [c for c in clients if c not in ALL_CLIENT_IDS]
+        wanted, unknown = resolve_client_ids(clients)
         if unknown:
             error(f"Unknown client(s): {', '.join(unknown)}")
             info(f"Valid IDs: {', '.join(ALL_CLIENT_IDS)}")
             sys.exit(1)
-        all_specs = [s for s in all_specs if s["id"] in clients]
+        all_specs = [s for s in all_specs if s["id"] in wanted]
 
     if assume_yes:
         mode = "auto"

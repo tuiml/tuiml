@@ -173,13 +173,15 @@ class _SklearnBackedMixin:
     def get_params(self, deep: bool = True) -> Dict[str, Any]:
         """Return constructor parameters (scikit-learn ``clone`` compatible).
 
-        Excludes fitted attributes (trailing underscore) and private state.
+        Reports exactly the parameters the wrapper was built with, so
+        ``type(obj)(**obj.get_params())`` reproduces it. Reading them off
+        ``__dict__`` instead would also pick up the attributes TuiML's own base
+        classes set in ``__init__`` (``FeatureSelector`` sets ``k`` and
+        ``threshold``, ``FeatureExtractor`` sets ``n_components``), and feeding
+        those back through the constructor makes ``_build_estimator`` reject
+        them as unknown scikit-learn parameters.
         """
-        return {
-            k: v
-            for k, v in self.__dict__.items()
-            if not k.startswith("_") and not k.endswith("_")
-        }
+        return dict(self._params)
 
 
 class _SklearnClustererMixin(_SklearnBackedMixin):

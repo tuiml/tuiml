@@ -8,6 +8,124 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">visualization/</h1>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Matplotlib plots for reading, comparing and reporting evaluation results.</p>
+<div class="doc-extended">
+<p class="mb-4">
+This package turns the numbers produced by <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">metrics</code> and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">statistics</code> into publication-quality figures. Reach for it at the <em>end</em> of an experiment, when you already have predictions or a score matrix and want to see — or publish — what they say.
+</p>
+
+<p class="mb-4">
+Two families of plots live here:
+</p>
+
+<p class="mb-4">
+<strong>Single-model diagnostics</strong> — you have one fitted model and its predictions on a test set:
+</p>
+
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">plot_confusion_matrix</code> — which classes
+</li>
+
+</ul>
+get mistaken for which.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">plot_roc_curve</code> /
+</li>
+
+</ul>
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">plot_pr_curve</code> — threshold-free ranking   quality; the PR curve is the one to trust on imbalanced data.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">plot_learning_curve</code> — whether more
+</li>
+
+</ul>
+training data would still help.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">plot_tree</code> — the structure of a fitted
+</li>
+
+</ul>
+decision tree.
+<p class="mb-4">
+<strong>Multi-model comparison</strong> — you have a <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">(n_datasets, n_algorithms)</code> score matrix from a benchmark:
+</p>
+
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">plot_critical_difference</code> — the
+</li>
+
+</ul>
+Demšar (2006) rank diagram: which algorithms are <em>statistically</em>   distinguishable, not merely different on average.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">plot_ranking_table</code> — the raw numbers
+</li>
+
+</ul>
+plus per-dataset ranks.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">plot_boxplot_comparison</code> — score spread
+</li>
+
+</ul>
+per algorithm.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">plot_heatmap</code> — the whole score matrix
+</li>
+
+</ul>
+at a glance.
+<p class="mb-4">
+All plotting functions share the same conventions: matplotlib is imported lazily, so they raise <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ImportError</code> if it is unavailable; each one calls <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">matplotlib.pyplot.show()</code> before returning, and writes a 300-dpi PNG when a <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">save_path</code> is supplied. Styling comes from a shared internal stylesheet whose palettes (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">PALETTES</code>) and semantic colour tokens (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">SEMANTIC_COLORS</code>) are re-exported here, together with the helpers <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">apply_style</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">reset_style</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">get_colors</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">setup_figure</code> and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">style_axis</code> for building your own matching figures.
+</p>
+</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4"><code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">seaborn</code> is an optional accelerant: when installed, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">plot_confusion_matrix</code> and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">plot_heatmap</code> render through <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">seaborn.heatmap</code>; otherwise they fall back to plain matplotlib and look slightly different. Nothing here requires it.</div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; from tuiml.evaluation.visualization import plot_confusion_matrix
+&gt;&gt;&gt; y_true = np.array([0, 1, 1, 0, 2, 2, 1])
+&gt;&gt;&gt; y_pred = np.array([0, 1, 0, 0, 2, 1, 1])
+&gt;&gt;&gt; cm = plot_confusion_matrix(y_true, y_pred)   # doctest: +SKIP</code></pre>
+            </div>
+        </div>
+        </div></div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

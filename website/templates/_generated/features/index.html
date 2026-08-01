@@ -8,6 +8,133 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../api-reference.html">API Reference</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">features/</h1>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Feature engineering and dimensionality reduction module.</p>
+<div class="doc-extended">The <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml.features</code> module provides a comprehensive set of tools for  transforming, selecting, and extracting meaningful features from raw data.  It follows the scikit-learn API pattern for transformations.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Module Overview</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+This module is organized into three main functional areas:
+</p>
+
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+<strong>Selection</strong>: Methods for identifying the most predictive subset of features.
+</li>
+
+</ol>
+
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<em>Filter methods</em>: <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">VarianceThresholdSelector</code>,
+</li>
+
+</ul>
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">CFSSelector</code>, etc.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<em>Wrapper methods</em>: <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">SequentialFeatureSelector</code>,
+</li>
+
+</ul>
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">WrapperSelector</code>, etc.
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+<strong>Extraction</strong>: Methods for projecting data into a new, lower-dimensional space.
+</li>
+
+</ol>
+
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">PCAExtractor</code>: Principal Component Analysis.
+</li>
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">RandomProjectionExtractor</code>: Johnson-Lindenstrauss based reduction.
+</li>
+
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+<strong>Generation</strong>: Methods for constructing new features through mathematical combinations.
+</li>
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">PolynomialFeaturesGenerator</code>: Feature interactions.
+</li>
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">BinningFeaturesGenerator</code>: Discretization of continuous values.
+</li>
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">MathematicalFeaturesGenerator</code>: Functional transformations.
+</li>
+
+</ol>
+
+</ul>
+</div>
+        </div>
+        
+<div class="mb-8 last:mb-0"><p class="text-gray-600 my-2">Selecting top-k features using Correlation-based Feature Selection (CFS):</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.features.selection import CFSSelector
+&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; X, y = np.random.randn(50, 20), np.random.randint(0, 2, 50)
+&gt;&gt;&gt; selector = CFSSelector()
+&gt;&gt;&gt; X_selected = selector.fit_transform(X, y)
+&gt;&gt;&gt; print(f&quot;Reduced to {X_selected.shape[1]} features&quot;)</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">Extracting principal components:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.features.extraction import PCAExtractor
+&gt;&gt;&gt; pca = PCAExtractor(n_components=0.95)
+&gt;&gt;&gt; X_pca = pca.fit_transform(X)</code></pre>
+            </div>
+        </div>
+        </div></div>
 <h2 class="oc-h">Packages</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0; margin-bottom: 48px;">

@@ -8,6 +8,150 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../api-reference.html">API Reference</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">capymoa/</h1>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">CapyMOA (streaming / online-learning) bridge for TuiML.</p>
+<div class="doc-extended">
+<p class="mb-4">
+Importing this package registers the wrapped CapyMOA incremental learners into the TuiML hub under <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">capymoa.<ClassName></code> keys, so they never collide with the native TuiML streaming algorithms in <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">streaming</code>.
+</p>
+
+<p class="mb-4">
+The wrapper modules mirror TuiML&#x27;s own taxonomy — <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">bayesian</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">trees</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ensemble</code> — so a wrapped learner sits in the same place as its native counterpart:
+</p>
+
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">bayesian</code> — incremental Naive Bayes.
+</li>
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">trees</code> — Hoeffding / EFDT trees.
+</li>
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ensemble</code> — online bagging, adaptive random forests.
+</li>
+
+</ul>
+</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Installation</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+CapyMOA is an optional dependency, and it needs a <strong>Java runtime</strong> (11+) on <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">PATH</code> as well, because MOA runs on the JVM:
+</p>
+<div class="bg-slate-900 rounded-lg p-4 my-3 overflow-x-auto"><pre class="text-sm font-mono text-slate-100 leading-relaxed">java -version                      # must succeed first
+pip install &#x27;tuiml[capymoa]&#x27;       # or: uv pip install &#x27;tuiml[capymoa]&#x27;</pre></div>
+<p class="mb-4">
+If CapyMOA is not installed, importing this package still succeeds (the wrapper classes are defined), but instantiating a wrapper raises a clear <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ImportError</code> pointing at <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">pip install &#x27;tuiml[capymoa]&#x27;</code>.
+</p>
+</div>
+        </div>
+        
+<div class="mb-8 last:mb-0"><p class="text-gray-600 my-2">Streaming learners update one instance at a time. Use <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">partial_fit</code> to feed</p>
+<p class="text-gray-600 my-2">successive batches; it returns <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">self</code>, so calls chain. <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">fit</code> is also</p>
+<p class="text-gray-600 my-2">available and simply streams the whole array in one pass:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.capymoa import HoeffdingTree, NaiveBayes
+&gt;&gt;&gt; from tuiml.datasets.generators import Agrawal
+&gt;&gt;&gt; data = Agrawal(n_samples=500, function=1, random_state=42).generate()
+&gt;&gt;&gt; # Incremental training across multiple batches
+&gt;&gt;&gt; model = HoeffdingTree(grace_period=100).partial_fit(data.X[:300], data.y[:300])
+&gt;&gt;&gt; model = model.partial_fit(data.X[300:], data.y[300:])
+&gt;&gt;&gt; model.predict(data.X[:3]).shape
+(3,)</code></pre>
+            </div>
+        </div>
+        
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; tree = NaiveBayes().partial_fit(data.X[:300], data.y[:300])
+&gt;&gt;&gt; tree = tree.partial_fit(data.X[300:], data.y[300:])
+&gt;&gt;&gt; tree.predict(data.X[:3]).shape
+(3,)</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">They are also addressable by hub key, as <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;capymoa.&lt;ClassName&gt;&quot;</code>, which is</p>
+<p class="text-gray-600 my-2">the form <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">train</code> and an agent over MCP both use:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; import tuiml
+&gt;&gt;&gt; import tuiml.capymoa                     # registers the capymoa.* keys
+&gt;&gt;&gt; model = tuiml.train({
+...     &quot;model&quot;: {&quot;name&quot;: &quot;capymoa.HoeffdingTree&quot;},
+...     &quot;data&quot;: {&quot;source&quot;: &quot;iris&quot;, &quot;target&quot;: &quot;class&quot;},
+...     &quot;evaluation&quot;: {&quot;test_size&quot;: 0.3},
+... })
+&gt;&gt;&gt; &quot;accuracy_score&quot; in model.metrics_
+True</code></pre>
+            </div>
+        </div>
+        </div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs//sklearn.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">sklearn</code>
+                            <p class="text-sm text-gray-600 mt-0.5">The same bridge pattern for scikit-learn estimators.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        </div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

@@ -8,6 +8,92 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../api-reference.html">API Reference</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">base/</h1>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Base abstractions and foundation classes.</p>
+<div class="doc-extended">The <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml.base</code> package provides the object-oriented foundation for the entire library. It defines the core interfaces that concrete components implement, along with the decorators (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">@classifier</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">@regressor</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">@clusterer</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">@associator</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">@kernel</code>, ...) that register them with the component registry.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Overview</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+This package is organized into several key abstraction layers:
+</p>
+
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+<strong>Algorithms</strong>: Base classes for supervised (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Classifier</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Regressor</code>)
+</li>
+
+</ol>
+and unsupervised (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Clusterer</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Associator</code>) models, plus their    registration decorators and registry lookup helpers (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">get_algorithm</code>,    <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">list_algorithms</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">search_algorithms</code>).
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+<strong>Preprocessing</strong>: Interfaces for data filters and feature transformers
+</li>
+
+</ol>
+(<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Preprocessor</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Filter</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Transformer</code>).
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+<strong>Features</strong>: Base classes for feature selection, extraction, and
+</li>
+
+</ol>
+construction.
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+<strong>Metrics</strong>: The <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Metric</code> base class and shared validation/aggregation
+</li>
+
+</ol>
+helpers used by <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml.evaluation.metrics</code>.
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+<strong>Splitting</strong>: <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">BaseSplitter</code>, the interface behind the train/test
+</li>
+
+</ol>
+splitters in <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml.evaluation.splitting</code>.
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+<strong>Hyper-parameter Tuning</strong>: Abstractions for parameter search
+</li>
+
+</ol>
+(<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">BaseTuner</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ParameterGrid</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ParameterDistribution</code>).
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+<strong>Generators</strong>: Base classes for synthetic data generators
+</li>
+
+</ol>
+(<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">DataGenerator</code> and its task-specific subclasses).
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+<strong>Kernels</strong>: The <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Kernel</code> base class and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">@kernel</code> decorator for
+</li>
+
+</ol>
+SVM-style kernel functions, including <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">CachedKernel</code>.
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+<strong>Neighbors and Estimators</strong>: <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">NearestNeighborSearch</code> and probability
+</li>
+
+</ol>
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Estimator</code> primitives shared across algorithms.</div>
+        </div>
+        </div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

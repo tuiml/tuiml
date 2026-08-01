@@ -7,7 +7,8 @@
 #   2. Verifies a C/C++ compiler is available (TuiML has C++ extensions)
 #   3. Installs uv if missing (Python package manager)
 #   4. Asks whether to include the optional integrations
-#      (scikit-learn wrappers, CapyMOA streaming wrappers)
+#      (scikit-learn wrappers, CapyMOA streaming wrappers), and warns if
+#      CapyMOA was picked without a Java runtime on PATH
 #   5. Installs tuiml from the latest source on GitHub
 #      (always the freshest fixes, not just the last PyPI release)
 #   6. Verifies the install
@@ -201,6 +202,27 @@ select_extras() {
 }
 
 # ---------------------------------------------------------------------------
+# CapyMOA runs on the JVM. Installing the wheel without a Java runtime works,
+# but every learner then fails at fit time, so warn while it is still cheap
+# to act on. Not fatal: the rest of TuiML is unaffected.
+# ---------------------------------------------------------------------------
+check_capymoa_java() {
+    [[ "${EXTRAS:-}" == *capymoa* ]] || return 0
+    if command -v java >/dev/null 2>&1; then
+        success "Java found (required by CapyMOA)"
+        return 0
+    fi
+    warn "CapyMOA selected but no 'java' on PATH. It needs a JVM (Java 11+)."
+    if [[ "$OS" == "macos" ]]; then
+        echo "  Install one, then re-run:  brew install openjdk"
+    else
+        echo "  Install one, then re-run:  sudo apt-get install -y default-jre"
+        echo "                         or: sudo dnf install -y java-latest-openjdk"
+    fi
+    echo "  ${DIM}Continuing — only the CapyMOA wrappers need it.${NC}"
+}
+
+# ---------------------------------------------------------------------------
 # Install tuiml from GitHub source (latest main branch)
 # ---------------------------------------------------------------------------
 install_tuiml() {
@@ -242,9 +264,15 @@ print_next_steps() {
     echo "    ${CYAN}tuiml setup${NC}"
     echo
     echo "  This wizard auto-detects OpenClaw, Claude Desktop, Claude Code,"
-    echo "  ChatGPT Desktop, Perplexity Desktop, Cursor, Windsurf, OpenAI Codex CLI,"
-    echo "  Zed, VS Code, Continue, and Goose. For NemoClaw, it prints the"
-    echo "  sandbox commands to run from inside the OpenClaw environment."
+    echo "  OpenAI Codex (which covers the ChatGPT Desktop app, the Codex CLI,"
+    echo "  and the IDE extension — they share one config), Antigravity and its"
+    echo "  agy CLI, Cursor, Windsurf, Zed, VS Code, Continue, Goose, OpenCode,"
+    echo "  Perplexity Desktop, Cline, Roo Code, Kilo Code, and Gemini CLI."
+    echo "  For NemoClaw, it prints the sandbox commands to run from inside"
+    echo "  the OpenClaw environment."
+    echo
+    echo "  ${DIM}See exactly what was found, without changing anything:${NC}"
+    echo "    ${CYAN}tuiml setup --list${NC}"
     echo
     echo "  ${DIM}Docs:   https://tuiml.ai/docs/getting_started.html${NC}"
     echo "  ${DIM}Source: https://github.com/tuiml/tuiml${NC}"
@@ -260,5 +288,6 @@ ensure_compiler
 ensure_git
 ensure_uv
 select_extras
+check_capymoa_java
 install_tuiml
 print_next_steps

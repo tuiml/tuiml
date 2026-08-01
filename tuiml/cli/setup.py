@@ -122,6 +122,7 @@ def confirm(prompt: str, default: bool = True, assume_yes: bool = False) -> bool
 #
 # Each client spec has:
 #   id        : short slug used by --client flag
+#   aliases   : extra slugs --client also accepts (kept for renamed clients)
 #   name      : human-readable label
 #   detect    : Path that, if it exists, indicates the client is installed
 #   kind      : "openclaw"  (OpenClaw CLI registry, fallback to JSON)
@@ -131,6 +132,8 @@ def confirm(prompt: str, default: bool = True, assume_yes: bool = False) -> bool
 #                "skill"    (drop SKILL.md in a skills directory)
 #   config    : Path to the config file (for json/toml)
 #   key       : Top-level config key (default "mcpServers", overridable)
+#   entry     : Extra fields merged into the server entry, e.g. VS Code's
+#               {"type": "stdio"}
 #   skills_dir: Path to skills directory (for skill kind)
 
 HOME = Path.home()
@@ -289,15 +292,6 @@ def client_specs() -> list[dict]:
             "detect": HOME / ".claude",
             "skills_dir": HOME / ".claude" / "skills",
         },
-        # ----- ChatGPT Desktop ---------------------------------------------
-        # OpenAI added MCP support in 2026; config layout mirrors Claude Desktop.
-        {
-            "id": "chatgpt-desktop",
-            "name": "ChatGPT Desktop",
-            "kind": "json-mcp",
-            "detect": _platform_app_dir("ChatGPT", "ChatGPT", "ChatGPT"),
-            "config": _platform_app_dir("ChatGPT", "ChatGPT", "ChatGPT") / "mcp_config.json",
-        },
         # ----- Perplexity Desktop (Comet) ----------------------------------
         {
             "id": "perplexity",
@@ -306,11 +300,18 @@ def client_specs() -> list[dict]:
             "detect": _platform_app_dir("Perplexity", "Perplexity", "Perplexity"),
             "config": _platform_app_dir("Perplexity", "Perplexity", "Perplexity") / "mcp_config.json",
         },
-        # ----- OpenAI Codex CLI --------------------------------------------
+        # ----- OpenAI Codex: CLI, IDE extension, and ChatGPT Desktop -------
+        # OpenAI unified these three surfaces on one config file:
+        # ~/.codex/config.toml, with an [mcp_servers.<name>] table. The
+        # ChatGPT Desktop app has no MCP config of its own, so wiring Codex
+        # wires ChatGPT Desktop too. `chatgpt-desktop` stays a valid --client
+        # alias for anyone following the old docs.
         {
             "id": "codex",
-            "name": "OpenAI Codex CLI",
+            "aliases": ["chatgpt-desktop", "chatgpt"],
+            "name": "OpenAI Codex (CLI · IDE · ChatGPT Desktop)",
             "kind": "toml-mcp",
+            "detect_command": "codex",
             "detect": HOME / ".codex",
             "config": HOME / ".codex" / "config.toml",
         },
@@ -347,15 +348,18 @@ def client_specs() -> list[dict]:
             "detect": HOME / ".continue",
             "config": HOME / ".continue" / "config.json",
         },
-        # ----- VS Code MCP (1.99+ native) ----------------------------------
-        # VS Code stores MCP config in user settings under "mcp.servers".
+        # ----- VS Code MCP (native) ----------------------------------------
+        # MCP moved out of settings.json into a dedicated user-profile
+        # mcp.json, whose root key is "servers" (not "mcpServers") and whose
+        # stdio entries carry an explicit "type".
         {
             "id": "vscode",
             "name": "VS Code (Copilot)",
             "kind": "json-key",
-            "key": "mcp.servers",
+            "key": "servers",
+            "entry": {"type": "stdio"},
             "detect": _platform_app_dir("Code/User", "Code/User", "Code/User"),
-            "config": _platform_app_dir("Code/User", "Code/User", "Code/User") / "settings.json",
+            "config": _platform_app_dir("Code/User", "Code/User", "Code/User") / "mcp.json",
         },
         # ----- Goose (Block) -----------------------------------------------
         # Goose uses YAML; we don't write it automatically, print instructions.
@@ -366,14 +370,30 @@ def client_specs() -> list[dict]:
             "detect": _xdg_config("goose"),
             "config": _xdg_config("goose") / "config.yaml",
         },
-        # ----- Gemini CLI (Google) -----------------------------------------
-        # ~/.gemini/settings.json with top-level "mcpServers" key.
+        # ----- Antigravity (Google) ----------------------------------------
+        # The Antigravity IDE, the `agy` CLI, and the SDK share one global MCP
+        # config at ~/.gemini/config/mcp_config.json, keyed "mcpServers". This
+        # is the successor to Gemini CLI's settings.json wiring below.
+        {
+            "id": "antigravity",
+            "name": "Antigravity (IDE · agy CLI)",
+            "kind": "json-mcp",
+            "detect_command": "agy",
+            "detect": HOME / ".gemini" / "config",
+            "config": HOME / ".gemini" / "config" / "mcp_config.json",
+        },
+        # ----- Gemini CLI (Google, legacy) ---------------------------------
+        # ~/.gemini/settings.json with top-level "mcpServers" key. Gemini CLI
+        # was retired for consumer tiers in favour of the Antigravity CLI, but
+        # enterprise and API-key users still run it, so keep wiring it. Detect
+        # on settings.json rather than the ~/.gemini/ directory, which
+        # Antigravity now also owns.
         {
             "id": "gemini",
-            "name": "Gemini CLI",
+            "name": "Gemini CLI (legacy)",
             "kind": "json-mcp",
             "detect_command": "gemini",
-            "detect": HOME / ".gemini",
+            "detect": HOME / ".gemini" / "settings.json",
             "config": HOME / ".gemini" / "settings.json",
         },
         # ----- Cline (VS Code) ---------------------------------------------
@@ -412,13 +432,12 @@ def client_specs() -> list[dict]:
             "detect": _xdg_config("opencode"),
             "config": _xdg_config("opencode") / "opencode.json",
         },
-        # ----- Antigravity (Google): VS Code fork -------------------------
-        # Antigravity has NO native global MCP config; MCP comes through
-        # extensions, each keeping config under
+        # ----- Antigravity extensions: VS Code fork ------------------------
+        # Beside its native config above, Antigravity is a VS Code fork, so
+        # MCP-capable extensions keep their own config under
         #   <Antigravity>/User/globalStorage/<ext-id>/settings/
-        # mirroring VS Code. We add concrete entries for the MCP-capable
-        # extensions, detected by their install dir under ~/.antigravity/
-        # extensions/<ext-id>-<version>/ (glob, since the dir is versioned).
+        # mirroring VS Code. Detected by the versioned install dir under
+        # ~/.antigravity/extensions/<ext-id>-<version>/ (hence the glob).
         {
             "id": "antigravity-kilo",
             "name": "Antigravity · Kilo Code",
@@ -564,12 +583,18 @@ def _get_nested(obj: dict, dotted_key: str):
     return cur
 
 
-def write_json_mcp(config_path: Path, key: str, server_name: str, command: str) -> tuple[bool, str]:
+def write_json_mcp(
+    config_path: Path,
+    key: str,
+    server_name: str,
+    command: str,
+    entry: Optional[dict] = None,
+) -> tuple[bool, str]:
     """Write an MCP server entry into a JSON config file.
 
     The config file and its parent directories are created if missing, and an
     existing file is backed up before being rewritten. Idempotent: an entry
-    that already names the same command is left untouched.
+    that already matches what we would write is left untouched.
 
     Parameters
     ----------
@@ -581,6 +606,9 @@ def write_json_mcp(config_path: Path, key: str, server_name: str, command: str) 
         Name to register the server under.
     command : str
         Executable the client should launch.
+    entry : dict, optional
+        Extra fields merged into the server entry alongside ``command``, for
+        clients that require them, e.g. VS Code's ``{"type": "stdio"}``.
 
     Returns
     -------
@@ -602,17 +630,24 @@ def write_json_mcp(config_path: Path, key: str, server_name: str, command: str) 
     if not isinstance(existing_block, dict):
         existing_block = {}
 
+    new_entry = {"command": command, **(entry or {})}
+
     if server_name in existing_block:
-        if existing_block[server_name].get("command") == command:
+        current = existing_block[server_name]
+        current = current if isinstance(current, dict) else {}
+        # Already correct if every field we care about is present with the
+        # value we would write. Extra fields the user added (env, args) are
+        # left alone rather than clobbered.
+        if all(current.get(k) == v for k, v in new_entry.items()):
             return False, "already configured"
         backup_file(config_path)
-        existing_block[server_name] = {"command": command}
+        existing_block[server_name] = {**current, **new_entry}
         _set_nested(data, key, existing_block)
         config_path.write_text(json.dumps(data, indent=2))
         return True, "updated existing entry"
 
     backup_file(config_path)
-    existing_block[server_name] = {"command": command}
+    existing_block[server_name] = new_entry
     _set_nested(data, key, existing_block)
     config_path.write_text(json.dumps(data, indent=2))
     return True, "added new entry"
@@ -885,9 +920,13 @@ def configure(spec: dict) -> tuple[bool, str]:
     if kind == "openclaw":
         return configure_openclaw(spec)
     if kind == "json-mcp":
-        return write_json_mcp(spec["config"], "mcpServers", "tuiml", "tuiml-mcp")
+        return write_json_mcp(
+            spec["config"], "mcpServers", "tuiml", "tuiml-mcp", spec.get("entry")
+        )
     if kind == "json-key":
-        return write_json_mcp(spec["config"], spec["key"], "tuiml", "tuiml-mcp")
+        return write_json_mcp(
+            spec["config"], spec["key"], "tuiml", "tuiml-mcp", spec.get("entry")
+        )
     if kind == "toml-mcp":
         return write_toml_mcp(spec["config"], "tuiml", "tuiml-mcp")
     if kind == "opencode":
@@ -925,6 +964,39 @@ def describe_target(spec: dict) -> str:
 # ---------------------------------------------------------------------------
 
 ALL_CLIENT_IDS = [c["id"] for c in client_specs()]
+
+#: Retired ``--client`` slugs, mapped to the spec ID that replaced them, so a
+#: command copied from older docs keeps working.
+CLIENT_ALIASES = {
+    alias: spec["id"]
+    for spec in client_specs()
+    for alias in spec.get("aliases", ())
+}
+
+
+def resolve_client_ids(clients: tuple[str, ...]) -> tuple[list[str], list[str]]:
+    """Map user-supplied ``--client`` slugs onto canonical spec IDs.
+
+    Parameters
+    ----------
+    clients : tuple of str
+        Slugs passed on the command line.
+
+    Returns
+    -------
+    resolved : list of str
+        Canonical spec IDs, with aliases translated.
+    unknown : list of str
+        Slugs that match neither an ID nor an alias.
+    """
+    resolved, unknown = [], []
+    for name in clients:
+        canonical = CLIENT_ALIASES.get(name, name)
+        if canonical in ALL_CLIENT_IDS:
+            resolved.append(canonical)
+        else:
+            unknown.append(name)
+    return resolved, unknown
 
 
 def prompt_mode(default: str = "auto") -> str:
@@ -1020,12 +1092,12 @@ def setup(assume_yes: bool, force_manual: bool, list_only: bool, clients: tuple[
 
     # Filter by --client if provided
     if clients:
-        unknown = [c for c in clients if c not in ALL_CLIENT_IDS]
+        wanted, unknown = resolve_client_ids(clients)
         if unknown:
             error(f"Unknown client(s): {', '.join(unknown)}")
             info(f"Valid IDs: {', '.join(ALL_CLIENT_IDS)}")
             sys.exit(1)
-        detected = [s for s in detected if s["id"] in clients]
+        detected = [s for s in detected if s["id"] in wanted]
         if not detected:
             error("None of the specified clients were detected on this machine.")
             sys.exit(1)

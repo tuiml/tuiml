@@ -8,6 +8,88 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../api-reference.html">API Reference</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">preprocessing/</h1>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Data Preprocessing and Transformation.</p>
+<div class="doc-extended">The <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml.preprocessing</code> module provides a wide array of tools for preparing dataset for machine learning. It follows a consistent API where most components are <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Transformers</code> that can be used in pipelines.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Overview</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+This module is organized into several functional categories:
+</p>
+
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+<strong>Scaling</strong>: Standardize or normalize numerical features (e.g., Z-score, Min-Max).
+</li>
+
+<li class="text-gray-700">
+<strong>Encoding</strong>: Convert categorical/nominal data into numerical formats (e.g., One-Hot, Ordinal).
+</li>
+
+<li class="text-gray-700">
+<strong>Imputation</strong>: Handle missing data using statistical or distance-based strategies.
+</li>
+
+<li class="text-gray-700">
+<strong>Discretization</strong>: Partition continuous features into discrete bins (e.g., Equal-Width, MDL).
+</li>
+
+<li class="text-gray-700">
+<strong>Outliers</strong>: Detect and manage extreme values (e.g., IQR clipping).
+</li>
+
+<li class="text-gray-700">
+<strong>Sampling</strong>: Balance classes (SMOTE, ADASYN) or reduce dataset size.
+</li>
+
+<li class="text-gray-700">
+<strong>Text</strong>: Convert raw text into numerical vectors (TF-IDF, Hashing).
+</li>
+
+<li class="text-gray-700">
+<strong>Time Series</strong>: Extract temporal features through lags and differences.
+</li>
+
+</ol>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Basic Usage</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+Impute missing values and scale features in sequence:
+</p>
+
+<p class="mb-4">
+&gt;&gt;&gt; from tuiml.preprocessing import SimpleImputer, StandardScaler &gt;&gt;&gt; import numpy as np &gt;&gt;&gt; X = np.array([[1, 2], [np.nan, 3], [7, 6]]) &gt;&gt;&gt; imputer = SimpleImputer(strategy=&quot;mean&quot;) &gt;&gt;&gt; scaler = StandardScaler() &gt;&gt;&gt; X_clean = scaler.fit_transform(imputer.fit_transform(X))
+</p>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Imbalanced Learning</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+Use SMOTE to generate synthetic samples for a minority class:
+</p>
+
+<p class="mb-4">
+&gt;&gt;&gt; from tuiml.preprocessing.sampling import SMOTESampler &gt;&gt;&gt; X = np.random.rand(10, 2) &gt;&gt;&gt; y = np.array([0, 0, 0, 0, 0, 0, 1, 1, 1, 1]) &gt;&gt;&gt; sampler = SMOTESampler(k_neighbors=2) &gt;&gt;&gt; X_res, y_res = sampler.fit_resample(X, y)
+</p>
+</div>
+        </div>
+        </div>
 <h2 class="oc-h">Packages</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0; margin-bottom: 48px;">

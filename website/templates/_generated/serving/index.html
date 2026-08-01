@@ -8,6 +8,28 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../api-reference.html">API Reference</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">serving/</h1>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">TuiML Model Serving - REST API for serving trained models.</p>
+<div class="doc-extended">
+<p class="mb-4">
+This module provides a built-in REST API server for serving trained models and making predictions via HTTP endpoints.
+</p>
+
+<p class="mb-4">
+Usage:     # Programmatic API     from tuiml.serving import ModelServer, serve
+</p>
+
+<p class="mb-4">
+# Serve a single model     serve(&quot;model.pkl&quot;, port=8000)
+</p>
+
+<p class="mb-4">
+# Or use the server directly     server = ModelServer()     server.load_model(&quot;my_model&quot;, &quot;model.pkl&quot;)     app = server.create_app()
+</p>
+
+<p class="mb-4">
+# CLI     tuiml serve model.pkl --port 8000
+</p>
+</div></div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

@@ -8,6 +8,155 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../api-reference.html">API Reference</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">evaluation/</h1>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Model evaluation: metrics, resampling, significance tests, and reporting.</p>
+<div class="doc-extended">
+<p class="mb-4">
+Everything needed to measure how well a model performs and to decide whether a difference between two models is real. The subpackages are:
+</p>
+
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">metrics</code>: classification, regression, clustering, and information-theoretic
+</li>
+
+</ul>
+scores.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">splitting</code>: resampling strategies (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">KFold</code>,
+</li>
+
+</ul>
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">train_test_split</code>, and friends).
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">statistics</code>: significance tests for comparing models across datasets, plus
+</li>
+
+</ul>
+multiple-comparison corrections.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuning</code>: hyperparameter search (grid, random, and Bayesian).
+</li>
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">visualization</code>: plots and critical-difference diagrams.
+</li>
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">reporting</code>: result tables exported as Markdown, LaTeX, or HTML.
+</li>
+
+</ul>
+The most common metrics and splitters are re-exported here, so <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">from tuiml.evaluation import accuracy_score</code> works without naming the subpackage.</div>
+<div class="mb-8 last:mb-0"><p class="text-gray-600 my-2">Score predictions:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; from tuiml.evaluation import accuracy_score
+&gt;&gt;&gt; y_true = np.array([0, 1, 1, 0])
+&gt;&gt;&gt; y_pred = np.array([0, 1, 0, 0])
+&gt;&gt;&gt; accuracy_score(y_true, y_pred)
+0.75</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">Hold out a test set:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.datasets import load_iris
+&gt;&gt;&gt; from tuiml.evaluation import train_test_split
+&gt;&gt;&gt; X, y = load_iris()
+&gt;&gt;&gt; X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+&gt;&gt;&gt; len(X_train), len(X_test)
+(120, 30)</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">Cross-validate:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.evaluation import KFold
+&gt;&gt;&gt; cv = KFold(n_splits=5, shuffle=True, random_state=0)
+&gt;&gt;&gt; sum(1 for _ in cv.split(X))
+5</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">Search hyperparameters:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.evaluation import GridSearchCV
+&gt;&gt;&gt; from tuiml.algorithms.bayesian import NaiveBayesClassifier
+&gt;&gt;&gt; search = GridSearchCV(NaiveBayesClassifier(),
+...                       param_grid={&#x27;use_kernel_estimator&#x27;: [True, False]})
+&gt;&gt;&gt; search = search.fit(X, y)                              # doctest: +SKIP
+&gt;&gt;&gt; search.best_params_                                    # doctest: +SKIP
+{&#x27;use_kernel_estimator&#x27;: False}</code></pre>
+            </div>
+        </div>
+        </div></div>
 <h2 class="oc-h">Packages</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0; margin-bottom: 48px;">

@@ -31,6 +31,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `tuiml_list(search=...)`, which has always worked.
 
 ### Fixed
+- **Eight `tuiml.sklearn` wrappers were unusable inside a pipeline.** The
+  wrappers read `get_params()` off `__dict__`, which also picked up the
+  attributes TuiML's own base classes set (`FeatureSelector` sets `k` and
+  `threshold`, `FeatureExtractor` sets `n_components`). Cloning a step for each
+  CV fold fed those back through the constructor, and scikit-learn rejected
+  them: `sklearn.SelectKBest: unknown parameter(s) ['threshold']`. Affected
+  `SelectKBest`, `SelectPercentile`, `SelectFdr`, `SelectFpr`, `SelectFwe`,
+  `GenericUnivariateSelect`, `VarianceThreshold` and `AdditiveChi2Sampler`.
+  `get_params()` now reports exactly the parameters the wrapper was built with.
+- **`random_seed` never reached the `tuiml.sklearn` wrappers.** Seed injection
+  looked for `random_state` in the constructor signature, and every wrapper
+  takes `**params`, so `tuiml.train(..., "random_seed": 42)` left them
+  unseeded and runs were not reproducible. The seed now also consults
+  `get_parameter_schema()`, so it reaches wrappers whose backing estimator
+  accepts a seed and still skips those that do not.
+- **`tuiml uninstall` could not unwire OpenClaw or OpenCode.** Both kinds fell
+  through the dispatcher to `unknown client kind`, so `tuiml setup` could add
+  an entry that `tuiml uninstall` then refused to remove. OpenClaw is removed
+  via `openclaw mcp remove` (falling back to a direct config edit) and OpenCode
+  through its `mcp` key.
+- **Docstring examples that could not run.** `tuiml/sklearn/__init__.py`
+  documented `tuiml.train("sklearn.RandomForestClassifier", {...}, cv=5)` and
+  `tuiml.benchmark(...)`, neither of which exists; the CapyMOA `partial_fit`
+  examples showed no output for a call that returns `self`. Every example in
+  both bridge packages is now a passing doctest.
 - **Staged training raised `ImportError`.** `tuiml_train` with `stage="init"`,
   `stage="fit"` (new model), or `stage="partial_fit"` imported
   `_inject_seed_to_algorithm` from `tuiml.workflow`, which is named
@@ -57,6 +82,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   no longer read-only and `tuiml_system_info` is marked open-world.
 
 ### Changed
+- **`tuiml setup` client registry brought up to date.** Three entries pointed
+  at config files the vendors no longer read:
+  - **ChatGPT Desktop** has no MCP config of its own. OpenAI put the desktop
+    app, the Codex CLI and the IDE extension on one file, `~/.codex/config.toml`
+    (`[mcp_servers.tuiml]`), so they are now a single client. `--client
+    chatgpt-desktop` still resolves, as an alias.
+  - **VS Code** moved MCP out of `settings.json` (`mcp.servers`) into a
+    dedicated user-profile `mcp.json`, whose root key is `servers` and whose
+    stdio entries need an explicit `"type": "stdio"`.
+  - **Antigravity** now has a native global MCP config shared by the IDE, the
+    `agy` CLI and the SDK at `~/.gemini/config/mcp_config.json`; wiring it no
+    longer depends on which VS Code extension happens to be installed. Gemini
+    CLI is kept as a legacy entry (retired for consumer tiers, still live for
+    enterprise and API-key users) and is detected on its `settings.json` rather
+    than on `~/.gemini/`, which Antigravity now also owns.
+
+  An existing server entry is merged rather than replaced, so extra fields the
+  user added (`env`, `args`) survive a re-run.
+- **Package overviews now appear in the generated API docs.** `generate_docs.py`
+  dropped every `__init__.py`, so a package's docstring — its overview, install
+  notes and usage guide — was never rendered anywhere. Package index pages now
+  lead with it. `tuiml.sklearn` and `tuiml.capymoa` gained full usage guides in
+  the process: how to install the extra, the two equivalent ways to reach a
+  wrapper (import the class, or name it `"sklearn.<ClassName>"` in a spec),
+  mixing wrapped and native components in one pipeline, benchmarking a wrapper
+  against its native counterpart, and discovering parameters via
+  `get_parameter_schema()`.
+- **`install.sh` warns when CapyMOA is selected without Java.** The wheel
+  installs fine without a JVM, then every learner fails at fit time. The
+  installer's client list also matched an older registry; it now names the
+  clients `tuiml setup` actually detects and points at `tuiml setup --list`.
 - **`tuiml/agent/` reorganized into packages.** The 6741-line
   `tuiml/agent/tools.py` is now a `tools/` package with one module per tool,
   grouped by domain (`workflow/`, `data/`, `analysis/`, `discovery/`,

@@ -8,6 +8,28 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">preprocessing</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">timeseries/</h1>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Time series preprocessing module for tuiml.</p>
+<div class="doc-extended">Provides transformers for time series data:
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+LagTransformer: Create lagged features (WEKA TimeSeriesTranslate equivalent)
+</li>
+
+<li class="text-gray-700">
+DifferenceTransformer: Create difference features (WEKA TimeSeriesDelta equivalent)
+</li>
+
+<li class="text-gray-700">
+weka.filters.unsupervised.attribute.TimeSeriesTranslate -&gt; LagTransformer
+</li>
+
+<li class="text-gray-700">
+weka.filters.unsupervised.attribute.TimeSeriesDelta -&gt; DifferenceTransformer
+</li>
+
+</ul>
+Usage:     &gt;&gt;&gt; from tuiml.preprocessing.timeseries import LagTransformer, DifferenceTransformer     &gt;&gt;&gt;     &gt;&gt;&gt; # Create lagged features     &gt;&gt;&gt; lag = LagTransformer(lag=1, columns=[0, 1])     &gt;&gt;&gt; X_lagged = lag.fit_transform(X)     &gt;&gt;&gt;     &gt;&gt;&gt; # Create difference features     &gt;&gt;&gt; delta = DifferenceTransformer(lag=1, columns=[0])     &gt;&gt;&gt; X_diff = delta.fit_transform(X)</div></div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

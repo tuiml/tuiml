@@ -12,6 +12,8 @@
 <div class="oc-toc-label">On this page</div>
 <a href="#func-remove_json_entry">remove_json_entry</a>
 <a href="#func-remove_toml_entry">remove_toml_entry</a>
+<a href="#func-remove_opencode_entry">remove_opencode_entry</a>
+<a href="#func-remove_openclaw_entry">remove_openclaw_entry</a>
 <a href="#func-remove_skill_dir">remove_skill_dir</a>
 <a href="#func-print_yaml_instructions">print_yaml_instructions</a>
 <a href="#func-unconfigure">unconfigure</a>
@@ -31,7 +33,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">remove_json_entry</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 51</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 53</div>
         </div>
         
 <div class="p-6">
@@ -121,7 +123,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">remove_toml_entry</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 89</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 91</div>
         </div>
         
 <div class="p-6">
@@ -189,6 +191,158 @@
         </div>
         </div>
 </div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-remove_opencode_entry">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">remove_opencode_entry</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 127</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">remove_opencode_entry(config_path: Path) -&gt; tuple[bool, str]</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Remove the <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">tuiml</code> entry from OpenCode&#x27;s <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">opencode.json</code>.</p>
+<div class="doc-extended">OpenCode nests servers under a top-level <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&quot;mcp&quot;</code> key rather than <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&quot;mcpServers&quot;</code>, so it needs its own remover.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">config_path</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">Path</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Path to <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">opencode.json</code>.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-arrow-right-from-bracket text-green-500 mr-2"></i>Returns</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">changed</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">bool</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    True if the file was modified.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">reason</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">str</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Short human-readable description of what happened.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        </div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-remove_openclaw_entry">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">remove_openclaw_entry</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 148</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">remove_openclaw_entry(spec: dict) -&gt; tuple[bool, str]</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Remove TuiML from OpenClaw, preferring its own CLI.</p>
+<div class="doc-extended">Uses <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">openclaw mcp remove</code> when the executable is on <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">PATH</code>, and falls back to editing the nested JSON config directly if that command is missing or fails.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">spec</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-700">dict</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Client spec, providing <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">config</code> and <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">key</code>.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-arrow-right-from-bracket text-green-500 mr-2"></i>Returns</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">changed</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">bool</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    True if the client configuration was modified.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">reason</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">str</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Short human-readable description of what happened.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        </div>
+</div></div>
 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-remove_skill_dir">
 
         <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
@@ -197,7 +351,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">remove_skill_dir</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 125</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 185</div>
         </div>
         
 <div class="p-6">
@@ -273,7 +427,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">print_yaml_instructions</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 149</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 209</div>
         </div>
         
 <div class="p-6">
@@ -349,7 +503,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">unconfigure</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 171</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 231</div>
         </div>
         
 <div class="p-6">
@@ -424,7 +578,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">prompt_mode</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 203</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 267</div>
         </div>
         
 <div class="p-6">
@@ -485,7 +639,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-indigo-100 text-indigo-700 uppercase tracking-wide">Command</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">tuiml uninstall</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 241</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 305</div>
         </div>
         
 <div class="p-6">

@@ -30,6 +30,7 @@
 <a href="#func-print_instructions">print_instructions</a>
 <a href="#func-configure">configure</a>
 <a href="#func-describe_target">describe_target</a>
+<a href="#func-resolve_client_ids">resolve_client_ids</a>
 <a href="#func-prompt_mode">prompt_mode</a>
 <a href="#func-setup">setup</a>
 </nav>
@@ -351,7 +352,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">client_specs</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 226</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 229</div>
         </div>
         
 <div class="p-6">
@@ -389,7 +390,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">detect_clients</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 449</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 468</div>
         </div>
         
 <div class="p-6">
@@ -428,7 +429,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">backup_file</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 489</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 508</div>
         </div>
         
 <div class="p-6">
@@ -489,13 +490,13 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">write_json_mcp</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 567</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 586</div>
         </div>
         
 <div class="p-6">
-<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">write_json_mcp(config_path: Path, key: str, server_name: str, command: str) -&gt; tuple[bool, str]</div>
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">write_json_mcp(config_path: Path, key: str, server_name: str, command: str, entry: Optional[dict]=None) -&gt; tuple[bool, str]</div>
 <div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Write an MCP server entry into a JSON config file.</p>
-<div class="doc-extended">The config file and its parent directories are created if missing, and an existing file is backed up before being rewritten. Idempotent: an entry that already names the same command is left untouched.</div>
+<div class="doc-extended">The config file and its parent directories are created if missing, and an existing file is backed up before being rewritten. Idempotent: an entry that already matches what we would write is left untouched.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -558,6 +559,20 @@
                 </div>
             </div>
             
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">entry</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-700">dict</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Extra fields merged into the server entry alongside <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">command</code>, for clients that require them, e.g. VS Code&#x27;s <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">{&quot;type&quot;: &quot;stdio&quot;}</code>.
+                </div>
+            </div>
+            
 </div></div>
         </div>
         
@@ -607,7 +622,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">configure_openclaw</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 633</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 668</div>
         </div>
         
 <div class="p-6">
@@ -683,7 +698,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">write_opencode_mcp</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 673</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 708</div>
         </div>
         
 <div class="p-6">
@@ -787,7 +802,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">write_toml_mcp</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 720</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 755</div>
         </div>
         
 <div class="p-6">
@@ -891,7 +906,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">install_skill_file</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 770</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 805</div>
         </div>
         
 <div class="p-6">
@@ -967,7 +982,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">print_yaml_instructions</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 810</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 845</div>
         </div>
         
 <div class="p-6">
@@ -1043,7 +1058,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">print_instructions</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 841</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 876</div>
         </div>
         
 <div class="p-6">
@@ -1119,7 +1134,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">configure</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 869</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 904</div>
         </div>
         
 <div class="p-6">
@@ -1194,7 +1209,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">describe_target</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 904</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 943</div>
         </div>
         
 <div class="p-6">
@@ -1247,6 +1262,81 @@
         </div>
         </div>
 </div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-resolve_client_ids">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">resolve_client_ids</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 977</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">resolve_client_ids(clients: tuple[str, Ellipsis]) -&gt; tuple[list[str], list[str]]</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Map user-supplied <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">--client</code> slugs onto canonical spec IDs.</p>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">clients</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">tuple of str</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Slugs passed on the command line.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-arrow-right-from-bracket text-green-500 mr-2"></i>Returns</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">resolved</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">list of str</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Canonical spec IDs, with aliases translated.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">unknown</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">list of str</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Slugs that match neither an ID nor an alias.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        </div>
+</div></div>
 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-prompt_mode">
 
         <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
@@ -1255,7 +1345,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">prompt_mode</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 930</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 1002</div>
         </div>
         
 <div class="p-6">
@@ -1316,7 +1406,7 @@
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-indigo-100 text-indigo-700 uppercase tracking-wide">Command</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">tuiml setup</h3>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 966</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 1038</div>
         </div>
         
 <div class="p-6">

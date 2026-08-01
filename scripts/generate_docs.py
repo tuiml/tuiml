@@ -1301,10 +1301,28 @@ class HTMLDocGenerator:
         self.output_dir = output_dir
         self.source_root = source_root
         self.all_modules: List[ModuleDoc] = []
+        self.package_docstrings: Dict[Path, str] = {}
 
     def add_module(self, doc: ModuleDoc):
         """Add a module to the documentation."""
         self.all_modules.append(doc)
+
+    def add_package_docstring(self, dir_path: Path, docstring: str):
+        """Record a package's ``__init__.py`` docstring for its index page.
+
+        ``__init__.py`` gets no module card of its own (it mostly re-exports
+        names), but its docstring is the package overview, install notes and
+        usage guide, so it heads the package's index page instead of being
+        dropped.
+
+        Parameters
+        ----------
+        dir_path : Path
+            Package directory, relative to the source root.
+        docstring : str
+            The raw ``__init__.py`` module docstring.
+        """
+        self.package_docstrings[dir_path] = docstring
 
     def _card_summary(self, summary: str) -> str:
         """Escape a module-card summary and render ``inline code`` as <code>.
@@ -1835,6 +1853,17 @@ class HTMLDocGenerator:
         content.append(f'<p class="oc-caption api-crumb" style="margin: 0;">{" / ".join(crumbs)}</p>')
         content.append(f'<h1 class="oc-display" style="margin-bottom: 48px;">{dir_path.name}/</h1>')
 
+        # Package overview, straight from __init__.py's docstring. This is
+        # where a package explains what it is and how to use it (see
+        # tuiml/sklearn and tuiml/capymoa), so it goes above the listings.
+        package_docstring = self.package_docstrings.get(dir_path)
+        if package_docstring:
+            overview = DocstringParser(package_docstring, self._class_map).to_html()
+            if overview.strip():
+                content.append(
+                    f'<div class="api-package-overview" style="margin-bottom: 48px;">{overview}</div>'
+                )
+
         # Subdirectories — flat hairline boxes (oc why-card), names only
         if subdirs:
             content.append('<h2 class="oc-h">Packages</h2>')
@@ -2111,6 +2140,14 @@ def main():
             or filepath.name.startswith('_')
             or any(part.startswith('_') for part in filepath.relative_to(source_dir).parts[:-1])
         ):
+            # An __init__.py still carries the package overview. Keep its
+            # docstring for the package index page before dropping the file.
+            if filepath.name == '__init__.py' and '__pycache__' not in str(filepath):
+                rel_dir = filepath.parent.relative_to(source_dir)
+                if not any(part.startswith('_') for part in rel_dir.parts):
+                    doc = PythonDocExtractor(filepath).extract()
+                    if doc and doc.docstring:
+                        generator.add_package_docstring(rel_dir, doc.docstring)
             skipped += 1
             continue
 

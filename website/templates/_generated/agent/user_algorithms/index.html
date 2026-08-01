@@ -8,6 +8,48 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">agent</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">user_algorithms/</h1>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Agent-authored algorithms: persistence, safety checks, and registry bootstrap.</p>
+<div class="doc-extended">
+<p class="mb-4">
+Agents can call <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_create_algorithm</code> with raw Python source describing a new <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">@classifier</code> / <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">@regressor</code> class. This package:
+</p>
+
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+AST-validates the source against a conservative denylist (no network,
+</li>
+
+</ol>
+subprocess, or filesystem escape hatches) -- <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">validation</code>.
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+Saves each accepted submission under
+</li>
+
+</ol>
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">~/.tuiml/user_algorithms/<Name>/<version>/algorithm.py</code> -- <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">storage</code>,    <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">_paths</code>.
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+Imports the file and registers both the <em>versioned</em> alias
+</li>
+
+</ol>
+(<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">MyAlg_v1_0_0</code>) and the bare latest-alias (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">MyAlg</code>) into the TuiML    registry, so every existing MCP tool (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_train</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_benchmark</code>,    <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_describe</code>) works on user algorithms unchanged -- <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">registration</code>.
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+On <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">load_all()</code> scans the directory and re-registers everything,
+</li>
+
+</ol>
+preserving agent work across MCP server restarts -- <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">registration</code>.
+<p class="mb-4">
+Experiment history per algorithm version lives in <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">research_log</code>; reading, searching and editing algorithm source (user-authored <em>and</em> built-in) lives in <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">sources</code>.
+</p>
+</div></div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

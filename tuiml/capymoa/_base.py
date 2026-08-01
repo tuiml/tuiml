@@ -213,8 +213,8 @@ class _CapyMOAStreamMixin:
         >>> model = HoeffdingTree().partial_fit(data.X[:300], data.y[:300])
         >>> model.predict(data.X[:3]).shape
         (3,)
-        >>> # Continue learning on remaining 200
-        >>> model.partial_fit(data.X[300:], data.y[300:])
+        >>> # Continue learning on remaining 200 (returns self, for chaining)
+        >>> model = model.partial_fit(data.X[300:], data.y[300:])
         >>> model.predict(data.X[:3]).shape
         (3,)
         """

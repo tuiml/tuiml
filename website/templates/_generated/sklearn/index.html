@@ -8,6 +8,198 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../api-reference.html">API Reference</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">sklearn/</h1>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">scikit-learn bridge for TuiML.</p>
+<div class="doc-extended">
+<p class="mb-4">
+Importing this package registers the wrapped scikit-learn estimators into the TuiML hub under <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">sklearn.<ClassName></code> keys, so they never collide with the native TuiML algorithms of the same name.
+</p>
+
+<p class="mb-4">
+The wrapper modules mirror TuiML&#x27;s own taxonomy, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">linear</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">svm</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">trees</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ensemble</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">bayesian</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">neighbors</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">neural</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">clustering</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">anomaly</code>, plus <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">preprocessing/</code> and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">features/</code>: so a wrapped estimator sits in the same place as its native counterpart. The wrapper classes are driven by the spec rows in <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">specs</code>; keep a module&#x27;s classes and its spec rows in sync when editing either.
+</p>
+
+<p class="mb-4">
+TuiML is native-first: its own algorithms are the primary implementations, and estimators are addressed by their namespaced hub key.
+</p>
+</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Installation</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+scikit-learn is an optional dependency:
+</p>
+<div class="bg-slate-900 rounded-lg p-4 my-3 overflow-x-auto"><pre class="text-sm font-mono text-slate-100 leading-relaxed">pip install &#x27;tuiml[sklearn]&#x27;      # or: uv pip install &#x27;tuiml[sklearn]&#x27;</pre></div>
+<p class="mb-4">
+If it is not installed, importing this package still succeeds (the wrapper classes are defined), but instantiating a wrapper raises a clear <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ImportError</code> pointing at <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">pip install tuiml[sklearn]</code>.
+</p>
+</div>
+        </div>
+        
+<div class="mb-8 last:mb-0"><p class="text-gray-600 my-2">There are two ways to reach a wrapped estimator, and they are equivalent.</p>
+<p class="text-gray-600 my-2"><strong>1. Import the class</strong> and use it like any TuiML algorithm, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">fit</code> /</p>
+<p class="text-gray-600 my-2"><code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">predict</code> / <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">predict_proba</code> for models, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">fit_transform</code> for</p>
+<p class="text-gray-600 my-2">transformers. Constructor keywords are passed straight through to</p>
+<p class="text-gray-600 my-2">scikit-learn:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.datasets import load_iris
+&gt;&gt;&gt; from tuiml.sklearn import RandomForestClassifier
+&gt;&gt;&gt; data = load_iris()
+&gt;&gt;&gt; model = RandomForestClassifier(n_estimators=50, random_state=0)
+&gt;&gt;&gt; model.fit(data.X, data.y).predict(data.X[:5]).tolist()
+[0, 0, 0, 0, 0]
+&gt;&gt;&gt; model.predict_proba(data.X[:1]).shape
+(1, 3)</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2"><strong>2. Name it in a spec</strong>, as <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;sklearn.&lt;ClassName&gt;&quot;</code>. This is the form</p>
+<p class="text-gray-600 my-2"><code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">train</code> takes, and the form an agent uses over MCP. Wrappers can</p>
+<p class="text-gray-600 my-2">appear as the model or as pipeline steps, mixed freely with native components:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; import tuiml
+&gt;&gt;&gt; import tuiml.sklearn                       # registers the sklearn.* keys
+&gt;&gt;&gt; model = tuiml.train({
+...     &quot;model&quot;: {&quot;name&quot;: &quot;sklearn.LogisticRegression&quot;,
+...               &quot;params&quot;: {&quot;max_iter&quot;: 500}},
+...     &quot;data&quot;: {&quot;source&quot;: &quot;iris&quot;, &quot;target&quot;: &quot;class&quot;},
+...     &quot;pipeline&quot;: [{&quot;name&quot;: &quot;sklearn.StandardScaler&quot;},
+...                  {&quot;name&quot;: &quot;sklearn.SelectKBest&quot;, &quot;params&quot;: {&quot;k&quot;: 3}}],
+...     &quot;evaluation&quot;: {&quot;cv&quot;: 5, &quot;metrics&quot;: [&quot;accuracy_score&quot;]},
+... })
+&gt;&gt;&gt; round(model.metrics_[&quot;cv_accuracy_score_mean&quot;], 2)
+0.96</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">Names collide on purpose: <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">sklearn.RandomForestClassifier</code> and the native</p>
+<p class="text-gray-600 my-2"><code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">RandomForestClassifier</code> are different algorithms, and the prefix is what</p>
+<p class="text-gray-600 my-2">picks one. Benchmarking the two against each other is the point:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml import Benchmark
+&gt;&gt;&gt; import tuiml.sklearn
+&gt;&gt;&gt; bench = Benchmark(
+...     models=[{&quot;name&quot;: &quot;RandomForestClassifier&quot;},
+...             {&quot;name&quot;: &quot;sklearn.RandomForestClassifier&quot;}],
+...     datasets=[{&quot;source&quot;: &quot;iris&quot;}],
+...     random_seed=0,
+... )
+&gt;&gt;&gt; sorted(bench.run().scores_[&quot;model&quot;].unique())
+[&#x27;RandomForestClassifier&#x27;, &#x27;sklearn.RandomForestClassifier&#x27;]</code></pre>
+            </div>
+        </div>
+        </div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Discovering what is available</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+Every wrapper reports its own parameters, derived from the scikit-learn actually installed, so the list is never stale:
+</p>
+
+<p class="mb-4">
+&gt;&gt;&gt; from tuiml.sklearn import SVC &gt;&gt;&gt; sorted(SVC.get_parameter_schema())[:4] [&#x27;C&#x27;, &#x27;break_ties&#x27;, &#x27;cache_size&#x27;, &#x27;class_weight&#x27;]
+</p>
+
+<p class="mb-4">
+A parameter scikit-learn does not accept is rejected at <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">fit</code> time with the valid names listed, rather than being silently ignored.
+</p>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+Raw scikit-learn estimator <em>objects</em> are not accepted by <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">train</code> or <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Benchmark</code>: to reach an estimator that is not yet wrapped, add a row to <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">specs</code> rather than passing an instance.
+</p>
+
+<p class="mb-4">
+A handful of wrappers are renamed to avoid clashing with a native TuiML class of the same name, e.g. scikit-learn&#x27;s <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">PCA</code> is exported as <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">PCAExtractor</code>. <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">dir(tuiml.sklearn)</code> lists the exported names.
+</p>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs//capymoa.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">capymoa</code>
+                            <p class="text-sm text-gray-600 mt-0.5">The same bridge pattern for CapyMOA streaming learners.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/sklearn/specs.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">specs</code>
+                            <p class="text-sm text-gray-600 mt-0.5">The declarative table driving every wrapper.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        </div>
 <h2 class="oc-h">Packages</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0; margin-bottom: 48px;">

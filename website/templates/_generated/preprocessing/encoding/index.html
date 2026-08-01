@@ -8,6 +8,76 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">preprocessing</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">encoding/</h1>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Encoding transformers for categorical feature encoding.</p>
+<div class="doc-extended">
+<p class="mb-4">
+This module provides various encoding techniques for converting between categorical (nominal/string) and numeric representations, based on WEKA&#x27;s unsupervised attribute filters.
+</p>
+Available transformers:
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+OneHotEncoder: One-hot encoding (WEKA: NominalToBinary)
+</li>
+
+<li class="text-gray-700">
+OrdinalEncoder: Ordinal encoding (WEKA: OrdinalToNumeric)
+</li>
+
+<li class="text-gray-700">
+LabelEncoder: String to categorical (WEKA: StringToNominal)
+</li>
+
+<li class="text-gray-700">
+RareCategoryEncoder: Merge rare categories (WEKA: MergeInfrequentNominalValues)
+</li>
+
+</ul>
+</div>
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.preprocessing.encoding import OneHotEncoder
+&gt;&gt;&gt; import numpy as np</code></pre>
+            </div>
+        </div>
+        
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; # One-hot encode categorical features
+&gt;&gt;&gt; X = np.array([[0, 1], [1, 2], [2, 0]])  # Categorical indices
+&gt;&gt;&gt; encoder = OneHotEncoder(categories=[[0, 1, 2], [0, 1, 2]])
+&gt;&gt;&gt; X_encoded = encoder.fit_transform(X)</code></pre>
+            </div>
+        </div>
+        </div></div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">
