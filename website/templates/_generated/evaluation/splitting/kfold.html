@@ -1,0 +1,1992 @@
+{% extends 'layouts/docs_generated.html' %}
+
+{% set active_nav = 'api' %}
+{% set breadcrumb_html = '<a href="../../api-reference.html" class="hover:text-gray-900">API Reference</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="../index.html" class="hover:text-gray-900">evaluation</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="index.html" class="hover:text-gray-900">splitting</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">kfold</span>' %}
+
+{% block title %}kfold - API Documentation{% endblock %}
+
+{% block content %}
+<p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a> / <a href="index.html">splitting</a></p>
+<h1 class="oc-display" style="margin-bottom: 32px;">kfold</h1>
+<nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
+<div class="oc-toc-label">On this page</div>
+<a href="#class-KFold">KFold</a>
+<a href="#class-StratifiedKFold">StratifiedKFold</a>
+<a href="#class-RepeatedKFold">RepeatedKFold</a>
+<a href="#class-RepeatedStratifiedKFold">RepeatedStratifiedKFold</a>
+<a href="#func-cross_val_score">cross_val_score</a>
+</nav>
+<main>
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Fold-based cross-validation splitters and the <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">cross_val_score</code> driver.</p>
+<div class="doc-extended">
+<p class="mb-4">
+This module contains the cross-validators that partition a dataset into <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">n_splits</code> mutually exclusive test folds, plus a convenience function that fits and scores an estimator across any splitter:
+</p>
+
+<p class="mb-4">
+<em> <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">KFold</code> -- consecutive (optionally   shuffled) folds; ignores <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">y</code> entirely. </em> <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">StratifiedKFold</code> -- folds built per class   so every fold keeps roughly the class distribution of <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">y</code>. <em> <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">RepeatedKFold</code> and   <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">RepeatedStratifiedKFold</code> -- run the above   <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">n_repeats</code> times with a fresh shuffle each time, yielding   <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">n_splits </em> n_repeats</code> train/test pairs. * <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">cross_val_score</code> -- clone, fit and score an   estimator once per split and return the array of fold scores.
+</p>
+
+<p class="mb-4">
+Reach for <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">KFold</code> on regression or well-balanced data, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">StratifiedKFold</code> whenever class labels are imbalanced (a plain <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">KFold</code> fold can otherwise miss a rare class completely), and the repeated variants when a single K-fold estimate is too noisy to separate two candidate models.
+</p>
+
+<p class="mb-4">
+Every splitter here assumes samples are <strong>exchangeable</strong>. For temporally ordered data use <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">TimeSeriesSplit</code>; when samples are clustered (same patient, same user, same document) use <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">GroupKFold</code> instead, otherwise leakage across folds inflates the score.
+</p>
+</div></div>
+<div class="mb-12">
+<h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-cubes text-indigo-500"></i> Classes</h2>
+<div class="mb-12 scroll-mt-24" id="class-KFold">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">KFold</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">evaluation.splitting.kfold.KFold</span>(<span class="text-cyan-400">BaseSplitter</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed"><strong>Unstratified</strong> K-fold cross-validator over consecutive index blocks.</p>
+<div class="text-gray-600 mb-8 leading-relaxed">
+<p class="mb-4">
+The <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">n_samples</code> rows are cut into <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">n_splits</code> folds. Each fold serves once as the test set while the remaining <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">n_splits - 1</code> folds form the training set, so every sample is tested exactly once and appears in <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">n_splits - 1</code> training sets. Labels are ignored: <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">y</code> is accepted only for API compatibility and never influences the partition. If class balance matters, use <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">StratifiedKFold</code>.
+</p>
+
+<p class="mb-4">
+With <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">shuffle=False</code> (the default) the folds are consecutive slices of <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">0..n_samples-1</code>, which makes the split reproducible without a seed but dangerous on data that arrives sorted by label. With <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">shuffle=True</code> the index vector is permuted once, before folding, so the folds are random but still disjoint.
+</p>
+
+<p class="mb-4">
+When <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">n_samples</code> is not divisible by <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">n_splits</code> the first <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">n_samples % n_splits</code> folds get one extra sample, so fold sizes differ by at most one.
+</p>
+</div>
+
+        <div class="mb-8">
+            <div class="bg-slate-800 rounded-lg overflow-hidden shadow-lg">
+                <div class="flex items-center justify-between px-4 py-2 bg-slate-900/50 border-b border-slate-700">
+                    <span class="text-slate-400 text-xs font-mono">Constructor</span>
+                    <button onclick="copyCode('init-KFold')" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i>
+                        <span class="text-xs">Copy</span>
+                    </button>
+                </div>
+                <div class="p-4 overflow-x-auto" id="init-KFold">
+                    <pre class="font-mono text-sm leading-relaxed"><span class="text-purple-400">__init__</span><span class="text-slate-300">(</span>
+    <span class="text-red-400">self</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">n_splits</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">5</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">shuffle</span><span class="text-slate-400">:</span> <span class="text-cyan-400">bool</span> <span class="text-slate-400">=</span> <span class="text-green-400">False</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">random_state</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Optional[int]</span> <span class="text-slate-400">=</span> <span class="text-green-400">None</span><span class="text-slate-400">,</span>
+<span class="text-slate-300">)</span></pre>
+                </div>
+            </div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">n_splits</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 5</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Number of folds. Must be at least 2 and no larger than <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">n_samples</code>.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">shuffle</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">bool</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= False</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Whether to permute the sample order once before cutting the folds.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">random_state</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Random seed for reproducibility. Only has an effect when <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">shuffle=True</code>.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+Layout for <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">n_splits=5</code> over 10 samples, one column per sample:
+</p>
+<div class="bg-slate-900 rounded-lg p-4 my-3 overflow-x-auto"><pre class="text-sm font-mono text-slate-100 leading-relaxed">fold 0:  T T . . . . . . . .
+fold 1:  . . T T . . . . . .
+fold 2:  . . . . T T . . . .
+fold 3:  . . . . . . T T . .
+fold 4:  . . . . . . . . T T
+
+T = test, . = train</pre></div>
+<p class="mb-4">
+Each split is roughly <span class="katex-inline">(k-1)/k</span> train and <span class="katex-inline">1/k</span> test, so larger <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">n_splits</code> means more training data per fit, lower bias, higher variance and <span class="katex-inline">k</span> times the compute.
+</p>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/evaluation/splitting/kfold.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">StratifiedKFold</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Same folds, but class proportions preserved.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/evaluation/splitting/kfold.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">RepeatedKFold</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Repeat this splitter with a new shuffle each time.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/evaluation/splitting/group.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">GroupKFold</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Keep samples of a group inside one fold.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/evaluation/splitting/timeseries.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">TimeSeriesSplit</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Ordered splits that never train on the future.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; from tuiml.evaluation.splitting import KFold
+&gt;&gt;&gt; X = np.arange(20).reshape(10, 2)
+&gt;&gt;&gt; cv = KFold(n_splits=5)
+&gt;&gt;&gt; print(cv.get_n_splits())
+5
+&gt;&gt;&gt; for train_idx, test_idx in cv.split(X):
+...     print(test_idx.tolist(), len(train_idx))
+[0, 1] 8
+[2, 3] 8
+[4, 5] 8
+[6, 7] 8
+[8, 9] 8</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">Shuffling scatters the folds but keeps them disjoint:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; cv = KFold(n_splits=2, shuffle=True, random_state=0)
+&gt;&gt;&gt; for train_idx, test_idx in cv.split(X):
+...     print(sorted(test_idx.tolist()))
+[1, 2, 4, 8, 9]
+[0, 3, 5, 6, 7]</code></pre>
+            </div>
+        </div>
+        </div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-KFold-get_parameter_schema">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_parameter_schema</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; dict</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return JSON Schema for constructor parameters.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-KFold-split">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">split</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray, y: Optional[np.ndarray]=None, groups: Optional[np.ndarray]=None) -&gt; Iterator[Tuple[np.ndarray, np.ndarray]]</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Yield the <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">n_splits</code> train/test index pairs of a plain K-fold.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Training data. Only its length is used.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Ignored; accepted for a uniform splitter API.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">groups</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Ignored; accepted for a uniform splitter API.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-triangle-exclamation text-gray-400"></i> Yields
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">train_index</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_train,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Positional indices into <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">X</code> of the training rows for this fold.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">test_index</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_test,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Positional indices of the held-out rows. Test folds across the whole iteration are disjoint and cover every sample exactly once.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-triangle-exclamation text-gray-400"></i> Raises
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">ValueError</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    If <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">n_splits</code> exceeds <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">n_samples</code>.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-KFold-get_n_splits">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_n_splits</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: Optional[np.ndarray]=None, y: Optional[np.ndarray]=None, groups: Optional[np.ndarray]=None) -&gt; int</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return the number of folds, i.e. how many pairs <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">split</code> will yield.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Ignored; the count is fixed at construction time.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Ignored.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">groups</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Ignored.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">n_splits</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    The configured <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">n_splits</code>.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-KFold-__repr__">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">__repr__</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self) -&gt; str</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return a short string showing the fold count and shuffle flag.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+</div></div>
+</div>
+<div class="mb-12 scroll-mt-24" id="class-StratifiedKFold">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">StratifiedKFold</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">evaluation.splitting.kfold.StratifiedKFold</span>(<span class="text-cyan-400">BaseSplitter</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed"><strong>Stratified</strong> K-fold cross-validator: every fold mirrors the class mix.</p>
+<div class="text-gray-600 mb-8 leading-relaxed">
+<p class="mb-4">
+Unlike <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">KFold</code>, this splitter requires <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">y</code> and folds <strong>each class separately</strong>, then concatenates the per-class slices into <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">n_splits</code> test folds. A class holding a fraction <span class="katex-inline">p</span> of the data therefore holds roughly <span class="katex-inline">p</span> of every fold, up to rounding. That keeps a rare class from vanishing out of a training fold (which makes the fitted model unable to predict it at all) or piling up in a single test fold (which makes the fold score meaningless).
+</p>
+
+<p class="mb-4">
+Test folds remain disjoint and jointly cover all samples, exactly as in plain K-fold; only the assignment of samples to folds differs. With <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">shuffle=True</code> the indices of each class are permuted before slicing, so the composition of a fold changes but its class proportions do not.
+</p>
+</div>
+
+        <div class="mb-8">
+            <div class="bg-slate-800 rounded-lg overflow-hidden shadow-lg">
+                <div class="flex items-center justify-between px-4 py-2 bg-slate-900/50 border-b border-slate-700">
+                    <span class="text-slate-400 text-xs font-mono">Constructor</span>
+                    <button onclick="copyCode('init-StratifiedKFold')" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i>
+                        <span class="text-xs">Copy</span>
+                    </button>
+                </div>
+                <div class="p-4 overflow-x-auto" id="init-StratifiedKFold">
+                    <pre class="font-mono text-sm leading-relaxed"><span class="text-purple-400">__init__</span><span class="text-slate-300">(</span>
+    <span class="text-red-400">self</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">n_splits</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">5</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">shuffle</span><span class="text-slate-400">:</span> <span class="text-cyan-400">bool</span> <span class="text-slate-400">=</span> <span class="text-green-400">False</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">random_state</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Optional[int]</span> <span class="text-slate-400">=</span> <span class="text-green-400">None</span><span class="text-slate-400">,</span>
+<span class="text-slate-300">)</span></pre>
+                </div>
+            </div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">n_splits</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 5</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Number of folds. Must be at least 2. For clean stratification it should not exceed the size of the smallest class.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">shuffle</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">bool</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= False</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Whether to permute the indices within each class before folding.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">random_state</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Random seed for reproducibility. Only used when <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">shuffle=True</code>.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+10 samples, classes <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">0 0 0 0 0 1 1 1 1 1</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">n_splits=5</code>. Each fold takes one sample from each class rather than a contiguous block:
+</p>
+<div class="bg-slate-900 rounded-lg p-4 my-3 overflow-x-auto"><pre class="text-sm font-mono text-slate-100 leading-relaxed">class:   0 0 0 0 0 1 1 1 1 1
+fold 0:  T . . . . T . . . .
+fold 1:  . T . . . . T . . .
+fold 2:  . . T . . . . T . .
+fold 3:  . . . T . . . . T .
+fold 4:  . . . . T . . . . T
+
+T = test, . = train</pre></div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/evaluation/splitting/kfold.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">KFold</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Same folding, without stratification.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/evaluation/splitting/kfold.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">RepeatedStratifiedKFold</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Repeat this splitter with a new shuffle each time.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/evaluation/splitting/shuffle.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">StratifiedShuffleSplit</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Stratified random splits that may overlap.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/evaluation/splitting/group.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">StratifiedGroupKFold</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Stratified folds that also respect groups.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; from tuiml.evaluation.splitting import StratifiedKFold
+&gt;&gt;&gt; X = np.arange(20).reshape(10, 2)
+&gt;&gt;&gt; y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+&gt;&gt;&gt; cv = StratifiedKFold(n_splits=5)
+&gt;&gt;&gt; for train_idx, test_idx in cv.split(X, y):
+...     print(sorted(test_idx.tolist()), np.bincount(y[test_idx]).tolist())
+[0, 5] [1, 1]
+[1, 6] [1, 1]
+[2, 7] [1, 1]
+[3, 8] [1, 1]
+[4, 9] [1, 1]</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">Every test fold holds one sample of each class, which a plain <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">KFold</code></p>
+<p class="text-gray-600 my-2">would not guarantee on this label ordering.</p></div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-StratifiedKFold-get_parameter_schema">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_parameter_schema</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; dict</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return JSON Schema for constructor parameters.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-StratifiedKFold-split">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">split</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray, y: Optional[np.ndarray]=None, groups: Optional[np.ndarray]=None) -&gt; Iterator[Tuple[np.ndarray, np.ndarray]]</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Yield the <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">n_splits</code> train/test index pairs of a stratified K-fold.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Training data. Only its length is used.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Class labels driving the stratification. <strong>Required.</strong>
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">groups</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Ignored; accepted for a uniform splitter API.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-triangle-exclamation text-gray-400"></i> Yields
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">train_index</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_train,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Positional indices of the training rows for this fold.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">test_index</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_test,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Positional indices of the held-out rows, holding approximately the same class proportions as <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">y</code> as a whole.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-triangle-exclamation text-gray-400"></i> Raises
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">ValueError</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    If <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">y</code> is None.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-StratifiedKFold-get_n_splits">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_n_splits</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: Optional[np.ndarray]=None, y: Optional[np.ndarray]=None, groups: Optional[np.ndarray]=None) -&gt; int</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return the number of folds, i.e. how many pairs <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">split</code> will yield.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Ignored; the count is fixed at construction time.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Ignored.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">groups</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Ignored.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">n_splits</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    The configured <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">n_splits</code>.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-StratifiedKFold-__repr__">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">__repr__</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self) -&gt; str</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return a short string showing the fold count and shuffle flag.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+</div></div>
+</div>
+<div class="mb-12 scroll-mt-24" id="class-RepeatedKFold">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">RepeatedKFold</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">evaluation.splitting.kfold.RepeatedKFold</span>(<span class="text-cyan-400">BaseSplitter</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed">Run an <strong>unstratified</strong> K-fold <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">n_repeats</code> times with a fresh shuffle.</p>
+<div class="text-gray-600 mb-8 leading-relaxed">
+<p class="mb-4">
+Each repeat builds a <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">KFold</code> with <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">shuffle=True</code> and a seed drawn from this splitter&#x27;s own generator, then yields all of its folds before the next repeat starts. The result is <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">n_splits * n_repeats</code> train/test pairs, emitted repeat by repeat.
+</p>
+
+<p class="mb-4">
+Within one repeat the test folds are disjoint and cover the data exactly once; <strong>across</strong> repeats they overlap, since every repeat re-partitions the same samples. Averaging over all pairs therefore shrinks the variance of a cross-validation estimate without giving more independent data, which is what makes it useful when a single K-fold score is too noisy to rank two models. Labels are ignored -- use <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">RepeatedStratifiedKFold</code> for classification.
+</p>
+</div>
+
+        <div class="mb-8">
+            <div class="bg-slate-800 rounded-lg overflow-hidden shadow-lg">
+                <div class="flex items-center justify-between px-4 py-2 bg-slate-900/50 border-b border-slate-700">
+                    <span class="text-slate-400 text-xs font-mono">Constructor</span>
+                    <button onclick="copyCode('init-RepeatedKFold')" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i>
+                        <span class="text-xs">Copy</span>
+                    </button>
+                </div>
+                <div class="p-4 overflow-x-auto" id="init-RepeatedKFold">
+                    <pre class="font-mono text-sm leading-relaxed"><span class="text-purple-400">__init__</span><span class="text-slate-300">(</span>
+    <span class="text-red-400">self</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">n_splits</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">5</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">n_repeats</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">10</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">random_state</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Optional[int]</span> <span class="text-slate-400">=</span> <span class="text-green-400">None</span><span class="text-slate-400">,</span>
+<span class="text-slate-300">)</span></pre>
+                </div>
+            </div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">n_splits</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 5</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Number of folds within each repeat.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">n_repeats</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 10</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Number of times the whole K-fold is repeated.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">random_state</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Seed for the generator that produces one sub-seed per repeat, making the entire sequence of <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">n_splits * n_repeats</code> folds reproducible.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">Total fits when driven by <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">cross_val_score</code> is <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">n_splits * n_repeats</code>, so cost grows linearly in both.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/evaluation/splitting/kfold.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">KFold</code>
+                            <p class="text-sm text-gray-600 mt-0.5">The splitter repeated here.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/evaluation/splitting/kfold.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">RepeatedStratifiedKFold</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Stratified counterpart.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; from tuiml.evaluation.splitting import RepeatedKFold
+&gt;&gt;&gt; X = np.arange(20).reshape(10, 2)
+&gt;&gt;&gt; cv = RepeatedKFold(n_splits=2, n_repeats=3, random_state=0)
+&gt;&gt;&gt; print(cv.get_n_splits())
+6
+&gt;&gt;&gt; print(sum(1 for _ in cv.split(X)))
+6</code></pre>
+            </div>
+        </div>
+        </div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-RepeatedKFold-split">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">split</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray, y: Optional[np.ndarray]=None, groups: Optional[np.ndarray]=None) -&gt; Iterator[Tuple[np.ndarray, np.ndarray]]</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Yield <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">n_splits * n_repeats</code> train/test index pairs, repeat by repeat.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Training data. Only its length is used.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Ignored by the underlying <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">KFold</code>; passed through only for API symmetry.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">groups</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Ignored; passed through for API symmetry.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-triangle-exclamation text-gray-400"></i> Yields
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">train_index</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_train,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Positional indices of the training rows for this fold.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">test_index</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_test,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Positional indices of the held-out rows. Disjoint within a repeat, overlapping across repeats.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-RepeatedKFold-get_n_splits">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_n_splits</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: Optional[np.ndarray]=None, y: Optional[np.ndarray]=None, groups: Optional[np.ndarray]=None) -&gt; int</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return the total number of folds across all repeats.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Ignored; the count is fixed at construction time.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Ignored.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">groups</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Ignored.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">n_splits</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">n_splits * n_repeats</code>.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-RepeatedKFold-__repr__">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">__repr__</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self) -&gt; str</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return a short string showing the fold and repeat counts.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+</div></div>
+</div>
+<div class="mb-12 scroll-mt-24" id="class-RepeatedStratifiedKFold">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">RepeatedStratifiedKFold</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">evaluation.splitting.kfold.RepeatedStratifiedKFold</span>(<span class="text-cyan-400">BaseSplitter</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed">Run a <strong>stratified</strong> K-fold <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">n_repeats</code> times with a fresh shuffle.</p>
+<div class="text-gray-600 mb-8 leading-relaxed">
+<p class="mb-4">
+Each repeat builds a <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">StratifiedKFold</code> with <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">shuffle=True</code> and a seed drawn from this splitter&#x27;s own generator, then yields all of its folds before the next repeat begins. Every one of the <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">n_splits * n_repeats</code> test folds therefore keeps approximately the class proportions of <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">y</code>, and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">y</code> is <strong>required</strong>.
+</p>
+
+<p class="mb-4">
+Use this instead of <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">RepeatedKFold</code> whenever the target is a class label, especially with imbalanced classes or small datasets where a single stratified K-fold estimate is still noisy.
+</p>
+</div>
+
+        <div class="mb-8">
+            <div class="bg-slate-800 rounded-lg overflow-hidden shadow-lg">
+                <div class="flex items-center justify-between px-4 py-2 bg-slate-900/50 border-b border-slate-700">
+                    <span class="text-slate-400 text-xs font-mono">Constructor</span>
+                    <button onclick="copyCode('init-RepeatedStratifiedKFold')" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i>
+                        <span class="text-xs">Copy</span>
+                    </button>
+                </div>
+                <div class="p-4 overflow-x-auto" id="init-RepeatedStratifiedKFold">
+                    <pre class="font-mono text-sm leading-relaxed"><span class="text-purple-400">__init__</span><span class="text-slate-300">(</span>
+    <span class="text-red-400">self</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">n_splits</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">5</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">n_repeats</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">10</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">random_state</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Optional[int]</span> <span class="text-slate-400">=</span> <span class="text-green-400">None</span><span class="text-slate-400">,</span>
+<span class="text-slate-300">)</span></pre>
+                </div>
+            </div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">n_splits</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 5</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Number of folds within each repeat.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">n_repeats</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 10</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Number of times the whole stratified K-fold is repeated.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">random_state</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Seed for the generator that produces one sub-seed per repeat, making the entire sequence of folds reproducible.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/evaluation/splitting/kfold.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">StratifiedKFold</code>
+                            <p class="text-sm text-gray-600 mt-0.5">The splitter repeated here.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/evaluation/splitting/kfold.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">RepeatedKFold</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Unstratified counterpart.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; from tuiml.evaluation.splitting import RepeatedStratifiedKFold
+&gt;&gt;&gt; X = np.arange(20).reshape(10, 2)
+&gt;&gt;&gt; y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+&gt;&gt;&gt; cv = RepeatedStratifiedKFold(n_splits=2, n_repeats=3, random_state=0)
+&gt;&gt;&gt; print(cv.get_n_splits())
+6
+&gt;&gt;&gt; for train_idx, test_idx in cv.split(X, y):
+...     print(np.bincount(y[test_idx]).tolist())
+[3, 3]
+[2, 2]
+[3, 3]
+[2, 2]
+[3, 3]
+[2, 2]</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">The two classes stay balanced in every fold of every repeat.</p></div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-RepeatedStratifiedKFold-split">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">split</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray, y: Optional[np.ndarray]=None, groups: Optional[np.ndarray]=None) -&gt; Iterator[Tuple[np.ndarray, np.ndarray]]</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Yield <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">n_splits * n_repeats</code> stratified train/test pairs, repeat by repeat.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Training data. Only its length is used.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Class labels driving the stratification. <strong>Required.</strong>
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">groups</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Ignored; passed through for API symmetry.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-triangle-exclamation text-gray-400"></i> Yields
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">train_index</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_train,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Positional indices of the training rows for this fold.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">test_index</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_test,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Positional indices of the held-out rows, class-balanced like <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">y</code>. Disjoint within a repeat, overlapping across repeats.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-RepeatedStratifiedKFold-get_n_splits">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_n_splits</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: Optional[np.ndarray]=None, y: Optional[np.ndarray]=None, groups: Optional[np.ndarray]=None) -&gt; int</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return the total number of folds across all repeats.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Ignored; the count is fixed at construction time.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Ignored.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">groups</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Ignored.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">n_splits</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">n_splits * n_repeats</code>.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-RepeatedStratifiedKFold-__repr__">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">__repr__</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self) -&gt; str</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return a short string showing the fold and repeat counts.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+</div></div>
+</div>
+</div>
+<div class="mb-12">
+<h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-code text-indigo-500"></i> Functions</h2>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-cross_val_score">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">cross_val_score</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 35</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">cross_val_score(estimator: Any, X: np.ndarray, y: np.ndarray, *, cv: Union[int, &#x27;BaseSplitter&#x27;]=5, scoring: Optional[Union[str, Callable]]=None, random_state: Optional[int]=None) -&gt; np.ndarray</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Fit and score an estimator once per cross-validation split.</p>
+<div class="doc-extended">For every <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">(train_index, test_index)</code> pair produced by <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">cv</code> the estimator is cloned (via <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">estimator.__class__(**estimator.get_params())</code>), fitted on the training rows and scored on the held-out rows. The original <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">estimator</code> is left unfitted whenever cloning succeeds.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">estimator</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">estimator object</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    The object to fit. Must implement <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">fit(X, y)</code> and <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">predict(X)</code>; a <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">get_params()</code> method is used to clone it between folds.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    The data to fit.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    The target variable.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">cv</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int or BaseSplitter</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 5</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    If int, the number of folds for an internal <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">KFold</code> with <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">shuffle=True</code>. If a splitter, any object exposing <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">split(X, y)</code>.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">scoring</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">str or callable</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    If None, accuracy is used. If str, one of <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&#x27;accuracy&#x27;</code>, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&#x27;f1&#x27;</code>, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&#x27;precision&#x27;</code>, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&#x27;recall&#x27;</code>, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&#x27;r2&#x27;</code>, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&#x27;mse&#x27;</code> (alias <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&#x27;neg_mean_squared_error&#x27;</code>) or <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&#x27;mae&#x27;</code> (alias <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&#x27;neg_mean_absolute_error&#x27;</code>); the two error metrics are negated so that larger is always better. If callable, a function with signature <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">scoring(y_true, y_pred) -&gt; float</code>.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">random_state</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Random seed for the internal shuffle. Only used when <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">cv</code> is an int; a splitter object carries its own seed.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-arrow-right-from-bracket text-green-500 mr-2"></i>Returns</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">scores</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_splits,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    One score per split, in the order the splitter yielded them.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/evaluation/splitting/kfold.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">KFold</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Default splitter when <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">cv</code> is an int.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/evaluation/splitting/kfold.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">StratifiedKFold</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Class-balanced folds.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; from tuiml.evaluation.splitting import cross_val_score, StratifiedKFold
+&gt;&gt;&gt; from tuiml.algorithms.bayesian import NaiveBayesClassifier
+&gt;&gt;&gt; rng = np.random.RandomState(0)
+&gt;&gt;&gt; X = np.vstack([rng.normal(0, 1, (30, 2)), rng.normal(4, 1, (30, 2))])
+&gt;&gt;&gt; y = np.array([0] * 30 + [1] * 30)
+&gt;&gt;&gt; scores = cross_val_score(NaiveBayesClassifier(), X, y, cv=5, random_state=0)
+&gt;&gt;&gt; print(scores.shape)
+(5,)
+&gt;&gt;&gt; print(round(float(scores.mean()), 3))
+1.0</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">Pass a splitter instance for full control over the folds and metric:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; cv = StratifiedKFold(n_splits=4)
+&gt;&gt;&gt; scores = cross_val_score(NaiveBayesClassifier(), X, y, cv=cv, scoring=&#x27;f1&#x27;)
+&gt;&gt;&gt; print(len(scores), round(float(scores.mean()), 3))
+4 1.0</code></pre>
+            </div>
+        </div>
+        </div></div>
+</div></div>
+</div>
+</main>
+{% endblock %}

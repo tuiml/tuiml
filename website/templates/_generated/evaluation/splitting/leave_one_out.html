@@ -1,0 +1,401 @@
+{% extends 'layouts/docs_generated.html' %}
+
+{% set active_nav = 'api' %}
+{% set breadcrumb_html = '<a href="../../api-reference.html" class="hover:text-gray-900">API Reference</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="../index.html" class="hover:text-gray-900">evaluation</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="index.html" class="hover:text-gray-900">splitting</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">leave_one_out</span>' %}
+
+{% block title %}leave_one_out - API Documentation{% endblock %}
+
+{% block content %}
+<p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a> / <a href="index.html">splitting</a></p>
+<h1 class="oc-display" style="margin-bottom: 32px;">leave_one_out</h1>
+<nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
+<div class="oc-toc-label">On this page</div>
+<a href="#class-LeaveOneOut">LeaveOneOut</a>
+<a href="#class-LeavePOut">LeavePOut</a>
+</nav>
+<main>
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Leave-One-Out and Leave-P-Out cross-validation splitters.</p></div>
+<div class="mb-12">
+<h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-cubes text-indigo-500"></i> Classes</h2>
+<div class="mb-12 scroll-mt-24" id="class-LeaveOneOut">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">LeaveOneOut</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">evaluation.splitting.leave_one_out.LeaveOneOut</span>(<span class="text-cyan-400">BaseSplitter</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed">Leave-One-Out cross-validation.</p>
+<div class="text-gray-600 mb-8 leading-relaxed">Each sample is used once as test while remaining samples form training set.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">This can be very slow for large datasets as it creates n splits.</div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.evaluation.splitting import LeaveOneOut
+&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; X = np.arange(5).reshape(-1, 1)
+&gt;&gt;&gt; loo = LeaveOneOut()
+&gt;&gt;&gt; for train_idx, test_idx in loo.split(X):
+...     print(f&quot;Train: {train_idx}, Test: {test_idx}&quot;)
+Train: [1 2 3 4], Test: [0]
+Train: [0 2 3 4], Test: [1]
+Train: [0 1 3 4], Test: [2]
+Train: [0 1 2 4], Test: [3]
+Train: [0 1 2 3], Test: [4]</code></pre>
+            </div>
+        </div>
+        </div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-LeaveOneOut-get_parameter_schema">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_parameter_schema</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; dict</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return JSON Schema for parameters.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-LeaveOneOut-split">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">split</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray, y: Optional[np.ndarray]=None, groups: Optional[np.ndarray]=None) -&gt; Iterator[Tuple[np.ndarray, np.ndarray]]</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Generate LOO indices.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-LeaveOneOut-get_n_splits">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_n_splits</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: Optional[np.ndarray]=None, y: Optional[np.ndarray]=None, groups: Optional[np.ndarray]=None) -&gt; int</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Get number of splits (equals n_samples).</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-LeaveOneOut-__repr__">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">__repr__</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self) -&gt; str</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return a reproducible string form of the splitter.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">repr_str</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">str</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Constructor-style representation, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;LeaveOneOut()&quot;</code>.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+</div></div>
+</div>
+<div class="mb-12 scroll-mt-24" id="class-LeavePOut">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">LeavePOut</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">evaluation.splitting.leave_one_out.LeavePOut</span>(<span class="text-cyan-400">BaseSplitter</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed">Leave-P-Out cross-validation.</p>
+<div class="text-gray-600 mb-8 leading-relaxed">P samples are used as test while remaining samples form training set. Generates all possible combinations.</div>
+
+        <div class="mb-8">
+            <div class="bg-slate-800 rounded-lg overflow-hidden shadow-lg">
+                <div class="flex items-center justify-between px-4 py-2 bg-slate-900/50 border-b border-slate-700">
+                    <span class="text-slate-400 text-xs font-mono">Constructor</span>
+                    <button onclick="copyCode('init-LeavePOut')" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i>
+                        <span class="text-xs">Copy</span>
+                    </button>
+                </div>
+                <div class="p-4 overflow-x-auto" id="init-LeavePOut">
+                    <pre class="font-mono text-sm leading-relaxed"><span class="text-purple-400">__init__</span><span class="text-slate-300">(</span>
+    <span class="text-red-400">self</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">p</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">2</span><span class="text-slate-400">,</span>
+<span class="text-slate-300">)</span></pre>
+                </div>
+            </div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">p</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Size of test set.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">Number of splits is C(n, p) = n! / (p! * (n-p)!) This grows very fast and can be impractical for large n or p.</div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.evaluation.splitting import LeavePOut
+&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; X = np.arange(5).reshape(-1, 1)
+&gt;&gt;&gt; lpo = LeavePOut(p=2)
+&gt;&gt;&gt; for train_idx, test_idx in lpo.split(X):
+...     print(f&quot;Train: {train_idx}, Test: {test_idx}&quot;)
+Train: [2 3 4], Test: [0 1]
+Train: [1 3 4], Test: [0 2]
+Train: [1 2 4], Test: [0 3]
+Train: [1 2 3], Test: [0 4]
+Train: [0 3 4], Test: [1 2]
+Train: [0 2 4], Test: [1 3]
+Train: [0 2 3], Test: [1 4]
+Train: [0 1 4], Test: [2 3]
+Train: [0 1 3], Test: [2 4]
+Train: [0 1 2], Test: [3 4]</code></pre>
+            </div>
+        </div>
+        </div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-LeavePOut-get_parameter_schema">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_parameter_schema</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; dict</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return JSON Schema for parameters.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-LeavePOut-split">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">split</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray, y: Optional[np.ndarray]=None, groups: Optional[np.ndarray]=None) -&gt; Iterator[Tuple[np.ndarray, np.ndarray]]</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Generate LPO indices.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-LeavePOut-get_n_splits">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_n_splits</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: Optional[np.ndarray]=None, y: Optional[np.ndarray]=None, groups: Optional[np.ndarray]=None) -&gt; int</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Get number of splits C(n, p).</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-LeavePOut-__repr__">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">__repr__</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self) -&gt; str</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return a reproducible string form of the splitter.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">repr_str</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">str</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Constructor-style representation, e.g. <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">LeavePOut(p=2)</code>.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+</div></div>
+</div>
+</div>
+</main>
+{% endblock %}

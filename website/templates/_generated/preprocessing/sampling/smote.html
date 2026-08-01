@@ -1,0 +1,1113 @@
+{% extends 'layouts/docs_generated.html' %}
+
+{% set active_nav = 'api' %}
+{% set breadcrumb_html = '<a href="../../api-reference.html" class="hover:text-gray-900">API Reference</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="../index.html" class="hover:text-gray-900">preprocessing</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="index.html" class="hover:text-gray-900">sampling</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">smote</span>' %}
+
+{% block title %}smote - API Documentation{% endblock %}
+
+{% block content %}
+<p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">preprocessing</a> / <a href="index.html">sampling</a></p>
+<h1 class="oc-display" style="margin-bottom: 32px;">smote</h1>
+<nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
+<div class="oc-toc-label">On this page</div>
+<a href="#class-SMOTESampler">SMOTESampler</a>
+<a href="#class-BorderlineSMOTESampler">BorderlineSMOTESampler</a>
+<a href="#class-ADASYNSampler">ADASYNSampler</a>
+<a href="#class-SVMSMOTESampler">SVMSMOTESampler</a>
+<a href="#class-KMeansSMOTESampler">KMeansSMOTESampler</a>
+</nav>
+<main>
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">SMOTE family of oversampling algorithms.</p>
+<div class="doc-extended">This module contains all SMOTE variants:
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+SMOTE: Original Synthetic Minority Over-sampling Technique
+</li>
+
+<li class="text-gray-700">
+BorderlineSMOTESampler: SMOTE for borderline instances
+</li>
+
+<li class="text-gray-700">
+ADASYN: Adaptive Synthetic Sampling
+</li>
+
+<li class="text-gray-700">
+SVMSMOTE: SMOTE using SVM to find support vectors
+</li>
+
+<li class="text-gray-700">
+KMeansSMOTE: SMOTE with K-Means clustering
+</li>
+
+</ul>
+</div></div>
+<div class="mb-12">
+<h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-cubes text-indigo-500"></i> Classes</h2>
+<div class="mb-12 scroll-mt-24" id="class-SMOTESampler">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">SMOTESampler</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">preprocessing.sampling.smote.SMOTESampler</span>(<span class="text-cyan-400">Transformer</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed">Synthetic Minority Over-sampling Technique (SMOTE).</p>
+<div class="text-gray-600 mb-8 leading-relaxed">Generates synthetic samples for the minority class(es) by interpolating  between existing instances and their nearest neighbors.</div>
+
+        <div class="mb-8">
+            <div class="bg-slate-800 rounded-lg overflow-hidden shadow-lg">
+                <div class="flex items-center justify-between px-4 py-2 bg-slate-900/50 border-b border-slate-700">
+                    <span class="text-slate-400 text-xs font-mono">Constructor</span>
+                    <button onclick="copyCode('init-SMOTESampler')" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i>
+                        <span class="text-xs">Copy</span>
+                    </button>
+                </div>
+                <div class="p-4 overflow-x-auto" id="init-SMOTESampler">
+                    <pre class="font-mono text-sm leading-relaxed"><span class="text-purple-400">__init__</span><span class="text-slate-300">(</span>
+    <span class="text-red-400">self</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">sampling_strategy</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Union[float, str, dict]</span> <span class="text-slate-400">=</span> <span class="text-green-400">&#x27;auto&#x27;</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">k_neighbors</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">5</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">random_state</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Optional[int]</span> <span class="text-slate-400">=</span> <span class="text-green-400">None</span><span class="text-slate-400">,</span>
+<span class="text-slate-300">)</span></pre>
+                </div>
+            </div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Overview</h4>
+            </div>
+            <div class="p-4">SMOTE addresses class imbalance by creating &quot;plausible&quot; synthetic examples  rather than simply duplicating existing ones. This helps the model generalize  better by expanding the minority class decision regions.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Theory</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+For a minority sample <span class="katex-inline">x_i</span>, a neighbor <span class="katex-inline">\hat{x}_i</span> is randomly chosen from its <span class="katex-inline">k</span> nearest minority neighbors. A new sample <span class="katex-inline">x_{new}</span> is generated as:
+</p>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">x_{new} = x_i + \lambda \cdot (\hat{x}_i - x_i)</span>
+</div>
+
+<p class="mb-4">
+where <span class="katex-inline">\lambda</span> is a random number in <span class="katex-inline">[0, 1]</span>.
+</p>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">sampling_strategy</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float, str or dict</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= &quot;auto&quot;</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    <p class="mb-2">Determines which classes to resample and by how much:</p><ul class="mt-2 space-y-1">
+<li class="flex items-start gap-2"><span class="text-gray-400">•</span><span><code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;auto&quot;</code> / <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;not majority&quot;</code>: Resample all classes except the majority.</span></li>
+<li class="flex items-start gap-2"><span class="text-gray-400">•</span><span><code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;minority&quot;</code>: Resample only the minority class.</span></li>
+<li class="flex items-start gap-2"><span class="text-gray-400">•</span><span><code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;all&quot;</code>: Resample all classes to match the majority.</span></li>
+<li class="flex items-start gap-2"><span class="text-gray-400">•</span><span><code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">Dict</code>: <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">{class_label: n_samples}</code> specifying exact counts.</span></li>
+</ul>
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">k_neighbors</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 5</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Number of nearest neighbors to use for interpolation.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">random_state</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Seed for the random number generator to ensure reproducibility.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-list-check text-blue-500 mr-2"></i>Attributes</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">sampling_strategy_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-700">dict</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    The resolved mapping of class labels to the number of samples to generate.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/preprocessing/sampling/smote.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">ADASYNSampler</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Adaptive synthetic sampling.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/preprocessing/sampling/smote.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">BorderlineSMOTESampler</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Borderline oversampling.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0"><p class="text-gray-600 my-2">Oversample the minority class:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.preprocessing.sampling import SMOTESampler
+&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; X = np.array([[1, 2], [2, 1], [8, 9], [7, 8], [8, 8]])
+&gt;&gt;&gt; y = np.array([0, 0, 1, 1, 1])  # 0 is minority
+&gt;&gt;&gt; smote = SMOTESampler(k_neighbors=1)
+&gt;&gt;&gt; X_res, y_res = smote.fit_resample(X, y)</code></pre>
+            </div>
+        </div>
+        </div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-SMOTESampler-get_parameter_schema">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_parameter_schema</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; Dict[str, Dict]</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return JSON Schema for parameters.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-SMOTESampler-fit">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">fit</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray, y: np.ndarray) -&gt; &#x27;SMOTE&#x27;</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Fit and compute sampling strategy.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-SMOTESampler-fit_resample">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">fit_resample</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray, y: np.ndarray) -&gt; Tuple[np.ndarray, np.ndarray]</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Fit and resample the dataset.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-SMOTESampler-transform">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">transform</code>
+                    <span class="text-sm text-gray-400 font-mono">(self, X: np.ndarray) -&gt; np.ndarray</span>
+                </div>
+            </div>
+            
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-SMOTESampler-__repr__">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">__repr__</code>
+                    <span class="text-sm text-gray-400 font-mono">(self) -&gt; str</span>
+                </div>
+            </div>
+            
+</div></div>
+</div>
+<div class="mb-12 scroll-mt-24" id="class-BorderlineSMOTESampler">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">BorderlineSMOTESampler</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">preprocessing.sampling.smote.BorderlineSMOTESampler</span>(<span class="text-cyan-400">SMOTESampler</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed">Borderline-SMOTE for oversampling near decision boundaries.</p>
+<div class="text-gray-600 mb-8 leading-relaxed">A variant of SMOTE that only generates synthetic samples for minority  instances that are &quot;at risk&quot; of being misclassified (i.e., near the  boundary with the majority class).</div>
+
+        <div class="mb-8">
+            <div class="bg-slate-800 rounded-lg overflow-hidden shadow-lg">
+                <div class="flex items-center justify-between px-4 py-2 bg-slate-900/50 border-b border-slate-700">
+                    <span class="text-slate-400 text-xs font-mono">Constructor</span>
+                    <button onclick="copyCode('init-BorderlineSMOTESampler')" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i>
+                        <span class="text-xs">Copy</span>
+                    </button>
+                </div>
+                <div class="p-4 overflow-x-auto" id="init-BorderlineSMOTESampler">
+                    <pre class="font-mono text-sm leading-relaxed"><span class="text-purple-400">__init__</span><span class="text-slate-300">(</span>
+    <span class="text-red-400">self</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">sampling_strategy</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Union[float, str, dict]</span> <span class="text-slate-400">=</span> <span class="text-green-400">&#x27;auto&#x27;</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">k_neighbors</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">5</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">m_neighbors</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">10</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">kind</span><span class="text-slate-400">:</span> <span class="text-cyan-400">str</span> <span class="text-slate-400">=</span> <span class="text-green-400">&#x27;borderline-1&#x27;</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">random_state</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Optional[int]</span> <span class="text-slate-400">=</span> <span class="text-green-400">None</span><span class="text-slate-400">,</span>
+<span class="text-slate-300">)</span></pre>
+                </div>
+            </div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Overview</h4>
+            </div>
+            <div class="p-4">Borderline-SMOTE identifies minority instances whose neighbors are mostly  from the majority class and prioritizes them for oversampling. This  focuses the reinforcement where the classification task is hardest.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">sampling_strategy</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float, str or dict</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= &quot;auto&quot;</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Sampling strategy (see <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">SMOTESampler</code>).
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">k_neighbors</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 5</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Number of nearest neighbors used for SMOTE interpolation.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">m_neighbors</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 10</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Number of nearest neighbors used to determine if a sample is on the borderline.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">kind</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">{&quot;borderline-1&quot;, &quot;borderline-2&quot;}</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= &quot;borderline-1&quot;</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    <p class="mb-2">The type of Borderline-SMOTE:</p><ul class="mt-2 space-y-1">
+<li class="flex items-start gap-2"><span class="text-gray-400">•</span><span><code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;borderline-1&quot;</code>: Interpolates between borderline samples and</span></li>
+</ul><p class="mb-2">their minority neighbors.</p><ul class="mt-2 space-y-1">
+<li class="flex items-start gap-2"><span class="text-gray-400">•</span><span><code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;borderline-2&quot;</code>: Interpolates between borderline samples and</span></li>
+</ul>any of their nearest neighbors (minority or majority).
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">random_state</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Seed for reproducibility.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/preprocessing/sampling/smote.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">SMOTESampler</code>
+                            <p class="text-sm text-gray-600 mt-0.5">The base SMOTE algorithm.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/preprocessing/sampling/smote.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">SVMSMOTESampler</code>
+                            <p class="text-sm text-gray-600 mt-0.5">SVM-based boundary detection.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0"><p class="text-gray-600 my-2">Oversample near the decision boundary:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.preprocessing.sampling import BorderlineSMOTESampler
+&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; X = np.random.rand(100, 2)
+&gt;&gt;&gt; y = (X[:, 0] + X[:, 1] &gt; 1).astype(int)
+&gt;&gt;&gt; sampler = BorderlineSMOTESampler(m_neighbors=5)
+&gt;&gt;&gt; X_res, y_res = sampler.fit_resample(X, y)</code></pre>
+            </div>
+        </div>
+        </div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-BorderlineSMOTESampler-get_parameter_schema">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_parameter_schema</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; Dict[str, Dict]</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return JSON Schema for parameters.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-BorderlineSMOTESampler-__repr__">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">__repr__</code>
+                    <span class="text-sm text-gray-400 font-mono">(self) -&gt; str</span>
+                </div>
+            </div>
+            
+</div></div>
+</div>
+<div class="mb-12 scroll-mt-24" id="class-ADASYNSampler">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">ADASYNSampler</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">preprocessing.sampling.smote.ADASYNSampler</span>(<span class="text-cyan-400">SMOTESampler</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed">Adaptive Synthetic Sampling (ADASYN).</p>
+<div class="text-gray-600 mb-8 leading-relaxed">Generates synthetic samples by focusing on minority instances that are  &quot;harder&quot; to learn, based on the density of majority class neighbors.</div>
+
+        <div class="mb-8">
+            <div class="bg-slate-800 rounded-lg overflow-hidden shadow-lg">
+                <div class="flex items-center justify-between px-4 py-2 bg-slate-900/50 border-b border-slate-700">
+                    <span class="text-slate-400 text-xs font-mono">Constructor</span>
+                    <button onclick="copyCode('init-ADASYNSampler')" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i>
+                        <span class="text-xs">Copy</span>
+                    </button>
+                </div>
+                <div class="p-4 overflow-x-auto" id="init-ADASYNSampler">
+                    <pre class="font-mono text-sm leading-relaxed"><span class="text-purple-400">__init__</span><span class="text-slate-300">(</span>
+    <span class="text-red-400">self</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">sampling_strategy</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Union[float, str, dict]</span> <span class="text-slate-400">=</span> <span class="text-green-400">&#x27;auto&#x27;</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">k_neighbors</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">5</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">random_state</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Optional[int]</span> <span class="text-slate-400">=</span> <span class="text-green-400">None</span><span class="text-slate-400">,</span>
+<span class="text-slate-300">)</span></pre>
+                </div>
+            </div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Overview</h4>
+            </div>
+            <div class="p-4">Unlike SMOTE, ADASYN uses a weighted distribution for minority classes  according to their level of difficulty in learning. More synthetic data  is generated for minority class samples that are harder to learn compared  to those that are easier to learn.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Theory</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+The number of samples to generate for a minority instance <span class="katex-inline">x_i</span> is proportional to its difficulty ratio <span class="katex-inline">r_i</span>:
+</p>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">r_i = \frac{\Delta_i}{k}</span>
+</div>
+
+<p class="mb-4">
+where <span class="katex-inline">\Delta_i</span> is the number of majority class neighbors among the <span class="katex-inline">k</span> nearest neighbors of <span class="katex-inline">x_i</span>.
+</p>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">sampling_strategy</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float, str or dict</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= &quot;auto&quot;</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Sampling strategy (see <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">SMOTESampler</code>).
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">k_neighbors</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 5</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Number of nearest neighbors used to compute the difficulty ratio and for interpolation.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">random_state</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Seed for reproducibility.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/preprocessing/sampling/smote.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">SMOTESampler</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Standard SMOTE.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0"><p class="text-gray-600 my-2">Adaptive oversampling:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.preprocessing.sampling import ADASYNSampler
+&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; X = np.random.rand(100, 2)
+&gt;&gt;&gt; y = (X[:, 0] &gt; 0.8).astype(int) # Highly imbalanced
+&gt;&gt;&gt; sampler = ADASYNSampler(k_neighbors=5)
+&gt;&gt;&gt; X_res, y_res = sampler.fit_resample(X, y)</code></pre>
+            </div>
+        </div>
+        </div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-ADASYNSampler-get_parameter_schema">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_parameter_schema</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; Dict[str, Dict]</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return JSON Schema for parameters.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-ADASYNSampler-__repr__">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">__repr__</code>
+                    <span class="text-sm text-gray-400 font-mono">(self) -&gt; str</span>
+                </div>
+            </div>
+            
+</div></div>
+</div>
+<div class="mb-12 scroll-mt-24" id="class-SVMSMOTESampler">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">SVMSMOTESampler</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">preprocessing.sampling.smote.SVMSMOTESampler</span>(<span class="text-cyan-400">SMOTESampler</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed">SVM-SMOTE for oversampling using SVM support vectors.</p>
+<div class="text-gray-600 mb-8 leading-relaxed">Uses an SVM classifier to identify the decision boundary and generates  synthetic samples around the minority class support vectors.</div>
+
+        <div class="mb-8">
+            <div class="bg-slate-800 rounded-lg overflow-hidden shadow-lg">
+                <div class="flex items-center justify-between px-4 py-2 bg-slate-900/50 border-b border-slate-700">
+                    <span class="text-slate-400 text-xs font-mono">Constructor</span>
+                    <button onclick="copyCode('init-SVMSMOTESampler')" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i>
+                        <span class="text-xs">Copy</span>
+                    </button>
+                </div>
+                <div class="p-4 overflow-x-auto" id="init-SVMSMOTESampler">
+                    <pre class="font-mono text-sm leading-relaxed"><span class="text-purple-400">__init__</span><span class="text-slate-300">(</span>
+    <span class="text-red-400">self</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">sampling_strategy</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Union[float, str, dict]</span> <span class="text-slate-400">=</span> <span class="text-green-400">&#x27;auto&#x27;</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">k_neighbors</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">5</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">svm_estimator</span> <span class="text-slate-400">=</span> <span class="text-green-400">None</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">random_state</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Optional[int]</span> <span class="text-slate-400">=</span> <span class="text-green-400">None</span><span class="text-slate-400">,</span>
+<span class="text-slate-300">)</span></pre>
+                </div>
+            </div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Overview</h4>
+            </div>
+            <div class="p-4">By focusing on support vectors, SVMSMOTE concentrates oversampling in the  region where the minority and majority classes are most likely to overlap,  effectively strengthening the decision boundary.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">sampling_strategy</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float, str or dict</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= &quot;auto&quot;</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Sampling strategy (see <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">SMOTESampler</code>).
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">k_neighbors</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 5</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Number of nearest neighbors used for interpolation.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">svm_estimator</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">object</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    The SVM estimator used to find support vectors. If <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">None</code>, a default <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">SVC</code> is used.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">random_state</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Seed for reproducibility.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0"><p class="text-gray-600 my-2">Oversample using SVM support vectors:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.preprocessing.sampling import SVMSMOTESampler
+&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; X = np.random.rand(100, 2)
+&gt;&gt;&gt; y = (X[:, 1] &gt; 0.7).astype(int)
+&gt;&gt;&gt; sampler = SVMSMOTESampler()
+&gt;&gt;&gt; X_res, y_res = sampler.fit_resample(X, y)</code></pre>
+            </div>
+        </div>
+        </div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-SVMSMOTESampler-get_parameter_schema">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_parameter_schema</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; Dict[str, Dict]</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return JSON Schema for parameters.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-SVMSMOTESampler-__repr__">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">__repr__</code>
+                    <span class="text-sm text-gray-400 font-mono">(self) -&gt; str</span>
+                </div>
+            </div>
+            
+</div></div>
+</div>
+<div class="mb-12 scroll-mt-24" id="class-KMeansSMOTESampler">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">KMeansSMOTESampler</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">preprocessing.sampling.smote.KMeansSMOTESampler</span>(<span class="text-cyan-400">SMOTESampler</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed">K-Means SMOTE for oversampling in &quot;safe&quot; clusters.</p>
+<div class="text-gray-600 mb-8 leading-relaxed">Combines K-Means clustering with SMOTE to avoid generating noise  and to focus oversampling on dense minority regions.</div>
+
+        <div class="mb-8">
+            <div class="bg-slate-800 rounded-lg overflow-hidden shadow-lg">
+                <div class="flex items-center justify-between px-4 py-2 bg-slate-900/50 border-b border-slate-700">
+                    <span class="text-slate-400 text-xs font-mono">Constructor</span>
+                    <button onclick="copyCode('init-KMeansSMOTESampler')" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i>
+                        <span class="text-xs">Copy</span>
+                    </button>
+                </div>
+                <div class="p-4 overflow-x-auto" id="init-KMeansSMOTESampler">
+                    <pre class="font-mono text-sm leading-relaxed"><span class="text-purple-400">__init__</span><span class="text-slate-300">(</span>
+    <span class="text-red-400">self</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">sampling_strategy</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Union[float, str, dict]</span> <span class="text-slate-400">=</span> <span class="text-green-400">&#x27;auto&#x27;</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">k_neighbors</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">5</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">n_clusters</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">None</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">cluster_balance_threshold</span><span class="text-slate-400">:</span> <span class="text-cyan-400">float</span> <span class="text-slate-400">=</span> <span class="text-green-400">0.5</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">random_state</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Optional[int]</span> <span class="text-slate-400">=</span> <span class="text-green-400">None</span><span class="text-slate-400">,</span>
+<span class="text-slate-300">)</span></pre>
+                </div>
+            </div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Overview</h4>
+            </div>
+            <div class="p-4">The algorithm performs three steps:
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+Cluster the entire dataset using K-Means.
+</li>
+
+<li class="text-gray-700">
+Filter clusters, keeping only those with a high proportion of minority
+</li>
+
+</ol>
+samples (&quot;safe&quot; clusters).
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+Apply SMOTE within each safe cluster.
+</li>
+
+</ol>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">sampling_strategy</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float, str or dict</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= &quot;auto&quot;</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Sampling strategy (see <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">SMOTESampler</code>).
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">k_neighbors</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 5</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Number of nearest neighbors used for SMOTE.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">n_clusters</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Number of clusters for K-Means. If <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">None</code>, defaults to :math:`\sqrt{n_{minority}}`.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">cluster_balance_threshold</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 0.5</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    The minimum ratio of minority samples in a cluster for it to be considered &quot;safe&quot; for oversampling.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">random_state</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Seed for reproducibility.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0"><p class="text-gray-600 my-2">Cluster-based oversampling:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.preprocessing.sampling import KMeansSMOTESampler
+&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; X = np.random.rand(200, 2)
+&gt;&gt;&gt; y = (np.linalg.norm(X - 0.5, axis=1) &lt; 0.2).astype(int)
+&gt;&gt;&gt; sampler = KMeansSMOTESampler(n_clusters=10)
+&gt;&gt;&gt; X_res, y_res = sampler.fit_resample(X, y)</code></pre>
+            </div>
+        </div>
+        </div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-KMeansSMOTESampler-get_parameter_schema">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_parameter_schema</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; Dict[str, Dict]</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return JSON Schema for parameters.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-KMeansSMOTESampler-__repr__">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">__repr__</code>
+                    <span class="text-sm text-gray-400 font-mono">(self) -&gt; str</span>
+                </div>
+            </div>
+            
+</div></div>
+</div>
+</div>
+</main>
+{% endblock %}

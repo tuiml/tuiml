@@ -1,0 +1,798 @@
+{% extends 'layouts/docs_generated.html' %}
+
+{% set active_nav = 'api' %}
+{% set breadcrumb_html = '<a href="../api-reference.html" class="hover:text-gray-900">API Reference</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="index.html" class="hover:text-gray-900">capymoa</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">trees</span>' %}
+
+{% block title %}trees - API Documentation{% endblock %}
+
+{% block content %}
+<p class="oc-caption api-crumb" style="margin: 0;"><a href="../api-reference.html">API Reference</a> / <a href="index.html">capymoa</a></p>
+<h1 class="oc-display" style="margin-bottom: 32px;">trees</h1>
+<nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
+<div class="oc-toc-label">On this page</div>
+<a href="#class-HoeffdingTree">HoeffdingTree</a>
+<a href="#class-HoeffdingAdaptiveTree">HoeffdingAdaptiveTree</a>
+<a href="#class-EFDT">EFDT</a>
+<a href="#class-FIMTDD">FIMTDD</a>
+</nav>
+<main>
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">CapyMOA trees wrappers.</p>
+<div class="doc-extended">Incremental (Hoeffding-bound based) decision trees backed by CapyMOA/MOA. Registered under <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">capymoa.<ClassName></code> hub keys, mirroring the native TuiML <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">trees</code> family.</div></div>
+<div class="mb-12">
+<h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-cubes text-indigo-500"></i> Classes</h2>
+<div class="mb-12 scroll-mt-24" id="class-HoeffdingTree">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">HoeffdingTree</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">capymoa.trees.HoeffdingTree</span>(<span class="text-cyan-400">_CapyMOAStreamMixin, Classifier</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed"><strong>Hoeffding Tree</strong> (VFDT) incremental classifier (hub key <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">capymoa.HoeffdingTree</code>).</p>
+<div class="text-gray-600 mb-8 leading-relaxed">Wraps <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">HoeffdingTree</code>. Grows a decision tree one instance at a time, using the Hoeffding bound to decide when enough instances have been seen to commit to a split — no need to store or revisit past data.</div>
+
+        <div class="mb-8">
+            <div class="bg-slate-800 rounded-lg overflow-hidden shadow-lg">
+                <div class="flex items-center justify-between px-4 py-2 bg-slate-900/50 border-b border-slate-700">
+                    <span class="text-slate-400 text-xs font-mono">Constructor</span>
+                    <button onclick="copyCode('init-HoeffdingTree')" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i>
+                        <span class="text-xs">Copy</span>
+                    </button>
+                </div>
+                <div class="p-4 overflow-x-auto" id="init-HoeffdingTree">
+                    <pre class="font-mono text-sm leading-relaxed"><span class="text-purple-400">__init__</span><span class="text-slate-300">(</span>
+    <span class="text-red-400">self</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">grace_period</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">200</span><span class="text-slate-400">,</span>
+<span class="text-slate-300">)</span></pre>
+                </div>
+            </div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">grace_period</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 200</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Number of instances a leaf must observe between split attempts. Smaller values adapt faster but cost more computation.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-list-check text-blue-500 mr-2"></i>Attributes</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">schema_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">capymoa.stream.Schema</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Stream schema derived from the training data.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">learner_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">capymoa.classifier.HoeffdingTree</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    The fitted backing CapyMOA learner.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">Requires the optional CapyMOA extra: <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">pip install &#x27;tuiml[capymoa]&#x27;</code>. The classic single-model streaming learner; assumes a mostly stationary stream. For drifting streams prefer <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">HoeffdingAdaptiveTree</code> or <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">AdaptiveRandomForest</code>.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/capymoa/trees.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">HoeffdingAdaptiveTree</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Drift-adaptive variant.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/capymoa/trees.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">EFDT</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Extremely fast (split-revising) variant.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.capymoa import HoeffdingTree
+&gt;&gt;&gt; from tuiml.datasets.generators import Agrawal
+&gt;&gt;&gt; data = Agrawal(n_samples=1000, function=2, random_state=42).generate()
+&gt;&gt;&gt; model = HoeffdingTree(grace_period=100).fit(data.X, data.y)
+&gt;&gt;&gt; model.predict(data.X[:5]).shape
+(5,)</code></pre>
+            </div>
+        </div>
+        </div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-HoeffdingTree-get_parameter_schema">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_parameter_schema</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; Dict[str, Any]</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return JSON Schema for constructor parameters.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-HoeffdingTree-get_capabilities">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_capabilities</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; List[str]</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return the capability names this wrapper supports.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+</div></div>
+</div>
+<div class="mb-12 scroll-mt-24" id="class-HoeffdingAdaptiveTree">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">HoeffdingAdaptiveTree</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">capymoa.trees.HoeffdingAdaptiveTree</span>(<span class="text-cyan-400">_CapyMOAStreamMixin, Classifier</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed"><strong>Hoeffding Adaptive Tree</strong> (HAT) drift-aware classifier (hub key <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">capymoa.HoeffdingAdaptiveTree</code>).</p>
+<div class="text-gray-600 mb-8 leading-relaxed">Wraps <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">HoeffdingAdaptiveTree</code>. Extends the Hoeffding Tree with ADWIN drift detectors at internal nodes: when a subtree&#x27;s accuracy degrades, an alternate subtree is grown in the background and swapped in once it performs better.</div>
+
+        <div class="mb-8">
+            <div class="bg-slate-800 rounded-lg overflow-hidden shadow-lg">
+                <div class="flex items-center justify-between px-4 py-2 bg-slate-900/50 border-b border-slate-700">
+                    <span class="text-slate-400 text-xs font-mono">Constructor</span>
+                    <button onclick="copyCode('init-HoeffdingAdaptiveTree')" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i>
+                        <span class="text-xs">Copy</span>
+                    </button>
+                </div>
+                <div class="p-4 overflow-x-auto" id="init-HoeffdingAdaptiveTree">
+                    <pre class="font-mono text-sm leading-relaxed"><span class="text-purple-400">__init__</span><span class="text-slate-300">(</span>
+    <span class="text-red-400">self</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">grace_period</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">200</span><span class="text-slate-400">,</span>
+<span class="text-slate-300">)</span></pre>
+                </div>
+            </div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">grace_period</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 200</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Number of instances a leaf must observe between split attempts.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-list-check text-blue-500 mr-2"></i>Attributes</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">schema_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">capymoa.stream.Schema</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Stream schema derived from the training data.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">learner_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">capymoa.classifier.HoeffdingAdaptiveTree</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    The fitted backing CapyMOA learner.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">Requires the optional CapyMOA extra: <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">pip install &#x27;tuiml[capymoa]&#x27;</code>. Prefer this over the plain <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">HoeffdingTree</code> when the data distribution is expected to change over time.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/capymoa/trees.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">HoeffdingTree</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Non-adaptive base variant.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/capymoa/ensemble.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">AdaptiveRandomForest</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Drift-aware ensemble.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.capymoa import HoeffdingAdaptiveTree
+&gt;&gt;&gt; from tuiml.datasets.generators import Hyperplane
+&gt;&gt;&gt; data = Hyperplane(n_samples=1000, n_drift_features=2,
+...                   random_state=42).generate()
+&gt;&gt;&gt; model = HoeffdingAdaptiveTree().fit(data.X, data.y)
+&gt;&gt;&gt; model.predict(data.X[:5]).shape
+(5,)</code></pre>
+            </div>
+        </div>
+        </div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-HoeffdingAdaptiveTree-get_parameter_schema">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_parameter_schema</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; Dict[str, Any]</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return JSON Schema for constructor parameters.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-HoeffdingAdaptiveTree-get_capabilities">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_capabilities</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; List[str]</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return the capability names this wrapper supports.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+</div></div>
+</div>
+<div class="mb-12 scroll-mt-24" id="class-EFDT">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">EFDT</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">capymoa.trees.EFDT</span>(<span class="text-cyan-400">_CapyMOAStreamMixin, Classifier</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed"><strong>Extremely Fast Decision Tree</strong> classifier (hub key <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">capymoa.EFDT</code>).</p>
+<div class="text-gray-600 mb-8 leading-relaxed">Wraps <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">EFDT</code>. A Hoeffding Tree variant that splits as soon as a split looks <em>useful</em> rather than provably <em>best</em>, then keeps re-evaluating and revising splits as more data arrives — converging to the batch tree faster than VFDT.</div>
+
+        <div class="mb-8">
+            <div class="bg-slate-800 rounded-lg overflow-hidden shadow-lg">
+                <div class="flex items-center justify-between px-4 py-2 bg-slate-900/50 border-b border-slate-700">
+                    <span class="text-slate-400 text-xs font-mono">Constructor</span>
+                    <button onclick="copyCode('init-EFDT')" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i>
+                        <span class="text-xs">Copy</span>
+                    </button>
+                </div>
+                <div class="p-4 overflow-x-auto" id="init-EFDT">
+                    <pre class="font-mono text-sm leading-relaxed"><span class="text-purple-400">__init__</span><span class="text-slate-300">(</span>
+    <span class="text-red-400">self</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">grace_period</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">200</span><span class="text-slate-400">,</span>
+<span class="text-slate-300">)</span></pre>
+                </div>
+            </div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">grace_period</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 200</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Number of instances a leaf must observe between split attempts.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-list-check text-blue-500 mr-2"></i>Attributes</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">schema_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">capymoa.stream.Schema</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Stream schema derived from the training data.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">learner_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">capymoa.classifier.EFDT</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    The fitted backing CapyMOA learner.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">Requires the optional CapyMOA extra: <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">pip install &#x27;tuiml[capymoa]&#x27;</code>.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/capymoa/trees.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">HoeffdingTree</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Classic VFDT.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.capymoa import EFDT
+&gt;&gt;&gt; from tuiml.datasets.generators import Agrawal
+&gt;&gt;&gt; data = Agrawal(n_samples=1000, function=3, random_state=42).generate()
+&gt;&gt;&gt; model = EFDT().fit(data.X, data.y)
+&gt;&gt;&gt; model.predict(data.X[:5]).shape
+(5,)</code></pre>
+            </div>
+        </div>
+        </div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-EFDT-get_parameter_schema">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_parameter_schema</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; Dict[str, Any]</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return JSON Schema for constructor parameters.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-EFDT-get_capabilities">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_capabilities</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; List[str]</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return the capability names this wrapper supports.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+</div></div>
+</div>
+<div class="mb-12 scroll-mt-24" id="class-FIMTDD">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">FIMTDD</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">capymoa.trees.FIMTDD</span>(<span class="text-cyan-400">_CapyMOAStreamMixin, Regressor</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed"><strong>FIMT-DD</strong> streaming regression tree (hub key <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">capymoa.FIMTDD</code>).</p>
+<div class="text-gray-600 mb-8 leading-relaxed">Wraps <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">FIMTDD</code>. Fast Incremental Model Tree with Drift Detection: grows a regression tree incrementally, fits linear models in the leaves, and replaces subtrees when drift is detected.</div>
+
+        <div class="mb-8">
+            <div class="bg-slate-800 rounded-lg overflow-hidden shadow-lg">
+                <div class="flex items-center justify-between px-4 py-2 bg-slate-900/50 border-b border-slate-700">
+                    <span class="text-slate-400 text-xs font-mono">Constructor</span>
+                    <button onclick="copyCode('init-FIMTDD')" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i>
+                        <span class="text-xs">Copy</span>
+                    </button>
+                </div>
+                <div class="p-4 overflow-x-auto" id="init-FIMTDD">
+                    <pre class="font-mono text-sm leading-relaxed"><span class="text-purple-400">__init__</span><span class="text-slate-300">(</span>
+    <span class="text-red-400">self</span><span class="text-slate-400">,</span>
+<span class="text-slate-300">)</span></pre>
+                </div>
+            </div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-list-check text-blue-500 mr-2"></i>Attributes</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">schema_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">capymoa.stream.Schema</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Stream schema derived from the training data.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">learner_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">capymoa.regressor.FIMTDD</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    The fitted backing CapyMOA learner.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">Requires the optional CapyMOA extra: <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">pip install &#x27;tuiml[capymoa]&#x27;</code>.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/capymoa/ensemble.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">AdaptiveRandomForestRegressor</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Ensemble alternative for drifting regression streams.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.capymoa import FIMTDD
+&gt;&gt;&gt; from tuiml.datasets.generators import Friedman
+&gt;&gt;&gt; data = Friedman(n_samples=1000, random_state=42).generate()
+&gt;&gt;&gt; model = FIMTDD().fit(data.X, data.y)
+&gt;&gt;&gt; model.predict(data.X[:5]).shape
+(5,)</code></pre>
+            </div>
+        </div>
+        </div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+            <div class="border-l-4 border-gray-200 pl-4 py-2 hover:border-indigo-400 transition-colors" id="method-FIMTDD-__init__">
+                <div class="flex items-baseline gap-2">
+                    <code class="font-bold text-gray-600 text-base">__init__</code>
+                    <span class="text-sm text-gray-400 font-mono">(self)</span>
+                </div>
+            </div>
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-FIMTDD-get_parameter_schema">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_parameter_schema</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; Dict[str, Any]</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return JSON Schema for constructor parameters.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-FIMTDD-get_capabilities">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_capabilities</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; List[str]</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return the capability names this wrapper supports.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+</div></div>
+</div>
+</div>
+</main>
+{% endblock %}

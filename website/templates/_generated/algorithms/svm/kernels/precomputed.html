@@ -1,0 +1,771 @@
+{% extends 'layouts/docs_generated.html' %}
+
+{% set active_nav = 'api' %}
+{% set breadcrumb_html = '<a href="../../../api-reference.html" class="hover:text-gray-900">API Reference</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="../../index.html" class="hover:text-gray-900">algorithms</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="../index.html" class="hover:text-gray-900">svm</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="index.html" class="hover:text-gray-900">kernels</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">precomputed</span>' %}
+
+{% block title %}precomputed - API Documentation{% endblock %}
+
+{% block content %}
+<p class="oc-caption api-crumb" style="margin: 0;"><a href="../../../api-reference.html">API Reference</a> / <a href="../../index.html">algorithms</a> / <a href="../index.html">svm</a> / <a href="index.html">kernels</a></p>
+<h1 class="oc-display" style="margin-bottom: 32px;">precomputed</h1>
+<nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
+<div class="oc-toc-label">On this page</div>
+<a href="#class-PrecomputedKernel">PrecomputedKernel</a>
+</nav>
+<main>
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Precomputed Kernel Matrix implementation.</p></div>
+<div class="mb-12">
+<h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-cubes text-indigo-500"></i> Classes</h2>
+<div class="mb-12 scroll-mt-24" id="class-PrecomputedKernel">
+
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">PrecomputedKernel</h2>
+            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">algorithms.svm.kernels.precomputed.PrecomputedKernel</span>(<span class="text-cyan-400">Kernel</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed">Precomputed Kernel Matrix for supplying a pre-calculated <strong>Gram matrix</strong>.</p>
+<div class="text-gray-600 mb-8 leading-relaxed">The Precomputed Kernel allows users to provide their own kernel (Gram) matrix rather than having it computed internally. This is useful when the kernel is <strong>expensive to compute</strong>, when using a <strong>custom kernel</strong> not available in the library, or when the kernel matrix comes from an <strong>external source</strong>.</div>
+
+        <div class="mb-8">
+            <div class="bg-slate-800 rounded-lg overflow-hidden shadow-lg">
+                <div class="flex items-center justify-between px-4 py-2 bg-slate-900/50 border-b border-slate-700">
+                    <span class="text-slate-400 text-xs font-mono">Constructor</span>
+                    <button onclick="copyCode('init-PrecomputedKernel')" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i>
+                        <span class="text-xs">Copy</span>
+                    </button>
+                </div>
+                <div class="p-4 overflow-x-auto" id="init-PrecomputedKernel">
+                    <pre class="font-mono text-sm leading-relaxed"><span class="text-purple-400">__init__</span><span class="text-slate-300">(</span>
+    <span class="text-red-400">self</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">kernel_matrix</span><span class="text-slate-400">:</span> <span class="text-cyan-400">np.ndarray</span> <span class="text-slate-400">=</span> <span class="text-green-400">None</span><span class="text-slate-400">,</span>
+<span class="text-slate-300">)</span></pre>
+                </div>
+            </div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Overview</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+The usage workflow is:
+</p>
+
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+Compute a kernel matrix <span class="katex-inline">K</span> externally (e.g., a custom domain-specific kernel)
+</li>
+
+<li class="text-gray-700">
+Pass the matrix to <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">PrecomputedKernel</code> (either at construction or via <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">set_kernel_matrix</code>)
+</li>
+
+<li class="text-gray-700">
+Call <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">build(X)</code> to associate training indices with the matrix
+</li>
+
+<li class="text-gray-700">
+Use <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">compute(i, j)</code> or <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">compute_matrix()</code> to retrieve kernel values
+</li>
+
+</ol>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Theory</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+A valid kernel matrix <span class="katex-inline">K \in \mathbb{R}^{n \times n}</span> must be <strong>symmetric</strong> and <strong>positive semi-definite</strong> (Mercer&#x27;s condition):
+</p>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">K_{ij} = K(x_i, x_j), \quad K = K^T, \quad \forall c: c^T K c \geq 0</span>
+</div>
+
+<p class="mb-4">
+Any function <span class="katex-inline">K: \mathcal{X} \times \mathcal{X} \to \mathbb{R}</span> satisfying Mercer&#x27;s theorem can be represented as a precomputed matrix.
+</p>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">kernel_matrix</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray or None</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= None</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Precomputed kernel matrix of shape <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">(n_samples, n_samples)</code>. If <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">None</code>, the matrix passed to <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">build()</code> is treated as the kernel matrix itself.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-list-check text-blue-500 mr-2"></i>Attributes</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">n_samples\_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Number of samples in the kernel matrix.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">n_features\_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Number of features (or <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">n_samples</code> when the matrix is used directly).
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+<strong>Complexity:</strong>
+</p>
+
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+Lookup: <span class="katex-inline">O(1)</span> per pair (direct matrix indexing)
+</li>
+
+<li class="text-gray-700">
+Storage: <span class="katex-inline">O(n^2)</span> for the full Gram matrix
+</li>
+
+</ul>
+<strong>When to use PrecomputedKernel:</strong>
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+When using a domain-specific or custom kernel function
+</li>
+
+<li class="text-gray-700">
+When the kernel computation is expensive and should be done once
+</li>
+
+<li class="text-gray-700">
+Graph kernels, Wasserstein kernels, or other specialized similarity measures
+</li>
+
+<li class="text-gray-700">
+When leveraging external libraries to compute the kernel matrix
+</li>
+
+</ul>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-book text-amber-500 mr-2"></i>References</h4>
+            </div>
+            <div class="p-4"><div class="reference-list space-y-2">
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">Scholkopf2002</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Schoelkopf, B. and Smola, A.J. (2002).
+       <strong class="text-gray-900">Learning with Kernels: Support Vector Machines, Regularization, Optimization, and Beyond.</strong>
+       <em class="text-gray-700">MIT Press</em>.</div>
+                    </div>
+                </div>
+                </div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/algorithms/svm/kernels/rbf.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">RBFKernel</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Gaussian RBF kernel computed on-the-fly.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/algorithms/svm/kernels/linear.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">LinearKernel</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Linear kernel for dot-product similarity.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0"><p class="text-gray-600 my-2">Basic usage with an externally computed kernel matrix:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.algorithms.svm.kernels import PrecomputedKernel
+&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt;
+&gt;&gt;&gt; # Create a simple kernel matrix (linear kernel)
+&gt;&gt;&gt; X = np.array([[1, 2], [3, 4], [5, 6]])
+&gt;&gt;&gt; K = X @ X.T
+&gt;&gt;&gt; kernel = PrecomputedKernel(kernel_matrix=K)
+&gt;&gt;&gt; kernel.build(X)
+PrecomputedKernel(...)
+&gt;&gt;&gt; value = kernel.compute(0, 1)</code></pre>
+            </div>
+        </div>
+        </div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-PrecomputedKernel-get_parameter_schema">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_parameter_schema</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; Dict[str, Dict[str, Any]]</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return parameter schema.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-PrecomputedKernel-build">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">build</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray) -&gt; &#x27;PrecomputedKernel&#x27;</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Build with training data.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Training data or kernel matrix.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">self</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">PrecomputedKernel</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Returns the built instance.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-PrecomputedKernel-set_kernel_matrix">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">set_kernel_matrix</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, K: np.ndarray) -&gt; &#x27;PrecomputedKernel&#x27;</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Set or update the kernel matrix.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">K</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_samples)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Kernel matrix.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">self</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">PrecomputedKernel</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Returns the updated instance.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-PrecomputedKernel-evaluate">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">evaluate</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, x1: np.ndarray, x2: np.ndarray) -&gt; float</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Evaluate is not supported for precomputed kernels.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">x1</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    First vector (unused).
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">x2</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Second vector (unused).
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">None</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-triangle-exclamation text-gray-400"></i> Raises
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">NotImplementedError</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Always raised; use <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">compute(i, j)</code> instead.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-PrecomputedKernel-compute">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">compute</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, i: int, j: int) -&gt; float</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Get precomputed kernel value.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">i</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Index of first instance.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">j</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Index of second instance.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">val</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    K[i, j] from precomputed matrix.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-PrecomputedKernel-compute_matrix">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">compute_matrix</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self) -&gt; np.ndarray</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return a copy of the precomputed kernel matrix.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">K</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_samples)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    A copy of the stored Gram matrix.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-PrecomputedKernel-compute_matrix_cross">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">compute_matrix_cross</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X1: np.ndarray, X2: np.ndarray) -&gt; np.ndarray</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Retrieve sub-matrix from the precomputed kernel matrix by index.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X1</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n1,) or (n1, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    If 1-D integer array, treated as row indices into the stored kernel matrix. Otherwise falls back to the base class.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X2</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n2,) or (n2, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    If 1-D integer array, treated as column indices into the stored kernel matrix. Otherwise falls back to the base class.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">K</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n1, n2)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Sub-matrix of the precomputed kernel.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-PrecomputedKernel-__repr__">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">__repr__</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self) -&gt; str</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">String representation.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+</div></div>
+</div>
+</div>
+</main>
+{% endblock %}

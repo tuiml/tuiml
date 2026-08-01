@@ -1,0 +1,255 @@
+{% extends 'layouts/docs_generated.html' %}
+
+{% set active_nav = 'api' %}
+{% set breadcrumb_html = '<a href="../api-reference.html" class="hover:text-gray-900">API Reference</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="index.html" class="hover:text-gray-900">cli</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">serve</span>' %}
+
+{% block title %}serve - API Documentation{% endblock %}
+
+{% block content %}
+<p class="oc-caption api-crumb" style="margin: 0;"><a href="../api-reference.html">API Reference</a> / <a href="index.html">cli</a></p>
+<h1 class="oc-display" style="margin-bottom: 32px;">serve</h1>
+<nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
+<div class="oc-toc-label">On this page</div>
+<a href="#func-serve">serve</a>
+</nav>
+<main>
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Serve Command - Start a REST API server for model predictions.</p></div>
+<div class="mb-12">
+<h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-code text-indigo-500"></i> Functions</h2>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-serve">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-indigo-100 text-indigo-700 uppercase tracking-wide">Command</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">tuiml serve</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 17</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">tuiml serve [OPTIONS]</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Serve a trained model over a REST API.</p>
+<div class="doc-extended">Loads a model and runs it behind HTTP endpoints in the foreground, so other services can request predictions over the network. The server is backed by <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">serving</code> and publishes interactive OpenAPI docs at <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">/docs</code>. Press Ctrl-C to shut it down, or stop a detached server with <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml stop-server</code>.</div>
+<div class="mb-8 last:mb-0"><p class="text-gray-600 my-2">Serve a model on the default port:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">bash</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-bash">$ tuiml serve --model-path model.pkl</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">Serve on a custom port with a specific model ID:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">bash</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-bash">$ tuiml serve --model-path classifier.pkl -m my_classifier -p 9000</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">Serve with multiple workers, reachable from other machines:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">bash</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-bash">$ tuiml serve --model-path model.pkl -w 4 -H 0.0.0.0</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">Serve a model already trained in this session, by ID:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">bash</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-bash">$ tuiml serve --model-id abc123</code></pre>
+            </div>
+        </div>
+        </div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Endpoints</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+GET  /health - Health check
+</li>
+
+<li class="text-gray-700">
+GET  /stats - Server statistics
+</li>
+
+<li class="text-gray-700">
+GET  /models - List loaded models
+</li>
+
+<li class="text-gray-700">
+POST /models - Load additional models
+</li>
+
+<li class="text-gray-700">
+GET  /models/{id} - Get model info
+</li>
+
+<li class="text-gray-700">
+POST /models/{id}/predict - Make predictions
+</li>
+
+<li class="text-gray-700">
+POST /models/{id}/predict_proba - Get probabilities
+</li>
+
+<li class="text-gray-700">
+POST /predict - Predict with default model
+</li>
+
+</ul>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>API Documentation</h4>
+            </div>
+            <div class="p-4">After starting the server, visit:
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+http://localhost:8000/docs - Swagger UI
+</li>
+
+<li class="text-gray-700">
+http://localhost:8000/redoc - ReDoc
+</li>
+
+</ul>
+</div>
+        </div>
+        </div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden mt-6">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center">
+                    <i class="fa-solid fa-terminal text-indigo-500 mr-2"></i>Options
+                </h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-4">
+                    <code class="font-bold text-indigo-600 text-sm">--model-path</code>
+                </div>
+                <div class="md:col-span-8">
+                    <div class="flex flex-wrap gap-1 mb-1"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">path</span></div>
+                    <div class="text-sm text-gray-600">Path to a saved model file to serve (alternative to --model-id).</div>
+                </div>
+            </div>
+            
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-4">
+                    <code class="font-bold text-indigo-600 text-sm">--model-id, -m</code>
+                </div>
+                <div class="md:col-span-8">
+                    <div class="flex flex-wrap gap-1 mb-1"></div>
+                    <div class="text-sm text-gray-600">ID of a model already trained by &quot;tuiml train&quot;. Also names the model in the URL path.</div>
+                </div>
+            </div>
+            
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-4">
+                    <code class="font-bold text-indigo-600 text-sm">--host, -H</code>
+                </div>
+                <div class="md:col-span-8">
+                    <div class="flex flex-wrap gap-1 mb-1"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600">= &#x27;127.0.0.1&#x27;</span></div>
+                    <div class="text-sm text-gray-600">Interface to bind to (default: 127.0.0.1). Use 0.0.0.0 to accept connections from other machines.</div>
+                </div>
+            </div>
+            
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-4">
+                    <code class="font-bold text-indigo-600 text-sm">--port, -p</code>
+                </div>
+                <div class="md:col-span-8">
+                    <div class="flex flex-wrap gap-1 mb-1"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span> <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600">= 8000</span></div>
+                    <div class="text-sm text-gray-600">TCP port to listen on (default: 8000).</div>
+                </div>
+            </div>
+            
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-4">
+                    <code class="font-bold text-indigo-600 text-sm">--workers, -w</code>
+                </div>
+                <div class="md:col-span-8">
+                    <div class="flex flex-wrap gap-1 mb-1"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span> <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600">= 1</span></div>
+                    <div class="text-sm text-gray-600">Number of worker processes to run (default: 1). Raise this to serve concurrent requests.</div>
+                </div>
+            </div>
+            
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-4">
+                    <code class="font-bold text-indigo-600 text-sm">--reload</code>
+                </div>
+                <div class="md:col-span-8">
+                    <div class="flex flex-wrap gap-1 mb-1"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">flag</span></div>
+                    <div class="text-sm text-gray-600">Restart the server whenever the source changes. For development only.</div>
+                </div>
+            </div>
+            </div></div>
+        </div>
+        
+</div></div>
+</div>
+</main>
+{% endblock %}

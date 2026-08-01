@@ -1,0 +1,194 @@
+{% extends 'layouts/docs_generated.html' %}
+
+{% set active_nav = 'api' %}
+{% set breadcrumb_html = '<a href="api-reference.html" class="hover:text-gray-900">API Reference</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">training</span>' %}
+
+{% block title %}training - API Documentation{% endblock %}
+
+{% block content %}
+<p class="oc-caption api-crumb" style="margin: 0;"><a href="api-reference.html">API Reference</a></p>
+<h1 class="oc-display" style="margin-bottom: 32px;">training</h1>
+<nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
+<div class="oc-toc-label">On this page</div>
+<a href="#func-train">train</a>
+</nav>
+<main>
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Train models from one declarative spec.</p>
+<div class="doc-extended">The high-level entry point of the library: <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">train</code> takes a single spec dict describing the model, the data, the pipeline, and the evaluation, builds the corresponding <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Workflow</code>, and returns it fitted. <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">PRESETS</code> provides ready-made pipeline step lists.</div></div>
+<div class="mb-12">
+<h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-code text-indigo-500"></i> Functions</h2>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-train">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">train</h3>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 18</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">train(spec: Union[Dict[str, Any], str]) -&gt; &#x27;Workflow&#x27;</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Train a model from one declarative spec.</p>
+<div class="doc-extended">
+<p class="mb-4">
+This is the high-level entry point. The whole run is described by a single dict (or a path to a JSON file containing it). Every component is written the same way, as <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">{&quot;name&quot;: ..., &quot;params&quot;: {...}}</code>, so a spec can be stored, diffed, sent over the wire, and replayed.
+</p>
+
+<p class="mb-4">
+To work with imported classes and configured instances instead, use <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Workflow</code> directly. It takes the same pipeline as a list of objects.
+</p>
+</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">spec</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">dict or str</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    The experiment spec, or a path to a <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">.json</code> file containing it. Keys: <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">model</code> (required) What to train, as <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">{&quot;name&quot;: &quot;RandomForestClassifier&quot;, &quot;params&quot;: {&quot;n_estimators&quot;: 100}}</code>. <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;params&quot;</code> may be omitted for defaults; hyperparameters outside it are rejected. <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">data</code> (required) What to train on. <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">{&quot;source&quot;: &quot;sales.csv&quot;, &quot;target&quot;: &quot;label&quot;}</code> for a file (csv, arff, parquet, json, excel, auto-detected) or a builtin dataset name, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">{&quot;X&quot;: X_array, &quot;y&quot;: y_array}</code> for in-memory arrays, or a bare source such as <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;iris&quot;</code>. <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">target</code>, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">features</code> (optional) Companions for a bare <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">data</code> source: the target column name (or array) and a column subset to keep. <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">pipeline</code> (optional) Ordered steps applied before the model. Each step is a component spec; imputation, scaling, encoding, feature generation, extraction, selection, and resampling are all steps. A preset name (<code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;minimal&quot;</code>, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;fast&quot;</code>, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;standard&quot;</code>, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;full&quot;</code>, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;imbalanced&quot;</code>) expands to a predefined list. <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">evaluation</code> (optional) How to score the run. <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">{&quot;cv&quot;: 10}</code> for k-fold, or <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">{&quot;test_size&quot;: 0.2, &quot;stratify&quot;: True}</code> for a holdout split, plus <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;metrics&quot;</code>: a list of metric function names from <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">tuiml.evaluation.metrics</code> (default <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;auto&quot;</code>). Omitted entirely: a stratified 80/20 holdout with auto metrics. <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">random_seed</code> (optional) Seed for splits, folds, and any component that accepts one. Falls back to the global seed, then 42.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-arrow-right-from-bracket text-green-500 mr-2"></i>Returns</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">Workflow</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    The fitted pipeline. It behaves like a model: <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">metrics_</code> holds the evaluation scores, and <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">predict(X)</code>, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">score(X, y)</code>, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">save(path)</code>, <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">serve(port=...)</code> are all available on it.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-triangle-exclamation text-red-500 mr-2"></i>Raises</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">ValueError</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    If required keys are missing, an unknown key is present, or a component spec carries loose hyperparameter keys.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; import tuiml
+&gt;&gt;&gt; model = tuiml.train({
+...     &quot;model&quot;: {&quot;name&quot;: &quot;RandomForestClassifier&quot;,
+...               &quot;params&quot;: {&quot;n_estimators&quot;: 100}},
+...     &quot;data&quot;: {&quot;source&quot;: &quot;sales.csv&quot;, &quot;target&quot;: &quot;label&quot;},
+...     &quot;pipeline&quot;: [
+...         {&quot;name&quot;: &quot;SimpleImputer&quot;, &quot;params&quot;: {&quot;strategy&quot;: &quot;mean&quot;}},
+...         {&quot;name&quot;: &quot;StandardScaler&quot;},
+...         {&quot;name&quot;: &quot;SelectKBestSelector&quot;, &quot;params&quot;: {&quot;k&quot;: 10}},
+...     ],
+...     &quot;evaluation&quot;: {&quot;cv&quot;: 10, &quot;metrics&quot;: [&quot;accuracy_score&quot;]},
+...     &quot;random_seed&quot;: 42,
+... })
+&gt;&gt;&gt; model.metrics_                                    # doctest: +SKIP
+{&#x27;cv_accuracy_score_mean&#x27;: 0.94, &#x27;cv_accuracy_score_std&#x27;: 0.02}</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">The same spec from a JSON file:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; model = tuiml.train(&quot;experiment.json&quot;)            # doctest: +SKIP</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">In-memory arrays:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; model = tuiml.train({
+...     &quot;model&quot;: {&quot;name&quot;: &quot;NaiveBayesClassifier&quot;},
+...     &quot;data&quot;: {&quot;X&quot;: X, &quot;y&quot;: y},
+... })                                                # doctest: +SKIP</code></pre>
+            </div>
+        </div>
+        </div></div>
+</div></div>
+</div>
+</main>
+{% endblock %}
