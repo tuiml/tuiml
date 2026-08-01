@@ -9,7 +9,7 @@ landing/docs site in `website/`, and tooling in `scripts/`.
 
 ```bash
 # From the repo root
-uv run scripts/bump_version.py patch     # 0.1.6 → 0.1.7
+uv run scripts/bump_version.py patch     # 1.2.3 → 1.2.4
                                          # or: minor / major / X.Y.Z
 
 # Fill in the new section
@@ -19,10 +19,10 @@ $EDITOR CHANGELOG.md
 uv run scripts/generate_docs.py
 
 # Commit + tag + release (this ships to PyPI)
-git add -A && git commit -m "Bump version to 0.1.7"
-git tag v0.1.7
+git add -A && git commit -m "Bump version to X.Y.Z"
+git tag vX.Y.Z
 git push origin main --tags
-gh release create v0.1.7 --generate-notes
+gh release create vX.Y.Z --generate-notes
 ```
 
 ## What gets bumped
@@ -34,8 +34,9 @@ carries one. Current tracked files:
 - `pyproject.toml`
 - `tuiml/__init__.py`
 - `tuiml/_cpp/module.cpp` (`m.attr("__version__")`)
-- `tuiml/agent/SKILL.md` (frontmatter `version:`)
-- `tests/test_serving/test_schemas.py`
+- `tuiml/agent/prompts/SKILL.md` (frontmatter `version:`)
+- `tutorials/llm_friendly/02_mcp_server.ipynb` (a stored output cell prints
+  the version, and the tutorial is published on the site)
 - `CHANGELOG.md` (adds an empty section)
 
 **Bundled website (`website/`):**
@@ -49,7 +50,11 @@ there is no website copy to keep in sync.
 
 If you add a new file with a hardcoded version, add it to the
 `VERSION_FILES` list in `scripts/bump_version.py` so future bumps catch
-it. To audit, run:
+it. Avoid hardcoding the release version in tests: `test_schemas.py` used
+to, and every bump broke it, because the script rewrote the constructor
+argument and left the assertion on the old value.
+
+To audit, run (substituting the version you just moved *off*):
 
 ```bash
 grep -rn "0\.1\.6" --include='*.py' --include='*.toml' \
@@ -91,13 +96,16 @@ the new version.
 - **Tag already exists from a failed run:** delete it locally and on the
   remote before re-tagging:
   ```bash
-  git tag -d v0.1.7
-  git push origin :refs/tags/v0.1.7
+  git tag -d vX.Y.Z
+  git push origin :refs/tags/vX.Y.Z
   ```
 - **PyPI shows old version after release:** the GitHub Actions run uses
   `skip-existing: true`, so a re-run without bumping the version is a
   no-op. Bump first.
-- **`bump_version.py` reports `SKIP` for a file:** the path in
-  `VERSION_FILES` no longer exists. Either remove or update it.
-- **`bump_version.py` reports `WARN (no match)`:** the regex didn't match.
-  The version is likely missing from that file, or the file format changed.
+- **`bump_version.py` aborts with "VERSION_FILES is out of date":** a
+  registered file has moved, been deleted, or no longer matches its regex.
+  The check runs before anything is written, so the tree is untouched — fix
+  the entry in `scripts/bump_version.py` (or drop it if the file no longer
+  carries a version) and re-run. This used to be a `SKIP`/`WARN` that let
+  the bump continue, which is how `SKILL.md` shipped a release still on the
+  previous version after it moved to `tuiml/agent/prompts/`.

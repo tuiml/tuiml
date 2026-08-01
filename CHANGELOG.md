@@ -31,6 +31,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `tuiml_list(search=...)`, which has always worked.
 
 ### Fixed
+- **The next release would have shipped two files on the old version.**
+  `bump_version.py` still pointed at `tuiml/agent/SKILL.md`, which moved to
+  `tuiml/agent/prompts/` in the agent reorg. The script printed `SKIP (not
+  found)` and carried on, so the skill file's advertised version would have
+  silently lagged. A pre-flight check now verifies every registered file
+  exists and still matches its pattern, and aborts before writing anything —
+  a rejected bump can no longer leave the tree half-updated. Verified by
+  running a real bump against a throwaway clone.
+- **Every version bump broke `test_schemas.py`.** It hardcoded the release
+  version twice, but the registered regex matched only the constructor
+  argument (`version="0.1.6"`), not the assertion (`== "0.1.6"`), so a bump
+  rewrote one and left the other. The test now uses an arbitrary version
+  string — the real endpoint passes `tuiml.__version__` in, so the test only
+  ever checked that the field round-trips — and is no longer version-tracked.
+- **The published MCP tutorial showed a stale version.** A stored output cell
+  in `tutorials/llm_friendly/02_mcp_server.ipynb` prints `TuiML version:` and
+  was never bumped, so readers on tuiml.ai saw whatever it last said. Now
+  registered.
+- **The Pages workflow ignored two of its own build inputs.** It fired only on
+  `website/**`, but `build.py` also reads `tutorials/` and `CHANGELOG.md` from
+  the repo root. A tutorial-only edit changed what the site would publish
+  without triggering the build that publishes it, leaving the 19 `/tutorials/`
+  pages behind the repo until an unrelated `website/` change fired a deploy.
 - **`tuiml_self_update(dry_run=True)` failed in a dev checkout.** The
   editable-install guard ran before the dry-run branch, so a call that promises
   to change nothing and report what would happen returned an error instead. A

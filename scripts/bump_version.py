@@ -38,13 +38,15 @@ VERSION_FILES = [
         r"\g<1>{version}\2",
     ),
     (
-        TUIML / "tests" / "test_serving" / "test_schemas.py",
-        r'(version=")[^"]+(")',
-        r"\g<1>{version}\2",
-    ),
-    (
-        TUIML / "tuiml" / "agent" / "SKILL.md",
+        TUIML / "tuiml" / "agent" / "prompts" / "SKILL.md",
         r"(^version:\s*)[^\s]+",
+        r"\g<1>{version}",
+    ),
+    # The published tutorial prints the version in a stored output cell, so a
+    # reader on tuiml.ai sees whatever it last said.
+    (
+        TUIML / "tutorials" / "llm_friendly" / "02_mcp_server.ipynb",
+        r'(TuiML version: )\d+\.\d+\.\d+',
         r"\g<1>{version}",
     ),
     # --- bundled website (website/) ---
@@ -99,22 +101,58 @@ def compute_next_version(current: str, bump_type: str) -> str:
     return f"{major}.{minor}.{patch}"
 
 
-def update_version_files(old_version: str, new_version: str) -> None:
-    """Replace version strings in all tracked files."""
-    for filepath, pattern, template in VERSION_FILES:
-        if not filepath.exists():
-            print(f"  SKIP {filepath.relative_to(ROOT)} (not found)")
-            continue
+def check_version_files() -> None:
+    """Verify every registered file exists and its pattern still matches.
 
+    Runs before anything is written. A file that moved (or a pattern that a
+    refactor invalidated) used to print SKIP/WARN and let the bump continue,
+    which shipped a release with one file left on the old version — exactly
+    how ``tuiml/agent/SKILL.md`` went stale after it moved to
+    ``tuiml/agent/prompts/``. Failing here, before the first write, also keeps
+    a rejected bump from leaving the tree half-updated.
+
+    Raises
+    ------
+    SystemExit
+        If any registered file is missing or no longer matches its pattern.
+    """
+    problems = []
+    for filepath, pattern, _template in VERSION_FILES:
+        rel = filepath.relative_to(ROOT)
+        if not filepath.exists():
+            problems.append(f"  {rel}: file not found (moved or deleted?)")
+            continue
+        if not re.search(pattern, filepath.read_text(), flags=re.MULTILINE):
+            problems.append(f"  {rel}: no match for pattern {pattern!r}")
+
+    if problems:
+        print("ERROR: VERSION_FILES is out of date, nothing was changed:\n")
+        print("\n".join(problems))
+        print(
+            "\nFix the entry in scripts/bump_version.py (or remove it if the "
+            "file no longer carries a version), then re-run."
+        )
+        sys.exit(1)
+
+
+def update_version_files(old_version: str, new_version: str) -> None:
+    """Replace version strings in all tracked files.
+
+    :func:`check_version_files` has already proved every file exists and
+    matches, so a zero-replacement result here is a real failure.
+    """
+    for filepath, pattern, template in VERSION_FILES:
         text = filepath.read_text()
         replacement = template.format(version=new_version)
         new_text, count = re.subn(pattern, replacement, text, flags=re.MULTILINE)
 
         if count == 0:
-            print(f"  WARN {filepath.relative_to(ROOT)} (no match for pattern)")
-        else:
-            filepath.write_text(new_text)
-            print(f"  OK   {filepath.relative_to(ROOT)} ({count} replacement(s))")
+            print(f"ERROR: {filepath.relative_to(ROOT)} matched during the "
+                  f"pre-flight check but not during replacement")
+            sys.exit(1)
+
+        filepath.write_text(new_text)
+        print(f"  OK   {filepath.relative_to(ROOT)} ({count} replacement(s))")
 
 
 def update_hub_templates(old_version: str, new_version: str) -> None:
@@ -209,6 +247,8 @@ def main():
     if new_version == current:
         print(f"Version is already {current}, nothing to do.")
         sys.exit(0)
+
+    check_version_files()
 
     print(f"\nBumping version: {current} -> {new_version}\n")
 

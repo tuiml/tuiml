@@ -145,9 +145,14 @@ class TestModelListResponse:
 # ---------------------------------------------------------------------------
 class TestHealthResponse:
     def test_valid_construction(self):
-        resp = HealthResponse(status="healthy", version="0.1.6", models_loaded=2)
+        # An arbitrary version string on purpose: the real endpoint passes
+        # tuiml.__version__ in, so this only checks the field round-trips.
+        # Hardcoding the release version here made every bump break the test,
+        # because bump_version.py rewrote the constructor argument and left
+        # the assertion on the old value.
+        resp = HealthResponse(status="healthy", version="9.9.9", models_loaded=2)
         assert resp.status == "healthy"
-        assert resp.version == "0.1.6"
+        assert resp.version == "9.9.9"
         assert resp.models_loaded == 2
 
 
