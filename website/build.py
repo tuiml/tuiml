@@ -149,9 +149,6 @@ PAGES: dict[str, tuple[str, dict]] = {
     "/docs/contributing.html": ("pages/contributing.html", {
         "active_nav": "contributing", "page_title": "Contributing",
     }),
-    "/docs/remote-mcp.html": ("pages/remote-mcp.html", {
-        "active_nav": "", "page_title": "Remote MCP Setup",
-    }),
     "/docs/privacy.html": ("pages/privacy.html", {
         "title": "Privacy Policy — TuiML",
         "meta_description": (

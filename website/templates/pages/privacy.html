@@ -7,123 +7,154 @@
     <title>Privacy Policy, TuiML</title>
     <meta name="description" content="Privacy policy for TuiML, an open-source agent-native ML runtime. TuiML runs locally on your machine and does not collect personal data.">
     <meta name="robots" content="index,follow">
-    <link rel="canonical" href="{{ request.url|string }}">
+    <meta name="theme-color" content="#0b1628">
+    <link rel="canonical" href="https://tuiml.ai/docs/privacy.html">
 
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="{{ config.project_name }}">
     <meta property="og:title" content="Privacy Policy, TuiML">
-    <meta property="og:description" content="Privacy policy for the TuiML open-source project.">
-    <meta property="og:url" content="{{ request.url|string }}">
-    <meta property="og:image" content="{{ request.url_for('static', path='images/tuiml_logo.png')|string }}">
+    <meta property="og:description" content="TuiML runs locally on your machine and does not collect personal data.">
+    <meta property="og:url" content="https://tuiml.ai/docs/privacy.html">
+    <meta property="og:image" content="https://tuiml.ai/static/images/tuiml_logo.png">
 
+    <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32.png?v=10">
     <link rel="icon" type="image/png" sizes="512x512" href="/static/images/favicon.png?v=10">
     <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png?v=10">
 
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
 
+    <!-- FontAwesome (site nav icons) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
+    <!-- Tailwind CSS (site nav / breadcrumb / footer chrome) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Outfit', 'sans-serif'],
-                        mono: ['"JetBrains Mono"', 'monospace'],
-                    }
-                }
-            }
-        }
-    </script>
 </head>
 
-<body class="bg-white text-gray-900 font-sans antialiased flex flex-col min-h-screen">
+<body class="landing-page antialiased overflow-x-hidden">
 
     {% include 'components/_docs_navbar.html' %}
 
-    <!-- Hero -->
-    <div class="bg-white border-b border-gray-200">
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-10">
-            <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">Privacy Policy</h1>
-            <p class="text-gray-500 mt-2 text-lg">TuiML is an open-source project. Your data stays on your machine.</p>
-            <p class="text-blue-200 mt-1 text-sm">Last updated: {{ config.copyright_year }}</p>
-        </div>
-    </div>
+    <link rel="stylesheet" href="/static/css/oc.css">
+    <script src="/static/js/oc.js"></script>
 
-    <div class="container mx-auto px-4 py-12 flex-grow">
-        <div class="max-w-3xl mx-auto space-y-10 text-gray-700 leading-relaxed">
+    <div class="oc-wrap">
 
-            <section>
-                <h2 class="text-2xl font-bold text-gray-900 mb-3">Summary</h2>
-                <p>
-                    TuiML is a free, open-source machine learning library distributed under the
-                    <a href="https://github.com/tuiml/tuiml/blob/main/LICENSE" class="text-blue-700 hover:underline">BSD-3-Clause license</a>.
-                    The library runs entirely on your own machine. It does not phone home, collect telemetry, or transmit
-                    your data, models, or parameters anywhere. This policy describes what happens when you use the library
-                    itself and when you visit <code class="bg-gray-100 text-blue-700 px-1.5 py-0.5 rounded text-sm">tuiml.ai</code>.
-                </p>
-            </section>
+        <section class="oc-section" style="padding-top: 64px;">
+            <h1 class="oc-display">Privacy Policy</h1>
+            <p class="oc-body oc-max" style="margin-top: 16px;">
+                TuiML is an open-source project. Your data stays on your machine.
+            </p>
+            <p class="oc-caption" style="margin-top: 8px;">Last updated: {{ config.copyright_year }}</p>
+        </section>
 
-            <section>
-                <h2 class="text-2xl font-bold text-gray-900 mb-3">The TuiML Library</h2>
-                <ul class="list-disc pl-6 space-y-2">
-                    <li><strong>No telemetry.</strong> The library does not send usage data, crash reports, or analytics.</li>
-                    <li><strong>No network calls</strong> are made by the library during training, prediction, or serving.</li>
-                    <li><strong>Your data stays local.</strong> Datasets, trained models, and uploads are stored under <code class="bg-gray-100 text-blue-700 px-1.5 py-0.5 rounded text-sm">~/.tuiml/</code> on your own machine.</li>
-                    <li><strong>MCP integrations</strong> (Claude, ChatGPT, Cursor, etc.) run locally over stdio; your agent vendor's own privacy policy governs what the agent sends to their servers.</li>
-                </ul>
-            </section>
+        <section class="oc-section">
+            <h2 class="oc-h">Summary</h2>
+            <hr class="oc-rule">
+            <p class="oc-body oc-max">
+                TuiML is a free, open-source machine learning library distributed under the
+                <a href="https://github.com/tuiml/tuiml/blob/main/LICENSE">BSD-3-Clause license</a>.
+                The library runs entirely on your own machine. It does not phone home, collect
+                telemetry, or transmit your data, models, or parameters anywhere. This policy
+                describes what happens when you use the library itself and when you visit
+                <code>tuiml.ai</code>.
+            </p>
+        </section>
 
-            <section>
-                <h2 class="text-2xl font-bold text-gray-900 mb-3">The tuiml.ai Website</h2>
-                <p class="mb-3">The website hosts documentation, benchmarks, and the install script. It is a static/SSR site with no accounts and no user-generated content.</p>
-                <ul class="list-disc pl-6 space-y-2">
-                    <li><strong>Server logs.</strong> Our host records standard request metadata (IP address, user-agent, timestamp, URL) for security and debugging. Logs are rotated and not sold or shared.</li>
-                    <li><strong>Cloudflare.</strong> Traffic is proxied through Cloudflare for caching and DDoS protection, subject to <a href="https://www.cloudflare.com/privacypolicy/" class="text-blue-700 hover:underline">Cloudflare's privacy policy</a>.</li>
-                    <li><strong>Third-party assets.</strong> We load fonts from Google Fonts and icons from cdnjs. These CDNs see your IP when the assets load.</li>
-                    <li><strong>Cookies.</strong> We do not set tracking cookies. We do not run analytics, advertising, or fingerprinting scripts.</li>
-                    <li><strong>GitHub.</strong> Links to GitHub (source, issues, discussions) are governed by <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" class="text-blue-700 hover:underline">GitHub's privacy statement</a>.</li>
-                </ul>
-            </section>
+        <section class="oc-section">
+            <h2 class="oc-h">The TuiML library</h2>
+            <hr class="oc-rule">
+            <div class="list-col">
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">No telemetry</span><span
+                            class="txt">: the library does not send usage data, crash reports, or
+                        analytics.</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">No network calls</span><span
+                            class="txt"> are made by the library during training, prediction, or
+                        serving.</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Your data stays
+                            local</span><span class="txt">: datasets, trained models, and uploads are stored under
+                            <code>~/.tuiml/</code> on your own machine.</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">MCP integrations</span><span
+                            class="txt"> (Claude, ChatGPT, Cursor, and the rest) run locally over stdio. Your agent
+                            vendor's own privacy policy governs what the agent sends to their
+                            servers.</span></span></div>
+            </div>
+        </section>
 
-            <section>
-                <h2 class="text-2xl font-bold text-gray-900 mb-3">Contributions &amp; Issues</h2>
-                <p>
-                    When you open an issue, pull request, or discussion on GitHub, the content and your GitHub identity
-                    are public and indexed by search engines. Avoid pasting secrets, API keys, or private datasets
-                    into issues.
-                </p>
-            </section>
+        <section class="oc-section">
+            <h2 class="oc-h">The tuiml.ai website</h2>
+            <hr class="oc-rule">
+            <p class="oc-body oc-max" style="margin-bottom: 24px;">
+                The website hosts documentation, benchmarks, and the install script. It is a static
+                site with no accounts and no user-generated content.
+            </p>
+            <div class="list-col">
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Server logs</span><span
+                            class="txt">: our host records standard request metadata (IP address, user-agent,
+                            timestamp, URL) for security and debugging. Logs are rotated, and are not sold or
+                            shared.</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Cloudflare</span><span
+                            class="txt">: traffic is proxied through Cloudflare for caching and DDoS protection,
+                            subject to <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare's privacy
+                                policy</a>.</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Third-party assets</span><span
+                            class="txt">: we load fonts from Google Fonts and icons from cdnjs. Those CDNs see your IP
+                            when the assets load.</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Cookies</span><span
+                            class="txt">: we do not set tracking cookies. We do not run analytics, advertising, or
+                            fingerprinting scripts.</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">GitHub</span><span
+                            class="txt">: links to GitHub (source, issues, discussions) are governed by <a
+                                href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub's
+                                privacy statement</a>.</span></span></div>
+            </div>
+        </section>
 
-            <section>
-                <h2 class="text-2xl font-bold text-gray-900 mb-3">Children's Privacy</h2>
-                <p>TuiML is a developer tool and is not directed at children under 13. We do not knowingly collect data from children.</p>
-            </section>
+        <section class="oc-section">
+            <h2 class="oc-h">Contributions and issues</h2>
+            <hr class="oc-rule">
+            <p class="oc-body oc-max">
+                When you open an issue, pull request, or discussion on GitHub, the content and your
+                GitHub identity are public and indexed by search engines. Avoid pasting secrets, API
+                keys, or private datasets into issues.
+            </p>
+        </section>
 
-            <section>
-                <h2 class="text-2xl font-bold text-gray-900 mb-3">Changes to this Policy</h2>
-                <p>
-                    We may update this policy as the project evolves. Material changes will be noted in the site
-                    <a href="/docs/changelog.html" class="text-blue-700 hover:underline">changelog</a> and in the commit
-                    history of the <a href="https://github.com/tuiml/tuiml" class="text-blue-700 hover:underline">GitHub repository</a>.
-                </p>
-            </section>
+        <section class="oc-section">
+            <h2 class="oc-h">Children's privacy</h2>
+            <hr class="oc-rule">
+            <p class="oc-body oc-max">
+                TuiML is a developer tool and is not directed at children under 13. We do not
+                knowingly collect data from children.
+            </p>
+        </section>
 
-            <section>
-                <h2 class="text-2xl font-bold text-gray-900 mb-3">Contact</h2>
-                <p>
-                    Questions or concerns? Open an issue at
-                    <a href="https://github.com/tuiml/tuiml/issues" class="text-blue-700 hover:underline">github.com/tuiml/tuiml/issues</a>.
-                </p>
-            </section>
+        <section class="oc-section">
+            <h2 class="oc-h">Changes to this policy</h2>
+            <hr class="oc-rule">
+            <p class="oc-body oc-max">
+                We may update this policy as the project evolves. Material changes will be noted in
+                the site <a href="/docs/changelog.html">changelog</a> and in the commit history of the
+                <a href="https://github.com/tuiml/tuiml">GitHub repository</a>.
+            </p>
+        </section>
 
-        </div>
+        <section class="oc-section">
+            <h2 class="oc-h">Contact</h2>
+            <hr class="oc-rule">
+            <p class="oc-body oc-max">
+                Questions or concerns? Open an issue at
+                <a href="https://github.com/tuiml/tuiml/issues">github.com/tuiml/tuiml/issues</a>.
+            </p>
+        </section>
+
     </div>
 
     {% include 'components/_footer.html' %}
 </body>
+
 </html>

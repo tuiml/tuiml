@@ -105,7 +105,9 @@ One face everywhere: JetBrains Mono. Roles by class, not by element:
   110ms, override per line with `data-d="450"`. Reduced motion gets the
   finished frame.
 - **List rows** `.list-row` with `.m` bracket marker, `.lbl` bold label,
-  `.txt` description. Two-column via `.list-grid` (collapses under 851px).
+  `.txt` description. Two-column via `.list-grid` (collapses under 851px), or
+  single column capped at the body measure via `.list-col` when each row's
+  description is a full sentence.
 - **Why cards** `.why-grid` of `.why-card` (`.why-num`, `.why-title`,
   `.why-text`) — 3-up principle tiles.
 - **Figure tiles** `.fig-grid` of `.fig-tile` (`.fig-spark`, `.fig-num`,

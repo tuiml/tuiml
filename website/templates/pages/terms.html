@@ -5,146 +5,161 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Terms of Service, TuiML</title>
-    <meta name="description" content="Terms of service for TuiML, an open-source agent-native ML runtime distributed under the BSD-3-Clause license.">
+    <meta name="description" content="Terms of service for TuiML: the BSD-3-Clause license governs the library, acceptable use of tuiml.ai, and your responsibility for ML outputs.">
     <meta name="robots" content="index,follow">
-    <link rel="canonical" href="{{ request.url|string }}">
+    <meta name="theme-color" content="#0b1628">
+    <link rel="canonical" href="https://tuiml.ai/docs/terms.html">
 
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="{{ config.project_name }}">
     <meta property="og:title" content="Terms of Service, TuiML">
-    <meta property="og:description" content="Terms of service for the TuiML open-source project.">
-    <meta property="og:url" content="{{ request.url|string }}">
-    <meta property="og:image" content="{{ request.url_for('static', path='images/tuiml_logo.png')|string }}">
+    <meta property="og:description" content="Using TuiML, the website, and contributing to the project.">
+    <meta property="og:url" content="https://tuiml.ai/docs/terms.html">
+    <meta property="og:image" content="https://tuiml.ai/static/images/tuiml_logo.png">
 
+    <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32.png?v=10">
     <link rel="icon" type="image/png" sizes="512x512" href="/static/images/favicon.png?v=10">
     <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png?v=10">
 
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
 
+    <!-- FontAwesome (site nav icons) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
+    <!-- Tailwind CSS (site nav / breadcrumb / footer chrome) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Outfit', 'sans-serif'],
-                        mono: ['"JetBrains Mono"', 'monospace'],
-                    }
-                }
-            }
-        }
-    </script>
 </head>
 
-<body class="bg-white text-gray-900 font-sans antialiased flex flex-col min-h-screen">
+<body class="landing-page antialiased overflow-x-hidden">
 
     {% include 'components/_docs_navbar.html' %}
 
-    <!-- Hero -->
-    <div class="bg-white border-b border-gray-200">
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-10">
-            <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900">Terms of Service</h1>
-            <p class="text-gray-500 mt-2 text-lg">Using TuiML, the website, and contributing to the project.</p>
-            <p class="text-blue-200 mt-1 text-sm">Last updated: {{ config.copyright_year }}</p>
-        </div>
-    </div>
+    <link rel="stylesheet" href="/static/css/oc.css">
+    <script src="/static/js/oc.js"></script>
 
-    <div class="container mx-auto px-4 py-12 flex-grow">
-        <div class="max-w-3xl mx-auto space-y-10 text-gray-700 leading-relaxed">
+    <div class="oc-wrap">
 
-            <section>
-                <h2 class="text-2xl font-bold text-gray-900 mb-3">1. The Software License Governs the Library</h2>
-                <p>
-                    The TuiML library is open-source software distributed under the
-                    <a href="https://github.com/tuiml/tuiml/blob/main/LICENSE" class="text-blue-700 hover:underline">BSD-3-Clause license</a>.
-                    Your rights to use, copy, modify, and redistribute the code are defined by that license, not by this
-                    page. In case of any conflict, the license file in the repository prevails.
-                </p>
-            </section>
+        <section class="oc-section" style="padding-top: 64px;">
+            <h1 class="oc-display">Terms of Service</h1>
+            <p class="oc-body oc-max" style="margin-top: 16px;">
+                Using TuiML, the website, and contributing to the project.
+            </p>
+            <p class="oc-caption" style="margin-top: 8px;">Last updated: {{ config.copyright_year }}</p>
+        </section>
 
-            <section>
-                <h2 class="text-2xl font-bold text-gray-900 mb-3">2. No Warranty</h2>
-                <p>
-                    TuiML is provided <strong>"as is", without warranty of any kind</strong>, express or implied, including
-                    but not limited to warranties of merchantability, fitness for a particular purpose, and
-                    non-infringement. You use it at your own risk. The authors and contributors are not liable for any
-                    claim, damages, or other liability arising from use of the software.
-                </p>
-            </section>
+        <section class="oc-section">
+            <h2 class="oc-h">1. The software license governs the library</h2>
+            <hr class="oc-rule">
+            <p class="oc-body oc-max">
+                The TuiML library is open-source software distributed under the
+                <a href="https://github.com/tuiml/tuiml/blob/main/LICENSE">BSD-3-Clause license</a>.
+                Your rights to use, copy, modify, and redistribute the code are defined by that
+                license, not by this page. In case of any conflict, the license file in the
+                repository prevails.
+            </p>
+        </section>
 
-            <section>
-                <h2 class="text-2xl font-bold text-gray-900 mb-3">3. Acceptable Use</h2>
-                <p class="mb-3">When using the <code class="bg-gray-100 text-blue-700 px-1.5 py-0.5 rounded text-sm">tuiml.ai</code> website, you agree not to:</p>
-                <ul class="list-disc pl-6 space-y-2">
-                    <li>Attempt to disrupt, overload, or probe the service for vulnerabilities outside of a coordinated disclosure.</li>
-                    <li>Scrape the site in ways that violate <code>robots.txt</code> or our reasonable rate limits.</li>
-                    <li>Use the site to distribute malware, phishing content, or illegal material.</li>
-                    <li>Misrepresent TuiML outputs as produced or endorsed by the project maintainers when they are not.</li>
-                </ul>
-            </section>
+        <section class="oc-section">
+            <h2 class="oc-h">2. No warranty</h2>
+            <hr class="oc-rule">
+            <p class="oc-body oc-max">
+                TuiML is provided "as is", <strong>without warranty of any kind</strong>, express or
+                implied, including but not limited to warranties of merchantability, fitness for a
+                particular purpose, and non-infringement. You use it at your own risk. The authors
+                and contributors are not liable for any claim, damages, or other liability arising
+                from use of the software.
+            </p>
+        </section>
 
-            <section>
-                <h2 class="text-2xl font-bold text-gray-900 mb-3">4. Your Responsibility for ML Outputs</h2>
-                <p>
-                    Machine learning models can produce incorrect, biased, or unsafe outputs. You are responsible for
-                    validating results, following applicable laws and regulations (including privacy and
-                    anti-discrimination laws), and for the datasets you feed into the library. TuiML is a tool, you are
-                    the operator.
-                </p>
-            </section>
+        <section class="oc-section">
+            <h2 class="oc-h">3. Acceptable use</h2>
+            <hr class="oc-rule">
+            <p class="oc-body oc-max" style="margin-bottom: 24px;">
+                When using the tuiml.ai website, you agree not to:
+            </p>
+            <div class="list-col">
+                <div class="list-row"><span class="m">[-]</span><span class="txt">Attempt to disrupt, overload, or
+                        probe the service for vulnerabilities outside of a coordinated
+                        disclosure.</span></div>
+                <div class="list-row"><span class="m">[-]</span><span class="txt">Scrape the site in ways that violate
+                        robots.txt or our reasonable rate limits.</span></div>
+                <div class="list-row"><span class="m">[-]</span><span class="txt">Use the site to distribute malware,
+                        phishing content, or illegal material.</span></div>
+                <div class="list-row"><span class="m">[-]</span><span class="txt">Misrepresent TuiML outputs as
+                        produced or endorsed by the project maintainers when they are not.</span></div>
+            </div>
+        </section>
 
-            <section>
-                <h2 class="text-2xl font-bold text-gray-900 mb-3">5. Contributions</h2>
-                <p>
-                    Contributions submitted via pull request, issue, or discussion are licensed under the same BSD-3-Clause
-                    license as the project. By submitting, you confirm you have the right to license the contribution.
-                    See the <a href="/docs/contributing.html" class="text-blue-700 hover:underline">contributing guide</a>
-                    for details.
-                </p>
-            </section>
+        <section class="oc-section">
+            <h2 class="oc-h">4. Your responsibility for ML outputs</h2>
+            <hr class="oc-rule">
+            <p class="oc-body oc-max">
+                Machine learning models can produce incorrect, biased, or unsafe outputs. You are
+                responsible for validating results, following applicable laws and regulations
+                (including privacy and anti-discrimination laws), and for the datasets you feed into
+                the library. TuiML is a tool, you are the operator.
+            </p>
+        </section>
 
-            <section>
-                <h2 class="text-2xl font-bold text-gray-900 mb-3">6. Trademarks</h2>
-                <p>
-                    "TuiML" and the TuiML logo are project marks of the TuiML maintainers and the AI Institute,
-                    University of Waikato. You may use the name and logo to refer to the project, link to it, or indicate
-                    compatibility. You may not use them to imply endorsement of your own products or forks.
-                </p>
-            </section>
+        <section class="oc-section">
+            <h2 class="oc-h">5. Contributions</h2>
+            <hr class="oc-rule">
+            <p class="oc-body oc-max">
+                Contributions submitted via pull request, issue, or discussion are licensed under the
+                same BSD-3-Clause license as the project. By submitting, you confirm you have the
+                right to license the contribution. See the
+                <a href="/docs/contributing.html">contributing guide</a> for details.
+            </p>
+        </section>
 
-            <section>
-                <h2 class="text-2xl font-bold text-gray-900 mb-3">7. Third-Party Services</h2>
-                <p>
-                    TuiML integrates with third-party AI agents (Claude, ChatGPT, Cursor, and others) via the Model
-                    Context Protocol. Those services are governed by their own terms. TuiML maintainers are not
-                    responsible for the behavior or availability of third-party services.
-                </p>
-            </section>
+        <section class="oc-section">
+            <h2 class="oc-h">6. Trademarks</h2>
+            <hr class="oc-rule">
+            <p class="oc-body oc-max">
+                "TuiML" and the TuiML logo are project marks of the TuiML maintainers and the AI
+                Institute, University of Waikato. You may use the name and logo to refer to the
+                project, link to it, or indicate compatibility. You may not use them to imply
+                endorsement of your own products or forks.
+            </p>
+        </section>
 
-            <section>
-                <h2 class="text-2xl font-bold text-gray-900 mb-3">8. Changes</h2>
-                <p>
-                    These terms may change as the project evolves. Continued use of the website after changes are
-                    published constitutes acceptance of the updated terms.
-                </p>
-            </section>
+        <section class="oc-section">
+            <h2 class="oc-h">7. Third-party services</h2>
+            <hr class="oc-rule">
+            <p class="oc-body oc-max">
+                TuiML integrates with third-party AI agents (Claude, ChatGPT, Cursor, and others) via
+                the Model Context Protocol. Those services are governed by their own terms. TuiML
+                maintainers are not responsible for the behavior or availability of third-party
+                services.
+            </p>
+        </section>
 
-            <section>
-                <h2 class="text-2xl font-bold text-gray-900 mb-3">9. Contact</h2>
-                <p>
-                    Questions about these terms? Open an issue at
-                    <a href="https://github.com/tuiml/tuiml/issues" class="text-blue-700 hover:underline">github.com/tuiml/tuiml/issues</a>.
-                </p>
-            </section>
+        <section class="oc-section">
+            <h2 class="oc-h">8. Changes</h2>
+            <hr class="oc-rule">
+            <p class="oc-body oc-max">
+                These terms may change as the project evolves. Continued use of the website after
+                changes are published constitutes acceptance of the updated terms.
+            </p>
+        </section>
 
-        </div>
+        <section class="oc-section">
+            <h2 class="oc-h">9. Contact</h2>
+            <hr class="oc-rule">
+            <p class="oc-body oc-max">
+                Questions about these terms? Open an issue at
+                <a href="https://github.com/tuiml/tuiml/issues">github.com/tuiml/tuiml/issues</a>.
+            </p>
+        </section>
+
     </div>
 
     {% include 'components/_footer.html' %}
 </body>
+
 </html>

@@ -291,9 +291,15 @@
     </style>
 </head>
 
-<body class="bg-white text-gray-900 font-sans antialiased flex flex-col min-h-screen">
+<body class="landing-page antialiased overflow-x-hidden">
 
     {% include 'components/_docs_navbar.html' %}
+
+    <!-- The page's markup is already built from oc-* components, but the
+         stylesheet that defines them was never loaded, so every oc-wrap,
+         oc-section and oc-h on it rendered unstyled. -->
+    <link rel="stylesheet" href="/static/css/oc.css">
+    <script src="/static/js/oc.js"></script>
 
     <!-- Hero Section -->
     <div class="bg-white border-b border-gray-200">

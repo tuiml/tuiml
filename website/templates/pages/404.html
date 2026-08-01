@@ -7,73 +7,73 @@
     <title>Page not found, TuiML</title>
     <meta name="description" content="That page does not exist on tuiml.ai.">
     <meta name="robots" content="noindex,follow">
+    <meta name="theme-color" content="#0b1628">
 
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="{{ config.project_name }}">
     <meta property="og:title" content="Page not found, TuiML">
     <meta property="og:description" content="That page does not exist on tuiml.ai.">
 
+    <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32.png?v=10">
     <link rel="icon" type="image/png" sizes="512x512" href="/static/images/favicon.png?v=10">
     <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png?v=10">
 
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
 
+    <!-- FontAwesome (site nav icons) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
+    <!-- Tailwind CSS (site nav / breadcrumb / footer chrome) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Outfit', 'sans-serif'],
-                        mono: ['"JetBrains Mono"', 'monospace'],
-                    }
-                }
-            }
-        }
-    </script>
 </head>
 
-<body class="bg-white text-gray-900 font-sans antialiased flex flex-col min-h-screen">
+<body class="landing-page antialiased overflow-x-hidden">
 
     {% include 'components/_docs_navbar.html' %}
 
-    <div class="container mx-auto px-4 py-24 flex-grow">
-        <div class="max-w-2xl mx-auto text-center">
-            <p class="font-mono text-sm tracking-widest text-gray-400 uppercase">Error 404</p>
-            <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 mt-3">
-                Page not found
-            </h1>
-            <p class="text-gray-600 mt-4 text-lg leading-relaxed">
-                That URL does not exist on this site. If you followed a link from
-                the documentation, it is a bug worth reporting.
-            </p>
+    <link rel="stylesheet" href="/static/css/oc.css">
+    <script src="/static/js/oc.js"></script>
 
-            <div class="flex flex-wrap gap-3 justify-center mt-10">
-                <a href="/"
-                    class="px-5 py-2.5 rounded-lg bg-gray-900 text-white font-semibold hover:bg-gray-700 transition-colors">
-                    Home
-                </a>
-                <a href="/docs/api-reference.html"
-                    class="px-5 py-2.5 rounded-lg border border-gray-300 text-gray-800 font-semibold hover:bg-gray-50 transition-colors">
-                    API reference
-                </a>
-                <a href="/docs/getting_started.html"
-                    class="px-5 py-2.5 rounded-lg border border-gray-300 text-gray-800 font-semibold hover:bg-gray-50 transition-colors">
-                    Getting started
-                </a>
-                <a href="https://github.com/tuiml/tuiml/issues"
-                    class="px-5 py-2.5 rounded-lg border border-gray-300 text-gray-800 font-semibold hover:bg-gray-50 transition-colors">
-                    Report a broken link
-                </a>
+    <div class="oc-wrap">
+
+        <section class="oc-section" style="padding-top: 64px;">
+            <p class="oc-caption" style="margin: 0 0 8px;">[404]</p>
+            <h1 class="oc-display">Page not found</h1>
+            <p class="oc-body oc-max" style="margin-top: 16px;">
+                That URL does not exist on this site. If you followed a link from the documentation,
+                it is a bug worth reporting.
+            </p>
+        </section>
+
+        <section class="oc-section">
+            <h2 class="oc-h">Try one of these</h2>
+            <hr class="oc-rule">
+            <div class="list-col">
+                <div class="list-row"><span class="m">[+]</span><span><a href="/"><span class="lbl">Home</span></a><span
+                            class="txt">: what TuiML is, and how it works with your agent.</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><a href="/docs/getting_started.html"><span
+                                class="lbl">Getting started</span></a><span class="txt">: install it and connect it to
+                            your AI client.</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><a href="/docs/api-reference.html"><span
+                                class="lbl">API reference</span></a><span class="txt">: every module, class, and
+                            function.</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><a href="{{ config.tutorials_url }}"><span
+                                class="lbl">Tutorials</span></a><span class="txt">: worked examples, start to
+                            finish.</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><a
+                            href="https://github.com/tuiml/tuiml/issues"><span class="lbl">Report a broken
+                                link</span></a><span class="txt">: open an issue on GitHub.</span></span></div>
             </div>
-        </div>
+        </section>
+
     </div>
 
     {% include 'components/_footer.html' %}
 </body>
+
 </html>

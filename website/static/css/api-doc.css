@@ -189,12 +189,42 @@
     letter-spacing: inherit;
 }
 
-/* Breadcrumb on the left, GitHub source link at the right-hand end. */
+/* Breadcrumb on the left, GitHub source link at the right-hand end.
+   .oc-caption sets line-height 2, so the trail's line box is twice its font
+   size. The link matches that height exactly and both are centred in it, so
+   the mark shares a centre line with the text rather than riding above it. */
 .api-doc .api-crumb-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
+    /* Both children size off this, so the link's em-based box resolves
+       against the same font as the trail rather than the body default. */
+    font-size: 14px;
+}
+
+.api-doc .gh-source-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 2em;
+    width: 2em;
+    flex: none;
+    border-radius: 6px;
+    color: var(--mute);
+    line-height: 1;
+    transition: color .15s ease, background-color .15s ease;
+}
+
+.api-doc .gh-source-link:hover { color: var(--ink); background: rgba(10, 34, 69, .06); }
+
+/* Sized against the row's font, not a fixed pixel value, so the mark tracks
+   the text it sits beside. display:block keeps it out of the inline flow,
+   where a baseline gap would push it off centre. */
+.api-doc .gh-source-link svg {
+    display: block;
+    width: 1.15em;
+    height: 1.15em;
 }
 
 /* ---------------- On-this-page rail (module pages) ---------------- */

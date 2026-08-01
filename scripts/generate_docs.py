@@ -1431,15 +1431,7 @@ class HTMLDocGenerator:
         """
         base = DOC_CONFIG["github_url"]
         url = f"{base}/tree/{GITHUB_BRANCH}/{GITHUB_SOURCE_PREFIX}/{dir_path}"
-        label = f"View {dir_path}/ on GitHub"
-        return (
-            f'<a href="{url}" target="_blank" rel="noopener noreferrer" '
-            f'title="{html.escape(label)}" aria-label="{html.escape(label)}" '
-            f'class="inline-flex items-center justify-center w-7 h-7 rounded-md '
-            f'text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors '
-            f'shrink-0">'
-            f'<i class="fa-brands fa-github text-base"></i></a>'
-        )
+        return self._github_anchor(url, f"View {dir_path}/ on GitHub")
 
     def _source_icon(self, lineno: int = 0, label: str = "View source on GitHub") -> str:
         """Render the GitHub icon that links to an item's implementation.
@@ -1463,13 +1455,49 @@ class HTMLDocGenerator:
         url = self._source_url(lineno)
         if not url:
             return ''
+        return self._github_anchor(url, label)
+
+    #: The GitHub mark, inline. An icon *font* glyph carries its own vertical
+    #: metrics and does not sit centred in its em box, so a font icon lands
+    #: slightly high next to text — which is why this is an SVG: its box is
+    #: exactly the mark, and flex centring is then exact.
+    _GITHUB_MARK_SVG = (
+        '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" '
+        'focusable="false" fill="currentColor">'
+        '<path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38'
+        ' 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13'
+        '-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66'
+        '.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15'
+        '-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 '
+        '1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 '
+        '1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 '
+        '1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/>'
+        '</svg>'
+    )
+
+    def _github_anchor(self, url: str, label: str) -> str:
+        """Render a GitHub source link as an accessible, icon-only anchor.
+
+        Opens in a new tab so a reader following it does not lose their place.
+        ``rel="noopener"`` goes with ``target="_blank"``: without it the opened
+        page gets a handle on this one through ``window.opener``.
+
+        Parameters
+        ----------
+        url : str
+            Target on GitHub.
+        label : str
+            Accessible label and tooltip, since the anchor has no text.
+
+        Returns
+        -------
+        html : str
+            The anchor element.
+        """
         return (
             f'<a href="{url}" target="_blank" rel="noopener noreferrer" '
             f'title="{html.escape(label)}" aria-label="{html.escape(label)}" '
-            f'class="inline-flex items-center justify-center w-7 h-7 rounded-md '
-            f'text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors '
-            f'shrink-0">'
-            f'<i class="fa-brands fa-github text-base"></i></a>'
+            f'class="gh-source-link">{self._GITHUB_MARK_SVG}</a>'
         )
 
     def _build_class_map(self):
