@@ -192,6 +192,7 @@ class NaiveBayesClassifier(Classifier):
 
         Examples
         --------
+        >>> from tuiml.algorithms.bayesian import NaiveBayesClassifier
         >>> schema = NaiveBayesClassifier.get_parameter_schema()
         >>> schema['use_kernel_estimator']['type']
         'boolean'
@@ -229,6 +230,7 @@ class NaiveBayesClassifier(Classifier):
 
         Examples
         --------
+        >>> from tuiml.algorithms.bayesian import NaiveBayesClassifier
         >>> caps = NaiveBayesClassifier.get_capabilities()
         >>> 'multiclass' in caps
         True
@@ -257,6 +259,7 @@ class NaiveBayesClassifier(Classifier):
 
         Examples
         --------
+        >>> from tuiml.algorithms.bayesian import NaiveBayesClassifier
         >>> NaiveBayesClassifier.get_complexity()
         'O(n * m * c) training, O(m * c) prediction'
         """
@@ -325,6 +328,10 @@ class NaiveBayesClassifier(Classifier):
 
         Examples
         --------
+        >>> from tuiml.algorithms.bayesian import NaiveBayesClassifier
+        >>> from tuiml.datasets import load_iris
+        >>> from tuiml.evaluation.splitting import train_test_split
+        >>> X_train, X_test, y_train, y_test = train_test_split(*load_iris())
         >>> clf = NaiveBayesClassifier()
         >>> clf.fit(X_train, y_train)
         >>> clf.classes_
@@ -341,7 +348,7 @@ class NaiveBayesClassifier(Classifier):
 
         # Variance floor relative to the data scale (mirrors sklearn's
         # var_smoothing). An absolute floor is wrong when features are scaled
-        # or one-hot encoded — it makes per-class Gaussians razor-thin and the
+        # or one-hot encoded, it makes per-class Gaussians razor-thin and the
         # likelihood unstable, collapsing predictions.
         if n_features:
             with np.errstate(invalid="ignore"):
@@ -536,6 +543,10 @@ class NaiveBayesClassifier(Classifier):
 
         Examples
         --------
+        >>> from tuiml.algorithms.bayesian import NaiveBayesClassifier
+        >>> from tuiml.datasets import load_iris
+        >>> from tuiml.evaluation.splitting import train_test_split
+        >>> X_train, X_test, y_train, y_test = train_test_split(*load_iris())
         >>> clf = NaiveBayesClassifier()
         >>> clf.fit(X_train, y_train)
         >>> predictions = clf.predict(X_test)
@@ -586,6 +597,10 @@ class NaiveBayesClassifier(Classifier):
 
         Examples
         --------
+        >>> from tuiml.algorithms.bayesian import NaiveBayesClassifier
+        >>> from tuiml.datasets import load_iris
+        >>> from tuiml.evaluation.splitting import train_test_split
+        >>> X_train, X_test, y_train, y_test = train_test_split(*load_iris())
         >>> clf = NaiveBayesClassifier()
         >>> clf.fit(X_train, y_train)
         >>> probas = clf.predict_proba(X_test)
@@ -642,6 +657,10 @@ class NaiveBayesClassifier(Classifier):
 
         Examples
         --------
+        >>> from tuiml.algorithms.bayesian import NaiveBayesClassifier
+        >>> from tuiml.datasets import load_iris
+        >>> from tuiml.evaluation.splitting import train_test_split
+        >>> X_train, X_test, y_train, y_test = train_test_split(*load_iris())
         >>> clf = NaiveBayesClassifier()
         >>> clf.fit(X_train, y_train)
         >>> log_probas = clf.predict_log_proba(X_test)
@@ -663,10 +682,14 @@ class NaiveBayesClassifier(Classifier):
 
         Examples
         --------
+        >>> from tuiml.algorithms.bayesian import NaiveBayesClassifier
+        >>> from tuiml.datasets import load_iris
+        >>> from tuiml.evaluation.splitting import train_test_split
+        >>> X_train, X_test, y_train, y_test = train_test_split(*load_iris())
         >>> clf = NaiveBayesClassifier()
         >>> repr(clf)
         'NaiveBayesClassifier(use_kernel_estimator=False)'
-        >>> clf.fit(X, y)
+        >>> clf.fit(X_train, y_train)
         >>> repr(clf)
         'NaiveBayesClassifier(classes=[0, 1], estimator=Normal)'
         """

@@ -1,21 +1,35 @@
 """Base abstractions and foundation classes.
 
-The ``tuiml.base`` module provides the object-oriented foundation for the 
-entire library. It defines the core interfaces for algorithms, preprocessors, 
-metrics, and experiment workflows.
+The ``tuiml.base`` package provides the object-oriented foundation for the
+entire library. It defines the core interfaces that concrete components
+implement, along with the decorators (``@classifier``, ``@regressor``,
+``@clusterer``, ``@associator``, ``@kernel``, ...) that register them with
+the component registry.
 
 Overview
 --------
-This module is organized into several key abstraction layers:
+This package is organized into several key abstraction layers:
 
-1. **Algorithms**: Base classes for supervised (Classifier, Regressor) 
-   and unsupervised (Clusterer, Associator) models.
-2. **Preprocessing**: Interfaces for data filters and feature transformers 
-   (Preprocessor, Transformer).
-3. **Features**: classes for feature selection and extraction.
-4. **Metrics**: Performance assessment tools and evaluation metrics.
-5. **Hyper-parameter Tuning**: Abstractions for parameter search and optimization.
-6. **Experiments**: Framework for systematic model validation and benchmarking.
+1. **Algorithms**: Base classes for supervised (``Classifier``, ``Regressor``)
+   and unsupervised (``Clusterer``, ``Associator``) models, plus their
+   registration decorators and registry lookup helpers (``get_algorithm``,
+   ``list_algorithms``, ``search_algorithms``).
+2. **Preprocessing**: Interfaces for data filters and feature transformers
+   (``Preprocessor``, ``Filter``, ``Transformer``).
+3. **Features**: Base classes for feature selection, extraction, and
+   construction.
+4. **Metrics**: The ``Metric`` base class and shared validation/aggregation
+   helpers used by ``tuiml.evaluation.metrics``.
+5. **Splitting**: ``BaseSplitter``, the interface behind the train/test
+   splitters in ``tuiml.evaluation.splitting``.
+6. **Hyper-parameter Tuning**: Abstractions for parameter search
+   (``BaseTuner``, ``ParameterGrid``, ``ParameterDistribution``).
+7. **Generators**: Base classes for synthetic data generators
+   (``DataGenerator`` and its task-specific subclasses).
+8. **Kernels**: The ``Kernel`` base class and ``@kernel`` decorator for
+   SVM-style kernel functions, including ``CachedKernel``.
+9. **Neighbors and Estimators**: ``NearestNeighborSearch`` and probability
+   ``Estimator`` primitives shared across algorithms.
 """
 
 # Algorithm base classes
@@ -86,17 +100,6 @@ from tuiml.base.tuning import (
     BaseTuner,
 )
 
-from tuiml.base.experiments import (
-    ExperimentType,
-    ValidationMethod,
-    ExperimentConfig,
-    FoldResult,
-    ModelResult,
-    DatasetResult,
-    ExperimentResults,
-    BaseValidator,
-    BaseExperiment,
-)
 
 # Dataset base classes
 from tuiml.base.generators import (
@@ -174,15 +177,6 @@ __all__ = [
     "ParameterDistribution",
     "BaseTuner",
     # Experiments
-    "ExperimentType",
-    "ValidationMethod",
-    "ExperimentConfig",
-    "FoldResult",
-    "ModelResult",
-    "DatasetResult",
-    "ExperimentResults",
-    "BaseValidator",
-    "BaseExperiment",
     # Generators
     "GeneratedData",
     "DataGenerator",

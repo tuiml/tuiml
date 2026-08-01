@@ -1,7 +1,7 @@
 """Curated CapyMOA streaming-learner wrappers.
 
 Registered under ``capymoa.<ClassName>`` hub keys. These wrap genuinely
-streaming (incremental) learners backed by CapyMOA/MOA — distinct from TuiML's
+streaming (incremental) learners backed by CapyMOA/MOA, distinct from TuiML's
 own native streaming algorithms in ``tuiml.algorithms.streaming``.
 """
 

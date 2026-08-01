@@ -1,5 +1,10 @@
 """
-Auto-detect file format and load/save accordingly.
+Format-detecting load and save.
+
+Dispatches on the file extension to the matching loader, so one call handles
+ARFF, CSV, Excel, JSON, NumPy, and Parquet without the caller naming the
+format. Use it when the path comes from a user or a config file; call the
+specific loader directly when the format is known and you need its options.
 """
 
 import numpy as np
@@ -74,12 +79,12 @@ def load(
     -----
     **Supported Formats:**
     
-    - ``.arff`` — Attribute-Relation File Format (WEKA native)
-    - ``.csv``, ``.tsv`` — Delimited text files
-    - ``.npy``, ``.npz`` — NumPy binary formats
-    - ``.xlsx``, ``.xls`` — Microsoft Excel spreadsheets
-    - ``.parquet``, ``.pq`` — Apache Parquet columnar storage
-    - ``.json``, ``.jsonl`` — JSON and line-delimited JSON
+    - ``.arff``: Attribute-Relation File Format (WEKA native)
+    - ``.csv``, ``.tsv``: Delimited text files
+    - ``.npy``, ``.npz``: NumPy binary formats
+    - ``.xlsx``, ``.xls``: Microsoft Excel spreadsheets
+    - ``.parquet``, ``.pq``: Apache Parquet columnar storage
+    - ``.json``, ``.jsonl``: JSON and line-delimited JSON
     """
     filepath = Path(filepath)
     suffix = filepath.suffix.lower()

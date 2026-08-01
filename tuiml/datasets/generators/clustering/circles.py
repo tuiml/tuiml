@@ -1,7 +1,9 @@
 """
-Concentric Circles data generator.
+Circles generator: two concentric rings.
 
-Generates two concentric circles.
+Produces a small ring nested inside a large one, with Gaussian jitter. The two
+classes cannot be separated by any straight line, so it is a quick way to show
+where linear models fail and kernel or density-based methods succeed.
 """
 
 import numpy as np
@@ -31,8 +33,13 @@ class Circles(ClusteringGenerator):
 
     Examples
     --------
-    >>> gen = Circles(n_samples=1000, noise=0.05, factor=0.5)
+    >>> from tuiml.datasets.generators.clustering import Circles
+    >>> gen = Circles(n_samples=1000, noise=0.05, factor=0.5, random_state=0)
     >>> data = gen.generate()
+    >>> data.X.shape
+    (1000, 2)
+    >>> sorted(set(data.y.tolist()))          # 0 = outer ring, 1 = inner ring
+    [0, 1]
     """
 
     def __init__(

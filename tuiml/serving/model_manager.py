@@ -30,6 +30,7 @@ class ModelManager:
 
     Examples
     --------
+    >>> from tuiml.serving import ModelManager
     >>> manager = ModelManager(max_models=5)
     >>> manager.load("classifier", "model.pkl")
     >>> predictions = manager.predict("classifier", X)

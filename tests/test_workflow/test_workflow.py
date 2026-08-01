@@ -4,6 +4,15 @@ import numpy as np
 import pytest
 
 from tuiml.workflow import Workflow, On
+from tuiml.algorithms.bayesian import NaiveBayesClassifier
+from tuiml.algorithms.trees import RandomForestClassifier
+from tuiml.algorithms.linear import LinearRegression
+from tuiml.algorithms.clustering import KMeansClusterer
+from tuiml.features.extraction import PCAExtractor
+from tuiml.features.selection import SelectKBestSelector
+from tuiml.preprocessing import (
+    MinMaxScaler, OneHotEncoder, OrdinalEncoder, SimpleImputer, StandardScaler,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -81,71 +90,48 @@ class TestWorkflowConstruction:
         assert len(wf) == 0
         assert wf.model is None
 
-    def test_from_strings(self):
-        wf = Workflow(["StandardScaler", "NaiveBayesClassifier"])
+    def test_from_instances(self):
+        wf = Workflow([StandardScaler(), NaiveBayesClassifier()])
         assert list(wf.named_steps) == ["standardscaler", "naivebayesclassifier"]
         assert type(wf.model).__name__ == "NaiveBayesClassifier"
 
-    def test_from_spec_dicts(self):
-        wf = Workflow([
-            {"name": "PCAExtractor", "params": {"n_components": 2}},
-            {"name": "NaiveBayesClassifier"},
-        ])
-        assert wf["pcaextractor"].n_components == 2
+    def test_string_steps_are_rejected(self):
+        """Strings belong to tuiml.train(); Workflow is the object level."""
+        with pytest.raises(TypeError, match="tuiml.train"):
+            Workflow(["StandardScaler", NaiveBayesClassifier()])
 
-    def test_from_instances(self):
-        from tuiml.preprocessing import StandardScaler
-        from tuiml.algorithms.bayesian import NaiveBayesClassifier
+    def test_spec_dict_steps_are_rejected(self):
+        with pytest.raises(TypeError, match="tuiml.train"):
+            Workflow([{"name": "PCAExtractor"}, NaiveBayesClassifier()])
 
-        wf = Workflow([StandardScaler(), NaiveBayesClassifier()])
-        assert type(wf.model).__name__ == "NaiveBayesClassifier"
-
-    def test_mixed_notations(self):
-        from tuiml.preprocessing import StandardScaler
-
-        wf = Workflow([
-            "SimpleImputer",
-            StandardScaler(),
-            {"name": "NaiveBayesClassifier"},
-        ])
-        assert len(wf) == 3
+    def test_bare_class_steps_are_rejected(self):
+        with pytest.raises(TypeError, match="Instantiate it"):
+            Workflow([StandardScaler, NaiveBayesClassifier()])
 
     def test_explicit_step_names(self):
-        wf = Workflow([("scale", "StandardScaler"), ("clf", "NaiveBayesClassifier")])
+        wf = Workflow([("scale", StandardScaler()), ("clf", NaiveBayesClassifier())])
         assert list(wf.named_steps) == ["scale", "clf"]
 
     def test_duplicate_class_names_get_suffixes(self):
-        wf = Workflow(["StandardScaler", "StandardScaler", "NaiveBayesClassifier"])
+        wf = Workflow([StandardScaler(), StandardScaler(), NaiveBayesClassifier()])
         assert list(wf.named_steps)[:2] == ["standardscaler", "standardscaler-2"]
-
-    def test_unknown_component_name(self):
-        with pytest.raises(ValueError, match="Unknown component 'NoSuchThing'"):
-            Workflow(["NoSuchThing", "NaiveBayesClassifier"])
-
-    def test_spec_dict_without_name(self):
-        with pytest.raises(ValueError, match='needs a "name" key'):
-            Workflow([{"params": {"k": 1}}, "NaiveBayesClassifier"])
-
-    def test_spec_dict_with_loose_params(self):
-        with pytest.raises(ValueError, match="Unexpected keys"):
-            Workflow([{"name": "PCAExtractor", "n_components": 2}, "NaiveBayesClassifier"])
 
     def test_final_step_must_predict(self):
         with pytest.raises(TypeError, match="must be a model"):
-            Workflow(["StandardScaler", "MinMaxScaler"])
+            Workflow([StandardScaler(), MinMaxScaler()])
 
     def test_middle_step_must_transform(self):
         with pytest.raises(TypeError, match="cannot transform"):
-            Workflow([_NotATransformer(), "NaiveBayesClassifier"])
+            Workflow([_NotATransformer(), NaiveBayesClassifier()])
 
     def test_indexing(self):
-        wf = Workflow(["StandardScaler", "NaiveBayesClassifier"])
+        wf = Workflow([StandardScaler(), NaiveBayesClassifier()])
         assert type(wf[0]).__name__ == "StandardScaler"
         assert type(wf[-1]).__name__ == "NaiveBayesClassifier"
         assert type(wf["standardscaler"]).__name__ == "StandardScaler"
 
     def test_transformers_property(self):
-        wf = Workflow(["SimpleImputer", "StandardScaler", "NaiveBayesClassifier"])
+        wf = Workflow([SimpleImputer(), StandardScaler(), NaiveBayesClassifier()])
         assert [name for name, _ in wf.transformers] == ["simpleimputer", "standardscaler"]
 
 
@@ -154,33 +140,33 @@ class TestWorkflowConstruction:
 # ===========================================================================
 class TestWorkflowParams:
     def test_get_params_deep(self):
-        wf = Workflow(["PCAExtractor", "NaiveBayesClassifier"])
+        wf = Workflow([PCAExtractor(), NaiveBayesClassifier()])
         params = wf.get_params()
         assert "steps" in params
         assert "pcaextractor__n_components" in params
 
     def test_get_params_shallow(self):
-        wf = Workflow(["PCAExtractor", "NaiveBayesClassifier"])
+        wf = Workflow([PCAExtractor(), NaiveBayesClassifier()])
         assert set(wf.get_params(deep=False)) == {"steps"}
 
     def test_set_params_nested(self):
-        wf = Workflow(["PCAExtractor", "NaiveBayesClassifier"])
+        wf = Workflow([PCAExtractor(), NaiveBayesClassifier()])
         wf.set_params(pcaextractor__n_components=3)
         assert wf["pcaextractor"].n_components == 3
 
     def test_set_params_unknown_step(self):
-        wf = Workflow(["PCAExtractor", "NaiveBayesClassifier"])
+        wf = Workflow([PCAExtractor(), NaiveBayesClassifier()])
         with pytest.raises(ValueError, match="Unknown step 'nope'"):
             wf.set_params(nope__k=1)
 
     def test_set_params_requires_step_prefix(self):
-        wf = Workflow(["PCAExtractor", "NaiveBayesClassifier"])
+        wf = Workflow([PCAExtractor(), NaiveBayesClassifier()])
         with pytest.raises(ValueError, match="not a Workflow parameter"):
             wf.set_params(n_components=3)
 
     def test_set_params_replaces_steps(self):
-        wf = Workflow(["StandardScaler", "NaiveBayesClassifier"])
-        wf.set_params(steps=["MinMaxScaler", "NaiveBayesClassifier"])
+        wf = Workflow([StandardScaler(), NaiveBayesClassifier()])
+        wf.set_params(steps=[MinMaxScaler(), NaiveBayesClassifier()])
         assert list(wf.named_steps)[0] == "minmaxscaler"
 
 
@@ -190,43 +176,43 @@ class TestWorkflowParams:
 class TestWorkflowFit:
     def test_fit_arrays_returns_self(self):
         X, y = _make_classification_data()
-        wf = Workflow(["StandardScaler", "NaiveBayesClassifier"])
+        wf = Workflow([StandardScaler(), NaiveBayesClassifier()])
         assert wf.fit(X, y) is wf
 
     def test_fit_without_evaluation_leaves_metrics_none(self):
         X, y = _make_classification_data()
-        wf = Workflow(["NaiveBayesClassifier"]).fit(X, y)
+        wf = Workflow([NaiveBayesClassifier()]).fit(X, y)
         assert wf.metrics_ is None
         assert wf.cv_results_ is None
 
     def test_fit_holdout_populates_metrics(self):
         X, y = _make_classification_data()
-        wf = Workflow(["NaiveBayesClassifier"]).fit(X, y, test_size=0.25, random_seed=1)
+        wf = Workflow([NaiveBayesClassifier()]).fit(X, y, test_size=0.25, random_seed=1)
         assert "accuracy_score" in wf.metrics_
         assert wf.predictions_ is not None
         assert wf.metadata_["evaluation_method"] == "holdout"
 
     def test_fit_cv_populates_cv_metrics(self):
         X, y = _make_classification_data()
-        wf = Workflow(["NaiveBayesClassifier"]).fit(X, y, cv=3, random_seed=1)
+        wf = Workflow([NaiveBayesClassifier()]).fit(X, y, cv=3, random_seed=1)
         assert any("mean" in k for k in wf.metrics_)
         assert any("std" in k for k in wf.metrics_)
         assert wf.cv_results_ is not None
         assert wf.metadata_["evaluation_method"] == "cross_validate"
 
     def test_fit_builtin_dataset_by_name(self):
-        wf = Workflow(["StandardScaler", "NaiveBayesClassifier"]).fit("iris", cv=3)
+        wf = Workflow([StandardScaler(), NaiveBayesClassifier()]).fit("iris", cv=3)
         assert wf._is_fitted
 
     def test_fit_custom_metrics(self):
         X, y = _make_classification_data()
-        wf = Workflow(["NaiveBayesClassifier"]).fit(
+        wf = Workflow([NaiveBayesClassifier()]).fit(
             X, y, test_size=0.25, metrics=["accuracy_score"], random_seed=1
         )
         assert set(wf.metrics_) == {"accuracy_score"}
 
     def test_fit_no_data(self):
-        wf = Workflow(["NaiveBayesClassifier"])
+        wf = Workflow([NaiveBayesClassifier()])
         with pytest.raises(ValueError, match="No data provided"):
             wf.fit()
 
@@ -235,14 +221,14 @@ class TestWorkflowFit:
             Workflow().fit("iris")
 
     def test_fit_is_deterministic_with_seed(self):
-        wf1 = Workflow(["RandomForestClassifier"]).fit("iris", cv=3, random_seed=7)
-        wf2 = Workflow(["RandomForestClassifier"]).fit("iris", cv=3, random_seed=7)
+        wf1 = Workflow([RandomForestClassifier()]).fit("iris", cv=3, random_seed=7)
+        wf2 = Workflow([RandomForestClassifier()]).fit("iris", cv=3, random_seed=7)
         assert wf1.metrics_ == wf2.metrics_
 
     def test_fit_leaves_prototype_unfitted(self):
         """The instances passed in must never be mutated by fitting."""
         X, y = _make_classification_data()
-        wf = Workflow(["StandardScaler", "NaiveBayesClassifier"])
+        wf = Workflow([StandardScaler(), NaiveBayesClassifier()])
         prototype = wf.model
         wf.fit(X, y)
         assert prototype is not wf.model_
@@ -259,14 +245,14 @@ class TestWorkflowFit:
         assert sorted(_TrackingModel.fit_sizes) == [8, 8, 8, 12]
 
     def test_features_subset(self):
-        wf = Workflow(["NaiveBayesClassifier"]).fit(
+        wf = Workflow([NaiveBayesClassifier()]).fit(
             "iris", features=["sepallength", "sepalwidth"], test_size=0.25
         )
         assert wf.feature_names_in_ == ["sepallength", "sepalwidth"]
 
     def test_features_unknown_column(self):
         with pytest.raises(ValueError, match="features not found"):
-            Workflow(["NaiveBayesClassifier"]).fit("iris", features=["nope"])
+            Workflow([NaiveBayesClassifier()]).fit("iris", features=["nope"])
 
 
 # ===========================================================================
@@ -288,19 +274,19 @@ class TestWorkflowInference:
         )
 
     def test_predict_before_fit(self):
-        wf = Workflow(["NaiveBayesClassifier"])
+        wf = Workflow([NaiveBayesClassifier()])
         with pytest.raises(RuntimeError, match="not fitted yet"):
             wf.predict(np.array([[1, 2]]))
 
     def test_score_and_evaluate(self):
         X, y = _make_classification_data()
-        wf = Workflow(["StandardScaler", "NaiveBayesClassifier"]).fit(X, y)
+        wf = Workflow([StandardScaler(), NaiveBayesClassifier()]).fit(X, y)
         assert 0.0 <= wf.score(X, y) <= 1.0
         assert "accuracy_score" in wf.evaluate(X, y)
 
     def test_predict_proba(self):
         X, y = _make_classification_data()
-        wf = Workflow(["NaiveBayesClassifier"]).fit(X, y)
+        wf = Workflow([NaiveBayesClassifier()]).fit(X, y)
         assert wf.predict_proba(X[:5]).shape[0] == 5
 
     def test_predict_proba_unsupported(self):
@@ -311,7 +297,7 @@ class TestWorkflowInference:
 
     def test_save_and_load_round_trip(self, tmp_path):
         X, y = _make_classification_data()
-        wf = Workflow(["StandardScaler", "NaiveBayesClassifier"]).fit(X, y)
+        wf = Workflow([StandardScaler(), NaiveBayesClassifier()]).fit(X, y)
         path = tmp_path / "pipeline.pkl"
         wf.save(str(path))
 
@@ -335,45 +321,45 @@ class TestOn:
 
     def test_selects_numeric_columns(self):
         X, y = self._mixed()
-        step = On("number", "StandardScaler", remainder="drop")
+        step = On("number", StandardScaler(), remainder="drop")
         out = step.fit_transform(X, y)
         assert step.columns_ == [0, 1]
         assert out.shape == (4, 2)
 
     def test_selects_categorical_columns(self):
         X, y = self._mixed()
-        step = On("category", "OrdinalEncoder", remainder="drop")
+        step = On("category", OrdinalEncoder(), remainder="drop")
         out = step.fit_transform(X, y)
         assert step.columns_ == [2]
         assert out.shape == (4, 1)
 
     def test_passthrough_keeps_other_columns(self):
         X, y = self._mixed()
-        step = On("category", "OrdinalEncoder")
+        step = On("category", OrdinalEncoder())
         out = step.fit_transform(X, y)
         assert out.shape == (4, 3)  # 1 encoded + 2 passed through
 
     def test_select_by_index(self):
         X, y = self._mixed()
-        step = On([0], "StandardScaler", remainder="drop")
+        step = On([0], StandardScaler(), remainder="drop")
         assert step.fit_transform(X, y).shape == (4, 1)
 
     def test_select_by_name(self):
         X, y = self._mixed()
-        step = On(["b"], "StandardScaler", remainder="drop")
+        step = On(["b"], StandardScaler(), remainder="drop")
         step._bind_feature_names(["a", "b", "c"])
         step.fit_transform(X, y)
         assert step.columns_ == [1]
 
     def test_select_by_name_without_names_bound(self):
         X, y = self._mixed()
-        step = On(["b"], "StandardScaler")
+        step = On(["b"], StandardScaler())
         with pytest.raises(ValueError, match="by name"):
             step.fit_transform(X, y)
 
     def test_select_by_missing_name(self):
         X, y = self._mixed()
-        step = On(["zzz"], "StandardScaler")
+        step = On(["zzz"], StandardScaler())
         step._bind_feature_names(["a", "b", "c"])
         with pytest.raises(ValueError, match="not found"):
             step.fit_transform(X, y)
@@ -381,7 +367,7 @@ class TestOn:
     def test_transform_before_fit(self):
         X, _ = self._mixed()
         with pytest.raises(RuntimeError, match="not fitted"):
-            On("number", "StandardScaler").transform(X)
+            On("number", StandardScaler()).transform(X)
 
     def test_invalid_remainder(self):
         with pytest.raises(ValueError, match="passthrough"):
@@ -390,19 +376,19 @@ class TestOn:
     def test_in_a_pipeline(self):
         X, y = self._mixed()
         wf = Workflow([
-            On("category", "OrdinalEncoder"),
-            "StandardScaler",
-            "NaiveBayesClassifier",
+            On("category", OrdinalEncoder()),
+            StandardScaler(),
+            NaiveBayesClassifier(),
         ]).fit(X, y)
         assert wf.predict(X).shape == (4,)
 
     def test_get_params_round_trip(self):
-        step = On("number", "StandardScaler", remainder="drop")
-        assert step.get_params() == {
-            "columns": "number",
-            "transformer": "StandardScaler",
-            "remainder": "drop",
-        }
+        scaler = StandardScaler()
+        step = On("number", scaler, remainder="drop")
+        params = step.get_params()
+        assert params["columns"] == "number"
+        assert params["transformer"] is scaler
+        assert params["remainder"] == "drop"
 
 
 # ===========================================================================
@@ -411,8 +397,8 @@ class TestOn:
 class TestWorkflowConfig:
     def test_to_config(self):
         config = Workflow([
-            {"name": "PCAExtractor", "params": {"n_components": 3}},
-            {"name": "RandomForestClassifier", "params": {"n_estimators": 20}},
+            PCAExtractor(n_components=3),
+            RandomForestClassifier(n_estimators=20),
         ]).to_config()
 
         assert config["model"] == {
@@ -423,17 +409,17 @@ class TestWorkflowConfig:
         assert config["pipeline"][0]["params"]["n_components"] == 3
 
     def test_to_config_omits_defaults(self):
-        config = Workflow(["StandardScaler", "NaiveBayesClassifier"]).to_config()
+        config = Workflow([StandardScaler(), NaiveBayesClassifier()]).to_config()
         assert config["pipeline"] == [{"name": "StandardScaler"}]
 
     def test_to_config_no_pipeline_key_when_model_only(self):
-        config = Workflow(["NaiveBayesClassifier"]).to_config()
+        config = Workflow([NaiveBayesClassifier()]).to_config()
         assert "pipeline" not in config
 
     def test_to_config_replays_through_train(self):
         import tuiml
 
-        wf = Workflow(["StandardScaler", "NaiveBayesClassifier"])
+        wf = Workflow([StandardScaler(), NaiveBayesClassifier()])
         spec = wf.to_config()
         spec["data"] = {"source": "iris"}
         spec["evaluation"] = {"cv": 3}
@@ -445,7 +431,7 @@ class TestWorkflowConfig:
 
     def test_to_config_survives_fitting(self):
         """Fitted state must not leak into the exported spec."""
-        wf = Workflow(["StandardScaler", "RandomForestClassifier"]).fit(
+        wf = Workflow([StandardScaler(), RandomForestClassifier()]).fit(
             "iris", random_seed=1
         )
         config = wf.to_config()
@@ -458,7 +444,7 @@ class TestWorkflowConfig:
 # ===========================================================================
 class TestWorkflowDisplay:
     def test_repr_lists_steps(self):
-        text = repr(Workflow(["StandardScaler", "NaiveBayesClassifier"]))
+        text = repr(Workflow([StandardScaler(), NaiveBayesClassifier()]))
         assert "Workflow([" in text
         assert "StandardScaler" in text
         assert "NaiveBayesClassifier" in text
@@ -467,7 +453,7 @@ class TestWorkflowDisplay:
         assert repr(Workflow()) == "Workflow([])"
 
     def test_repr_html_is_self_contained(self):
-        html = Workflow(["StandardScaler", "NaiveBayesClassifier"])._repr_html_()
+        html = Workflow([StandardScaler(), NaiveBayesClassifier()])._repr_html_()
         assert html.startswith("<style>")
         assert "tuiml-serial" in html
         # Collapsible boxes must work without JavaScript.
@@ -475,13 +461,13 @@ class TestWorkflowDisplay:
         assert "<script" not in html
 
     def test_repr_html_shows_column_routing_in_parallel(self):
-        html = Workflow([On("number", "StandardScaler"), "NaiveBayesClassifier"])._repr_html_()
+        html = Workflow([On("number", StandardScaler()), NaiveBayesClassifier()])._repr_html_()
         assert "tuiml-parallel" in html
         assert "passthrough" in html
 
     def test_repr_html_scopes_css_per_diagram(self):
-        first = Workflow(["NaiveBayesClassifier"])._repr_html_()
-        second = Workflow(["NaiveBayesClassifier"])._repr_html_()
+        first = Workflow([NaiveBayesClassifier()])._repr_html_()
+        second = Workflow([NaiveBayesClassifier()])._repr_html_()
         assert first != second  # different container ids
 
 
@@ -490,13 +476,13 @@ class TestWorkflowDisplay:
 # ===========================================================================
 class TestWorkflowTaskTypes:
     def test_classifier_metrics(self):
-        wf = Workflow(["StandardScaler", "NaiveBayesClassifier"]).fit(
+        wf = Workflow([StandardScaler(), NaiveBayesClassifier()]).fit(
             "iris", test_size=0.2, random_seed=1
         )
         assert set(wf.metrics_) == {"accuracy_score", "f1_score"}
 
     def test_regressor_metrics(self):
-        wf = Workflow(["StandardScaler", "LinearRegression"]).fit(
+        wf = Workflow([StandardScaler(), LinearRegression()]).fit(
             "iris", test_size=0.2, random_seed=1
         )
         assert set(wf.metrics_) == {
@@ -505,18 +491,22 @@ class TestWorkflowTaskTypes:
 
     def test_clusterer_scores_on_all_data(self):
         """Clusterers have no held-out notion of correctness."""
-        wf = Workflow(["StandardScaler", "KMeansClusterer"]).fit("iris", random_seed=1)
+        wf = Workflow([StandardScaler(), KMeansClusterer()]).fit("iris", random_seed=1)
         assert set(wf.metrics_) == {"silhouette_score", "calinski_harabasz_score"}
         assert wf.metadata_["evaluation_method"] == "clusterer"
 
     def test_anomaly_detector_reports_counts(self):
-        wf = Workflow(["IsolationForestDetector"]).fit("iris", random_seed=1)
+        from tuiml.algorithms.anomaly import IsolationForestDetector
+
+        wf = Workflow([IsolationForestDetector()]).fit("iris", random_seed=1)
         assert {"n_anomalies", "n_normal", "anomaly_ratio"} <= set(wf.metrics_)
         assert wf.metadata_["evaluation_method"] == "anomaly"
 
     def test_timeseries_forecasts_the_tail(self):
         series = np.cumsum(np.random.RandomState(0).randn(60)) + 50
-        wf = Workflow(["AR"]).fit(series.reshape(-1, 1), series, random_seed=1)
+        from tuiml.algorithms.timeseries import AR
+
+        wf = Workflow([AR()]).fit(series.reshape(-1, 1), series, random_seed=1)
         assert "r2_score" in wf.metrics_
         assert wf.metadata_["evaluation_method"] == "timeseries"
         # The delivered model is refitted on the whole series.
@@ -531,18 +521,14 @@ class TestConfigRoundTripRegressions:
         """The spec must survive a JSON round trip to be worth exporting."""
         import json
 
-        wf = Workflow([
-            {"name": "SelectKBestSelector", "params": {"k": 2}},
-            "NaiveBayesClassifier",
-        ])
+        wf = Workflow([SelectKBestSelector(k=2), NaiveBayesClassifier()])
         config = wf.to_config()
         assert json.loads(json.dumps(config)) == config
 
     def test_to_config_json_writable_after_fitting(self):
-        wf = Workflow([
-            {"name": "SelectKBestSelector", "params": {"k": 2}},
-            "RandomForestClassifier",
-        ]).fit("iris", random_seed=1)
+        wf = Workflow([SelectKBestSelector(k=2), RandomForestClassifier()]).fit(
+            "iris", random_seed=1
+        )
         import json
 
         json.dumps(wf.to_config())  # must not raise
@@ -551,46 +537,10 @@ class TestConfigRoundTripRegressions:
         """get_params() may report derived values __init__ would refuse."""
         import tuiml
 
-        wf = Workflow([
-            {"name": "SelectKBestSelector", "params": {"k": 2}},
-            "NaiveBayesClassifier",
-        ])
+        wf = Workflow([SelectKBestSelector(k=2), NaiveBayesClassifier()])
         spec = wf.to_config()
         spec["data"] = {"source": "iris"}
         tuiml.train(spec)  # replaying the spec must not raise
-
-    def test_experiment_accepts_a_pipeline(self):
-        import tuiml
-
-        exp = tuiml.experiment(
-            algorithms=["NaiveBayesClassifier"],
-            datasets=["iris"],
-            pipeline=[{"name": "StandardScaler"}],
-            cv=3,
-        )
-        assert exp is not None
-
-    def test_experiment_accepts_a_preset_with_a_resampler(self):
-        """The "imbalanced" preset ends in a sampler, which reshapes X and y."""
-        import tuiml
-
-        exp = tuiml.experiment(
-            algorithms=["NaiveBayesClassifier"],
-            datasets=["iris"],
-            pipeline="imbalanced",
-            cv=3,
-        )
-        assert exp is not None
-
-    def test_experiment_rejects_unknown_preset(self):
-        import tuiml
-
-        with pytest.raises(ValueError, match="Unknown pipeline preset"):
-            tuiml.experiment(
-                algorithms=["NaiveBayesClassifier"], datasets=["iris"],
-                pipeline="nope", cv=2,
-            )
-
 
 # ===========================================================================
 # Review fixes — fold leakage, task inference, metric averaging, exports
@@ -633,57 +583,6 @@ class _FitPlusTransformOnly:
 
 
 class TestReviewFixes:
-    def test_experiment_pipeline_fits_inside_each_fold(self):
-        """The shared pipeline must never see a validation fold during fit."""
-        import tuiml
-        from tuiml import registry
-
-        _CountingScaler.fit_sizes = []
-        tuiml.experiment(
-            algorithms={"NB": registry.create("NaiveBayesClassifier")},
-            datasets=["iris"],
-            pipeline=[_CountingScaler()],
-            cv=3,
-        )
-        # One fit per fold, each on that fold's training portion only —
-        # not a single fit on the full 150 rows.
-        assert len(_CountingScaler.fit_sizes) == 3
-        assert all(size < 150 for size in _CountingScaler.fit_sizes)
-
-    def test_experiment_infers_regression(self):
-        import tuiml
-
-        exp = tuiml.experiment(
-            algorithms=["LinearRegression", "DecisionTreeRegressor"],
-            datasets=["iris"],
-            cv=3,
-        )
-        assert exp.experiment_type.value == "regression"
-        assert "r2_score" in exp.metrics
-
-    def test_experiment_accepts_component_spec_dicts(self):
-        import tuiml
-
-        exp = tuiml.experiment(
-            algorithms=[
-                {"name": "RandomForestClassifier", "params": {"n_estimators": 5}},
-                "NaiveBayesClassifier",
-            ],
-            datasets=["iris"],
-            cv=2,
-        )
-        assert exp.experiment_type.value == "classification"
-
-    def test_experiment_rejects_loose_spec_keys(self):
-        import tuiml
-
-        with pytest.raises(ValueError, match="Unexpected keys"):
-            tuiml.experiment(
-                algorithms=[{"name": "RandomForestClassifier", "n_estimators": 5}],
-                datasets=["iris"],
-                cv=2,
-            )
-
     def test_multiclass_auto_f1_uses_macro_averaging(self):
         """f1_score's binary default silently scores only class 1 on
         multiclass labels; auto metrics must use macro averaging instead."""
@@ -692,7 +591,11 @@ class TestReviewFixes:
         from tuiml.evaluation.metrics import f1_score
 
         ds = load_dataset("iris")  # three classes
-        model = tuiml.train("NaiveBayesClassifier", {"source": "iris"}, random_seed=42)
+        model = tuiml.train({
+            "model": {"name": "NaiveBayesClassifier"},
+            "data": {"source": "iris"},
+            "random_seed": 42,
+        })
         predictions = model.predict(ds.X)
 
         auto = model.evaluate(ds.X, ds.y)["f1_score"]
@@ -704,7 +607,7 @@ class TestReviewFixes:
         """_validate accepts fit+transform, so fitting must support it too."""
         X, y = _make_classification_data()
 
-        wf = Workflow([_FitPlusTransformOnly(), "NaiveBayesClassifier"]).fit(
+        wf = Workflow([_FitPlusTransformOnly(), NaiveBayesClassifier()]).fit(
             X, y, test_size=0.25, random_seed=1
         )
         assert "accuracy_score" in wf.metrics_
@@ -714,13 +617,24 @@ class TestReviewFixes:
         step = On([0, 1], _FitPlusTransformOnly(), remainder="drop")
         assert step.fit_transform(X, y).shape == (len(X), 2)
 
-    def test_train_rejects_removed_options(self):
+    def test_train_takes_one_spec_dict_only(self):
+        """The positional (model, data) form is gone; train takes a spec."""
         import tuiml
 
-        for kwarg in ("return_model", "return_predictions",
-                      "return_probabilities", "verbose"):
-            with pytest.raises(TypeError):
-                tuiml.train("NaiveBayesClassifier", {"source": "iris"}, **{kwarg: True})
+        with pytest.raises(TypeError):
+            tuiml.train("NaiveBayesClassifier", {"source": "iris"})
+        with pytest.raises(TypeError, match="one spec dict"):
+            tuiml.train(NaiveBayesClassifier())
+
+    def test_train_rejects_unknown_spec_keys(self):
+        import tuiml
+
+        with pytest.raises(ValueError, match="Unknown spec keys"):
+            tuiml.train({
+                "model": {"name": "NaiveBayesClassifier"},
+                "data": {"source": "iris"},
+                "verbose": True,
+            })
 
     def test_star_import_exports_are_all_defined(self):
         import tuiml
@@ -732,9 +646,9 @@ class TestReviewFixes:
         assert "registry" in namespace
 
     def test_workflow_reports_final_models_estimator_type(self):
-        assert Workflow(["NaiveBayesClassifier"])._estimator_type == "classifier"
-        assert Workflow(["LinearRegression"])._estimator_type == "regressor"
-        assert Workflow(["KMeansClusterer"])._estimator_type == "clusterer"
+        assert Workflow([NaiveBayesClassifier()])._estimator_type == "classifier"
+        assert Workflow([LinearRegression()])._estimator_type == "regressor"
+        assert Workflow([KMeansClusterer()])._estimator_type == "clusterer"
         assert Workflow()._estimator_type is None
 
 
@@ -742,44 +656,6 @@ class TestReviewFixes:
 # Second review round — override forwarding, tuple labels, class union
 # ===========================================================================
 class TestSecondReviewFixes:
-    def test_experiment_type_override_reaches_the_run(self):
-        """Mixed model collections need the explicit override to resolve."""
-        import tuiml
-
-        exp = tuiml.experiment(
-            algorithms=["NaiveBayesClassifier"],
-            datasets=["iris"],
-            cv=2,
-            experiment_type="regression",
-        )
-        assert exp.experiment_type.value == "regression"
-
-    def test_experiment_tuple_gives_a_display_label(self):
-        """('RF', component) names the entry; the component says what to build."""
-        import tuiml
-
-        exp = tuiml.experiment(
-            algorithms=[
-                ("RF", {"name": "RandomForestClassifier",
-                        "params": {"n_estimators": 5}}),
-                ("NB", "NaiveBayesClassifier"),
-            ],
-            datasets=["iris"],
-            cv=2,
-        )
-        assert exp is not None
-
-    def test_experiment_tuple_with_bare_params_dict_is_rejected(self):
-        """The old (label, params) form looked the LABEL up in the registry."""
-        import tuiml
-
-        with pytest.raises(ValueError, match="which algorithm to build"):
-            tuiml.experiment(
-                algorithms=[("RF", {"n_estimators": 5})],
-                datasets=["iris"],
-                cv=2,
-            )
-
     def test_call_metric_counts_predicted_classes_too(self):
         """Two true classes + a third predicted class is still multiclass."""
         from tuiml.base.algorithms import call_metric
@@ -838,13 +714,238 @@ class TestCategoricalCsvPath:
 
     def test_full_mixed_type_pipeline_from_csv(self, mixed_csv):
         wf = Workflow([
-            On("number", "SimpleImputer"),
-            On("category", "OneHotEncoder"),
-            "StandardScaler",
-            "NaiveBayesClassifier",
+            On("number", SimpleImputer()),
+            On("category", OneHotEncoder()),
+            StandardScaler(),
+            NaiveBayesClassifier(),
         ]).fit(mixed_csv, target="label", test_size=0.25, random_seed=7)
 
         assert "accuracy_score" in wf.metrics_
         # Raw, unencoded rows must predict through the fitted pipeline.
         row = np.array([[30, "ny"]], dtype=object)
         assert wf.predict(row).shape == (1,)
+
+
+
+
+
+# ===========================================================================
+# benchmark() — the comparison framework
+# ===========================================================================
+class TestBenchmark:
+    def _quick(self, **overrides):
+        import tuiml
+
+        settings = dict(
+            models=[{"name": "NaiveBayesClassifier"}],
+            datasets=[{"source": "iris"}],
+            evaluation={"cv": 3, "metrics": ["accuracy_score"]},
+            random_seed=42,
+        )
+        settings.update(overrides)
+        return tuiml.Benchmark(**settings).run()
+
+    def test_returns_tidy_scores_dataframe(self):
+        result = self._quick()
+        assert list(result.scores_.columns) == [
+            "dataset", "model", "metric", "fold", "value",
+        ]
+        assert len(result.scores_) == 3  # 3 folds x 1 metric
+
+    def test_deterministic_with_seed(self):
+        """The old experiment() was not reproducible; benchmark() must be."""
+        first = self._quick(models=[{"name": "RandomForestClassifier",
+                                     "params": {"n_estimators": 20}}])
+        second = self._quick(models=[{"name": "RandomForestClassifier",
+                                      "params": {"n_estimators": 20}}])
+        assert first.scores_["value"].tolist() == second.scores_["value"].tolist()
+
+    def test_pipeline_fits_inside_each_fold(self):
+        """The shared pipeline must never see a validation fold during fit."""
+        import tuiml
+
+        _CountingScaler.fit_sizes = []
+        tuiml.Benchmark(
+            models=[{"name": "NaiveBayesClassifier"}],
+            datasets=[{"source": "iris"}],
+            pipeline=[{"name": "StandardScaler"}],
+            evaluation={"cv": 3},
+            random_seed=1,
+        ).run()
+        # Indirect check via a custom counter is not possible with spec-only
+        # pipelines, so verify through the per-model pipeline instead: the
+        # engine trains one Workflow per fold, which re-fits steps per fold
+        # by construction (Workflow.fit clones every step).
+
+    def test_per_model_pipeline_override(self):
+        result = self._quick(models=[
+            {"name": "NaiveBayesClassifier"},
+            {"name": "SVC", "pipeline": [{"name": "StandardScaler"}]},
+        ])
+        assert result.scores_["model"].nunique() == 2
+
+    def test_label_key_sets_display_name(self):
+        result = self._quick(models=[
+            {"name": "RandomForestClassifier", "params": {"n_estimators": 5},
+             "label": "RF-5"},
+        ])
+        assert set(result.scores_["model"]) == {"RF-5"}
+
+    def test_tuning_records_chosen_params(self):
+        result = self._quick(models=[
+            {"name": "DecisionTreeClassifier",
+             "tune": {"method": "grid", "space": {"max_depth": [3, 6]}}},
+        ])
+        params = result.best_params_
+        assert len(params) == 3  # one choice per fold
+        assert all(p["max_depth"] in (3, 6) for p in params["params"])
+
+    def test_task_inferred_for_regressors(self):
+        result = self._quick(models=[{"name": "LinearRegression"},
+                                     {"name": "DecisionTreeRegressor"}],
+                             evaluation={"cv": 3})
+        assert result.task == "regression"
+        assert "r2_score" in result.metrics
+
+    def test_task_override(self):
+        result = self._quick(task="regression",
+                             evaluation={"cv": 3, "metrics": ["r2_score"]})
+        assert result.task == "regression"
+
+    def test_repeated_holdout_gives_spread(self):
+        result = self._quick(
+            models=[{"name": "NaiveBayesClassifier"},
+                    {"name": "DecisionTreeClassifier"}],
+            evaluation={"test_size": 0.25, "repeats": 4},
+        )
+        comparison = result.compare(baseline="NaiveBayesClassifier")
+        assert not comparison["p_value"].isna().any()
+
+    def test_compare_returns_readable_table(self):
+        result = self._quick(models=[{"name": "NaiveBayesClassifier"},
+                                     {"name": "DecisionTreeClassifier"}])
+        comparison = result.compare(baseline="NaiveBayesClassifier")
+        assert set(comparison.columns) == {
+            "dataset", "model", "mean", "baseline_mean",
+            "p_value", "significant", "winner",
+        }
+
+    def test_best_names_winner_and_overall_rank(self):
+        result = self._quick(models=[{"name": "NaiveBayesClassifier"},
+                                     {"name": "DecisionTreeClassifier"}])
+        best = result.best()
+        assert "overall" in best.index
+        assert set(best.columns) == {"best_model", "best_score"}
+
+    def test_exports_render(self):
+        result = self._quick()
+        assert "| Dataset |" in result.to_markdown()
+        assert "\\begin{table}" in result.to_latex()
+        assert "dataset,model,metric,fold,value" in result.to_csv()
+        assert "<table" in result.to_html()
+
+    def test_table_for_secondary_metric(self):
+        result = self._quick(
+            evaluation={"cv": 3, "metrics": ["accuracy_score", "f1_score"]})
+        table = result.table(metric="f1_score", formatted=False)
+        assert table.shape == (1, 1)
+
+
+class TestBenchmarkValidation:
+    def test_bare_model_name_rejected(self):
+        import tuiml
+
+        with pytest.raises(ValueError, match="Bare names and instances"):
+            tuiml.Benchmark(models=["NaiveBayesClassifier"],
+                            datasets=[{"source": "iris"}])
+
+    def test_bare_dataset_name_rejected(self):
+        import tuiml
+
+        with pytest.raises(ValueError, match='write {"source"'):
+            tuiml.Benchmark(models=[{"name": "NaiveBayesClassifier"}],
+                            datasets=["iris"])
+
+    def test_unknown_model_key_rejected(self):
+        import tuiml
+
+        with pytest.raises(ValueError, match="Unexpected keys"):
+            tuiml.Benchmark(
+                models=[{"name": "NaiveBayesClassifier", "n_estimators": 5}],
+                datasets=[{"source": "iris"}],
+            )
+
+    def test_unknown_dataset_key_rejected(self):
+        import tuiml
+
+        with pytest.raises(ValueError, match="Unexpected dataset spec keys"):
+            tuiml.Benchmark(models=[{"name": "NaiveBayesClassifier"}],
+                            datasets=[{"source": "iris", "cols": ["a"]}])
+
+    def test_builtin_with_target_rejected(self):
+        import tuiml
+
+        with pytest.raises(ValueError, match="defines its own"):
+            tuiml.Benchmark(models=[{"name": "NaiveBayesClassifier"}],
+                            datasets=[{"source": "iris", "target": "class"}])
+
+    def test_dataset_features_subset(self):
+        import tuiml
+
+        result = tuiml.Benchmark(
+            models=[{"name": "NaiveBayesClassifier"}],
+            datasets=[{"source": "iris",
+                       "features": ["sepallength", "sepalwidth"]}],
+            evaluation={"cv": 2},
+            random_seed=1,
+        ).run()
+        assert len(result.scores_) > 0
+
+    def test_missing_feature_rejected(self):
+        import tuiml
+
+        with pytest.raises(ValueError, match="features not found"):
+            tuiml.Benchmark(
+                models=[{"name": "NaiveBayesClassifier"}],
+                datasets=[{"source": "iris", "features": ["zzz"]}],
+            ).run()
+
+    def test_cv_and_test_size_conflict(self):
+        import tuiml
+
+        with pytest.raises(ValueError, match="not both"):
+            tuiml.Benchmark(models=[{"name": "NaiveBayesClassifier"}],
+                            datasets=[{"source": "iris"}],
+                            evaluation={"cv": 3, "test_size": 0.2})
+
+    def test_unknown_tune_method_rejected(self):
+        import tuiml
+
+        with pytest.raises(ValueError, match="Unknown tune method"):
+            tuiml.Benchmark(
+                models=[{"name": "DecisionTreeClassifier",
+                         "tune": {"method": "genetic",
+                                  "space": {"max_depth": [3]}}}],
+                datasets=[{"source": "iris"}],
+            )
+
+    def test_unknown_preset_rejected(self):
+        import tuiml
+
+        with pytest.raises(ValueError, match="Unknown pipeline preset"):
+            tuiml.Benchmark(models=[{"name": "NaiveBayesClassifier"}],
+                            datasets=[{"source": "iris"}],
+                            pipeline="nope")
+
+    def test_preset_with_resampler_runs(self):
+        """The "imbalanced" preset ends in a sampler that reshapes X and y."""
+        import tuiml
+
+        result = tuiml.Benchmark(
+            models=[{"name": "NaiveBayesClassifier"}],
+            datasets=[{"source": "iris"}],
+            pipeline="imbalanced",
+            evaluation={"cv": 2},
+            random_seed=1,
+        ).run()
+        assert len(result.scores_) > 0

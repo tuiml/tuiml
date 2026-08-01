@@ -5,7 +5,7 @@ from typing import Dict, List, Any, Optional, Type
 from itertools import combinations
 
 from tuiml.base.algorithms import Classifier, classifier
-from tuiml.hub import registry
+from tuiml.registry import registry
 
 @classifier(tags=["ensemble", "multiclass", "meta"], version="1.0.0")
 class MultiClassClassifier(Classifier):

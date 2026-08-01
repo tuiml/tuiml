@@ -42,9 +42,9 @@ class KNearestNeighborsClassifier(Classifier):
 
     where:
 
-    - :math:`N_k(x)` — The set of :math:`k` nearest neighbors of :math:`x`
-    - :math:`w_i` — Weight assigned to neighbor :math:`i`
-    - :math:`C` — The set of all classes
+    - :math:`N_k(x)`: The set of :math:`k` nearest neighbors of :math:`x`
+    - :math:`w_i`: Weight assigned to neighbor :math:`i`
+    - :math:`C`: The set of all classes
 
     **Weighting schemes:**
 
@@ -64,15 +64,15 @@ class KNearestNeighborsClassifier(Classifier):
     distance_weighting : {'uniform', 'distance', 'similarity'}, default='uniform'
         How to weight neighbors:
 
-        - ``'uniform'`` — All neighbors weighted equally.
-        - ``'distance'`` — Weight by inverse of distance :math:`1/d`.
-        - ``'similarity'`` — Weight by similarity :math:`1/(1+d)`.
+        - ``'uniform'``: All neighbors weighted equally.
+        - ``'distance'``: Weight by inverse of distance :math:`1/d`.
+        - ``'similarity'``: Weight by similarity :math:`1/(1+d)`.
     search_algorithm : {'brute', 'kd_tree', 'ball_tree'}, default='brute'
         Algorithm for finding neighbors:
 
-        - ``'brute'`` — Brute force search.
-        - ``'kd_tree'`` — KD-tree for faster search in low dimensions.
-        - ``'ball_tree'`` — Ball tree for higher-dimensional or non-Euclidean data.
+        - ``'brute'``: Brute force search.
+        - ``'kd_tree'``: KD-tree for faster search in low dimensions.
+        - ``'ball_tree'``: Ball tree for higher-dimensional or non-Euclidean data.
     cross_validate : bool, default=False
         If True, use leave-one-out cross-validation to automatically
         select the optimal :math:`k`.

@@ -1,6 +1,6 @@
 """HTML representation of TuiML components for notebooks.
 
-Renders a component — most usefully a :class:`~tuiml.workflow.Workflow` — as a
+Renders a component, most usefully a :class:`~tuiml.workflow.Workflow`: as a
 nested diagram of boxes, so a pipeline's structure is visible at a glance
 instead of buried in a long ``repr`` string.
 
@@ -9,7 +9,7 @@ Any object may control how it is drawn by implementing
 components (a pipeline, a column router) use this to expose their children,
 which are then drawn recursively.
 
-The diagram is pure HTML + CSS — collapsible boxes use a hidden checkbox
+The diagram is pure HTML + CSS, collapsible boxes use a hidden checkbox
 toggled by its ``<label>``, so no JavaScript is needed and the output renders
 in any notebook front end. The CSS is scoped to a unique container id so
 several diagrams on one page cannot affect each other.
@@ -36,7 +36,7 @@ class VisualBlock:
     items : object or list of object
         The component itself when ``kind="single"``, otherwise its children.
     names : str or list of str, optional
-        Box captions — a single name for ``"single"``, one per child otherwise.
+        Box captions, a single name for ``"single"``, one per child otherwise.
     details : str or list of str, optional
         Text revealed when a box is expanded (typically the child's ``repr``).
     title : str, optional
@@ -56,6 +56,7 @@ class VisualBlock:
         title: Optional[str] = None,
         framed: bool = True,
     ):
+        """Store the layout description, validating ``kind``."""
         if kind not in ("single", "serial", "parallel"):
             raise ValueError(
                 f"kind must be 'single', 'serial', or 'parallel', got {kind!r}."
@@ -88,6 +89,15 @@ def get_visual_block(component: Any) -> VisualBlock:
     -------
     VisualBlock
         The layout description.
+
+    Examples
+    --------
+    >>> from tuiml.utils.html_repr import get_visual_block
+    >>> block = get_visual_block(42)
+    >>> block.kind, block.names, block.details
+    ('single', 'int', '42')
+    >>> get_visual_block(None).names
+    'passthrough'
     """
     if hasattr(component, "_tuiml_visual_block_"):
         try:
@@ -187,8 +197,13 @@ def component_html_repr(component: Any) -> str:
     Examples
     --------
     >>> from tuiml import Workflow
-    >>> html_str = component_html_repr(Workflow(["StandardScaler", "NaiveBayesClassifier"]))
-    >>> html_str.startswith("<style>")
+    >>> from tuiml.preprocessing import StandardScaler
+    >>> from tuiml.algorithms.bayesian import NaiveBayesClassifier
+    >>> page = component_html_repr(
+    ...     Workflow([StandardScaler(), NaiveBayesClassifier()]))
+    >>> page.startswith("<style>")
+    True
+    >>> "NaiveBayesClassifier" in page
     True
     """
     container_id = f"tuiml-container-{next(_CONTAINER_IDS)}"

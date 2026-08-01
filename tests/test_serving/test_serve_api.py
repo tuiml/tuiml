@@ -10,7 +10,8 @@ import tuiml
 @pytest.fixture
 def fitted_model():
     """A small fitted pipeline to serve."""
-    return tuiml.train("NaiveBayesClassifier", {"source": "iris"}, random_seed=1)
+    return tuiml.train({"model": {"name": "NaiveBayesClassifier"},
+                        "data": {"source": "iris"}, "random_seed": 1})
 
 
 @pytest.fixture(autouse=True)
@@ -71,12 +72,12 @@ class TestServeBackground:
         import requests
         from tuiml.datasets import load_dataset
 
-        model = tuiml.train(
-            {"name": "NaiveBayesClassifier"},
-            {"source": "iris"},
-            pipeline=[{"name": "StandardScaler"}],
-            random_seed=1,
-        )
+        model = tuiml.train({
+            "model": {"name": "NaiveBayesClassifier"},
+            "data": {"source": "iris"},
+            "pipeline": [{"name": "StandardScaler"}],
+            "random_seed": 1,
+        })
         info = tuiml.serve(model, port=_free_port())
         dataset = load_dataset("iris")
 

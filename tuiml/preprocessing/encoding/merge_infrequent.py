@@ -56,14 +56,7 @@ class RareCategoryEncoder(Transformer):
         columns: Optional[List[int]] = None,
         merged_value: int = -1,
     ):
-        """
-        Initialize RareCategoryEncoder.
-
-        Args:
-            min_frequency: Minimum frequency threshold
-            columns: Columns to process (None for all)
-            merged_value: Value to use for merged categories
-        """
+        """Store the frequency threshold and target columns. See the class docstring."""
         super().__init__()
         self.min_frequency = min_frequency
         self.columns = columns
@@ -97,16 +90,21 @@ class RareCategoryEncoder(Transformer):
         y: Optional[np.ndarray] = None,
         feature_names: Optional[List[str]] = None,
     ) -> "RareCategoryEncoder":
-        """
-        Learn which values to merge.
+        """Learn which category values are too rare to keep.
 
-        Args:
-            X: Input data
-            y: Ignored
-            feature_names: Optional feature names
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Input data holding categorical values.
+        y : np.ndarray, optional
+            Ignored, present for API consistency.
+        feature_names : list of str, optional
+            Names of the input columns.
 
-        Returns:
-            Self
+        Returns
+        -------
+        self : object
+            The fitted encoder, holding the retained values per column.
         """
         X = self._validate_input(X)
         self._n_features_in = X.shape[1]
@@ -148,14 +146,23 @@ class RareCategoryEncoder(Transformer):
         return self
 
     def transform(self, X: np.ndarray) -> np.ndarray:
-        """
-        Apply the value merging.
+        """Replace infrequent category values with the merged placeholder.
 
-        Args:
-            X: Input data
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Input data with the same number of columns seen during :meth:`fit`.
 
-        Returns:
-            Data with infrequent values merged
+        Returns
+        -------
+        X_out : np.ndarray of shape (n_samples, n_features)
+            Data where every value below the frequency threshold has been replaced
+            by ``merged_value``.
+
+        Raises
+        ------
+        ValueError
+            If ``X`` has a different number of columns than seen during fit.
         """
         self._check_is_fitted()
         X = self._validate_input(X)

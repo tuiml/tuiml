@@ -73,15 +73,15 @@ class LocalOutlierFactorDetector(Classifier):
     metric : str, default="euclidean"
         Distance metric for computing neighbor distances:
 
-        - ``"euclidean"`` — Euclidean (L2) distance
-        - ``"manhattan"`` — Manhattan (L1) distance
-        - ``"chebyshev"`` — Chebyshev (L∞) distance
+        - ``"euclidean"``: Euclidean (L2) distance
+        - ``"manhattan"``: Manhattan (L1) distance
+        - ``"chebyshev"``: Chebyshev (L∞) distance
 
     novelty : bool, default=False
         Detection mode:
 
-        - ``False`` — Outlier detection (fit and predict on same data)
-        - ``True`` — Novelty detection (predict on new, unseen data)
+        - ``False``: Outlier detection (fit and predict on same data)
+        - ``True``: Novelty detection (predict on new, unseen data)
 
     Attributes
     ----------

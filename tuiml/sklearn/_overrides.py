@@ -4,7 +4,7 @@ A :class:`~tuiml.sklearn._spec.SklearnSpec` describes an estimator declaratively
 resolve a class, pass parameters, done. A small number of estimators need extra
 assembly instead. Those name a function here via the spec's ``builder`` field.
 
-Keep this module small — every entry is a documented exception to the
+Keep this module small, every entry is a documented exception to the
 declarative rule, not a place to put ordinary configuration.
 """
 

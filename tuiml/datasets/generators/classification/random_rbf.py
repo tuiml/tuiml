@@ -1,7 +1,10 @@
 """
-RandomRBF data generator.
+RandomRBF generator: Gaussian clouds around random centroids.
 
-Generates data using random Radial Basis Function centers.
+Places weighted centroids at random positions in feature space, one group per
+class, then samples points from a Gaussian around a randomly chosen centroid.
+Class regions overlap and are not linearly separable, and both the number of
+classes and the number of centroids are free parameters.
 """
 
 import numpy as np

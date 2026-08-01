@@ -1,5 +1,10 @@
 """
-NumPy format loader (.npy, .npz).
+NumPy binary format reader and writer.
+
+Reads and writes ``.npy`` (a single array) and ``.npz`` (an archive holding the
+feature matrix, the target, and the feature names together). This is the
+fastest and most faithful round trip for data that is already numeric, since
+nothing is parsed or re-typed.
 """
 
 import numpy as np
@@ -35,6 +40,7 @@ def load_numpy(
 
     Examples
     --------
+    >>> from tuiml.datasets.loaders import load_numpy
     >>> data = load_numpy('data.npz')
     >>> data.X.shape, data.y.shape
     >>> X, y = load_numpy('data.npz')  # Can unpack
@@ -67,24 +73,35 @@ def save_numpy(
     feature_names: Optional[List[str]] = None,
     compressed: bool = True
 ):
-    """
-    Save data to NumPy format.
+    """Save data to NumPy's ``.npy`` or ``.npz`` format.
 
-    If target is provided, saves as .npz with 'X' and 'y' keys.
-    Otherwise saves as .npy.
+    Writes a plain ``.npy`` array when only ``data`` is given. As soon as a
+    target or feature names are supplied it writes an ``.npz`` archive instead,
+    with the features under the ``X`` key and the target under ``y``, so that
+    :func:`load_numpy` can restore everything in one call.
 
     Parameters
     ----------
     filepath : str or Path
-        Output file path
-    data : numpy.ndarray
-        Feature data (n_samples, n_features)
-    target : numpy.ndarray or None
-        Target values (optional)
-    feature_names : list of str or None
-        List of feature names (stored in .npz)
-    compressed : bool
-        Whether to use compression (.npz only)
+        Output file path.
+    data : numpy.ndarray of shape (n_samples, n_features)
+        Feature matrix to write.
+    target : numpy.ndarray of shape (n_samples,) or None, default=None
+        Target values, stored under the ``y`` key.
+    feature_names : list of str or None, default=None
+        Feature names, stored alongside the arrays in the ``.npz``.
+    compressed : bool, default=True
+        Whether to compress the archive. Ignored for plain ``.npy`` output.
+
+    Returns
+    -------
+    None
+        The array or archive is written to ``filepath``.
+
+    Examples
+    --------
+    >>> from tuiml.datasets.loaders import save_numpy
+    >>> save_numpy('data.npz', X, target=y, feature_names=['a', 'b'])
     """
     filepath = Path(filepath)
 

@@ -201,7 +201,7 @@ class SVC(Classifier):
         max_iter : int, default=-1
             Hard cap on SMO iterations. ``-1`` (default) auto-scales the cap to
             ``max(10000, n_samples)`` so the solver actually converges on larger
-            datasets — a small fixed cap silently returns an under-trained
+            datasets, a small fixed cap silently returns an under-trained
             (degenerate) model on data with more than a few thousand rows.
         """
         super().__init__()
@@ -393,14 +393,14 @@ class SVC(Classifier):
             eff_max_iter = self.max_iter
 
         if self._use_precomputed:
-            # Custom kernel (PUK, String, etc.) — compute kernel matrix in Python
+            # Custom kernel (PUK, String, etc.): compute kernel matrix in Python
             K = self._kernel_obj.compute_matrix_cross(X, X)
             K = np.ascontiguousarray(K, dtype=np.float64)
             self._cpp_model = _cpp_svm.svc_train_precomputed(
                 K, y_int, self.C, self.tol, eff_max_iter
             )
         else:
-            # Native kernel — use C++ solver directly
+            # Native kernel, use C++ solver directly
             X_c = np.ascontiguousarray(X, dtype=np.float64)
             kt = self._get_kernel_type_int()
             self._cpp_model = _cpp_svm.svc_train(

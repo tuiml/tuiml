@@ -1,24 +1,28 @@
-"""
-MCP (Model Context Protocol) Server for TuiML.
+"""MCP (Model Context Protocol) server for TuiML.
 
-Exposes workflow and discovery tools that give LLMs access to ALL
-TuiML components (algorithms, preprocessors, datasets, features).
-New algorithms added to the hub or community are automatically
-discoverable via tuiml_list / tuiml_search / tuiml_describe
-and usable via tuiml_train / tuiml_experiment.
+Exposes workflow and discovery tools that give LLMs access to all TuiML
+components (algorithms, preprocessors, datasets, features). New algorithms
+added to the component registry are automatically discoverable via
+``tuiml_list`` / ``tuiml_search`` / ``tuiml_describe`` and usable via
+``tuiml_train`` / ``tuiml_benchmark``.
 
-Usage:
-    # Simplest way (after pip install)
+Usage
+-----
+Run the server (installed with ``pip install tuiml``)::
+
     tuiml-mcp
 
-    # Or run as Python module
+Or run it as a Python module::
+
     python -m tuiml.agent.mcp.server
 
-    # Server options
+Server options::
+
     tuiml-mcp --help   # Show help
     tuiml-mcp --info   # Show server info
 
-    # Configure in Claude Desktop (claude_desktop_config.json):
+Configure in Claude Desktop (``claude_desktop_config.json``)::
+
     {
         "mcpServers": {
             "tuiml": {
@@ -54,6 +58,18 @@ _TRACE_PID = os.getpid()
 
 
 def _trace_write(record: dict) -> None:
+    """Append one JSONL record to the MCP trace file.
+
+    Parameters
+    ----------
+    record : dict
+        JSON-serializable trace record to append.
+
+    Returns
+    -------
+    None
+        Failures are swallowed; tracing must never break the server.
+    """
     if not _TRACE_ENABLED:
         return
     try:
@@ -66,6 +82,19 @@ def _trace_write(record: dict) -> None:
 
 
 def _trace_call_start(name: str, args: dict) -> None:
+    """Write a trace record for the start of a tool call.
+
+    Parameters
+    ----------
+    name : str
+        Tool name being invoked.
+    args : dict
+        Tool arguments; large values are truncated before logging.
+
+    Returns
+    -------
+    None
+    """
     # Truncate large arg values so the log file doesn't explode.
     safe_args = {}
     for k, v in (args or {}).items():
@@ -84,6 +113,23 @@ def _trace_call_start(name: str, args: dict) -> None:
 
 def _trace_call_end(name: str, result: Optional[dict], duration_ms: int,
                     error: Optional[str]) -> None:
+    """Write a trace record for the completion of a tool call.
+
+    Parameters
+    ----------
+    name : str
+        Tool name that was invoked.
+    result : dict or None
+        Tool result; only its status and top-level keys are logged.
+    duration_ms : int
+        Wall-clock duration of the call in milliseconds.
+    error : str or None
+        Error message if the call failed, else None.
+
+    Returns
+    -------
+    None
+    """
     summary: Dict[str, Any] = {}
     if result is not None:
         # Don't write the full result (may include base64 images, large
@@ -118,7 +164,18 @@ except ImportError:
     Server = None
 
 def _strip_none(obj):
-    """Recursively remove None values from dicts so absent optional fields pass schema validation."""
+    """Recursively remove None values from dicts so absent optional fields pass schema validation.
+
+    Parameters
+    ----------
+    obj : Any
+        Value to clean; dicts and lists are walked recursively.
+
+    Returns
+    -------
+    Any
+        Copy of ``obj`` with all None-valued dict entries removed.
+    """
     if isinstance(obj, dict):
         return {k: _strip_none(v) for k, v in obj.items() if v is not None}
     if isinstance(obj, list):
@@ -126,7 +183,20 @@ def _strip_none(obj):
     return obj
 
 def _format_progress(info: Dict[str, Any]) -> str:
-    """Format a progress callback dict into a human-readable log message."""
+    """Format a progress callback dict into a human-readable log message.
+
+    Parameters
+    ----------
+    info : dict
+        Progress payload from a workflow tool. The ``"type"`` key selects
+        the format: ``"tune_progress"``, ``"benchmark_progress"``, or
+        ``"experiment_progress"``; anything else is JSON-dumped as-is.
+
+    Returns
+    -------
+    str
+        One-line progress message suitable for MCP log notifications.
+    """
     ptype = info.get('type', '')
     if ptype == 'tune_progress':
         iteration = info.get('iteration', '?')
@@ -137,6 +207,12 @@ def _format_progress(info: Dict[str, Any]) -> str:
         return (
             f"[Tuning {iteration}/{total}] "
             f"score={mean:.4f}, best={best:.4f}, params={params}"
+        )
+    elif ptype == 'benchmark_progress':
+        return (
+            f"[Benchmark {info.get('dataset', '?')}] "
+            f"{info.get('model', '?')}: fold "
+            f"{info.get('fold', '?')}/{info.get('folds', '?')}"
         )
     elif ptype == 'experiment_progress':
         ds = info.get('dataset', '?')
@@ -186,7 +262,15 @@ def create_server() -> "Server":
     # =========================================================================
     @server.list_tools()
     async def list_tools() -> List[Tool]:
-        """List workflow and discovery tools (not 200+ component tools)."""
+        """List workflow and discovery tools (not 200+ component tools).
+
+        Returns
+        -------
+        list of mcp.types.Tool
+            One Tool per workflow/discovery tool, each carrying name,
+            description, inputSchema, annotations, and (except for
+            image-returning tools) outputSchema.
+        """
         tools = []
 
         from tuiml.agent.tools import get_workflow_tools, get_tool_output_schema, get_tool_annotations
@@ -213,11 +297,26 @@ def create_server() -> "Server":
     # Call Tool Handler - runs CPU-bound work off the event loop
     # =========================================================================
     # Tools that benefit from real-time progress notifications
-    _PROGRESS_TOOLS = {"tuiml_tune", "tuiml_experiment"}
+    _PROGRESS_TOOLS = {"tuiml_tune", "tuiml_benchmark"}
 
     @server.call_tool()
     async def call_tool(name: str, arguments: Dict[str, Any]):
-        """Execute any TuiML tool."""
+        """Execute any TuiML tool.
+
+        Parameters
+        ----------
+        name : str
+            Name of the workflow/discovery tool to run (e.g. "tuiml_train").
+        arguments : dict
+            Keyword arguments forwarded to the tool.
+
+        Returns
+        -------
+        dict or list
+            JSON-serializable result dict on success (or a dict with
+            ``"status": "error"`` on failure). Tools that produce images
+            return ``[TextContent, ImageContent]`` instead.
+        """
         from tuiml.agent.tools import execute_tool, record_session_call
 
         _trace_call_start(name, arguments)
@@ -230,7 +329,7 @@ def create_server() -> "Server":
                 loop = asyncio.get_running_loop()
 
                 def _sync_progress_callback(info):
-                    """Sync callback invoked from worker thread — posts to queue."""
+                    """Sync callback invoked from worker thread, posts to queue."""
                     progress_queue.put(info)
 
                 async def _drain_progress():
@@ -271,7 +370,7 @@ def create_server() -> "Server":
             # Round-trip through JSON to ensure all values are serializable
             # (handles numpy types, datetimes, etc.)
             result = json.loads(json.dumps(result, default=str))
-            # Strip None values — outputSchema allows absent optional fields
+            # Strip None values, outputSchema allows absent optional fields
             # but not null when typed as "string"/"integer"/etc.
             result = _strip_none(result)
 
@@ -308,7 +407,14 @@ def create_server() -> "Server":
     # =========================================================================
     @server.list_resources()
     async def list_resources() -> List[Resource]:
-        """List available datasets as MCP resources."""
+        """List available datasets as MCP resources.
+
+        Returns
+        -------
+        list of mcp.types.Resource
+            One Resource per built-in dataset, with a
+            ``tuiml://dataset/{name}`` URI and JSON mime type.
+        """
         resources = []
 
         try:
@@ -331,7 +437,19 @@ def create_server() -> "Server":
     # =========================================================================
     @server.read_resource()
     async def read_resource(uri: str) -> str:
-        """Read a dataset resource."""
+        """Read a dataset resource.
+
+        Parameters
+        ----------
+        uri : str
+            Resource URI of the form ``tuiml://dataset/{name}``.
+
+        Returns
+        -------
+        str
+            JSON string with dataset name, info, shape, feature names,
+            and a 5-row preview; or a JSON error object for unknown URIs.
+        """
         uri = str(uri)
         if uri.startswith("tuiml://dataset/"):
             dataset_name = uri.replace("tuiml://dataset/", "")
@@ -362,7 +480,14 @@ def create_server() -> "Server":
     # =========================================================================
     @server.list_resource_templates()
     async def list_resource_templates() -> List[ResourceTemplate]:
-        """List resource templates."""
+        """List resource templates.
+
+        Returns
+        -------
+        list of mcp.types.ResourceTemplate
+            A single template describing the ``tuiml://dataset/{name}``
+            URI scheme for built-in datasets.
+        """
         return [
             ResourceTemplate(
                 uriTemplate="tuiml://dataset/{name}",
@@ -375,7 +500,14 @@ def create_server() -> "Server":
     return server
 
 async def run_server():
-    """Run the MCP server using stdio transport."""
+    """Run the MCP server using stdio transport.
+
+    Returns
+    -------
+    None
+        Blocks until the client disconnects; exits the process if the
+        ``mcp`` package is not installed.
+    """
     if not MCP_AVAILABLE:
         print(
             "Error: MCP package not installed.\n"
@@ -416,7 +548,15 @@ async def run_server():
         )
 
 def main():
-    """Main entry point for the MCP server."""
+    """Main entry point for the MCP server (the ``tuiml-mcp`` command).
+
+    Handles the ``--info`` and ``--help`` flags, otherwise runs the
+    stdio server.
+
+    Returns
+    -------
+    None
+    """
     import sys
 
     # Check for --info flag
@@ -462,7 +602,16 @@ def main():
 # =============================================================================
 
 def get_server_info() -> Dict[str, Any]:
-    """Get information about the MCP server."""
+    """Get information about the MCP server.
+
+    Returns
+    -------
+    dict
+        Server metadata with keys ``"name"``, ``"version"``,
+        ``"description"``, ``"mcp_available"``, and ``"tools"`` (a dict
+        with ``"exposed_tools"``, ``"discoverable_components"``, and
+        ``"components_by_category"`` counts).
+    """
     from tuiml.agent.registry import get_tool_count
     from tuiml.agent.tools import get_workflow_tools
 

@@ -32,8 +32,18 @@ class BootstrapSplit(BaseSplitter):
     >>> import numpy as np
     >>> X = np.arange(100).reshape(-1, 1)
     >>> bs = BootstrapSplit(n_iterations=10)
-    >>> for train_idx, test_idx in bs.split(X):
-    ...     print(f"Train size: {len(train_idx)}, Test size: {len(test_idx)}")
+    >>> splits = list(bs.split(X))
+    >>> len(splits)
+    10
+
+    Each training set is drawn with replacement and so always has ``n_samples``
+    entries; the test set is whatever was left out, so its size varies:
+
+    >>> train_idx, test_idx = splits[0]
+    >>> len(train_idx)
+    100
+    >>> 0 < len(test_idx) < 100
+    True
     """
 
     def __init__(
@@ -42,6 +52,7 @@ class BootstrapSplit(BaseSplitter):
         sample_size: float = 1.0,
         random_state: Optional[int] = None
     ):
+        """Store the iteration count, sample size and seed. See the class docstring."""
         if n_iterations < 1:
             raise ValueError("n_iterations must be at least 1")
         if not 0 < sample_size <= 2.0:
@@ -107,4 +118,12 @@ class BootstrapSplit(BaseSplitter):
         return self.n_iterations
 
     def __repr__(self) -> str:
+        """Return a reproducible string form of the splitter.
+
+        Returns
+        -------
+        repr_str : str
+            Constructor-style representation, e.g.
+            ``BootstrapSplit(n_iterations=100, sample_size=1.0)``.
+        """
         return f"BootstrapSplit(n_iterations={self.n_iterations}, sample_size={self.sample_size})"

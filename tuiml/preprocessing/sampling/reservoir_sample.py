@@ -56,13 +56,7 @@ class ReservoirSampler(InstanceTransformer):
         sample_size: int = 100,
         random_state: Optional[int] = None,
     ):
-        """
-        Initialize ReservoirSampler.
-
-        Args:
-            sample_size: Number of instances to sample
-            random_state: Random seed
-        """
+        """Store the sample size and random seed. See the class docstring."""
         super().__init__()
         self.sample_size = sample_size
         self.random_state = random_state
@@ -91,15 +85,19 @@ class ReservoirSampler(InstanceTransformer):
         X: np.ndarray,
         y: Optional[np.ndarray] = None,
     ) -> "ReservoirSampler":
-        """
-        Fit the sampler (no-op).
+        """Fit the sampler.
 
-        Args:
-            X: Input data
-            y: Target values (optional)
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Input data. Unused: reservoir sampling needs no fitted state.
+        y : np.ndarray, optional
+            Ignored, present for API consistency.
 
-        Returns:
-            Self
+        Returns
+        -------
+        self : object
+            The fitted sampler.
         """
         X = np.asarray(X)
         if X.ndim == 1:
@@ -113,15 +111,24 @@ class ReservoirSampler(InstanceTransformer):
         X: np.ndarray,
         y: Optional[np.ndarray] = None,
     ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
-        """
-        Perform reservoir sampling.
+        """Draw a fixed-size uniform sample in a single pass.
 
-        Args:
-            X: Input data
-            y: Target values (optional)
+        Every row has the same probability of ending up in the reservoir, and the
+        data is read once, so this works on streams whose length is unknown.
 
-        Returns:
-            (X_sampled, y_sampled) tuple
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Input data.
+        y : np.ndarray of shape (n_samples,), optional
+            Target values, sampled with the same indices when given.
+
+        Returns
+        -------
+        X_sampled : np.ndarray
+            At most ``sample_size`` rows drawn uniformly from ``X``.
+        y_sampled : np.ndarray or None
+            Matching targets, or None when ``y`` was not supplied.
         """
         self._check_is_fitted()
         X = np.asarray(X)

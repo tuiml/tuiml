@@ -3,7 +3,8 @@ import numpy as np
 import pytest
 import pandas as pd
 from tuiml.utils.seed import set_global_seed, get_global_seed
-from tuiml.api import train, experiment
+from tuiml.training import train
+from tuiml.benchmarking import Benchmark
 from tuiml.agent.tools import execute_tool
 
 
@@ -34,16 +35,18 @@ def test_api_train_seed_determinism():
     df['target'] = data.y
 
     # Run train with explicit random_seed
-    res1 = train("RandomForestClassifier", data=df, target='target', random_seed=42)
-    res2 = train("RandomForestClassifier", data=df, target='target', random_seed=42)
+    res1 = train({"model": {"name": "RandomForestClassifier"}, "data": df,
+                  "target": "target", "random_seed": 42})
+    res2 = train({"model": {"name": "RandomForestClassifier"}, "data": df,
+                  "target": "target", "random_seed": 42})
     assert res1.metrics_ == res2.metrics_
 
     # Set global seed and run train with no explicit seed (should fallback to global seed)
     set_global_seed(123)
-    res3 = train("RandomForestClassifier", data=df, target='target')
+    res3 = train({"model": {"name": "RandomForestClassifier"}, "data": df, "target": "target"})
 
     set_global_seed(123)
-    res4 = train("RandomForestClassifier", data=df, target='target')
+    res4 = train({"model": {"name": "RandomForestClassifier"}, "data": df, "target": "target"})
     assert res3.metrics_ == res4.metrics_
 
     set_global_seed(None)
@@ -73,9 +76,9 @@ def test_mcp_tool_execute_seed():
         # Verify determinism
         assert res1['metrics'] == res2['metrics']
 
-        # Test tuiml_experiment via MCP
+        # Test tuiml_benchmark via MCP
         exp_res1 = execute_tool(
-            "tuiml_experiment",
+            "tuiml_benchmark",
             algorithms=["RandomForestClassifier"],
             data=csv_path,
             target="target",

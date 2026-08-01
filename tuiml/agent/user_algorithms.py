@@ -1,4 +1,4 @@
-"""Agent-authored algorithms — persistence, safety checks, and registry bootstrap.
+"""Agent-authored algorithms, persistence, safety checks, and registry bootstrap.
 
 Agents can call ``tuiml_create_algorithm`` with raw Python source describing a
 new ``@classifier`` / ``@regressor`` class. This module:
@@ -9,7 +9,7 @@ new ``@classifier`` / ``@regressor`` class. This module:
    ``~/.tuiml/user_algorithms/<Name>/<version>/algorithm.py``.
 3. Imports the file and registers both the *versioned* alias
    (``MyAlg_v1_0_0``) and the bare latest-alias (``MyAlg``) into the TuiML
-   registry, so every existing MCP tool (``tuiml_train``, ``tuiml_experiment``,
+   registry, so every existing MCP tool (``tuiml_train``, ``tuiml_benchmark``,
    ``tuiml_describe``) works on user algorithms unchanged.
 4. On ``load_all()`` scans the directory and re-registers everything,
    preserving agent work across MCP server restarts.
@@ -50,7 +50,7 @@ class {class_name}(Classifier):
     Parameters
     ----------
     n_neighbors : int, default=5
-        Placeholder hyperparameter — replace with your own.
+        Placeholder hyperparameter, replace with your own.
     """
 
     def __init__(self, n_neighbors: int = 5):
@@ -93,7 +93,7 @@ class {class_name}(Regressor):
     Parameters
     ----------
     alpha : float, default=1.0
-        Placeholder hyperparameter — replace with your own.
+        Placeholder hyperparameter, replace with your own.
     """
 
     def __init__(self, alpha: float = 1.0):
@@ -123,7 +123,26 @@ class {class_name}(Regressor):
 def skeleton(kind: str, class_name: str = "MyAlgorithm",
              version: str = "1.0.0",
              description: str = "Describe what your algorithm does.") -> Dict[str, Any]:
-    """Return a ready-to-fill template for a new algorithm."""
+    """Return a ready-to-fill template for a new algorithm.
+
+    Parameters
+    ----------
+    kind : str
+        Either ``'classifier'`` or ``'regressor'`` (case-insensitive).
+    class_name : str, default="MyAlgorithm"
+        Name of the generated class.
+    version : str, default="1.0.0"
+        Semver version baked into the decorator.
+    description : str, default="Describe what your algorithm does."
+        One-line description used as the module and class docstring.
+
+    Returns
+    -------
+    result : Dict[str, Any]
+        On success: keys ``status``, ``kind``, ``class_name``, ``version``,
+        ``code`` (the filled-in template source), and ``notes``. On failure:
+        keys ``status``, ``error_type``, ``error``.
+    """
     kind = kind.lower()
     if kind not in {"classifier", "regressor"}:
         return {
@@ -166,7 +185,7 @@ _FORBIDDEN_MODULES = {
 # towards reading files they shouldn't.
 _FORBIDDEN_CALLS = {"eval", "exec", "compile", "__import__", "open", "input"}
 
-# Even attribute accesses like os.system should fail — but our module denylist
+# Even attribute accesses like os.system should fail, but our module denylist
 # already blocks `import os`.
 _FORBIDDEN_ATTRS = {"system", "popen", "spawn", "spawnl", "spawnv"}
 
@@ -174,7 +193,17 @@ _FORBIDDEN_ATTRS = {"system", "popen", "spawn", "spawnl", "spawnv"}
 def _ast_validate(source: str) -> Tuple[bool, str]:
     """Walk the AST and reject source that uses denylisted modules / calls.
 
-    Returns ``(ok, reason)``. ``reason`` is empty on success.
+    Parameters
+    ----------
+    source : str
+        Python source code to validate.
+
+    Returns
+    -------
+    ok : bool
+        True if the source passed all checks.
+    reason : str
+        Rejection reason; empty string on success.
     """
     try:
         tree = ast.parse(source)
@@ -213,7 +242,7 @@ def _ast_validate(source: str) -> Tuple[bool, str]:
 
     if not found_decorator:
         return False, (
-            "no @classifier / @regressor decorated class found — did you "
+            "no @classifier / @regressor decorated class found, did you "
             "forget the decorator? Call tuiml_algorithm_skeleton for a template."
         )
 
@@ -229,26 +258,31 @@ _VERSION_RE = re.compile(r"^\d+\.\d+\.\d+$")
 
 
 def _validate_name(name: str) -> Optional[str]:
+    """Return an error message if ``name`` is not a valid Python identifier, else None."""
     if not _NAME_RE.match(name):
         return f"name must be a valid Python identifier, got {name!r}"
     return None
 
 
 def _validate_version(version: str) -> Optional[str]:
+    """Return an error message if ``version`` is not MAJOR.MINOR.PATCH semver, else None."""
     if not _VERSION_RE.match(version):
         return f"version must be MAJOR.MINOR.PATCH semver, got {version!r}"
     return None
 
 
 def _alg_dir(name: str, version: str) -> Path:
+    """Return the on-disk directory for one algorithm version."""
     return USER_ALGS_DIR / name / version
 
 
 def _algorithm_file(name: str, version: str) -> Path:
+    """Return the ``algorithm.py`` path for one algorithm version."""
     return _alg_dir(name, version) / "algorithm.py"
 
 
 def _source_hash(source: str) -> str:
+    """Return a short (16-hex-char) SHA-256 hash of the source text."""
     return hashlib.sha256(source.encode("utf-8")).hexdigest()[:16]
 
 
@@ -257,17 +291,49 @@ def _source_hash(source: str) -> str:
 # ---------------------------------------------------------------------------
 
 def _versioned_alias_name(name: str, version: str) -> str:
-    """Return a valid Python identifier encoding the version, e.g. MyGBM_v1_0_0."""
+    """Return a valid Python identifier encoding the version, e.g. MyGBM_v1_0_0.
+
+    Parameters
+    ----------
+    name : str
+        Bare class name.
+    version : str
+        Semver version string (dots become underscores).
+
+    Returns
+    -------
+    alias : str
+        Identifier of the form ``<name>_v<major>_<minor>_<patch>``.
+    """
     return f"{name}_v{version.replace('.', '_')}"
 
 
 def _import_and_register(file_path: Path, name: str, version: str) -> Tuple[Any, str]:
     """Import ``algorithm.py`` and register both a versioned alias and a latest alias.
 
-    Returns ``(class_obj, kind)`` where kind is ``'classifier'`` / ``'regressor'``.
-    Raises ``RuntimeError`` on failure.
+    Parameters
+    ----------
+    file_path : Path
+        Path to the ``algorithm.py`` file to import.
+    name : str
+        User-facing algorithm name (directory name under ``USER_ALGS_DIR``).
+    version : str
+        Semver version of the file being loaded.
+
+    Returns
+    -------
+    class_obj : type
+        The imported ``Classifier``/``Regressor`` subclass.
+    kind : str
+        Either ``'classifier'`` or ``'regressor'``.
+
+    Raises
+    ------
+    RuntimeError
+        If the import spec cannot be built, the module fails to execute, or
+        no ``Classifier``/``Regressor`` subclass is defined in the module.
     """
-    from tuiml.hub import registry
+    from tuiml.registry import registry
 
     module_name = f"_tuiml_user_{name}_v{version.replace('.', '_')}"
     # Remove any previously-imported copy so decorators re-fire.
@@ -280,7 +346,7 @@ def _import_and_register(file_path: Path, name: str, version: str) -> Tuple[Any,
     sys.modules[module_name] = module
     # Re-registering a user algorithm (new version, restart, or edit) is
     # intentional, so suppress the registry's "already registered" warning for
-    # the whole load — both the user's @classifier/@regressor decorator firing
+    # the whole load, both the user's @classifier/@regressor decorator firing
     # during exec_module and the versioned-alias registration below.
     with registry.suppress_overwrite_warnings():
         try:
@@ -323,11 +389,13 @@ def _import_and_register(file_path: Path, name: str, version: str) -> Tuple[Any,
 
 
 def _write_metadata(dir_path: Path, metadata: Dict[str, Any]) -> None:
+    """Write ``metadata`` to ``metadata.json`` inside ``dir_path``."""
     import json
     (dir_path / "metadata.json").write_text(json.dumps(metadata, indent=2))
 
 
 def _read_metadata(dir_path: Path) -> Dict[str, Any]:
+    """Read ``metadata.json`` from ``dir_path``; empty dict if missing or invalid."""
     import json
     path = dir_path / "metadata.json"
     if not path.exists():
@@ -348,8 +416,30 @@ def create(name: str, kind: str, code: str,
            force: bool = False) -> Dict[str, Any]:
     """Persist, validate, and register a new user algorithm.
 
-    Returns a dict with ``status`` and, on success, the registered aliases and
-    source hash.
+    Parameters
+    ----------
+    name : str
+        Algorithm name; must be a valid Python identifier. Used as the
+        directory name under ``USER_ALGS_DIR``.
+    kind : str
+        Either ``'classifier'`` or ``'regressor'`` (case-insensitive). Must
+        match the base class of the decorated class in ``code``.
+    code : str
+        Full Python source defining one ``@classifier``/``@regressor`` class.
+    version : str, default="1.0.0"
+        Semver version (MAJOR.MINOR.PATCH).
+    description : str, optional
+        Human-readable description; defaults to the class docstring's first line.
+    force : bool, default=False
+        Overwrite an existing ``name``/``version`` on disk.
+
+    Returns
+    -------
+    result : Dict[str, Any]
+        On success: keys ``status``, ``registered_as`` (list of aliases),
+        ``name``, ``class_name``, ``kind``, ``version``, ``source_hash``,
+        ``path``, and ``usage_hint``. On failure: keys ``status``,
+        ``error_type``, ``error`` (and ``path`` for ``AlreadyExists``).
     """
     err = _validate_name(name) or _validate_version(version)
     if err:
@@ -418,7 +508,16 @@ def create(name: str, kind: str, code: str,
 
 
 def list_all() -> Dict[str, Any]:
-    """List every user-authored algorithm on disk."""
+    """List every user-authored algorithm on disk.
+
+    Returns
+    -------
+    result : Dict[str, Any]
+        Keys ``status``, ``algorithms`` (list of dicts with ``name``,
+        ``class_name``, ``kind``, ``version``, ``description``,
+        ``source_hash``, ``path``, ``versioned_alias``), and ``count``
+        (or ``root`` when the directory does not exist yet).
+    """
     if not USER_ALGS_DIR.exists():
         return {"status": "success", "algorithms": [], "root": str(USER_ALGS_DIR)}
 
@@ -447,7 +546,23 @@ def list_all() -> Dict[str, Any]:
 
 
 def delete(name: str, version: Optional[str] = None) -> Dict[str, Any]:
-    """Delete one version (or every version when ``version`` is None)."""
+    """Delete one version (or every version when ``version`` is None).
+
+    Parameters
+    ----------
+    name : str
+        Algorithm name (directory under ``USER_ALGS_DIR``).
+    version : str, optional
+        Specific semver version to delete. When None, every version and the
+        parent directory are removed.
+
+    Returns
+    -------
+    result : Dict[str, Any]
+        On success: keys ``status``, ``name``, ``removed_versions`` (list of
+        version strings), and ``note``. On failure: keys ``status``,
+        ``error_type``, ``error``.
+    """
     err = _validate_name(name)
     if err:
         return {"status": "error", "error_type": "ValueError", "error": err}
@@ -492,10 +607,21 @@ _ALIAS_RE = re.compile(r"^(?P<class>[A-Za-z_][A-Za-z0-9_]*)_v(?P<v>\d+_\d+_\d+)$
 def _resolve_user_algorithm(name: str) -> Optional[Dict[str, Any]]:
     """Map an experiment algorithm name back to a user-algorithm directory.
 
-    Accepts both the bare class name (``WeightedTreeBag`` — resolves to the
+    Accepts both the bare class name (``WeightedTreeBag``: resolves to the
     newest on-disk version) and a pinned alias (``WeightedTreeBag_v1_0_1``).
-    Returns a dict ``{name, version, dir}`` or ``None`` if this name doesn't
-    correspond to a user algorithm.
+
+    Parameters
+    ----------
+    name : str
+        Algorithm name as used in an experiment: bare class name or
+        versioned alias.
+
+    Returns
+    -------
+    match : Optional[Dict[str, Any]]
+        Dict with keys ``name`` (bare name), ``version`` (semver string),
+        and ``dir`` (Path to the version directory), or None if this name
+        doesn't correspond to a user algorithm on disk.
     """
     # Pinned alias first.
     m = _ALIAS_RE.match(name)
@@ -521,7 +647,19 @@ def _resolve_user_algorithm(name: str) -> Optional[Dict[str, Any]]:
 
 
 def _best_metric(scores_block: Dict[str, Any]) -> Optional[Tuple[str, float]]:
-    """Pick a representative metric: prefer accuracy_score, then first available."""
+    """Pick a representative metric: prefer accuracy_score, then first available.
+
+    Parameters
+    ----------
+    scores_block : Dict[str, Any]
+        Per-algorithm scores from an experiment result: metric name mapped to
+        a dict containing at least a ``mean`` value.
+
+    Returns
+    -------
+    best : Optional[Tuple[str, float]]
+        ``(metric_name, mean_score)``, or None if no usable metric was found.
+    """
     if not isinstance(scores_block, dict):
         return None
     if "accuracy_score" in scores_block and isinstance(scores_block["accuracy_score"], dict):
@@ -535,12 +673,25 @@ def _best_metric(scores_block: Dict[str, Any]) -> Optional[Tuple[str, float]]:
 
 
 def record_experiment_runs(experiment_result: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """Scan a ``tuiml_experiment`` result and append entries to the matching
-    user algorithms' ``runs.jsonl`` files.
+    """Append matching experiment results to user algorithms' ``runs.jsonl`` files.
 
-    Returns the list of appended entries (empty if none matched or the feature
-    is disabled). Never raises — logging failures are swallowed so the caller's
-    experiment result is not affected.
+    Scans a ``tuiml_benchmark`` result for algorithms that resolve to user
+    algorithms on disk and logs one entry per (dataset, algorithm) pair.
+    Never raises: logging failures are swallowed so the caller's experiment
+    result is not affected.
+
+    Parameters
+    ----------
+    experiment_result : Dict[str, Any]
+        Full result dict returned by ``tuiml_benchmark``; must have
+        ``status='success'`` and a ``results`` mapping of dataset name to
+        per-algorithm scores.
+
+    Returns
+    -------
+    appended : List[Dict[str, Any]]
+        One dict per logged run with keys ``name``, ``version``, ``dataset``,
+        and ``path`` (the ``runs.jsonl`` file). Empty if nothing matched.
     """
     import datetime as _dt, json as _json
 
@@ -592,6 +743,23 @@ def research_log(name: Optional[str] = None) -> Dict[str, Any]:
     best primary score per version, run count per version, and the most recent
     timestamp. Agents use this as the equivalent of the landing-page "research
     log" panel.
+
+    Parameters
+    ----------
+    name : str, optional
+        Restrict the view to one user algorithm. When None, all algorithms
+        under ``USER_ALGS_DIR`` are included.
+
+    Returns
+    -------
+    result : Dict[str, Any]
+        On success: keys ``status``, ``count``, ``root``, and ``algorithms``,
+        a list of dicts with ``name``, ``overall_best_version``, and
+        ``versions`` (per-version dicts: ``version``, ``class_name``,
+        ``kind``, ``description``, ``source_hash``, ``pinned_alias``,
+        ``run_count``, ``best_score``, ``best_on_dataset``, ``best_metric``,
+        ``last_run``, ``path``). On failure: keys ``status``, ``error_type``,
+        ``error``.
     """
     import json as _json
 
@@ -686,6 +854,26 @@ def read_source(name: str, version: Optional[str] = None,
     For user algorithms, ``name`` is the directory name under USER_ALGS_DIR.
     For built-in algorithms, set ``builtin=True`` and pass the class name or
     file stem (e.g. ``'RandomForestClassifier'`` or ``'random_forest'``).
+
+    Parameters
+    ----------
+    name : str
+        User algorithm name (or versioned alias), or a built-in class
+        name / file stem when ``builtin=True``.
+    version : str, optional
+        Pin a specific semver version of a user algorithm. When None, the
+        newest on-disk version is used. Ignored for built-ins.
+    builtin : bool, default=False
+        Look up a built-in tuiml algorithm instead of a user algorithm.
+
+    Returns
+    -------
+    result : Dict[str, Any]
+        On success: keys ``status``, ``name``, ``version``, ``class_name``,
+        ``kind``, ``path``, ``line_count``, ``source``, and
+        ``source_with_line_numbers`` (built-ins return ``builtin`` and
+        ``note`` instead of version/class/kind). On failure: keys ``status``,
+        ``error_type``, ``error``.
     """
     if builtin:
         return _read_builtin_source(name)
@@ -723,7 +911,21 @@ def read_source(name: str, version: Optional[str] = None,
 
 
 def _read_builtin_source(name: str) -> Dict[str, Any]:
-    """Locate and return source for a built-in tuiml algorithm file."""
+    """Locate and return source for a built-in tuiml algorithm file.
+
+    Parameters
+    ----------
+    name : str
+        Class name (e.g. ``'RandomForestClassifier'``) or file stem
+        (e.g. ``'random_forest'``) to look up under ``tuiml/algorithms/``.
+
+    Returns
+    -------
+    result : Dict[str, Any]
+        On success: keys ``status``, ``name``, ``builtin``, ``path``,
+        ``line_count``, ``source``, ``source_with_line_numbers``, ``note``.
+        On failure: keys ``status``, ``error_type``, ``error``.
+    """
     import tuiml.algorithms as _alg_pkg
     alg_root = Path(_alg_pkg.__file__).parent
 
@@ -765,7 +967,23 @@ def _read_builtin_source(name: str) -> Dict[str, Any]:
 
 
 def list_algorithm_files(builtin: bool = True, user: bool = True) -> Dict[str, Any]:
-    """List all algorithm source files — built-in and/or user-authored."""
+    """List all algorithm source files, built-in and/or user-authored.
+
+    Parameters
+    ----------
+    builtin : bool, default=True
+        Include built-in algorithm files from ``tuiml/algorithms/``.
+    user : bool, default=True
+        Include user algorithm files from ``USER_ALGS_DIR``.
+
+    Returns
+    -------
+    result : Dict[str, Any]
+        Keys ``status``, ``count``, and ``files``: a list of dicts with
+        ``type`` (``'builtin'``/``'user'``) and ``path``, plus
+        ``relative_path``/``category``/``file`` for built-ins and
+        ``name``/``version``/``class_name``/``kind`` for user algorithms.
+    """
     results: List[Dict[str, Any]] = []
 
     if builtin:
@@ -807,8 +1025,23 @@ def search_source(query: str, name: Optional[str] = None,
                   builtin: bool = True, user: bool = True) -> Dict[str, Any]:
     """Grep for ``query`` across algorithm source files.
 
-    Pass ``name`` to scope the search to one user algorithm. Returns matching
-    lines with file path and line number — same pattern as grep.
+    Parameters
+    ----------
+    query : str
+        Regular expression to search for (matched per line).
+    name : str, optional
+        Scope the search to one user algorithm by name.
+    builtin : bool, default=True
+        Include built-in algorithm files in the search.
+    user : bool, default=True
+        Include user algorithm files in the search.
+
+    Returns
+    -------
+    result : Dict[str, Any]
+        On success: keys ``status``, ``query``, ``match_count``, and
+        ``matches`` (list of dicts with ``path``, ``line_number``, ``line``).
+        On invalid regex: keys ``status``, ``error_type``, ``error``.
     """
     import re as _re
     try:
@@ -855,10 +1088,33 @@ def edit_algorithm(name: str, old_string: str, new_string: str,
 
     Replaces exactly one occurrence of ``old_string`` with ``new_string``.
     Fails if ``old_string`` is not found, or if it appears more than once
-    (ambiguous — make the search string more specific in that case).
+    (ambiguous, make the search string more specific in that case).
 
     After the edit the source is AST-validated and re-registered. Optionally
     bumps the patch version and saves as a new file.
+
+    Parameters
+    ----------
+    name : str
+        User algorithm name (or versioned alias).
+    old_string : str
+        Exact text to replace; must occur exactly once in the source.
+    new_string : str
+        Replacement text.
+    version : str, optional
+        Pin the semver version to edit. When None, the newest on-disk
+        version is used.
+    bump_version : bool, default=False
+        Save the edited source as a new patch version instead of
+        overwriting in place.
+
+    Returns
+    -------
+    result : Dict[str, Any]
+        On success: keys ``status``, ``name``, ``version``,
+        ``previous_version``, ``class_name``, ``path``, ``source_hash``,
+        ``registered_as`` (list of aliases), and ``note``. On failure:
+        keys ``status``, ``error_type``, ``error``.
     """
     err = _validate_name(name)
     if err:
@@ -881,7 +1137,7 @@ def edit_algorithm(name: str, old_string: str, new_string: str,
 
     source = alg_file.read_text(encoding="utf-8")
 
-    # Uniqueness check — the heart of the str_replace approach.
+    # Uniqueness check, the heart of the str_replace approach.
     count = source.count(old_string)
     if count == 0:
         return {
@@ -891,7 +1147,7 @@ def edit_algorithm(name: str, old_string: str, new_string: str,
     if count > 1:
         return {
             "status": "error", "error_type": "Ambiguous",
-            "error": f"old_string appears {count} times — make it more specific by including more surrounding context.",
+            "error": f"old_string appears {count} times, make it more specific by including more surrounding context.",
         }
 
     new_source = source.replace(old_string, new_string, 1)
@@ -937,7 +1193,7 @@ def edit_algorithm(name: str, old_string: str, new_string: str,
         "path": str(target_file),
         "source_hash": new_meta["source_hash"],
         "registered_as": [cls.__name__, _versioned_alias_name(cls.__name__, save_version)],
-        "note": "Algorithm re-registered. Run tuiml_experiment to validate the change.",
+        "note": "Algorithm re-registered. Run tuiml_benchmark to validate the change.",
     }
 
 
@@ -945,7 +1201,15 @@ def load_all() -> Dict[str, Any]:
     """Scan ``USER_ALGS_DIR`` and register every algorithm found.
 
     Called once at MCP server startup. Failures on individual files are logged
-    but do not abort the whole load.
+    but do not abort the whole load. Only the latest version of each
+    algorithm is loaded.
+
+    Returns
+    -------
+    result : Dict[str, Any]
+        Keys ``status``, ``loaded`` (count), ``algorithms`` (list of dicts
+        with ``name``, ``kind``, ``version``), and ``errors`` (list of dicts
+        with ``path``, ``error`` for files that failed to load).
     """
     if not USER_ALGS_DIR.exists():
         return {"status": "success", "loaded": 0, "errors": []}

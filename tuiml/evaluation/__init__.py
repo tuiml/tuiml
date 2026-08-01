@@ -1,45 +1,59 @@
 """
-Evaluation module for TuiML.
+Model evaluation: metrics, resampling, significance tests, and reporting.
 
-This module provides:
-- metrics: Classification, regression, clustering, and information-theoretic metrics
-- splitting: Data splitting strategies (KFold, train_test_split, etc.)
-- statistics: Statistical tests for model comparison
-- visualization: Plots and diagrams for result visualization
-- reporting: Output formatters (LaTeX, HTML, Markdown)
-- tuning: Hyperparameter tuning (GridSearchCV, RandomSearchCV)
-- experiments: Controlled experiments with statistical significance testing
+Everything needed to measure how well a model performs and to decide whether a
+difference between two models is real. The subpackages are:
+
+- ``metrics``: classification, regression, clustering, and information-theoretic
+  scores.
+- ``splitting``: resampling strategies (:class:`~tuiml.evaluation.splitting.KFold`,
+  :func:`~tuiml.evaluation.splitting.train_test_split`, and friends).
+- ``statistics``: significance tests for comparing models across datasets, plus
+  multiple-comparison corrections.
+- ``tuning``: hyperparameter search (grid, random, and Bayesian).
+- ``visualization``: plots and critical-difference diagrams.
+- ``reporting``: result tables exported as Markdown, LaTeX, or HTML.
+
+The most common metrics and splitters are re-exported here, so
+``from tuiml.evaluation import accuracy_score`` works without naming the
+subpackage.
 
 Examples
 --------
->>> from tuiml.evaluation import accuracy_score, f1_score
->>> from tuiml.evaluation.experiments import Experiment, run_experiment
->>> from tuiml.evaluation.splitting import KFold, train_test_split
->>> from tuiml.evaluation.tuning import GridSearchCV, RandomSearchCV
->>>
->>> # Quick metric computation
->>> accuracy = accuracy_score(y_true, y_pred)
->>>
->>> # Data splitting
+Score predictions:
+
+>>> import numpy as np
+>>> from tuiml.evaluation import accuracy_score
+>>> y_true = np.array([0, 1, 1, 0])
+>>> y_pred = np.array([0, 1, 0, 0])
+>>> accuracy_score(y_true, y_pred)
+0.75
+
+Hold out a test set:
+
+>>> from tuiml.datasets import load_iris
+>>> from tuiml.evaluation import train_test_split
+>>> X, y = load_iris()
 >>> X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
->>>
->>> # Cross-validation
->>> kfold = KFold(n_splits=5, shuffle=True)
->>> for train_idx, test_idx in kfold.split(X):
-...     pass
->>>
->>> # Hyperparameter tuning
->>> grid = GridSearchCV(estimator, param_grid={'C': [0.1, 1, 10]})
->>> grid.fit(X, y)
->>>
->>> # Full experiment
->>> exp = run_experiment(
-...     models={'RF': RandomForestClassifier(), 'SVM': SVC()},
-...     datasets={'data': (X, y)},
-...     n_folds=10,
-...     metrics=['accuracy_score', 'f1_score']
-... )
->>> print(exp.to_latex())
+>>> len(X_train), len(X_test)
+(120, 30)
+
+Cross-validate:
+
+>>> from tuiml.evaluation import KFold
+>>> cv = KFold(n_splits=5, shuffle=True, random_state=0)
+>>> sum(1 for _ in cv.split(X))
+5
+
+Search hyperparameters:
+
+>>> from tuiml.evaluation import GridSearchCV
+>>> from tuiml.algorithms.bayesian import NaiveBayesClassifier
+>>> search = GridSearchCV(NaiveBayesClassifier(),
+...                       param_grid={'use_kernel_estimator': [True, False]})
+>>> search = search.fit(X, y)                              # doctest: +SKIP
+>>> search.best_params_                                    # doctest: +SKIP
+{'use_kernel_estimator': False}
 """
 
 # Import commonly used metrics at top level
@@ -147,15 +161,6 @@ from .tuning import (
     RandomSearchCV,
 )
 
-# Import experiment classes
-from .experiments import (
-    Experiment,
-    run_experiment,
-    ExperimentConfig,
-    ExperimentResults,
-    ExperimentType,
-    ValidationMethod,
-)
 
 __all__ = [
     # Submodules
@@ -165,7 +170,6 @@ __all__ = [
     "visualization",
     "reporting",
     "tuning",
-    "experiments",
     # Common metrics
     "Metric",
     "MetricType",
@@ -248,11 +252,4 @@ __all__ = [
     "ParameterDistribution",
     "GridSearchCV",
     "RandomSearchCV",
-    # Experiment classes
-    "Experiment",
-    "run_experiment",
-    "ExperimentConfig",
-    "ExperimentResults",
-    "ExperimentType",
-    "ValidationMethod",
 ]

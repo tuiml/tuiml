@@ -1,5 +1,9 @@
 """
-CSV (Comma-Separated Values) loader.
+CSV (Comma-Separated Values) reader and writer.
+
+Handles the plain-text tabular case: optional header row, any single-character
+delimiter, and a target column selected by index or by name. Values are parsed
+without pandas, so this loader has no third-party dependency.
 """
 
 import numpy as np
@@ -26,10 +30,10 @@ def load_csv(
     target_column : int or str, default=-1
         The column to treat as the target variable:
 
-        - ``-1`` — Use the last column
-        - ``int`` — Use specific zero-based index
-        - ``str`` — Use column name (requires header=True)
-        - ``None`` — Do not extract a target (X will contain all columns)
+        - ``-1``: Use the last column
+        - ``int``: Use specific zero-based index
+        - ``str``: Use column name (requires header=True)
+        - ``None``: Do not extract a target (X will contain all columns)
     header : bool, default=True
         Whether the first row of the CSV contains column names.
     delimiter : str, default=','
@@ -127,7 +131,7 @@ def load_csv(
 
     # Parse features. Numeric values become floats; a value that is not a
     # number keeps its string, so categorical columns survive loading (as an
-    # object-dtype matrix) and can be encoded downstream — e.g. with
+    # object-dtype matrix) and can be encoded downstream, e.g. with
     # ``On("category", "OneHotEncoder")``. Silently replacing strings with
     # NaN would destroy those columns without any warning.
     feature_idx = [i for i in range(n_cols) if i != target_idx]

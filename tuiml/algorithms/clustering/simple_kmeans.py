@@ -51,9 +51,9 @@ class KMeansClusterer(Clusterer):
     init : {"k-means++", "random", "farthest"}, default="k-means++"
         Method for initialization:
 
-        - ``"k-means++"`` — Smart initialization that selects centers far from each other
-        - ``"random"`` — Randomly selects :math:`k` observations from the data
-        - ``"farthest"`` — Farthest-first traversal initialization
+        - ``"k-means++"``: Smart initialization that selects centers far from each other
+        - ``"random"``: Randomly selects :math:`k` observations from the data
+        - ``"farthest"``: Farthest-first traversal initialization
     max_iter : int, default=300
         Maximum number of iterations of the k-means algorithm for a
         single run.

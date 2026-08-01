@@ -4,7 +4,7 @@ LLM Integration for TuiML.
 Provides MCP (Model Context Protocol) server and tools for LLM integration.
 Workflow/discovery tools are exposed as MCP tools, and ALL 200+
 components are accessible through them. New algorithms registered via
-decorators or the hub are automatically discoverable.
+decorators or the component registry are automatically discoverable.
 
 Quick Start
 -----------
@@ -28,7 +28,7 @@ Exposed MCP Tools
 - tuiml_train - Train ML models with full workflow
 - tuiml_predict - Make predictions
 - tuiml_evaluate - Evaluate models
-- tuiml_experiment - Compare algorithms
+- tuiml_benchmark - Compare algorithms
 - tuiml_upload_data - Upload dataset content
 
 **Discovery Tools:**
@@ -38,7 +38,8 @@ Exposed MCP Tools
 
 All 200+ algorithms, preprocessors, datasets, features, and splitters
 are accessible through these tools. When a new algorithm is added to
-the hub or registered with a decorator, it is automatically available.
+the component registry or registered with a decorator, it is
+automatically available.
 
 Example Usage
 -------------
@@ -81,14 +82,32 @@ except ImportError:
     MCP_AVAILABLE = False
 
 def get_mcp_server():
-    """Get the MCP server (lazy import to avoid circular import)."""
+    """Get the MCP server (lazy import to avoid circular import).
+
+    Returns
+    -------
+    Server
+        Configured MCP server exposing the TuiML workflow and
+        discovery tools.
+
+    Raises
+    ------
+    ImportError
+        If the ``mcp`` package is not installed.
+    """
     if not MCP_AVAILABLE:
         raise ImportError("MCP package not installed. Install with: pip install mcp")
     from tuiml.agent.mcp.server import create_server
     return create_server()
 
 def run_mcp_server():
-    """Run the MCP server."""
+    """Run the MCP server over stdio transport.
+
+    Returns
+    -------
+    None
+        Blocks until the server process exits.
+    """
     from tuiml.agent.mcp.server import main
     main()
 
@@ -107,10 +126,13 @@ def get_tools_for_llm(format: str = "mcp") -> list:
     Returns
     -------
     list
-        List of tool schemas ready for LLM tool calling.
+        List of tool schema dicts, one per workflow/discovery tool, each
+        with keys ``"name"``, ``"description"``, and ``"inputSchema"``
+        (a JSON Schema object).
 
     Examples
     --------
+    >>> from tuiml.agent import get_tools_for_llm
     >>> tools = get_tools_for_llm()
     >>> len(tools)
     len(tools) > 0
@@ -143,8 +165,22 @@ def agent(model: "Optional[str]" = None, **kwargs):  # type: ignore[name-defined
 
     Requires ``pip install tuiml[pydantic-ai]``.
 
-    Example
+    Parameters
+    ----------
+    model : str, optional
+        A Pydantic-AI model string, e.g. ``"anthropic:claude-sonnet-4-6"``
+        or ``"openai:gpt-4o"``. Defaults to ``"anthropic:claude-sonnet-4-6"``.
+    **kwargs
+        Passed through to ``pydantic_ai.Agent``.
+
+    Returns
     -------
+    pydantic_ai.Agent
+        Agent configured with all TuiML workflow tools and the canonical
+        system prompt.
+
+    Examples
+    --------
     >>> import tuiml
     >>> result = tuiml.agent().run_sync(
     ...     "Train RandomForestClassifier on iris and report accuracy."

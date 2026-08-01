@@ -25,6 +25,11 @@ class LeaveOneOut(BaseSplitter):
     >>> loo = LeaveOneOut()
     >>> for train_idx, test_idx in loo.split(X):
     ...     print(f"Train: {train_idx}, Test: {test_idx}")
+    Train: [1 2 3 4], Test: [0]
+    Train: [0 2 3 4], Test: [1]
+    Train: [0 1 3 4], Test: [2]
+    Train: [0 1 2 4], Test: [3]
+    Train: [0 1 2 3], Test: [4]
     """
 
     @classmethod
@@ -60,6 +65,13 @@ class LeaveOneOut(BaseSplitter):
         return len(X)
 
     def __repr__(self) -> str:
+        """Return a reproducible string form of the splitter.
+
+        Returns
+        -------
+        repr_str : str
+            Constructor-style representation, ``"LeaveOneOut()"``.
+        """
         return "LeaveOneOut()"
 
 class LeavePOut(BaseSplitter):
@@ -87,9 +99,20 @@ class LeavePOut(BaseSplitter):
     >>> lpo = LeavePOut(p=2)
     >>> for train_idx, test_idx in lpo.split(X):
     ...     print(f"Train: {train_idx}, Test: {test_idx}")
+    Train: [2 3 4], Test: [0 1]
+    Train: [1 3 4], Test: [0 2]
+    Train: [1 2 4], Test: [0 3]
+    Train: [1 2 3], Test: [0 4]
+    Train: [0 3 4], Test: [1 2]
+    Train: [0 2 4], Test: [1 3]
+    Train: [0 2 3], Test: [1 4]
+    Train: [0 1 4], Test: [2 3]
+    Train: [0 1 3], Test: [2 4]
+    Train: [0 1 2], Test: [3 4]
     """
 
     def __init__(self, p: int = 2):
+        """Store the test-set size and validate ``p``."""
         if p < 1:
             raise ValueError("p must be at least 1")
         self.p = p
@@ -145,4 +168,11 @@ class LeavePOut(BaseSplitter):
         return factorial(n) // (factorial(p) * factorial(n - p))
 
     def __repr__(self) -> str:
+        """Return a reproducible string form of the splitter.
+
+        Returns
+        -------
+        repr_str : str
+            Constructor-style representation, e.g. ``LeavePOut(p=2)``.
+        """
         return f"LeavePOut(p={self.p})"

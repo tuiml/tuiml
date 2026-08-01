@@ -3,7 +3,7 @@
 import numpy as np
 from typing import Dict, List, Any, Optional, Type
 from tuiml.base.algorithms import Clusterer, clusterer
-from tuiml.hub import registry
+from tuiml.registry import registry
 
 @clusterer(tags=["meta", "filter", "preprocessing"], version="1.0.0")
 class FilteredClusterer(Clusterer):

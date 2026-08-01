@@ -1,7 +1,10 @@
 """
-Agrawal data generator.
+Agrawal generator: synthetic loan-applicant records.
 
-Generates data using the Agrawal function generator.
+Draws nine attributes describing a loan applicant and labels each record with
+one of ten hand-written decision functions, so the difficulty of the learning
+problem is chosen rather than fixed. A tunable share of labels is flipped,
+which makes it a standard source of noisy, non-linear classification data.
 """
 
 import numpy as np
@@ -17,6 +20,19 @@ class Agrawal(ClassificationGenerator):
     The generator creates 9 numeric attributes (salary, commission, age, etc.)
     and assigns a binary class based on one of 10 classification functions.
 
+    The nine attributes describe a loan applicant, and are generated in this
+    order with these ranges::
+
+        salary           20000 - 150000
+        commission       0 - 75000        (0 when salary >= 75000)
+        age              20 - 80
+        education_level  0 - 4
+        car              1 - 20
+        zipcode          0 - 8
+        house_value      50000 - 1000000, scaled by zipcode
+        years_house      0 - 30
+        loan             0 - 500000
+
     Parameters
     ----------
     n_samples : int, default=100
@@ -28,21 +44,15 @@ class Agrawal(ClassificationGenerator):
     random_state : int or None, default=None
         Random seed for reproducibility.
 
-    Attributes generated:
-        - salary: 20000-150000
-        - commission: 0-75000
-        - age: 20-80
-        - education_level: 0-4
-        - car: 1-20
-        - zipcode: 9 values
-        - house_value: 50000-1000000
-        - years_house: 0-30
-        - loan: 0-500000
-
     Examples
     --------
+    >>> from tuiml.datasets.generators.classification import Agrawal
     >>> gen = Agrawal(n_samples=1000, function=1)
     >>> data = gen.generate()
+    >>> data.X.shape
+    (1000, 9)
+    >>> data.feature_names[:3]
+    ['salary', 'commission', 'age']
     """
 
     FEATURE_NAMES = [

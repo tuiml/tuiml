@@ -33,7 +33,7 @@ for _f in os.listdir(_UPLOADS_DIR):
 # Serving state: tracks running API servers
 _SERVING_SERVERS: Dict[str, Dict[str, Any]] = {}  # server_id -> {thread, server, port, ...}
 
-# Session call log — populated by record_session_call() which server.py calls
+# Session call log, populated by record_session_call() which server.py calls
 # after every successful tool invocation. Used by tuiml_export_notebook.
 import threading as _threading
 _SESSION_CALLS: List[Dict] = []          # [{tool, args}, ...]
@@ -56,9 +56,26 @@ def record_session_call(tool_name: str, args: dict, result: dict) -> None:
     Called by server.py's call_tool handler after every invocation. Only
     successful calls are stored: failed calls (bad algorithm name, schema
     mismatch, etc.) return ``{"status": "error"}`` rather than raising, and
-    must not become notebook cells — otherwise the exported notebook would
+    must not become notebook cells, otherwise the exported notebook would
     raise when re-run. Strips internal kwargs (_progress_callback, etc.)
     before storing so the notebook sees only user-visible arguments.
+
+    Parameters
+    ----------
+    tool_name : str
+        Name of the MCP tool that was invoked (e.g. ``"tuiml_train"``).
+    args : dict
+        Arguments the tool was called with. Keys starting with an
+        underscore are stripped before recording.
+    result : dict
+        The result dict returned by the tool executor. Only calls whose
+        result has ``status == "success"`` are recorded.
+
+    Returns
+    -------
+    None
+        The call is appended to the module-level session log as a side
+        effect; nothing is returned.
     """
     if tool_name in _SESSION_SKIP:
         return
@@ -85,7 +102,23 @@ def record_session_call(tool_name: str, args: dict, result: dict) -> None:
 
 
 def _save_model_to_disk(model, model_id: str, save_path: str = None) -> str:
-    """Save model to disk and return the file path."""
+    """Save model to disk and return the file path.
+
+    Parameters
+    ----------
+    model : object
+        Fitted model (or Workflow) to serialize.
+    model_id : str
+        Identifier used to name the file when no explicit path is given.
+    save_path : str, default=None
+        Explicit destination path. When None, the model is written to
+        ``~/.tuiml/models/<model_id>.joblib``.
+
+    Returns
+    -------
+    path : str
+        Path of the file the model was written to.
+    """
     from tuiml.utils.serialization import save_model
 
     if save_path:
@@ -99,7 +132,22 @@ def _save_model_to_disk(model, model_id: str, save_path: str = None) -> str:
 
 
 def _load_model_from_disk(model_id: str = None, model_path: str = None):
-    """Load model from disk by model_id or explicit path."""
+    """Load model from disk by model_id or explicit path.
+
+    Parameters
+    ----------
+    model_id : str, default=None
+        Identifier previously returned by a training tool; resolved via the
+        in-memory model index.
+    model_path : str, default=None
+        Explicit path to a serialized model file, used when the model_id is
+        unknown or not indexed.
+
+    Returns
+    -------
+    model : object or None
+        The deserialized model, or None if neither lookup succeeded.
+    """
     from tuiml.utils.serialization import load_model
 
     if model_id and model_id in _MODEL_INDEX:
@@ -115,6 +163,17 @@ def _load_data(data_source: str):
       1. Uploaded dataset_id (registered via tuiml_upload_data)
       2. Existing file path on disk
       3. Built-in dataset name (iris, diabetes, ...)
+
+    Parameters
+    ----------
+    data_source : str
+        Dataset identifier: an uploaded dataset_id, a path to a data file
+        on disk, or the name of a built-in dataset.
+
+    Returns
+    -------
+    dataset : Dataset
+        Loaded dataset with ``X``, ``y`` and ``feature_names`` attributes.
     """
     from tuiml.datasets import load, load_dataset
 
@@ -123,7 +182,7 @@ def _load_data(data_source: str):
         path = _DATASET_INDEX[data_source]
         if os.path.exists(path):
             return load(path)
-        # Stale entry — drop and fall through
+        # Stale entry, drop and fall through
         _DATASET_INDEX.pop(data_source, None)
 
     # 2. File path on disk
@@ -195,7 +254,7 @@ OUTPUT_SCHEMAS = {
         },
         "required": ["status"]
     },
-    "tuiml_experiment": {
+    "tuiml_benchmark": {
         "type": "object",
         "properties": {
             "status": {"type": "string", "enum": ["success", "error"]},
@@ -700,8 +759,8 @@ WORKFLOW_TOOLS = {
         }
     },
 
-    "tuiml_experiment": {
-        "name": "tuiml_experiment",
+    "tuiml_benchmark": {
+        "name": "tuiml_benchmark",
         "description": "Compare multiple algorithms on one or more datasets with cross-validation and statistical tests. Supports supervised learning (classification, regression) and unsupervised learning (clustering). Pass a single dataset name or a list of dataset names to benchmark across multiple datasets.",
         "inputSchema": {
             "type": "object",
@@ -774,7 +833,7 @@ WORKFLOW_TOOLS = {
                     "type": "string",
                     "enum": ["csv", "tsv", "arff", "json", "jsonl"],
                     "default": "csv",
-                    "description": "File format — only needed with 'content'; auto-detected from file_path extension"
+                    "description": "File format, only needed with 'content'; auto-detected from file_path extension"
                 },
                 "name": {
                     "type": "string",
@@ -896,10 +955,10 @@ WORKFLOW_TOOLS = {
                         "- learning_curve: Training vs validation score over dataset sizes (requires algorithm + data + target)\n"
                         "- tree: Decision tree structure visualization (requires model_id)\n"
                         "- feature_importance: Bar chart of feature importances (requires model_id)\n"
-                        "- cd_diagram: Critical difference diagram for algorithm comparison (requires experiment_results)\n"
-                        "- boxplot_comparison: Box plot comparing algorithm scores (requires experiment_results)\n"
-                        "- heatmap: Heatmap of algorithm scores across datasets (requires experiment_results)\n"
-                        "- ranking_table: Ranking table of algorithms (requires experiment_results)"
+                        "- cd_diagram: Critical difference diagram for algorithm comparison (requires benchmark_results)\n"
+                        "- boxplot_comparison: Box plot comparing algorithm scores (requires benchmark_results)\n"
+                        "- heatmap: Heatmap of algorithm scores across datasets (requires benchmark_results)\n"
+                        "- ranking_table: Ranking table of algorithms (requires benchmark_results)"
                     )
                 },
                 "model_id": {
@@ -931,7 +990,7 @@ WORKFLOW_TOOLS = {
                     "default": False,
                     "description": "Normalize confusion matrix to show percentages (confusion_matrix only)"
                 },
-                "experiment_results": {
+                "benchmark_results": {
                     "type": "object",
                     "description": "Algorithm CV scores for comparison plots: { 'AlgoName': [score1, score2, ...], ... }"
                 }
@@ -943,7 +1002,7 @@ WORKFLOW_TOOLS = {
     "tuiml_profile_data": {
         "name": "tuiml_profile_data",
         "description": (
-            "Inspect a dataset before training — shape, dtypes, missing values, "
+            "Inspect a dataset before training, shape, dtypes, missing values, "
             "basic statistics, and class distribution. Works with file paths or "
             "built-in dataset names."
         ),
@@ -1343,10 +1402,10 @@ WORKFLOW_TOOLS = {
             "os, urllib, requests, …; forbidden calls: eval, exec, open, __import__) "
             "and saved to ~/.tuiml/user_algorithms/<name>/<version>/algorithm.py. "
             "After registration, the algorithm is available via its class name to "
-            "every existing MCP tool (tuiml_train, tuiml_experiment, tuiml_describe). "
+            "every existing MCP tool (tuiml_train, tuiml_benchmark, tuiml_describe). "
             "Each version is also registered under a pinned alias "
             "<ClassName>_v<major>_<minor>_<patch> so you can A/B compare versions "
-            "inside a single tuiml_experiment. "
+            "inside a single tuiml_benchmark. "
             ""
         ),
         "inputSchema": {
@@ -1354,7 +1413,7 @@ WORKFLOW_TOOLS = {
             "properties": {
                 "name": {
                     "type": "string",
-                    "description": "Directory name — usually equal to the class name (Python identifier).",
+                    "description": "Directory name, usually equal to the class name (Python identifier).",
                 },
                 "kind": {
                     "type": "string",
@@ -1410,7 +1469,7 @@ WORKFLOW_TOOLS = {
             "Auto-detects the installer (uv tool install vs pip) and runs the "
             "appropriate upgrade command. Returns the command, its stdout / "
             "stderr, and the resulting version. Editable / dev installs are "
-            "refused — those need a git pull instead.\n\n"
+            "refused, those need a git pull instead.\n\n"
             "IMPORTANT: the running MCP process is still using the old package "
             "in memory. Call tuiml_restart immediately after, or restart the "
             "client manually, for the new version to take effect."
@@ -1449,7 +1508,7 @@ WORKFLOW_TOOLS = {
                     "type": "boolean",
                     "description": (
                         "Also exit the current MCP process after responding. "
-                        "True is the usual case — it forces the calling "
+                        "True is the usual case, it forces the calling "
                         "client to respawn with the new code too. Set False "
                         "to restart only the other clients' instances."
                     ),
@@ -1491,7 +1550,7 @@ CODE_TOOLS = {
     "tuiml_read_algorithm": {
         "name": "tuiml_read_algorithm",
         "description": (
-            "Return the full source code of any algorithm — user-authored or built-in. "
+            "Return the full source code of any algorithm, user-authored or built-in. "
             "For user algorithms pass the directory name (class name). "
             "For built-in algorithms set builtin=true and pass the class name "
             "(e.g. 'RandomForestClassifier') or file stem (e.g. 'random_forest'). "
@@ -1521,7 +1580,7 @@ CODE_TOOLS = {
     "tuiml_list_files": {
         "name": "tuiml_list_files",
         "description": (
-            "List all algorithm source files — built-in and/or user-authored. "
+            "List all algorithm source files, built-in and/or user-authored. "
             "Returns file paths, categories, and metadata. Use this before "
             "tuiml_read_algorithm to discover what's available and find the right name."
         ),
@@ -1545,7 +1604,7 @@ CODE_TOOLS = {
         "name": "tuiml_search_source",
         "description": (
             "Grep for a pattern inside algorithm source files. "
-            "Returns matching lines with file path and line number — "
+            "Returns matching lines with file path and line number, "
             "use this to locate a specific function, variable, or logic before editing. "
             "Accepts a regex pattern."
         ),
@@ -1578,14 +1637,14 @@ CODE_TOOLS = {
         "name": "tuiml_edit_algorithm",
         "description": (
             "Apply a targeted str_replace edit to a user algorithm. "
-            "Replaces exactly one occurrence of old_string with new_string — "
+            "Replaces exactly one occurrence of old_string with new_string, "
             "fails loudly if old_string is not found or appears more than once "
             "(make it more specific with surrounding context). "
             "The edited source is AST-validated and the algorithm is re-registered "
             "so all MCP tools immediately see the change. "
             "Workflow: tuiml_read_algorithm → identify the text to change → tuiml_edit_algorithm. "
             "Set bump_version=true to save as a new patch version instead of overwriting. "
-            "Built-in algorithms cannot be edited — fork them first with tuiml_create_algorithm. "
+            "Built-in algorithms cannot be edited, fork them first with tuiml_create_algorithm. "
             ""
         ),
         "inputSchema": {
@@ -1624,7 +1683,7 @@ DISCOVERY_TOOLS = {
         "description": (
             "List TuiML components (algorithms, preprocessors, datasets, features) "
             "or custom user-authored algorithms. Use category='custom' to list "
-            "algorithms created via tuiml_create_algorithm — shows all versions, "
+            "algorithms created via tuiml_create_algorithm, shows all versions, "
             "best scores, and run history. Pass include_runs=true for full experiment "
             "history (useful for auto-research: see what was tried and what to improve next)."
         ),
@@ -1691,7 +1750,64 @@ DISCOVERY_TOOLS = {
 # =============================================================================
 
 def execute_train(**kwargs) -> Dict[str, Any]:
-    """Execute training workflow."""
+    """Execute the training workflow behind the ``tuiml_train`` tool.
+
+    Supports staged execution (``init`` / ``fit`` / ``partial_fit`` /
+    ``cross_validate``) as well as the default full pipeline via
+    ``tuiml.train()``. The trained model is saved to disk and indexed so
+    other tools can load it by ``model_id``.
+
+    Parameters
+    ----------
+    algorithm : str
+        Registered algorithm class name to train (arrives via ``**kwargs``,
+        like all parameters below). Required unless a ``model_id`` /
+        ``model_path`` is given for a stage that loads an existing model.
+    algorithm_params : dict, default=None
+        Constructor parameters for the algorithm.
+    data : str
+        Dataset to train on: uploaded dataset_id, file path, or built-in
+        dataset name. Required for the default path and for the ``fit`` /
+        ``partial_fit`` stages.
+    stage : str, default=None
+        Optional atomic stage: ``'init'`` (instantiate and save an unfitted
+        model), ``'fit'``, ``'partial_fit'`` (incremental training), or
+        ``'cross_validate'``. When None the full train pipeline runs.
+    stage_kwargs : dict, default=None
+        Extra keyword arguments for the selected stage (e.g. ``classes``
+        for ``partial_fit``, ``cv`` for ``cross_validate``).
+    model_id : str, default=None
+        Existing model to continue training (``fit`` / ``partial_fit``).
+    model_path : str, default=None
+        Explicit path to an existing serialized model.
+    save_path : str, default=None
+        Where to save the trained model; defaults to ``~/.tuiml/models/``.
+    preset : str, default=None
+        Named preprocessing preset used when no explicit steps are given.
+    preprocessing : list, default=None
+        Preprocessing steps, each a name or ``{"name", **params}`` dict.
+    feature_selection : dict, default=None
+        Feature-selection step appended to the pipeline.
+    cv : int, default=None
+        Number of cross-validation folds.
+    test_size : float, default=None
+        Holdout fraction for evaluation.
+    stratify : bool, default=None
+        Whether to stratify the evaluation split.
+    metrics : list of str, default=None
+        Metrics to compute during evaluation.
+    random_seed : int, default=None
+        Random seed; falls back to the global seed, then 42.
+
+    Returns
+    -------
+    result : dict
+        On success: ``status`` (``'success'``), ``model_id``, ``model_path``
+        and ``model_class``; the full-pipeline path also includes
+        ``metrics``, ``cv_results`` and ``metadata``. On failure:
+        ``status`` (``'error'``), ``error``, and optionally ``error_type``,
+        ``suggestion``, ``recovery_tool`` and ``recovery_params``.
+    """
     import tuiml
     import numpy as np
 
@@ -1711,7 +1827,7 @@ def execute_train(**kwargs) -> Dict[str, Any]:
         algo_params = kwargs.pop('algorithm_params', {}) or {}
         algo_params.update(stage_kwargs)
         
-        from tuiml.hub import registry
+        from tuiml.registry import registry
         import tuiml.algorithms  # noqa
         try:
             model_cls = registry.get(algorithm)
@@ -1769,7 +1885,7 @@ def execute_train(**kwargs) -> Dict[str, Any]:
                     'status': 'error',
                     'error': "Provide either 'algorithm' to train a new model, or 'model_id'/'model_path' to load an existing model."
                 }
-            from tuiml.hub import registry
+            from tuiml.registry import registry
             import tuiml.algorithms  # noqa
             try:
                 model_cls = registry.get(algorithm)
@@ -1859,7 +1975,7 @@ def execute_train(**kwargs) -> Dict[str, Any]:
                     'status': 'error',
                     'error': "Provide either 'algorithm' to train a new model, or 'model_id'/'model_path' to load an existing model."
                 }
-            from tuiml.hub import registry
+            from tuiml.registry import registry
             import tuiml.algorithms  # noqa
             try:
                 model_cls = registry.get(algorithm)
@@ -1987,7 +2103,7 @@ def execute_train(**kwargs) -> Dict[str, Any]:
     def _nest_step(step):
         """Convert a flat tool-level step ({"name", **params}) to spec form."""
         if isinstance(step, str):
-            return step
+            return {'name': step}
         step = dict(step)
         name = step.pop('name', None)
         params = step.pop('params', step)
@@ -2031,7 +2147,7 @@ def execute_train(**kwargs) -> Dict[str, Any]:
         # train() returns the fitted Workflow, which is itself the model: it
         # carries the fitted transformations, so saving it keeps predictions
         # consistent with training.
-        result = tuiml.train(**kwargs)
+        result = tuiml.train({k: v for k, v in kwargs.items() if v is not None})
 
         model_id = uuid.uuid4().hex[:12]
         model_path = _save_model_to_disk(result, model_id, save_path)
@@ -2079,7 +2195,18 @@ def execute_train(**kwargs) -> Dict[str, Any]:
         }
 
 def _get_model_tags(model) -> List[str]:
-    """Get tags from a model if available."""
+    """Get tags from a model if available.
+
+    Parameters
+    ----------
+    model : object
+        Model instance (or Workflow wrapping one) to inspect.
+
+    Returns
+    -------
+    tags : list of str
+        Instance-level or class-level ``_tags``, or an empty list.
+    """
     target = getattr(model, 'model', model)
     tags = getattr(target, '_tags', [])
     if not tags:
@@ -2089,7 +2216,43 @@ def _get_model_tags(model) -> List[str]:
 
 
 def execute_predict(**kwargs) -> Dict[str, Any]:
-    """Execute prediction with support for timeseries and anomaly models."""
+    """Execute prediction with support for timeseries and anomaly models.
+
+    Backs the ``tuiml_predict`` tool. Timeseries models forecast ``steps``
+    ahead; anomaly detectors additionally report anomaly counts and score
+    statistics; all other models run standard ``predict``.
+
+    Parameters
+    ----------
+    model_id : str
+        Identifier of a trained model from ``tuiml_train`` (arrives via
+        ``**kwargs``, like all parameters below). One of ``model_id`` /
+        ``model_path`` is required.
+    model_path : str, default=None
+        Explicit path to a serialized model file.
+    data : str
+        Dataset to predict on (dataset_id, file path, or built-in name).
+        Not needed for timeseries forecasting.
+    stage : str, default=None
+        Optional stage: ``'forecast'`` (timeseries) or ``'predict_proba'``
+        (class probabilities). When None, dispatch is based on model tags.
+    stage_kwargs : dict, default=None
+        Extra stage arguments (e.g. ``steps`` for forecasting).
+    steps : int, default=10
+        Number of future steps to forecast for timeseries models.
+    output_path : str, default=None
+        When given, predictions are also written to this file.
+
+    Returns
+    -------
+    result : dict
+        On success: ``status`` (``'success'``), ``num_predictions``,
+        ``predictions_preview`` (first 10), and optionally ``model_type``,
+        ``steps``, ``output_path``; anomaly models add ``n_anomalies``,
+        ``n_normal``, ``anomaly_ratio``, ``anomaly_scores_preview`` and
+        ``score_stats``. On failure: ``status`` (``'error'``), ``error``,
+        ``error_type`` and optionally ``suggestion``.
+    """
     import numpy as np
 
     try:
@@ -2248,7 +2411,41 @@ def execute_predict(**kwargs) -> Dict[str, Any]:
         }
 
 def execute_evaluate(**kwargs) -> Dict[str, Any]:
-    """Execute evaluation with support for timeseries and anomaly models."""
+    """Execute evaluation with support for timeseries and anomaly models.
+
+    Backs the ``tuiml_evaluate`` tool. Detects the model family
+    (classifier, regressor, clusterer, timeseries, anomaly) and computes
+    the appropriate metrics; the ``report`` stage additionally builds a
+    formatted text report.
+
+    Parameters
+    ----------
+    model_id : str
+        Identifier of a trained model from ``tuiml_train`` (arrives via
+        ``**kwargs``, like all parameters below). One of ``model_id`` /
+        ``model_path`` is required.
+    model_path : str, default=None
+        Explicit path to a serialized model file.
+    data : str
+        Dataset to evaluate on (dataset_id, file path, or built-in name).
+    stage : str, default=None
+        Optional stage: ``'report'`` for a human-readable evaluation
+        report, or ``'metrics'`` / None for a plain metrics dict.
+    stage_kwargs : dict, default=None
+        Extra stage arguments (currently unused by the stages).
+    metrics : str or list, default='auto'
+        Metrics passed to ``model.evaluate`` on the standard path.
+
+    Returns
+    -------
+    result : dict
+        On success: ``status`` (``'success'``) and ``metrics``; the
+        ``report`` stage adds ``report`` (formatted text) and
+        ``model_type``; timeseries evaluation adds ``train_size``,
+        ``test_size`` and ``forecast_preview``. On failure: ``status``
+        (``'error'``), ``error``, ``error_type`` and optionally
+        ``suggestion``.
+    """
     import numpy as np
 
     try:
@@ -2278,7 +2475,7 @@ def execute_evaluate(**kwargs) -> Dict[str, Any]:
 
         if not is_timeseries and not is_anomaly:
             try:
-                from tuiml.hub import registry
+                from tuiml.registry import registry
                 algo_info = registry.get_info(model.__class__.__name__)
                 algo_type = algo_info.get('type')
                 if algo_type == 'classifier':
@@ -2554,154 +2751,120 @@ def execute_evaluate(**kwargs) -> Dict[str, Any]:
             'error_type': type(e).__name__
         }
 
-def execute_experiment(**kwargs) -> Dict[str, Any]:
-    """Execute experiment comparison."""
-    import tuiml
-    import tuiml.algorithms  # noqa: F401 - trigger registration
+def execute_benchmark(**kwargs) -> Dict[str, Any]:
+    """Execute a model comparison via ``tuiml.Benchmark``.
+
+    Backs the ``tuiml_benchmark`` tool: runs every algorithm on every
+    dataset with cross-validation and aggregates per-fold scores.
+
+    Parameters
+    ----------
+    data : str or list of str
+        Dataset name(s) to benchmark on: dataset_ids, file paths, or
+        built-in names (arrives via ``**kwargs``, like all parameters
+        below).
+    algorithms : list
+        Algorithms to compare; entries are names or
+        ``{"name": ..., "params": {...}}`` dicts.
+    cv : int, default=10
+        Number of cross-validation folds.
+    metrics : list of str, default=None
+        Metrics to compute; defaults to the benchmark's auto selection.
+    random_seed : int, default=None
+        Random seed for reproducible folds.
+    _progress_callback : callable, default=None
+        Internal per-fold progress hook; stripped from recorded args.
+
+    Returns
+    -------
+    result : dict
+        On success: ``status`` (``'success'``), ``summary`` (text),
+        ``table_markdown``, ``results`` (nested ``{dataset: {model:
+        {metric: {mean, std, scores}}}}``), ``algorithms``, ``datasets``,
+        ``cv_folds``, ``random_seed``, and optionally ``progress_log`` and
+        ``research_log_updates``. On failure: ``status`` (``'error'``)
+        and ``error``.
+    """
     import numpy as np
-    from tuiml.evaluation import metrics as metrics_module
-    from tuiml.hub import registry, ComponentType
+    import tuiml
 
     try:
         progress_callback = kwargs.pop('_progress_callback', None)
-
-        # Collect progress messages
         progress_log = []
 
         def _on_progress(info):
+            """Collect a progress event and forward it to the caller's callback."""
             progress_log.append(info)
             if progress_callback:
                 progress_callback(info)
 
-        # Support single dataset string or list of datasets
+        # Datasets: resolve dataset_ids / paths / builtin names through the
+        # shared loader, then hand benchmark() in-memory specs.
         data_input = kwargs['data']
-        if isinstance(data_input, str):
-            data_names = [data_input]
-        else:
-            data_names = data_input
-
-        # Load all datasets
-        datasets_dict = {}
+        data_names = [data_input] if isinstance(data_input, str) else list(data_input)
+        datasets = []
         for name in data_names:
             ds = _load_data(name)
-            datasets_dict[name] = (ds.X, ds.y)
+            datasets.append({"name": str(name), "X": ds.X, "y": ds.y})
 
-        algorithm_names = kwargs['algorithms']
-
-        # Detect algorithm types to choose appropriate default metrics
-        algorithm_types = []
-        for algo_name in algorithm_names:
-            try:
-                if algo_name in registry:
-                    info = registry.get_info(algo_name)
-                    algorithm_types.append(info.get('type', 'unknown'))
-                else:
-                    algorithm_types.append('unknown')
-            except:
-                algorithm_types.append('unknown')
-
-        # Choose default metrics based on algorithm types
-        is_clustering = any(t in ['clusterer', 'clustering'] for t in algorithm_types)
-        is_regression = any(t in ['regressor', 'regression'] for t in algorithm_types)
-
-        # Validate metric/algorithm compatibility
-        if kwargs.get('metrics'):
-            user_metrics = kwargs['metrics']
-            supervised_metrics = {'accuracy', 'accuracy_score', 'f1', 'f1_score', 'precision',
-                                 'precision_score', 'recall', 'recall_score', 'roc_auc'}
-            clustering_metrics = {'silhouette', 'silhouette_score', 'calinski_harabasz',
-                                 'calinski_harabasz_score', 'davies_bouldin', 'davies_bouldin_score'}
-
-            # Check for mismatch
-            has_supervised_metrics = any(m.lower() in supervised_metrics for m in user_metrics)
-
-            if is_clustering and has_supervised_metrics:
-                # Warning: supervised metrics requested for clustering
+        # Models: translate the tool-level vocabulary (bare names, flat
+        # param dicts) into strict {"name", "params"} specs.
+        models = []
+        for item in kwargs['algorithms']:
+            if isinstance(item, str):
+                models.append({"name": item})
+            elif isinstance(item, dict):
+                entry = dict(item)
+                name = entry.pop('name', None)
+                params = entry.pop('params', entry)
+                spec = {"name": name}
+                if params:
+                    spec["params"] = params
+                models.append(spec)
+            else:
                 return {
                     'status': 'error',
                     'error': (
-                        'Clustering algorithms require unsupervised metrics. '
-                        f'You requested: {user_metrics}, but these are supervised metrics. '
-                        'For clustering, use metrics like: '
-                        '["silhouette_score", "calinski_harabasz_score", "davies_bouldin_score"]. '
-                        'Or omit metrics parameter to use defaults.'
+                        "algorithms entries must be names or "
+                        '{"name": ..., "params": {...}} dicts.'
                     ),
-                    'suggested_metrics': ['silhouette_score', 'calinski_harabasz_score', 'davies_bouldin_score'],
-                    'algorithm_types': algorithm_types
                 }
 
-            requested_metrics = user_metrics
-        elif is_clustering:
-            # Use clustering metrics for clusterers
-            requested_metrics = ['silhouette_score', 'calinski_harabasz_score', 'davies_bouldin_score']
-        elif is_regression:
-            requested_metrics = ['r2_score', 'root_mean_squared_error', 'mean_absolute_error']
-        else:
-            # Default to classification metrics
-            requested_metrics = ['accuracy_score']
+        evaluation = {"cv": kwargs.get('cv', 10)}
+        if kwargs.get('metrics'):
+            evaluation["metrics"] = list(kwargs['metrics'])
 
-        exp = tuiml.experiment(
-            algorithms=algorithm_names,
-            datasets=datasets_dict,
-            cv=kwargs.get('cv', 10),
-            metrics=requested_metrics,
-            progress_callback=_on_progress
-        )
+        bench = tuiml.Benchmark(
+            models=models,
+            datasets=datasets,
+            evaluation=evaluation,
+            random_seed=kwargs.get('random_seed'),
+        ).run(progress_callback=_on_progress)
 
-        # Try to get summary, fallback to manual extraction
-        try:
-            summary = exp.summary() if hasattr(exp, 'summary') else None
-        except Exception:
-            summary = None
-
-        # Extract results manually for robustness
+        # Nested results dict, kept in the shape earlier consumers expect:
+        # {dataset: {model: {metric: {mean, std, scores}}}}
         results_data = {}
-        if hasattr(exp, 'results') and hasattr(exp.results, 'dataset_results'):
-            for dataset_name, dataset_result in exp.results.dataset_results.items():
-                results_data[dataset_name] = {}
-                for model_name, model_result in dataset_result.model_results.items():
-                    if model_result.fold_results:
-                        # Compute metrics from fold results
-                        model_metrics = {}
-                        for metric_name in requested_metrics:
-                            metric_func = getattr(metrics_module, metric_name, None)
-                            if metric_func:
-                                scores = []
-                                for fold in model_result.fold_results:
-                                    try:
-                                        score = metric_func(fold.y_true, fold.y_pred)
-                                        scores.append(float(score))
-                                    except Exception:
-                                        pass
-                                if scores:
-                                    model_metrics[metric_name] = {
-                                        'mean': float(np.mean(scores)),
-                                        'std': float(np.std(scores)),
-                                        'scores': scores
-                                    }
-                        results_data[dataset_name][model_name] = model_metrics
+        grouped = bench.scores_.groupby(['dataset', 'model', 'metric'], sort=False)
+        for (dataset, model, metric), group in grouped:
+            values = [float(v) for v in group['value']]
+            results_data.setdefault(dataset, {}).setdefault(model, {})[metric] = {
+                'mean': float(np.mean(values)),
+                'std': float(np.std(values)),
+                'scores': values,
+            }
 
         result = {
             'status': 'success',
-            'summary': summary,
+            'summary': bench.summary(),
+            'table_markdown': bench.to_markdown(),
             'results': results_data,
-            'algorithms': kwargs['algorithms'],
+            'algorithms': [m['name'] for m in models],
             'datasets': data_names,
-            'cv_folds': kwargs.get('cv', 10)
+            'cv_folds': kwargs.get('cv', 10),
+            'random_seed': bench.random_seed,
         }
         if progress_log:
-            result['progress_log'] = [
-                {
-                    'dataset': p.get('dataset'),
-                    'model': p.get('model'),
-                    'dataset_index': p.get('dataset_index'),
-                    'total_datasets': p.get('total_datasets'),
-                    'model_index': p.get('model_index'),
-                    'total_models': p.get('total_models'),
-                    'mean_scores': p.get('mean_scores'),
-                }
-                for p in progress_log
-            ]
+            result['progress_log'] = progress_log
 
         # Best-effort research-log hook: append a run entry to the matching
         # user algorithm's runs.jsonl. Silently no-ops when no algorithm in
@@ -2719,7 +2882,41 @@ def execute_experiment(**kwargs) -> Dict[str, Any]:
         return {'status': 'error', 'error': str(e)}
 
 def execute_list(**kwargs) -> Dict[str, Any]:
-    """Execute list components."""
+    """List available components (algorithms, preprocessors, datasets, ...).
+
+    Backs the ``tuiml_list`` tool. Supports filtering, pagination, and a
+    special ``category='custom'`` mode that lists user-created algorithms
+    with their research-log summaries.
+
+    Parameters
+    ----------
+    category : str, default='all'
+        Component category to list (``'all'``, ``'algorithm'``,
+        ``'preprocessing'``, ``'custom'``, ...). Arrives via ``**kwargs``,
+        like all parameters below.
+    search : str, default=None
+        Case-insensitive substring filter on name/description.
+    type : str, default=None
+        Algorithm type filter: ``'classifier'``, ``'regressor'``,
+        ``'clusterer'``, ``'anomaly'``, or ``'timeseries'``.
+    limit : int, default=50
+        Maximum number of entries to return.
+    offset : int, default=0
+        Pagination offset.
+    include_runs : bool, default=False
+        For ``category='custom'``: include per-version run details.
+
+    Returns
+    -------
+    result : dict
+        On success: ``status`` (``'success'``), ``total``, ``count``,
+        ``limit``, ``offset``, ``has_more``, and ``components`` (each with
+        ``name``, ``description``, ``category`` and, for algorithms,
+        ``type`` and ``tags``); ``category='custom'`` returns
+        ``algorithms`` and a ``hint`` instead of ``components``. On
+        failure: ``status`` (``'error'``), ``error``, ``error_type`` and
+        ``suggestion``.
+    """
     from tuiml.agent.registry import get_all_tools, list_tools_by_category
 
     try:
@@ -2730,7 +2927,7 @@ def execute_list(**kwargs) -> Dict[str, Any]:
         offset = kwargs.get('offset', 0)
         include_runs = bool(kwargs.get('include_runs', False))
 
-        # category='custom' — delegate to user_algorithms (absorbs tuiml_list_user_algorithms
+        # category='custom', delegate to user_algorithms (absorbs tuiml_list_user_algorithms
         # and tuiml_research_log)
         if category == 'custom':
             from tuiml.agent import user_algorithms
@@ -2743,7 +2940,7 @@ def execute_list(**kwargs) -> Dict[str, Any]:
             total = len(algorithms)
             paginated = algorithms[offset:offset + limit]
             if not include_runs:
-                # Strip run details for a fast listing — keep versions + best scores
+                # Strip run details for a fast listing, keep versions + best scores
                 for alg in paginated:
                     for v in alg.get('versions', []):
                         v.pop('path', None)
@@ -2756,7 +2953,7 @@ def execute_list(**kwargs) -> Dict[str, Any]:
                 'offset': offset,
                 'has_more': (offset + limit) < total,
                 'algorithms': paginated,
-                'hint': "Use tuiml_train or tuiml_experiment with any class_name or versioned_alias shown above.",
+                'hint': "Use tuiml_train or tuiml_benchmark with any class_name or versioned_alias shown above.",
             }
 
         if category == 'all':
@@ -2771,15 +2968,15 @@ def execute_list(**kwargs) -> Dict[str, Any]:
                 if search.lower() in name.lower() or search.lower() in tool.description.lower()
             }
 
-        # Build component list with type/tags from hub registry for algorithms
-        from tuiml.hub import registry as hub_registry
+        # Build component list with type/tags from the component registry for algorithms
+        from tuiml.registry import registry as hub_registry
         import tuiml.algorithms  # noqa: F401 - trigger registration
 
         components_list = []
         for t in tools.values():
             entry = {'name': t.name, 'description': t.description, 'category': t.category}
 
-            # For algorithm tools, enrich with type and tags from hub registry
+            # For algorithm tools, enrich with type and tags from the component registry
             if t.category == 'algorithm':
                 # Strip prefix to get the class name
                 class_name = t.name
@@ -2839,14 +3036,33 @@ def execute_list(**kwargs) -> Dict[str, Any]:
         }
 
 def execute_describe(**kwargs) -> Dict[str, Any]:
-    """Execute describe component."""
+    """Describe a single component: its parameters, tags and description.
+
+    Backs the ``tuiml_describe`` tool. Resolves the name first as an
+    algorithm in the component registry, then as a built-in dataset, then
+    as a preprocessing / feature / splitting component tool.
+
+    Parameters
+    ----------
+    name : str
+        Name of the component to describe (arrives via ``**kwargs``).
+
+    Returns
+    -------
+    result : dict
+        On success: ``status`` (``'success'``), ``type``, ``name``,
+        ``description`` and ``parameters`` (JSON Schema); algorithms also
+        include ``tags`` and ``version``, datasets include their info
+        fields. On failure: ``status`` (``'error'``), ``error``,
+        ``suggestion``, ``recovery_tool`` and ``recovery_params``.
+    """
     try:
         name = kwargs['name']
 
-        # 1. Try as algorithm from hub registry (covers all registered algorithms
-        #    including community/hub uploads)
+        # 1. Try as algorithm from the component registry (covers all registered
+        #    algorithms including community uploads)
         try:
-            from tuiml.hub import registry as hub_registry, ComponentType
+            from tuiml.registry import registry as hub_registry, ComponentType
             import tuiml.algorithms  # noqa: F401 - trigger registration
 
             component = hub_registry.get(name)
@@ -2917,7 +3133,26 @@ def execute_describe(**kwargs) -> Dict[str, Any]:
         }
 
 def execute_search(**kwargs) -> Dict[str, Any]:
-    """Execute search components."""
+    """Search components by keyword in their name or description.
+
+    Backs the ``tuiml_search`` tool.
+
+    Parameters
+    ----------
+    query : str
+        Case-insensitive search term (arrives via ``**kwargs``, like all
+        parameters below).
+    category : str, default='all'
+        Restrict matches to one component category.
+
+    Returns
+    -------
+    result : dict
+        On success: ``status`` (``'success'``), ``query``, ``count`` and
+        ``results`` (list of ``{name, description, category}``), plus a
+        ``suggestion`` when nothing matched. On failure: ``status``
+        (``'error'``), ``error`` and ``error_type``.
+    """
     from tuiml.agent.registry import get_all_tools
 
     try:
@@ -2957,7 +3192,34 @@ def execute_search(**kwargs) -> Dict[str, Any]:
         }
 
 def execute_upload_data(**kwargs) -> Dict[str, Any]:
-    """Register a dataset file or inline content for use with other tools."""
+    """Register a dataset file or inline content for use with other tools.
+
+    Backs the ``tuiml_upload_data`` tool. The dataset is copied into
+    ``~/.tuiml/uploads/``, validated by loading it, and indexed under a
+    stable ``dataset_id`` so later tools can reference it by name.
+
+    Parameters
+    ----------
+    file_path : str, default=None
+        Path to a data file on disk (CSV, TSV, ARFF, Parquet, JSON,
+        Excel, NPY/NPZ). One of ``file_path`` / ``content`` is required
+        (both arrive via ``**kwargs``, like all parameters below).
+    content : str, default=None
+        Inline dataset text (e.g. CSV content) written to a new file.
+    name : str, default=None
+        Name to register the dataset under; defaults to the file's
+        basename or an auto-generated id for inline content.
+    format : str, default='csv'
+        File extension to use in content mode.
+
+    Returns
+    -------
+    result : dict
+        On success: ``status`` (``'success'``), ``dataset_id``,
+        ``file_path``, ``rows``, ``features``, ``feature_names`` and
+        ``message``. On failure: ``status`` (``'error'``), ``error``,
+        ``error_type`` and optionally ``suggestion``.
+    """
     import shutil
 
     try:
@@ -3041,7 +3303,26 @@ def execute_upload_data(**kwargs) -> Dict[str, Any]:
         }
 
 def execute_save_model(**kwargs) -> Dict[str, Any]:
-    """Copy a trained model to a user-specified location."""
+    """Copy a trained model to a user-specified location.
+
+    Backs the ``tuiml_save_model`` tool.
+
+    Parameters
+    ----------
+    model_id : str
+        Identifier of a trained model from ``tuiml_train`` (arrives via
+        ``**kwargs``, like all parameters below).
+    destination : str
+        Target file path to copy the serialized model to.
+
+    Returns
+    -------
+    result : dict
+        On success: ``status`` (``'success'``), ``model_id``, ``source``,
+        ``destination`` (absolute path) and ``message``. On failure:
+        ``status`` (``'error'``), ``error``, ``error_type`` and
+        optionally ``suggestion``.
+    """
     import shutil
 
     try:
@@ -3075,7 +3356,34 @@ def execute_save_model(**kwargs) -> Dict[str, Any]:
         }
 
 def execute_serve_model(**kwargs) -> Dict[str, Any]:
-    """Start a REST API server to serve a trained model."""
+    """Start a REST API server to serve a trained model.
+
+    Backs the ``tuiml_serve_model`` tool. Runs a ``tuiml.serving``
+    ``ModelServer`` (FastAPI + uvicorn, installed via the
+    ``tuiml[serving]`` extra) in a background thread and registers it in
+    the in-process server table.
+
+    Parameters
+    ----------
+    model_id : str, default=None
+        Identifier of a trained model from ``tuiml_train``. One of
+        ``model_id`` / ``model_path`` is required (both arrive via
+        ``**kwargs``, like all parameters below).
+    model_path : str, default=None
+        Explicit path to a serialized model file.
+    port : int, default=8000
+        TCP port to bind; must be free.
+    host : str, default='127.0.0.1'
+        Interface to bind the server to.
+
+    Returns
+    -------
+    result : dict
+        On success: ``status`` (``'success'``), ``server_id``,
+        ``model_id``, ``url``, ``endpoints`` (name -> URL map) and
+        ``example_curl``. On failure: ``status`` (``'error'``),
+        ``error``, ``error_type`` and optionally ``suggestion``.
+    """
     import threading
     import socket
 
@@ -3184,7 +3492,25 @@ def execute_serve_model(**kwargs) -> Dict[str, Any]:
 
 
 def execute_stop_server(**kwargs) -> Dict[str, Any]:
-    """Stop a running model serving server."""
+    """Stop one or all running model serving servers.
+
+    Backs the ``tuiml_stop_server`` tool.
+
+    Parameters
+    ----------
+    server_id : str, default=None
+        Identifier of the server to stop (arrives via ``**kwargs``).
+        When omitted, every running server is stopped.
+
+    Returns
+    -------
+    result : dict
+        On success: ``status`` (``'success'``) and ``message``; stopping
+        all servers also returns ``stopped`` (list of
+        ``{server_id, model_id, port}``). On failure: ``status``
+        (``'error'``), ``error`` and optionally ``suggestion`` /
+        ``error_type``.
+    """
     try:
         server_id = kwargs.get('server_id')
 
@@ -3225,7 +3551,17 @@ def execute_stop_server(**kwargs) -> Dict[str, Any]:
 
 
 def execute_server_status(**kwargs) -> Dict[str, Any]:
-    """Get status of running model serving servers."""
+    """Get status of running model serving servers.
+
+    Backs the ``tuiml_server_status`` tool. Takes no arguments (any
+    ``**kwargs`` are ignored).
+
+    Returns
+    -------
+    result : dict
+        ``status`` (``'success'``), ``count``, and ``servers`` -- a list
+        of ``{server_id, model_id, model_path, url, port, running}``.
+    """
     servers = []
     for sid, info in _SERVING_SERVERS.items():
         servers.append({
@@ -3244,7 +3580,43 @@ def execute_server_status(**kwargs) -> Dict[str, Any]:
 
 
 def execute_plot(**kwargs) -> Dict[str, Any]:
-    """Execute a visualization/plot generation."""
+    """Generate a visualization and return it as a saved PNG plus base64.
+
+    Backs the ``tuiml_plot`` tool. Supported plot types: confusion_matrix,
+    roc_curve, pr_curve, learning_curve, tree, feature_importance,
+    cd_diagram, boxplot_comparison, heatmap, ranking_table.
+
+    Parameters
+    ----------
+    plot_type : str
+        Which plot to produce (arrives via ``**kwargs``, like all
+        parameters below).
+    title : str, default=None
+        Custom plot title; each plot type has a sensible default.
+    model_id : str, default=None
+        Trained model to plot from (model-based plot types).
+    model_path : str, default=None
+        Explicit path to a serialized model file.
+    data : str, default=None
+        Dataset to evaluate/plot against (dataset_id, path, or built-in
+        name); required by data-driven plot types.
+    normalize : bool, default=False
+        Normalize counts in the confusion matrix.
+    algorithm : str, default=None
+        Algorithm name; required for ``learning_curve``.
+    benchmark_results : dict, default=None
+        ``{algorithm_name: [scores...]}`` mapping; required for the
+        comparison plots (cd_diagram, boxplot_comparison, heatmap,
+        ranking_table).
+
+    Returns
+    -------
+    result : dict
+        On success: ``status`` (``'success'``), ``plot_type``,
+        ``description``, ``path`` (saved PNG on disk), ``_image_base64``
+        and ``_image_mime``. On failure: ``status`` (``'error'``),
+        ``error`` and optionally ``error_type`` / ``suggestion``.
+    """
     import base64
     import numpy as np
 
@@ -3353,7 +3725,7 @@ def execute_plot(**kwargs) -> Dict[str, Any]:
 
         elif plot_type == 'learning_curve':
             from tuiml.evaluation.visualization import plot_learning_curve
-            from tuiml.hub import registry
+            from tuiml.registry import registry
             from tuiml.evaluation.metrics import accuracy_score
             import tuiml.algorithms  # noqa: F401 - trigger registration
 
@@ -3544,16 +3916,16 @@ def execute_plot(**kwargs) -> Dict[str, Any]:
             description = 'Feature importance bar chart from model.'
 
         elif plot_type in ('cd_diagram', 'boxplot_comparison', 'heatmap', 'ranking_table'):
-            experiment_results = kwargs.get('experiment_results')
-            if not experiment_results:
+            benchmark_results = kwargs.get('benchmark_results')
+            if not benchmark_results:
                 return {
                     'status': 'error',
-                    'error': f"'{plot_type}' requires experiment_results parameter with algorithm CV scores.",
-                    'suggestion': "Provide experiment_results: { 'AlgoName': [score1, score2, ...], ... }"
+                    'error': f"'{plot_type}' requires benchmark_results parameter with algorithm CV scores.",
+                    'suggestion': "Provide benchmark_results: { 'AlgoName': [score1, score2, ...], ... }"
                 }
 
             scores_dict = {
-                name: np.array(scores) for name, scores in experiment_results.items()
+                name: np.array(scores) for name, scores in benchmark_results.items()
             }
 
             if plot_type == 'cd_diagram':
@@ -3622,7 +3994,29 @@ def execute_plot(**kwargs) -> Dict[str, Any]:
 
 
 def execute_data_profile(**kwargs) -> Dict[str, Any]:
-    """Profile a dataset: shape, dtypes, missing values, stats, class distribution."""
+    """Profile a dataset: shape, dtypes, missing values, stats, class distribution.
+
+    Backs the ``tuiml_profile_data`` tool.
+
+    Parameters
+    ----------
+    data : str
+        Dataset to profile: dataset_id, file path, or built-in name
+        (arrives via ``**kwargs``, like all parameters below).
+    target : str, default=None
+        Target column name, echoed back as ``target_column`` when the
+        dataset has labels.
+
+    Returns
+    -------
+    result : dict
+        On success: ``status`` (``'success'``), ``name``, ``shape``,
+        ``n_samples``, ``n_features``, ``feature_names``, ``dtypes``
+        (feature -> 'numeric'/'categorical'), ``missing_values``,
+        ``numeric_stats`` (per-feature mean/std/min/max/median) and,
+        when labels exist, ``class_distribution``. On failure: ``status``
+        (``'error'``), ``error`` and ``error_type``.
+    """
     import numpy as np
 
     try:
@@ -3695,7 +4089,41 @@ def execute_data_profile(**kwargs) -> Dict[str, Any]:
 
 
 def execute_generate_data(**kwargs) -> Dict[str, Any]:
-    """Generate synthetic data using a generator class."""
+    """Generate synthetic data using a generator class.
+
+    Backs the ``tuiml_generate_data`` tool. The generated dataset is
+    written to a temporary CSV whose path can be passed to other tools.
+
+    Parameters
+    ----------
+    generator : str
+        Generator class name, one of: RandomRBF, Agrawal, LED,
+        Hyperplane, Friedman, MexicanHat, Sine, Blobs, Moons, Circles,
+        SwissRoll (arrives via ``**kwargs``, like all parameters below).
+    n_samples : int, default=None
+        Number of samples to generate.
+    n_features : int, default=None
+        Number of features (generator dependent).
+    n_classes : int, default=None
+        Number of classes (classification generators).
+    n_clusters : int, default=None
+        Number of clusters (clustering generators).
+    noise : float, default=None
+        Noise level (generator dependent).
+    random_seed : int, default=None
+        Random seed; mapped to the generator's ``random_state``.
+    generator_params : dict, default=None
+        Additional constructor parameters merged on top.
+
+    Returns
+    -------
+    result : dict
+        On success: ``status`` (``'success'``), ``generator``,
+        ``file_path`` (CSV on disk), ``shape``, ``feature_names``,
+        ``preview`` (first 5 rows of up to 6 columns) and optionally
+        ``target_names``. On failure: ``status`` (``'error'``),
+        ``error`` and optionally ``suggestion`` / ``error_type``.
+    """
     import numpy as np
 
     try:
@@ -3771,7 +4199,50 @@ def execute_generate_data(**kwargs) -> Dict[str, Any]:
 
 
 def execute_preprocess(**kwargs) -> Dict[str, Any]:
-    """Apply preprocessing steps or a specific atomic stage to a dataset."""
+    """Apply preprocessing steps or a specific atomic stage to a dataset.
+
+    Backs the ``tuiml_preprocess`` tool. Two modes: ``steps`` runs an
+    ordered pipeline of named preprocessors; ``stage`` runs one atomic
+    operation (``split``, ``impute``, ``balance``, ``scale``, ``encode``,
+    ``discretize``) with a default class per stage. Output is written to
+    CSV so downstream tools can consume it by path.
+
+    Parameters
+    ----------
+    data : str
+        Dataset to preprocess: dataset_id, file path, or built-in name
+        (arrives via ``**kwargs``, like all parameters below).
+    steps : list, default=None
+        Pipeline mode: preprocessor steps, each a class name or
+        ``{"name", **params}`` dict. One of ``steps`` / ``stage`` is
+        required.
+    stage : str, default=None
+        Atomic stage mode: ``'split'``, ``'impute'``, ``'balance'``,
+        ``'scale'``, ``'encode'``, or ``'discretize'``.
+    stage_kwargs : dict, default=None
+        Stage options, e.g. ``method`` to pick a specific class, or for
+        ``split``: ``n_splits``/``kfold``, ``test_size``, ``train_size``,
+        ``shuffle``, ``stratify``, ``random_seed``.
+    output : str, default=None
+        Output file or directory (alias: ``save_as``); defaults to a
+        temp location.
+    save_as : str, default=None
+        Alias for ``output``.
+    target : str, default='target'
+        Column name for the label in the output CSV.
+    random_seed : int, default=None
+        Random seed forwarded to seed-aware stages.
+
+    Returns
+    -------
+    result : dict
+        On success: ``status`` (``'success'``), ``original_shape``, and
+        either ``file_path``, ``new_shape`` and ``steps_applied``, or --
+        for ``stage='split'`` -- ``split_type`` (``'kfold'`` /
+        ``'holdout'``) and ``files`` (train/test CSV paths, per fold for
+        k-fold). On failure: ``status`` (``'error'``), ``error`` and
+        optionally ``error_type`` / ``suggestion``.
+    """
     import numpy as np
     import pandas as pd
 
@@ -3966,6 +4437,19 @@ def execute_preprocess(**kwargs) -> Dict[str, Any]:
                 
                 # Helper to perform case-insensitive attribute lookup
                 def resolve_class_name(name):
+                    """Resolve a preprocessor class name case-insensitively in tuiml.preprocessing.
+
+                    Parameters
+                    ----------
+                    name : str
+                        Candidate class name to look up.
+
+                    Returns
+                    -------
+                    resolved : str or None
+                        The exact attribute name in ``tuiml.preprocessing``,
+                        or None if no match exists.
+                    """
                     if hasattr(pp_module, name):
                         return name
                     for attr in dir(pp_module):
@@ -3991,7 +4475,7 @@ def execute_preprocess(**kwargs) -> Dict[str, Any]:
                     class_name = resolved_name
                 else:
                     # Fallback to registry lookup
-                    from tuiml.hub import registry
+                    from tuiml.registry import registry
                     try:
                         preprocessor_cls = registry.get(class_name)
                     except Exception:
@@ -4064,7 +4548,7 @@ def execute_preprocess(**kwargs) -> Dict[str, Any]:
         else:
             # Standard step-by-step pipeline execution
             steps_applied = []
-            from tuiml.hub import registry
+            from tuiml.registry import registry
             import tuiml.preprocessing  # noqa: F401 - trigger registration
 
             for step in steps:
@@ -4146,7 +4630,39 @@ def execute_preprocess(**kwargs) -> Dict[str, Any]:
 
 
 def execute_select_features(**kwargs) -> Dict[str, Any]:
-    """Run feature selection on a dataset."""
+    """Run feature selection on a dataset.
+
+    Backs the ``tuiml_select_features`` tool. The reduced dataset is
+    written to a temporary CSV for use by downstream tools.
+
+    Parameters
+    ----------
+    data : str
+        Dataset to select features from: dataset_id, file path, or
+        built-in name (arrives via ``**kwargs``, like all parameters
+        below).
+    method : str
+        Selector class name: SelectKBestSelector,
+        SelectPercentileSelector, VarianceThresholdSelector, CFSSelector,
+        WrapperSelector, SelectFprSelector, or SelectThresholdSelector.
+    method_params : dict, default=None
+        Extra constructor parameters for the selector.
+    k : int, default=None
+        Number of features to keep (selectors that accept ``k``).
+    threshold : float, default=None
+        Threshold value (selectors that accept ``threshold``).
+    target : str, default='target'
+        Column name for the label in the output CSV.
+
+    Returns
+    -------
+    result : dict
+        On success: ``status`` (``'success'``), ``method``,
+        ``n_original``, ``n_selected``, ``selected_features``,
+        ``file_path`` (reduced CSV) and, when available, ``scores``
+        (feature -> score). On failure: ``status`` (``'error'``),
+        ``error`` and optionally ``suggestion`` / ``error_type``.
+    """
     import numpy as np
 
     try:
@@ -4237,7 +4753,35 @@ def execute_select_features(**kwargs) -> Dict[str, Any]:
 
 
 def execute_statistical_test(**kwargs) -> Dict[str, Any]:
-    """Run statistical significance tests on experiment results."""
+    """Run statistical significance tests on experiment results.
+
+    Backs the ``tuiml_test_statistics`` tool. Supported tests: friedman,
+    nemenyi, wilcoxon, paired_t, anova, friedman_aligned, quade. The
+    pairwise tests (wilcoxon, paired_t) compare the first two algorithms
+    in ``results``.
+
+    Parameters
+    ----------
+    test : str
+        Name of the test to run (arrives via ``**kwargs``, like all
+        parameters below).
+    results : dict
+        ``{algorithm_name: [scores...]}`` mapping of per-fold scores.
+    significance_level : float, default=0.05
+        Alpha level for significance.
+    higher_better : bool, default=True
+        Whether higher scores are better (pairwise tests only).
+
+    Returns
+    -------
+    result : dict
+        On success: ``status`` (``'success'``), ``test`` and
+        ``significant``; most tests add ``statistic`` and ``p_value``;
+        pairwise tests add ``algorithms`` and a ``details`` dict of
+        means/stds; nemenyi returns per-pair significance in
+        ``details``. On failure: ``status`` (``'error'``), ``error`` and
+        optionally ``suggestion`` / ``error_type``.
+    """
     import numpy as np
 
     try:
@@ -4352,14 +4896,52 @@ def execute_statistical_test(**kwargs) -> Dict[str, Any]:
 
 
 def execute_tune(**kwargs) -> Dict[str, Any]:
-    """Hyperparameter optimization for any algorithm."""
+    """Hyperparameter optimization for any registered algorithm.
+
+    Backs the ``tuiml_tune`` tool. Runs grid, random, or Bayesian search
+    over a parameter space, then saves and indexes the best estimator.
+
+    Parameters
+    ----------
+    algorithm : str
+        Registered algorithm class name to tune (arrives via ``**kwargs``,
+        like all parameters below).
+    data : str
+        Dataset to tune on: dataset_id, file path, or built-in name.
+    method : str
+        Search strategy: ``'grid'``, ``'random'``, or ``'bayesian'``.
+    param_grid : dict
+        Parameter grid / distributions / space, depending on ``method``.
+    cv : int, default=5
+        Number of cross-validation folds.
+    scoring : str, default='accuracy'
+        Scoring metric name.
+    n_iter : int, default=10
+        Number of sampled candidates (random search only).
+    n_iterations : int, default=50
+        Number of optimization iterations (Bayesian search only).
+    random_seed : int, default=None
+        Random seed for reproducible search.
+    _progress_callback : callable, default=None
+        Internal per-iteration progress hook; stripped from recorded args.
+
+    Returns
+    -------
+    result : dict
+        On success: ``status`` (``'success'``), ``method``,
+        ``best_params``, ``best_score``, ``cv_results`` (summary with
+        ``n_candidates``, ``best_rank`` and ``top_5``), ``model_id``,
+        ``model_path``, and optionally ``progress_log``. On failure:
+        ``status`` (``'error'``), ``error`` and optionally
+        ``suggestion`` / ``error_type``.
+    """
     import numpy as np
 
     try:
         algorithm_name = kwargs['algorithm']
         progress_callback = kwargs.pop('_progress_callback', None)
 
-        from tuiml.hub import registry
+        from tuiml.registry import registry
         import tuiml.algorithms  # noqa: F401 - trigger registration
 
         algo_cls = registry.get(algorithm_name)
@@ -4384,6 +4966,7 @@ def execute_tune(**kwargs) -> Dict[str, Any]:
         progress_log = []
 
         def _on_progress(info):
+            """Collect a progress event and forward it to the caller's callback."""
             progress_log.append(info)
             if progress_callback:
                 progress_callback(info)
@@ -4486,7 +5069,37 @@ def execute_tune(**kwargs) -> Dict[str, Any]:
 
 
 def execute_read_data(**kwargs) -> Dict[str, Any]:
-    """Read and preview actual rows from a dataset using Dataset.to_pandas()."""
+    """Read and preview actual rows from a dataset using ``Dataset.to_pandas()``.
+
+    Backs the ``tuiml_read_data`` tool.
+
+    Parameters
+    ----------
+    data : str
+        Dataset to read: dataset_id, file path, or built-in name
+        (arrives via ``**kwargs``, like all parameters below).
+    n_rows : int, default=10
+        Number of rows to return, capped at 100.
+    mode : str, default='head'
+        Row selection mode: ``'head'``, ``'tail'``, ``'sample'``, or
+        ``'indices'``.
+    indices : list of int, default=None
+        Explicit row indices, used with ``mode='indices'``.
+    columns : list of str, default=None
+        Subset of columns to include; unknown names are dropped.
+    target : str, default=None
+        Target column name, kept in the output when ``include_target``.
+    include_target : bool, default=True
+        Whether to include the target column in the preview.
+
+    Returns
+    -------
+    result : dict
+        On success: ``status`` (``'success'``), ``name``, ``shape``,
+        ``columns``, ``n_rows_returned``, and ``rows`` (list of
+        column -> value dicts with floats rounded to 6 places). On
+        failure: ``status`` (``'error'``), ``error`` and ``error_type``.
+    """
     try:
         dataset = _load_data(kwargs['data'])
         include_target = kwargs.get('include_target', True)
@@ -4552,6 +5165,30 @@ def execute_read_data(**kwargs) -> Dict[str, Any]:
 
 
 def execute_algorithm_skeleton(**kwargs) -> Dict[str, Any]:
+    """Return a starter code skeleton for a new user algorithm.
+
+    Backs the ``tuiml_get_skeleton`` tool; delegates to
+    ``tuiml.agent.user_algorithms.skeleton``.
+
+    Parameters
+    ----------
+    kind : str, default='classifier'
+        Kind of algorithm to scaffold (e.g. ``'classifier'`` or
+        ``'regressor'``). Arrives via ``**kwargs``, like all parameters
+        below.
+    class_name : str, default='MyAlgorithm'
+        Name of the generated class.
+    version : str, default='1.0.0'
+        Initial version string embedded in the skeleton.
+    description : str, default='Describe what your algorithm does.'
+        One-line description embedded in the skeleton docstring.
+
+    Returns
+    -------
+    result : dict
+        Result dict from ``user_algorithms.skeleton`` with ``status`` and
+        the generated skeleton code.
+    """
     from tuiml.agent import user_algorithms
     return user_algorithms.skeleton(
         kind=kwargs.get("kind", "classifier"),
@@ -4562,6 +5199,35 @@ def execute_algorithm_skeleton(**kwargs) -> Dict[str, Any]:
 
 
 def execute_create_algorithm(**kwargs) -> Dict[str, Any]:
+    """Create and register a new user algorithm from source code.
+
+    Backs the ``tuiml_create_algorithm`` tool; delegates to
+    ``tuiml.agent.user_algorithms.create``.
+
+    Parameters
+    ----------
+    name : str
+        Class name of the new algorithm. Required (arrives via
+        ``**kwargs``, like all parameters below).
+    kind : str
+        Algorithm kind (e.g. ``'classifier'`` or ``'regressor'``).
+        Required.
+    code : str
+        Full Python source of the algorithm. Required.
+    version : str, default='1.0.0'
+        Version to register the algorithm under.
+    description : str, default=None
+        Short description stored with the algorithm.
+    force : bool, default=False
+        Overwrite an existing algorithm of the same name/version.
+
+    Returns
+    -------
+    result : dict
+        Result dict from ``user_algorithms.create`` with ``status`` and
+        creation details, or an error dict listing missing required
+        fields.
+    """
     from tuiml.agent import user_algorithms
     required = [k for k in ("name", "kind", "code") if k not in kwargs]
     if required:
@@ -4578,11 +5244,43 @@ def execute_create_algorithm(**kwargs) -> Dict[str, Any]:
 
 
 def execute_list_user_algorithms(**kwargs) -> Dict[str, Any]:
+    """List all user-created algorithms.
+
+    Delegates to ``tuiml.agent.user_algorithms.list_all``. Takes no
+    arguments (any ``**kwargs`` are ignored).
+
+    Returns
+    -------
+    result : dict
+        Result dict from ``user_algorithms.list_all`` with ``status`` and
+        the registered user algorithms.
+    """
     from tuiml.agent import user_algorithms
     return user_algorithms.list_all()
 
 
 def execute_read_algorithm(**kwargs) -> Dict[str, Any]:
+    """Read the source code of a user or built-in algorithm.
+
+    Backs the ``tuiml_read_algorithm`` tool; delegates to
+    ``tuiml.agent.user_algorithms.read_source``.
+
+    Parameters
+    ----------
+    name : str
+        Algorithm class name. Required (arrives via ``**kwargs``, like
+        all parameters below).
+    version : str, default=None
+        Specific version to read; defaults to the latest.
+    builtin : bool, default=False
+        Read a built-in TuiML algorithm instead of a user algorithm.
+
+    Returns
+    -------
+    result : dict
+        Result dict from ``user_algorithms.read_source`` with ``status``
+        and the source code, or an error dict when ``name`` is missing.
+    """
     from tuiml.agent import user_algorithms
     if "name" not in kwargs:
         return {"status": "error", "error_type": "ValueError",
@@ -4595,6 +5293,25 @@ def execute_read_algorithm(**kwargs) -> Dict[str, Any]:
 
 
 def execute_list_algorithm_files(**kwargs) -> Dict[str, Any]:
+    """List algorithm source files, built-in and/or user-created.
+
+    Backs the ``tuiml_list_files`` tool; delegates to
+    ``tuiml.agent.user_algorithms.list_algorithm_files``.
+
+    Parameters
+    ----------
+    builtin : bool, default=True
+        Include built-in TuiML algorithm files (arrives via ``**kwargs``,
+        like all parameters below).
+    user : bool, default=True
+        Include user-created algorithm files.
+
+    Returns
+    -------
+    result : dict
+        Result dict from ``user_algorithms.list_algorithm_files`` with
+        ``status`` and the file listing.
+    """
     from tuiml.agent import user_algorithms
     return user_algorithms.list_algorithm_files(
         builtin=bool(kwargs.get("builtin", True)),
@@ -4603,6 +5320,30 @@ def execute_list_algorithm_files(**kwargs) -> Dict[str, Any]:
 
 
 def execute_search_source(**kwargs) -> Dict[str, Any]:
+    """Search algorithm source code for a text query.
+
+    Backs the ``tuiml_search_source`` tool; delegates to
+    ``tuiml.agent.user_algorithms.search_source``.
+
+    Parameters
+    ----------
+    query : str
+        Text to search for. Required (arrives via ``**kwargs``, like all
+        parameters below).
+    name : str, default=None
+        Restrict the search to one algorithm.
+    builtin : bool, default=True
+        Search built-in TuiML algorithm sources.
+    user : bool, default=True
+        Search user-created algorithm sources.
+
+    Returns
+    -------
+    result : dict
+        Result dict from ``user_algorithms.search_source`` with
+        ``status`` and the matches, or an error dict when ``query`` is
+        missing.
+    """
     from tuiml.agent import user_algorithms
     if "query" not in kwargs:
         return {"status": "error", "error_type": "ValueError",
@@ -4616,6 +5357,32 @@ def execute_search_source(**kwargs) -> Dict[str, Any]:
 
 
 def execute_edit_algorithm(**kwargs) -> Dict[str, Any]:
+    """Apply a string replacement edit to a user algorithm's source.
+
+    Backs the ``tuiml_edit_algorithm`` tool; delegates to
+    ``tuiml.agent.user_algorithms.edit_algorithm``.
+
+    Parameters
+    ----------
+    name : str
+        Algorithm class name to edit. Required (arrives via ``**kwargs``,
+        like all parameters below).
+    old_string : str
+        Exact source text to replace. Required.
+    new_string : str
+        Replacement text. Required.
+    version : str, default=None
+        Specific version to edit; defaults to the latest.
+    bump_version : bool, default=False
+        Save the edit as a new bumped version instead of in place.
+
+    Returns
+    -------
+    result : dict
+        Result dict from ``user_algorithms.edit_algorithm`` with
+        ``status`` and edit details, or an error dict listing missing
+        required fields.
+    """
     from tuiml.agent import user_algorithms
     required = [k for k in ("name", "old_string", "new_string") if k not in kwargs]
     if required:
@@ -4631,11 +5398,47 @@ def execute_edit_algorithm(**kwargs) -> Dict[str, Any]:
 
 
 def execute_research_log(**kwargs) -> Dict[str, Any]:
+    """Return the research log (versions and recorded runs) for user algorithms.
+
+    Delegates to ``tuiml.agent.user_algorithms.research_log``.
+
+    Parameters
+    ----------
+    name : str, default=None
+        Restrict the log to one algorithm; when omitted, all user
+        algorithms are included (arrives via ``**kwargs``).
+
+    Returns
+    -------
+    result : dict
+        Result dict from ``user_algorithms.research_log`` with ``status``
+        and the per-algorithm version/run history.
+    """
     from tuiml.agent import user_algorithms
     return user_algorithms.research_log(name=kwargs.get("name"))
 
 
 def execute_delete_user_algorithm(**kwargs) -> Dict[str, Any]:
+    """Delete a user-created algorithm (or one of its versions).
+
+    Backs the ``tuiml_delete_algorithm`` tool; delegates to
+    ``tuiml.agent.user_algorithms.delete``.
+
+    Parameters
+    ----------
+    name : str
+        Algorithm class name to delete. Required (arrives via
+        ``**kwargs``, like all parameters below).
+    version : str, default=None
+        Specific version to delete; when omitted, all versions are
+        removed.
+
+    Returns
+    -------
+    result : dict
+        Result dict from ``user_algorithms.delete`` with ``status`` and
+        deletion details, or an error dict when ``name`` is missing.
+    """
     from tuiml.agent import user_algorithms
     if "name" not in kwargs:
         return {"status": "error", "error_type": "ValueError",
@@ -4646,7 +5449,7 @@ def execute_delete_user_algorithm(**kwargs) -> Dict[str, Any]:
 def _detect_install_method() -> Dict[str, Any]:
     """Inspect sys.prefix / sys.executable to guess how tuiml was installed."""
     import sys
-    # Don't resolve() — that follows the python symlink out of the tool venv.
+    # Don't resolve(): that follows the python symlink out of the tool venv.
     prefix = sys.prefix.replace("\\", "/")
     exe = sys.executable.replace("\\", "/")
 
@@ -4672,7 +5475,21 @@ def _detect_install_method() -> Dict[str, Any]:
 
 
 def _query_latest_pypi_version(package: str = "tuiml", timeout: float = 5.0) -> Dict[str, Any]:
-    """Look up the latest released version of a package on PyPI."""
+    """Look up the latest released version of a package on PyPI.
+
+    Parameters
+    ----------
+    package : str, default='tuiml'
+        PyPI package name to query.
+    timeout : float, default=5.0
+        HTTP timeout in seconds.
+
+    Returns
+    -------
+    result : dict
+        On success: ``ok`` (True), ``version`` and ``released`` (upload
+        timestamp). On failure: ``ok`` (False) and ``error``.
+    """
     import json as _json
     import urllib.request
     url = f"https://pypi.org/pypi/{package}/json"
@@ -4686,7 +5503,26 @@ def _query_latest_pypi_version(package: str = "tuiml", timeout: float = 5.0) -> 
 
 
 def execute_system_info(**kwargs) -> Dict[str, Any]:
-    """Report installation details for the running TuiML install."""
+    """Report installation details for the running TuiML install.
+
+    Backs the ``tuiml_system_info`` tool.
+
+    Parameters
+    ----------
+    check_latest : bool, default=True
+        Also query PyPI for the latest released version (arrives via
+        ``**kwargs``).
+
+    Returns
+    -------
+    result : dict
+        On success: ``status`` (``'success'``), ``version``,
+        ``install_method``, ``upgrade_hint``, ``package_path``,
+        ``site_packages``, ``python_executable``, ``python_version``,
+        ``platform``, and -- when ``check_latest`` -- ``latest_version``
+        and ``update_available`` (or ``latest_version_error``). On
+        failure: ``status`` (``'error'``), ``error`` and ``error_type``.
+    """
     import sys
     import platform as _plat
     try:
@@ -4725,7 +5561,28 @@ def execute_system_info(**kwargs) -> Dict[str, Any]:
 
 
 def execute_self_update(**kwargs) -> Dict[str, Any]:
-    """Upgrade tuiml to the latest PyPI version using the detected installer."""
+    """Upgrade tuiml to the latest PyPI version using the detected installer.
+
+    Backs the ``tuiml_self_update`` tool. Editable/dev checkouts are
+    refused; use ``git pull`` there instead.
+
+    Parameters
+    ----------
+    target_version : str, default=None
+        Specific version to install; defaults to the latest release
+        (arrives via ``**kwargs``, like all parameters below).
+    dry_run : bool, default=False
+        Only report the command that would run; make no changes.
+
+    Returns
+    -------
+    result : dict
+        On success: ``status`` (``'success'``), ``install_method``,
+        ``command``, ``returncode``, ``stdout``, ``stderr``,
+        ``version_before``, ``version_after``, ``restart_required`` and
+        ``note`` (dry runs return ``dry_run`` and ``command`` only). On
+        failure: ``status`` (``'error'``), ``error`` and ``error_type``.
+    """
     import subprocess
     import sys
 
@@ -4735,7 +5592,7 @@ def execute_self_update(**kwargs) -> Dict[str, Any]:
     if method == "editable-dev":
         return {
             "status": "error",
-            "error": "refusing to upgrade an editable / dev checkout — run `git pull` in the source tree instead",
+            "error": "refusing to upgrade an editable / dev checkout, run `git pull` in the source tree instead",
             "error_type": "EditableInstallError",
             "install_method": method,
         }
@@ -4807,6 +5664,18 @@ def execute_restart(**kwargs) -> Dict[str, Any]:
     process dies; the parent client (Claude Desktop, Cursor, …) will
     auto-respawn the child with the newly installed code on its next
     request.
+
+    Parameters
+    ----------
+    include_self : bool, default=True
+        Also schedule a deferred exit of the current server process
+        (arrives via ``**kwargs``).
+
+    Returns
+    -------
+    result : dict
+        ``status`` (``'success'``), ``killed_other`` (count),
+        ``failed``, ``self_exit_scheduled`` and ``note``.
     """
     from tuiml.agent.restart_util import find_mcp_processes, kill_mcp_processes
 
@@ -4837,11 +5706,13 @@ def execute_restart(**kwargs) -> Dict[str, Any]:
 # =============================================================================
 
 def _nb_markdown(lines: List[str]) -> Dict:
+    """Build a Jupyter markdown cell dict from source lines."""
     return {"cell_type": "markdown", "id": uuid.uuid4().hex[:8],
             "metadata": {}, "source": lines}
 
 
 def _nb_code(lines: List[str]) -> Dict:
+    """Build a Jupyter code cell dict from source lines."""
     return {"cell_type": "code", "id": uuid.uuid4().hex[:8],
             "execution_count": None, "metadata": {}, "outputs": [],
             "source": lines}
@@ -4859,7 +5730,22 @@ def _repr_arg(v: Any) -> str:
 
 
 def _call_to_kwargs_str(args: dict, skip: set = None, indent: int = 4) -> str:
-    """Format a dict of args as indented keyword arguments."""
+    """Format a dict of args as indented keyword arguments.
+
+    Parameters
+    ----------
+    args : dict
+        Argument name -> value mapping to render.
+    skip : set, default=None
+        Keys to omit (None-valued entries are always omitted).
+    indent : int, default=4
+        Number of spaces to indent each line.
+
+    Returns
+    -------
+    text : str
+        Newline-joined ``name=value,`` lines.
+    """
     pad = ' ' * indent
     skip = skip or set()
     lines = []
@@ -4871,7 +5757,19 @@ def _call_to_kwargs_str(args: dict, skip: set = None, indent: int = 4) -> str:
 
 
 def _data_load_lines(data: str) -> List[str]:
-    """Return lines that load `data` into variable `_dataset`."""
+    """Return notebook code lines that load `data` into variable `_dataset`.
+
+    Parameters
+    ----------
+    data : str
+        File path (loaded via pandas) or built-in dataset name (loaded
+        via ``load_dataset``).
+
+    Returns
+    -------
+    lines : list of str
+        Source lines for a notebook code cell.
+    """
     if data and os.path.isfile(os.path.expanduser(data)):
         return [
             f"import pandas as _pd\n",
@@ -4884,14 +5782,43 @@ def _data_load_lines(data: str) -> List[str]:
 
 
 def _resolve_model_var(model_id: Optional[str], fallback: str = "model_1") -> str:
-    """Map a model_id back to the Python variable name used in the notebook."""
+    """Map a model_id back to the Python variable name used in the notebook.
+
+    Parameters
+    ----------
+    model_id : str or None
+        Model identifier recorded during the session.
+    fallback : str, default='model_1'
+        Variable name returned when the id is unknown.
+
+    Returns
+    -------
+    var : str
+        Notebook variable name (e.g. ``'result_2'``).
+    """
     if model_id and model_id in _MODEL_ID_TO_VAR:
         return _MODEL_ID_TO_VAR[model_id]
     return fallback
 
 
 def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
-    """Translate one session call → (markdown_lines, code_lines) or (None, None) to skip."""
+    """Translate one recorded session call into notebook cells.
+
+    Parameters
+    ----------
+    call : dict
+        Recorded call with ``'tool'`` and ``'args'`` keys.
+    train_counter : list of int
+        Single-element mutable counter of train calls seen so far, used
+        to number ``result_N`` / ``model_N`` variables.
+
+    Returns
+    -------
+    md_lines : list of str or None
+        Markdown cell source, or None when the tool is not translatable.
+    code_lines : list of str or None
+        Code cell source, or None when the tool is not translatable.
+    """
     tool = call['tool']
     args = call['args']
 
@@ -4900,7 +5827,7 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
         data = args.get('data', '')
         target = args.get('target')
         md = [
-            f"## Data Profiling — `{data}`\n",
+            f"## Data Profiling, `{data}`\n",
             f"> `tuiml_profile_data(data={repr(data)}`",
         ]
         code = _data_load_lines(data) + [
@@ -4943,8 +5870,9 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
             data_spec["features"] = args['features']
 
         def _nest_step(step):
+            """Convert a flat tool-level step ({"name", **params}) to spec form."""
             if isinstance(step, str):
-                return step
+                return {"name": step}
             step = dict(step)
             name = step.pop('name', None)
             params = step.pop('params', step)
@@ -4963,17 +5891,17 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
             if args.get(k) is not None
         }
         lines = [
-            f"result_{n} = tuiml.train(\n",
-            f"    {model_spec!r},\n",
-            f"    {data_spec!r},\n",
+            f"result_{n} = tuiml.train({{\n",
+            f"    \"model\": {model_spec!r},\n",
+            f"    \"data\": {data_spec!r},\n",
         ]
         if pipeline:
-            lines.append(f"    pipeline={pipeline!r},\n")
+            lines.append(f"    \"pipeline\": {pipeline!r},\n")
         if evaluation:
-            lines.append(f"    evaluation={evaluation!r},\n")
+            lines.append(f"    \"evaluation\": {evaluation!r},\n")
         if args.get('random_seed') is not None:
-            lines.append(f"    random_seed={args['random_seed']!r},\n")
-        lines.append(")\n")
+            lines.append(f"    \"random_seed\": {args['random_seed']!r},\n")
+        lines.append("})\n")
         md = [
             f"## Train `{algo}` (step {n})\n",
             f"> `tuiml_train(algorithm={repr(algo)}, data={repr(data)}, ...)`",
@@ -5030,8 +5958,8 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
         code += [")\n", "print('Eval metrics:', eval_metrics)"]
         return md, code
 
-    # ── tuiml_experiment ─────────────────────────────────────────────────────
-    if tool == 'tuiml_experiment':
+    # ── tuiml_benchmark ─────────────────────────────────────────────────────
+    if tool == 'tuiml_benchmark':
         algos = args.get('algorithms', [])
         data_arg = args.get('data', [])
         if isinstance(data_arg, str):
@@ -5039,31 +5967,40 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
         cv = args.get('cv', 10)
         metrics = args.get('metrics')
         md = [
-            f"## Experiment — {', '.join(algos)}\n",
-            f"> `tuiml_experiment(algorithms={algos}, data={data_arg}, cv={cv})`",
+            f"## Benchmark, {', '.join(str(a) for a in algos)}\n",
+            f"> `tuiml_benchmark(algorithms={algos}, data={data_arg}, cv={cv})`",
         ]
         code = []
         for ds_name in data_arg:
             safe = ds_name.replace('-', '_').replace('/', '_')
             code.append(f"_{safe} = load_dataset({repr(ds_name)})\n")
-        datasets_dict = "{" + ", ".join(
-            f"{repr(d)}: (_{d.replace('-','_').replace('/','_')}.X, "
-            f"_{d.replace('-','_').replace('/','_')}.y)"
+        model_specs = [
+            a if isinstance(a, dict) else {"name": a} for a in algos
+        ]
+        dataset_specs = "[" + ", ".join(
+            f'{{"name": {repr(d)}, '
+            f'"X": _{d.replace("-","_").replace("/","_")}.X, '
+            f'"y": _{d.replace("-","_").replace("/","_")}.y}}'
             for d in data_arg
-        ) + "}"
+        ) + "]"
+        evaluation = {"cv": cv}
+        if metrics:
+            evaluation["metrics"] = list(metrics)
         code += [
             "\n",
-            "exp = tuiml.experiment(\n",
-            f"    algorithms={repr(algos)},\n",
-            f"    datasets={datasets_dict},\n",
-            f"    cv={cv},\n",
+            "bench = tuiml.Benchmark(\n",
+            f"    models={model_specs!r},\n",
+            f"    datasets={dataset_specs},\n",
+            f"    evaluation={evaluation!r},\n",
         ]
-        if metrics:
-            code.append(f"    metrics={repr(metrics)},\n")
         seed = args.get('random_seed')
         if seed is not None:
-            code.append(f"    random_seed={repr(seed)},\n")
-        code += [")\n", "print(exp.summary())"]
+            code.append(f"    random_seed={seed!r},\n")
+        code += [
+            ").run()\n",
+            "print(bench.summary())\n",
+            "bench.table()",
+        ]
         return md, code
 
     # ── tuiml_tune ───────────────────────────────────────────────────────────
@@ -5077,7 +6014,7 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
         n_iter = args.get('n_iter', 10)
         n_iterations = args.get('n_iterations', 50)
         # Prefer an explicit random_state, then the effective session seed folded
-        # in by record_session_call, then the default — so tuning reproduces.
+        # in by record_session_call, then the default, so tuning reproduces.
         random_state = args.get('random_state', args.get('random_seed', 42))
         cls_map = {'grid': 'GridSearchCV', 'random': 'RandomSearchCV', 'bayesian': 'BayesianSearchCV'}
         tuner_cls = cls_map.get(method, 'RandomSearchCV')
@@ -5085,11 +6022,11 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
         n_kw_line = (f"    n_iter={n_iter},\n" if method == 'random'
                      else f"    n_iterations={n_iterations},\n" if method == 'bayesian' else "")
         md = [
-            f"## Hyperparameter Tuning — `{algo}` ({method} search)\n",
+            f"## Hyperparameter Tuning, `{algo}` ({method} search)\n",
             f"> `tuiml_tune(algorithm={repr(algo)}, method={repr(method)}, ...)`",
         ]
         code = [
-            "from tuiml.hub import registry as _registry\n",
+            "from tuiml.registry import registry as _registry\n",
             "import tuiml.algorithms as _\n",
             f"from tuiml.evaluation.tuning import {tuner_cls}\n",
             "\n",
@@ -5121,7 +6058,7 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
         title = args.get('title') or f"{plot_type.replace('_', ' ').title()}"
 
         md = [
-            f"## Plot — `{plot_type}`\n",
+            f"## Plot, `{plot_type}`\n",
             f"> `tuiml_plot(plot_type={repr(plot_type)}, ...)`",
         ]
 
@@ -5169,8 +6106,8 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
                 _data_load_lines(data) + ["\n",
                 "import numpy as np\n",
                 "from tuiml.evaluation.visualization import plot_learning_curve\n",
-                "from tuiml.hub import registry\n",
-                "import tuiml.algorithms  # noqa: F401 — registers algorithms\n",
+                "from tuiml.registry import registry\n",
+                "import tuiml.algorithms  # noqa: F401, registers algorithms\n",
                 "from tuiml.evaluation.splitting import train_test_split\n",
                 "from tuiml.evaluation.metrics import accuracy_score\n",
                 f"_cls = registry.get({repr(algo)})\n",
@@ -5188,9 +6125,9 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
                 "plt.show()",
             ])
         elif plot_type in ('cd_diagram', 'boxplot_comparison', 'heatmap', 'ranking_table'):
-            exp_results = args.get('experiment_results', {})
+            exp_results = args.get('benchmark_results', {})
             # cd_diagram maps to plot_critical_difference; all take the scores
-            # dict as the first positional argument (not 'experiment_results=').
+            # dict as the first positional argument (not 'benchmark_results=').
             fn = 'plot_critical_difference' if plot_type == 'cd_diagram' else f'plot_{plot_type}'
             code = [
                 "import numpy as np\n",
@@ -5233,7 +6170,7 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
         n_samples = args.get('n_samples', 100)
         kw = _call_to_kwargs_str({k: v for k, v in args.items() if k != 'generator'})
         md = [
-            f"## Generate Synthetic Data — `{gen}`\n",
+            f"## Generate Synthetic Data, `{gen}`\n",
             f"> `tuiml_generate_data(generator={repr(gen)}, n_samples={n_samples})`",
         ]
         code = [
@@ -5255,7 +6192,7 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
         step_list = steps if isinstance(steps, list) else [steps]
         step_list = [s for s in step_list if s]
         md = [
-            f"## Preprocess Data — {step_list}\n",
+            f"## Preprocess Data, {step_list}\n",
             f"> `tuiml_preprocess(data={repr(data)}, steps={step_list})`",
         ]
         code = _data_load_lines(data) + ["\n", "_X_pre = _dataset.X\n"]
@@ -5274,7 +6211,7 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
         target = args.get('target', '')
         k = args.get('k')
         md = [
-            f"## Feature Selection — `{method}`\n",
+            f"## Feature Selection, `{method}`\n",
             f"> `tuiml_select_features(data={repr(data)}, method={repr(method)})`",
         ]
         init_args = {}
@@ -5299,7 +6236,7 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
         results = args.get('results', {})
         alpha = args.get('significance_level', 0.05)
         md = [
-            f"## Statistical Test — `{test}`\n",
+            f"## Statistical Test, `{test}`\n",
             f"> `tuiml_test_statistics(test={repr(test)}, ...)`",
         ]
         # Statistical tests are functions in tuiml.evaluation.statistics, not
@@ -5353,7 +6290,7 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
         file_path = args.get('file_path', '')
         name = args.get('name', '')
         md = [
-            f"## Load Dataset — `{name or file_path}`\n",
+            f"## Load Dataset, `{name or file_path}`\n",
             f"> `tuiml_upload_data(file_path={repr(file_path)})`",
         ]
         if file_path:
@@ -5364,19 +6301,40 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
                 "_df.head()",
             ]
         else:
-            code = [f"# Dataset '{name}' was registered inline — recreate from source"]
+            code = [f"# Dataset '{name}' was registered inline, recreate from source"]
         return md, code
 
     return None, None  # skip unhandled tools
 
 
 def execute_export_notebook(**kwargs) -> Dict[str, Any]:
-    """Export the current MCP session as a reproducible Jupyter notebook."""
+    """Export the current MCP session as a reproducible Jupyter notebook.
+
+    Backs the ``tuiml_export_notebook`` tool. Translates every recorded
+    successful workflow call into paired markdown + code cells, pinning
+    the session's random seed so the notebook reproduces the run.
+
+    Parameters
+    ----------
+    path : str, default='~/tuiml_session.ipynb'
+        Output path for the notebook file (arrives via ``**kwargs``,
+        like all parameters below).
+    title : str, default='TuiML Session, Exported Notebook'
+        Title used in the notebook's header cell.
+
+    Returns
+    -------
+    result : dict
+        On success: ``status`` (``'success'``), ``path`` (absolute),
+        ``cells``, ``workflow_calls`` and ``message``. On failure:
+        ``status`` (``'error'``) and ``error`` (e.g. when the session has
+        no recorded calls or the file cannot be written).
+    """
     import json
     import datetime as _dt
 
     path = os.path.expanduser(kwargs.get('path') or '~/tuiml_session.ipynb')
-    title = kwargs.get('title', 'TuiML Session — Exported Notebook')
+    title = kwargs.get('title', 'TuiML Session, Exported Notebook')
 
     with _SESSION_LOCK:
         calls_snapshot = list(_SESSION_CALLS)
@@ -5386,7 +6344,7 @@ def execute_export_notebook(**kwargs) -> Dict[str, Any]:
             'status': 'error',
             'error': (
                 'No workflow calls have been recorded in this session yet. '
-                'Run some tuiml_train / tuiml_experiment / tuiml_plot calls first.'
+                'Run some tuiml_train / tuiml_benchmark / tuiml_plot calls first.'
             ),
         }
 
@@ -5494,7 +6452,7 @@ TOOL_EXECUTORS = {
     "tuiml_train": execute_train,
     "tuiml_predict": execute_predict,
     "tuiml_evaluate": execute_evaluate,
-    "tuiml_experiment": execute_experiment,
+    "tuiml_benchmark": execute_benchmark,
     "tuiml_upload_data": execute_upload_data,
     "tuiml_save_model": execute_save_model,
     "tuiml_serve_model": execute_serve_model,
@@ -5542,11 +6500,36 @@ except Exception as _e:  # never block the server on bootstrap failures
     print(f"[tuiml] user-algorithm bootstrap failed: {_e}", file=_sys.stderr)
 
 def get_tool_output_schema(tool_name: str) -> Dict[str, Any]:
-    """Get output schema for a tool."""
+    """Get the JSON output schema for a tool.
+
+    Parameters
+    ----------
+    tool_name : str
+        Name of the MCP tool (e.g. ``'tuiml_train'``).
+
+    Returns
+    -------
+    schema : dict
+        The tool's output JSON Schema, or the generic component output
+        schema when the tool has no dedicated one.
+    """
     return OUTPUT_SCHEMAS.get(tool_name, COMPONENT_OUTPUT_SCHEMA)
 
 def get_tool_annotations(tool_name: str) -> Dict[str, bool]:
-    """Get MCP annotations for a tool."""
+    """Get MCP behavior annotations for a tool.
+
+    Parameters
+    ----------
+    tool_name : str
+        Name of the MCP tool.
+
+    Returns
+    -------
+    annotations : dict
+        Annotation flags (``readOnlyHint``, ``destructiveHint``,
+        ``idempotentHint``, ``openWorldHint``); component tools fall back
+        to read-only defaults.
+    """
     # Define annotations for each tool
     TOOL_ANNOTATIONS = {
         "tuiml_train": {
@@ -5567,7 +6550,7 @@ def get_tool_annotations(tool_name: str) -> Dict[str, bool]:
             "idempotentHint": True,
             "openWorldHint": False
         },
-        "tuiml_experiment": {
+        "tuiml_benchmark": {
             "readOnlyHint": False,
             "destructiveHint": False,
             "idempotentHint": False,
@@ -5688,11 +6671,40 @@ def get_tool_annotations(tool_name: str) -> Dict[str, bool]:
     return TOOL_ANNOTATIONS.get(tool_name, DEFAULT_COMPONENT_ANNOTATIONS)
 
 def get_workflow_tools() -> Dict[str, Dict]:
-    """Get all workflow tool schemas."""
+    """Get all workflow, discovery and code tool schemas.
+
+    Returns
+    -------
+    tools : dict
+        Mapping of tool name to its MCP input schema definition.
+    """
     return {**WORKFLOW_TOOLS, **DISCOVERY_TOOLS, **CODE_TOOLS}
 
 def execute_tool(tool_name: str, **kwargs) -> Dict[str, Any]:
-    """Execute a tool by name."""
+    """Execute a tool by name, resolving the random seed first.
+
+    Sets a process-wide seed (explicit ``random_seed`` kwarg, or a fresh
+    random one) before dispatching to the workflow executor or, failing
+    that, a registered component tool.
+
+    Parameters
+    ----------
+    tool_name : str
+        Name of the tool to execute.
+    random_seed : int, default=None
+        Random seed for the call; a random seed is generated when
+        omitted (arrives via ``**kwargs``, like the tool arguments).
+    **kwargs
+        Remaining arguments are forwarded to the tool executor.
+
+    Returns
+    -------
+    result : dict
+        The executor's result dict; successful workflow results also get
+        the effective ``random_seed`` added. Component tools return
+        ``status``, ``result`` (stringified) and ``type``. Unknown tools
+        return ``status`` (``'error'``) and ``error``.
+    """
     random_seed = kwargs.pop('random_seed', None)
     
     if random_seed is None:
@@ -5702,7 +6714,7 @@ def execute_tool(tool_name: str, **kwargs) -> Dict[str, Any]:
     from tuiml.utils.seed import set_global_seed
     set_global_seed(random_seed)
     
-    if tool_name in ('tuiml_tune', 'tuiml_generate_data', 'tuiml_train', 'tuiml_experiment'):
+    if tool_name in ('tuiml_tune', 'tuiml_generate_data', 'tuiml_train', 'tuiml_benchmark'):
         kwargs['random_seed'] = random_seed
 
     # Check workflow tools first

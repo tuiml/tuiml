@@ -1,22 +1,49 @@
 """TuiML Command-Line Interface (CLI).
 
-This package provides a comprehensive set of command-line tools for 
+This package provides a comprehensive set of command-line tools for
 building, evaluating, and managing machine learning workflows.
+
+Every command lives in its own flat module under ``tuiml.cli`` (for example
+``tuiml.cli.train``), and is attached to the top-level ``tuiml`` group by
+:func:`cli`. Each module exposes exactly one ``click`` command whose docstring
+doubles as its ``--help`` text.
 """
+
+import inspect
+import re
+from typing import List
 
 import click
 from tuiml import __version__
 
 @click.group()
-@click.option('--random-seed', type=int, help='Random seed for reproducibility.')
+@click.option('--random-seed', type=int,
+              help='Seed every random number generator TuiML uses, so the whole '
+                   'command runs reproducibly.')
 @click.version_option(version=__version__, prog_name="tuiml")
 @click.pass_context
 def cli(ctx, random_seed):
-    """
-    TuiML - Modern Machine Learning CLI
+    """TuiML - modern machine learning from the command line.
 
-    A Python-based ML framework with three levels of API.
-    Use exact class names everywhere - no mappings, fully scalable!
+    Train, evaluate, benchmark, tune, and serve models without writing any
+    Python. Components are referred to by their exact class name everywhere
+    (``RandomForestClassifier``, ``StandardScaler``, ...), so anything in the
+    component registry is reachable from the CLI with no extra mapping.
+    Run ``tuiml list`` to browse what is available.
+
+    Examples
+    --------
+    Train a model on a built-in dataset:
+
+    $ tuiml train -a RandomForestClassifier -d iris -t class
+
+    Make every command in a session reproducible:
+
+    $ tuiml --random-seed 42 benchmark -a SVC -a RandomForestClassifier -d iris
+
+    See the options a subcommand accepts:
+
+    $ tuiml train --help
     """
     if random_seed is not None:
         from tuiml.utils.seed import set_global_seed
@@ -24,9 +51,65 @@ def cli(ctx, random_seed):
         click.echo(f"Global seed set to: {random_seed}")
 
 
+def _help_for_terminal(text: str) -> str:
+    """Render a NumPy-style docstring as readable ``--help`` text.
+
+    Command docstrings are written in NumPy style so the HTML documentation
+    generator can parse them. Click rewraps paragraphs, which would collapse
+    a dash underline onto its header (``Examples --------``) and break shell
+    examples across lines. This turns headers into ``Header:`` and marks
+    example blocks with click's ``\\b`` no-rewrap escape.
+
+    The HTML docs are generated from the source docstrings, not from this
+    text, so reformatting here affects only terminal output.
+
+    Parameters
+    ----------
+    text : str
+        The raw command docstring.
+
+    Returns
+    -------
+    help_text : str
+        Help text formatted for click's terminal renderer.
+    """
+    if not text:
+        return text
+
+    # RST inline-code markers are for the HTML docs; plain text in a terminal.
+    text = re.sub(r'``([^`]+)``', r'\1', inspect.cleandoc(text))
+
+    lines = text.split('\n')
+    out: List[str] = []
+    index = 0
+    while index < len(lines):
+        line = lines[index]
+        stripped = line.strip()
+        following = lines[index + 1].strip() if index + 1 < len(lines) else ''
+
+        # "Examples" + "--------" collapses under rewrapping; use a plain label
+        # followed by a blank line so it stays its own paragraph.
+        if stripped and len(following) >= 3 and set(following) == {'-'}:
+            out.append(f'{stripped}:')
+            out.append('')
+            index += 2
+            while index < len(lines) and not lines[index].strip():
+                index += 1
+            continue
+
+        # Keep command lines verbatim so they stay copy-pasteable.
+        if stripped.startswith(('$ ', '>>> ')) and (not out or not out[-1].strip()):
+            out.append('\b')
+
+        out.append(line)
+        index += 1
+
+    return '\n'.join(out)
+
+
 # Import commands
-from tuiml.cli.commands import (
-    train, predict, evaluate, experiment, list_cmd,
+from tuiml.cli import (
+    train, predict, evaluate, benchmark, list_cmd,
     serve, setup, uninstall, info, update, mcp,
     status, trace, restart,
     upload, save, stop_server, plot, profile, generate,
@@ -39,7 +122,7 @@ from tuiml.cli.commands import (
 cli.add_command(train.train)
 cli.add_command(predict.predict)
 cli.add_command(evaluate.evaluate)
-cli.add_command(experiment.experiment)
+cli.add_command(benchmark.benchmark)
 cli.add_command(list_cmd.list_algorithms)
 cli.add_command(serve.serve)
 cli.add_command(setup.setup)
@@ -70,8 +153,24 @@ cli.add_command(list_files.list_files)
 cli.add_command(search_source.search_source)
 cli.add_command(edit_algorithm.edit_algorithm)
 
+# Docstrings are authored in NumPy style for the HTML docs; reformat them for
+# the terminal so section headers and shell examples survive click's wrapping.
+cli.help = _help_for_terminal(cli.help)
+for _command in cli.commands.values():
+    _command.help = _help_for_terminal(_command.help)
+
+
 def main():
-    """Main entry point for CLI."""
+    """Run the ``tuiml`` command-line interface.
+
+    This is the console-script entry point registered in ``pyproject.toml``.
+    It invokes the top-level :func:`cli` group with an empty context object.
+
+    Returns
+    -------
+    None
+        The process exits with the status code chosen by ``click``.
+    """
     cli(obj={})
 
 if __name__ == "__main__":

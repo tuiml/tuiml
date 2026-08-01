@@ -102,16 +102,21 @@ class LagTransformer(Transformer):
         y: np.ndarray | None = None,
         feature_names: list[str] | None = None,
     ) -> "LagTransformer":
-        """
-        Fit the transformer.
+        """Fit the transformer.
 
-        Args:
-            X: Input data (n_samples, n_features)
-            y: Ignored
-            feature_names: Optional feature names
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Input data. Only its shape is recorded; no statistics are learned.
+        y : np.ndarray, optional
+            Ignored, present for API consistency.
+        feature_names : list of str, optional
+            Names of the input columns, used to label the generated columns.
 
-        Returns:
-            Self
+        Returns
+        -------
+        self : object
+            The fitted transformer.
         """
         X = self._validate_input(X)
         self._n_features_in = X.shape[1]
@@ -151,14 +156,17 @@ class LagTransformer(Transformer):
                 self.feature_names_out_.append(base_names[i])
 
     def transform(self, X: np.ndarray) -> np.ndarray:
-        """
-        Transform data by shifting values.
+        """Transform the data into shifted values.
 
-        Args:
-            X: Input data (n_samples, n_features)
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Input data, assumed to be ordered in time.
 
-        Returns:
-            Transformed data with lagged values
+        Returns
+        -------
+        X_out : np.ndarray
+            Transformed data holding the lagged values.
         """
         self._check_is_fitted()
         X = self._validate_input(X)

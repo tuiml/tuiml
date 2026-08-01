@@ -114,7 +114,7 @@ def plot_ranking_table(
     ax.set_facecolor('white')
     ax.axis('off')
 
-    # Create table — no fixed bbox so auto_set_column_width can adjust
+    # Create table, no fixed bbox so auto_set_column_width can adjust
     table = ax.table(
         cellText=cell_text,
         rowLabels=row_labels,
@@ -246,7 +246,7 @@ def plot_boxplot_comparison(
             'alpha': 0.55,
         },
     )
-    # Set tick labels separately — matplotlib renamed boxplot's ``labels`` kwarg
+    # Set tick labels separately, matplotlib renamed boxplot's ``labels`` kwarg
     # to ``tick_labels`` in 3.9, so passing it directly breaks on newer versions.
     ax.set_xticks(range(1, n_algorithms + 1))
     ax.set_xticklabels(names)

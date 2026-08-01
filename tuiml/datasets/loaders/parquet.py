@@ -1,7 +1,11 @@
 """
-Parquet file loader.
+Apache Parquet reader and writer.
 
-Load data from Apache Parquet files using pyarrow or fastparquet.
+Parquet stores columns rather than rows, which keeps large datasets compact and
+makes reading a subset of columns cheap. Also handles partitioned directories,
+where the data is split across files by the value of one or more columns.
+
+Requires ``pyarrow`` or ``fastparquet``; both are imported lazily.
 """
 
 import numpy as np
@@ -45,6 +49,7 @@ def load_parquet(
 
     Examples
     --------
+    >>> from tuiml.datasets.loaders import load_parquet
     >>> data = load_parquet('data.parquet', target_column='class')
     >>> data.X.shape, data.y.shape
 
@@ -120,6 +125,7 @@ def save_parquet(
 
     Examples
     --------
+    >>> from tuiml.datasets.loaders import save_parquet
     >>> save_parquet('output.parquet', X, feature_names=['a', 'b'], target=y)
     """
     try:
@@ -188,6 +194,7 @@ def load_parquet_partitioned(
 
     Examples
     --------
+    >>> from tuiml.datasets.loaders import load_parquet_partitioned
     >>> # Load partitioned dataset with filtering
     >>> data = load_parquet_partitioned(
     ...     'data_partitioned/',

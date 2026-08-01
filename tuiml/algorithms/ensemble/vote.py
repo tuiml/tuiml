@@ -5,7 +5,7 @@ from typing import Dict, List, Any, Optional, Type, Union
 from collections import Counter
 
 from tuiml.base.algorithms import Classifier, classifier, Regressor, regressor
-from tuiml.hub import registry
+from tuiml.registry import registry
 
 @classifier(tags=["ensembles", "voting", "meta"], version="1.0.0")
 class VotingClassifier(Classifier):

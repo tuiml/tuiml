@@ -1,7 +1,10 @@
 """
-Swiss Roll data generator.
+Swiss roll generator: a 2-D sheet rolled through 3-D space.
 
-Generates the classic Swiss Roll 3D manifold.
+Samples points from a plane that has been curled into a spiral, optionally with
+a hole punched through it. Points that are close in 3-D can be far apart along
+the sheet, which is what makes it the standard test for manifold learning and
+dimensionality reduction.
 """
 
 import numpy as np
@@ -29,8 +32,11 @@ class SwissRoll(ClusteringGenerator):
 
     Examples
     --------
-    >>> gen = SwissRoll(n_samples=1000, noise=0.1)
+    >>> from tuiml.datasets.generators.clustering import SwissRoll
+    >>> gen = SwissRoll(n_samples=1000, noise=0.1, random_state=0)
     >>> data = gen.generate()
+    >>> data.X.shape                 # always 3-D
+    (1000, 3)
     """
 
     def __init__(

@@ -43,11 +43,11 @@ class OneClassSVMDetector(Classifier):
 
     where:
 
-    - :math:`w` — Normal vector to the separating hyperplane
-    - :math:`\\rho` — Offset from the origin
-    - :math:`\\nu` (nu) — Controls the trade-off between keeping data inside the frontier and the "smoothness" of the boundary
-    - :math:`\\phi` — Non-linear mapping to a higher-dimensional space (defined by the kernel)
-    - :math:`\\xi_i` — Slack variables allowing for points to lie outside the boundary
+    - :math:`w`: Normal vector to the separating hyperplane
+    - :math:`\\rho`: Offset from the origin
+    - :math:`\\nu` (nu): Controls the trade-off between keeping data inside the frontier and the "smoothness" of the boundary
+    - :math:`\\phi`: Non-linear mapping to a higher-dimensional space (defined by the kernel)
+    - :math:`\\xi_i`: Slack variables allowing for points to lie outside the boundary
 
     **Score interpretation:**
 
@@ -59,10 +59,10 @@ class OneClassSVMDetector(Classifier):
     kernel : str, default="rbf"
         Kernel function used to map data to higher dimensions:
         
-        - ``"linear"`` — Linear kernel
-        - ``"rbf"`` — Radial Basis Function (Gaussian)
-        - ``"poly"`` — Polynomial kernel
-        - ``"sigmoid"`` — Sigmoid kernel
+        - ``"linear"``: Linear kernel
+        - ``"rbf"``: Radial Basis Function (Gaussian)
+        - ``"poly"``: Polynomial kernel
+        - ``"sigmoid"``: Sigmoid kernel
 
     nu : float, default=0.1
         Upper bound on the fraction of training errors and a lower bound on 
@@ -72,8 +72,8 @@ class OneClassSVMDetector(Classifier):
     gamma : float or "auto", default="auto"
         Kernel coefficient for RBF, polynomial, and sigmoid kernels:
         
-        - ``"auto"`` — Uses ``1 / n_features``
-        - ``float`` — User-defined positive coefficient
+        - ``"auto"``: Uses ``1 / n_features``
+        - ``float``: User-defined positive coefficient
 
     degree : int, default=3
         Degree of the polynomial kernel. Ignored for other kernels.

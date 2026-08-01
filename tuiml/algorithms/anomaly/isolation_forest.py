@@ -34,9 +34,9 @@ class IsolationForestDetector(Classifier):
 
     where:
 
-    - :math:`E(h(x))` — Average path length of :math:`x` over all trees
-    - :math:`c(n)` — Average path length of unsuccessful search in a BST with :math:`n` samples
-    - :math:`n` — Number of training samples
+    - :math:`E(h(x))`: Average path length of :math:`x` over all trees
+    - :math:`c(n)`: Average path length of unsuccessful search in a BST with :math:`n` samples
+    - :math:`n`: Number of training samples
 
     **Score interpretation:**
 
@@ -53,9 +53,9 @@ class IsolationForestDetector(Classifier):
     max_samples : int, float, or "auto", default="auto"
         The number of samples to draw for training each tree:
         
-        - ``int`` — Use exactly this many samples
-        - ``float`` — Use ``max_samples * n_samples`` samples  
-        - ``"auto"`` — Use ``min(256, n_samples)``
+        - ``int``: Use exactly this many samples
+        - ``float``: Use ``max_samples * n_samples`` samples  
+        - ``"auto"``: Use ``min(256, n_samples)``
 
     contamination : float, default=0.1
         Expected proportion of outliers in the dataset. Used to set the 
@@ -64,8 +64,8 @@ class IsolationForestDetector(Classifier):
     max_features : int or float, default=1.0
         Number of features to consider for each split:
         
-        - ``int`` — Use exactly this many features
-        - ``float`` — Use ``max_features * n_features`` features
+        - ``int``: Use exactly this many features
+        - ``float``: Use ``max_features * n_features`` features
 
     random_state : int or None, default=None
         Random seed for reproducibility. Set for consistent results.

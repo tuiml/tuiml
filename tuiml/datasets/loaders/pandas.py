@@ -1,7 +1,10 @@
 """
-Pandas DataFrame loader.
+Conversion between pandas DataFrames and TuiML datasets.
 
-Load data from pandas DataFrames with automatic type detection.
+Turns an in-memory DataFrame into a :class:`~tuiml.datasets.loaders.arff.Dataset`
+and back, inferring which columns are numeric and encoding, dropping, or
+rejecting the rest. The file-based loaders for CSV, Excel, and Parquet route
+their column handling through here, so typing behaves the same everywhere.
 """
 
 import numpy as np
@@ -173,6 +176,7 @@ def to_pandas(dataset: Dataset, include_target: bool = True):
 
     Examples
     --------
+    >>> from tuiml.datasets.loaders import load_arff, to_pandas
     >>> data = load_arff('iris.arff')
     >>> df = to_pandas(data)
     >>> df.head()
@@ -204,21 +208,31 @@ def from_pandas(
     target_column: Optional[Union[str, int]] = None,
     **kwargs
 ) -> Dataset:
-    """
-    Alias for load_pandas for consistent naming.
+    """Convert a pandas DataFrame into a Dataset.
+
+    Naming counterpart to :func:`to_pandas`; forwards every argument to
+    :func:`load_pandas`, which does the actual conversion.
 
     Parameters
     ----------
     df : pandas.DataFrame
-        pandas DataFrame
-    target_column : str, int, or None
-        Column name or index for target variable
+        The DataFrame to convert.
+    target_column : str, int, or None, default=None
+        Column name or zero-based index to use as the target. ``None`` keeps
+        every column as a feature.
     **kwargs : dict
-        Additional arguments passed to load_pandas
+        Additional arguments passed through to :func:`load_pandas`, such as
+        ``handle_categorical``.
 
     Returns
     -------
     result : Dataset
-        Dataset object
+        Standardized dataset object containing data and metadata.
+
+    Examples
+    --------
+    >>> from tuiml.datasets.loaders import from_pandas
+    >>> data = from_pandas(df, target_column='species')
+    >>> X, y = data
     """
     return load_pandas(df, target_column=target_column, **kwargs)

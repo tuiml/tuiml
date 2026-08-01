@@ -1,7 +1,10 @@
 """
-JSON file loader.
+JSON reader and writer, in three layouts.
 
-Load data from JSON files in various formats.
+Covers the three shapes tabular data usually takes in JSON: a single document
+holding an array of records (:func:`load_json`), one record per line
+(:func:`load_jsonl`, for streaming and append-only logs), and records with
+nested objects that need flattening into columns (:func:`load_json_nested`).
 """
 
 import json
@@ -53,6 +56,7 @@ def load_json(
 
     Examples
     --------
+    >>> from tuiml.datasets.loaders import load_json
     >>> data = load_json('data.json', target_column='class')
     >>> data.X.shape, data.y.shape
 
@@ -183,6 +187,7 @@ def save_json(
 
     Examples
     --------
+    >>> from tuiml.datasets.loaders import save_json
     >>> save_json('output.json', X, feature_names=['a', 'b'], target=y)
     >>> save_json('output.jsonl', X, lines=True)
     """
@@ -246,6 +251,7 @@ def load_jsonl(
 
     Examples
     --------
+    >>> from tuiml.datasets.loaders import load_jsonl
     >>> data = load_jsonl('data.jsonl', target_column='label')
     >>> data = load_jsonl('large_data.jsonl', max_lines=10000)
     """
@@ -308,6 +314,7 @@ def save_jsonl(
 
     Examples
     --------
+    >>> from tuiml.datasets.loaders import save_jsonl
     >>> save_jsonl('output.jsonl', X, feature_names=['a', 'b'], target=y)
     """
     save_json(
@@ -352,6 +359,7 @@ def load_json_nested(
 
     Examples
     --------
+    >>> from tuiml.datasets.loaders import load_json_nested
     >>> # For JSON like: {"response": {"data": [{"a": 1}, {"a": 2}]}}
     >>> data = load_json_nested('api_response.json',
     ...                         record_path=['response', 'data'])

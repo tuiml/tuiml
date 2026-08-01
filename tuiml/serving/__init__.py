@@ -21,11 +21,19 @@ Usage:
 """
 
 from tuiml.serving.model_manager import ModelManager
-from tuiml.serving.server import ModelServer, create_app, serve
+from tuiml.serving.server import (
+    ModelServer,
+    create_app,
+    serve,
+    server_status,
+    stop_server,
+)
 
 __all__ = [
     "ModelManager",
     "ModelServer",
     "create_app",
     "serve",
+    "server_status",
+    "stop_server",
 ]

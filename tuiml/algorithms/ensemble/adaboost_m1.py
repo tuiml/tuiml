@@ -5,7 +5,7 @@ from typing import Dict, List, Any, Optional, Type
 from collections import Counter
 
 from tuiml.base.algorithms import Classifier, classifier, Regressor, regressor
-from tuiml.hub import registry
+from tuiml.registry import registry
 
 @classifier(tags=["ensembles", "boosting", "meta"], version="1.0.0")
 class AdaBoostClassifier(Classifier):
@@ -346,7 +346,7 @@ class AdaBoostClassifier(Classifier):
         n_samples = X.shape[0]
         n_classes = len(self.classes_)
 
-        # Weighted vote — fully vectorized, no per-sample Python loop
+        # Weighted vote, fully vectorized, no per-sample Python loop
         class_votes = np.zeros((n_samples, n_classes))
         class_to_idx = {c: j for j, c in enumerate(self.classes_)}
         row_idx = np.arange(n_samples)

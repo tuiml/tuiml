@@ -43,10 +43,10 @@ class LocallyWeightedLearningRegressor(Regressor):
 
     where:
 
-    - :math:`X` — Design matrix of (optionally selected) training instances
-    - :math:`W` — Diagonal matrix of kernel weights :math:`\\text{diag}(w_1, \\ldots, w_n)`
-    - :math:`y` — Target vector
-    - :math:`\\lambda` — Small ridge regularization term for numerical stability
+    - :math:`X`: Design matrix of (optionally selected) training instances
+    - :math:`W`: Diagonal matrix of kernel weights :math:`\\text{diag}(w_1, \\ldots, w_n)`
+    - :math:`y`: Target vector
+    - :math:`\\lambda`: Small ridge regularization term for numerical stability
 
     **Kernel functions:**
 
@@ -64,9 +64,9 @@ class LocallyWeightedLearningRegressor(Regressor):
     weight_kernel : {'linear', 'inverse', 'gaussian'}, default='linear'
         Kernel function used to calculate weights from distances:
 
-        - ``'linear'`` — :math:`w = 1 - d / d_{\\max}`
-        - ``'inverse'`` — :math:`w = 1 / (d + \\epsilon)`
-        - ``'gaussian'`` — :math:`w = \\exp(-d^2 / (2\\sigma^2))`
+        - ``'linear'``: :math:`w = 1 - d / d_{\\max}`
+        - ``'inverse'``: :math:`w = 1 / (d + \\epsilon)`
+        - ``'gaussian'``: :math:`w = \\exp(-d^2 / (2\\sigma^2))`
     use_all_attributes : bool, default=True
         Whether to use all attributes for distance calculation.
 

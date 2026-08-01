@@ -46,7 +46,7 @@ class ABODDetector(Classifier):
 
     where:
 
-    - :math:`w(B,C) = \\frac{1}{\\|\\vec{AB}\\| \\cdot \\|\\vec{AC}\\|}` — Weight inversely proportional to distances
+    - :math:`w(B,C) = \\frac{1}{\\|\\vec{AB}\\| \\cdot \\|\\vec{AC}\\|}`: Weight inversely proportional to distances
     - Lower weight for distant point pairs (less influential)
 
     **Score interpretation:**
@@ -63,14 +63,14 @@ class ABODDetector(Classifier):
     n_neighbors : int or None, default=None
         Number of neighbors to use for angle computation:
         
-        - ``None`` — Use all points (most accurate, slowest)
-        - ``int`` — Use k nearest neighbors (faster approximation)
+        - ``None``: Use all points (most accurate, slowest)
+        - ``int``: Use k nearest neighbors (faster approximation)
 
     method : str, default="fast"
         Computation method:
         
-        - ``"full"`` — Compute angles for all point pairs  
-        - ``"fast"`` — Use approximate method with neighbor sampling
+        - ``"full"``: Compute angles for all point pairs  
+        - ``"fast"``: Use approximate method with neighbor sampling
 
     weighted : bool, default=True
         If ``True``, use weighted ABOF (distance-weighted angles).

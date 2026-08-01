@@ -1,7 +1,9 @@
 """
-Sine wave data generator.
+Sine generator: periodic targets with adjustable shape.
 
-Generates data using sine functions with optional noise.
+Evaluates a sine wave whose amplitude, frequency, phase, and offset are all
+free parameters, summing one wave per feature. Useful for exercising models on
+smooth periodic signals and, with noise added, for illustrating overfitting.
 """
 
 import numpy as np
@@ -44,8 +46,11 @@ class Sine(RegressionGenerator):
 
     Examples
     --------
-    >>> gen = Sine(n_samples=1000, frequency=2.0, noise=0.1)
+    >>> from tuiml.datasets.generators.regression import Sine
+    >>> gen = Sine(n_samples=1000, frequency=2.0, noise=0.1, random_state=0)
     >>> data = gen.generate()
+    >>> data.X.shape
+    (1000, 1)
     """
 
     def __init__(

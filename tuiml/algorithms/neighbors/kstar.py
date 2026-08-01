@@ -36,9 +36,9 @@ class KStarClassifier(Classifier):
 
     where:
 
-    - :math:`T_c` — Training instances belonging to class :math:`c`
-    - :math:`T` — All training instances
-    - :math:`P^*(b \\mid x)` — Transformation probability from :math:`x` to :math:`b`
+    - :math:`T_c`: Training instances belonging to class :math:`c`
+    - :math:`T`: All training instances
+    - :math:`P^*(b \\mid x)`: Transformation probability from :math:`x` to :math:`b`
 
     The transformation probability for a single attribute is computed using
     an exponential decay model controlled by the **blending parameter**
@@ -66,9 +66,9 @@ class KStarClassifier(Classifier):
     missing_mode : {'average', 'maxdiff', 'ignore'}, default='average'
         How to handle missing values:
 
-        - ``'average'`` — Average over all possible values.
-        - ``'maxdiff'`` — Use the maximum possible difference.
-        - ``'ignore'`` — Ignore missing attributes during distance calculation.
+        - ``'average'``: Average over all possible values.
+        - ``'maxdiff'``: Use the maximum possible difference.
+        - ``'ignore'``: Ignore missing attributes during distance calculation.
 
     Attributes
     ----------

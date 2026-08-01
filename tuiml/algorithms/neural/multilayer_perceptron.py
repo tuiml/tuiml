@@ -1040,8 +1040,8 @@ class MultilayerPerceptronRegressor(Regressor):
         bias_grads = [np.zeros_like(b) for b in self.biases_]
 
         # Output layer error (MSE derivative). The 1/N averaging is applied once
-        # below (weight grads divide by n_samples, bias grads use mean) — exactly
-        # as in the classifier's backward pass — so delta must NOT pre-divide by
+        # below (weight grads divide by n_samples, bias grads use mean): exactly
+        # as in the classifier's backward pass, so delta must NOT pre-divide by
         # n_samples here, or gradients shrink by an extra factor of N and the
         # network fails to learn (near-mean predictions -> R^2 around 0).
         delta = 2.0 * (activations[-1] - y)
