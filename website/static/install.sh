@@ -274,7 +274,7 @@ print_next_steps() {
     echo "  ${DIM}See exactly what was found, without changing anything:${NC}"
     echo "    ${CYAN}tuiml setup --list${NC}"
     echo
-    echo "  ${DIM}Docs:   https://tuiml.ai/docs/getting_started.html${NC}"
+    echo "  ${DIM}Docs:   https://tuiml.ai/getting_started.html${NC}"
     echo "  ${DIM}Source: https://github.com/tuiml/tuiml${NC}"
     echo
 }

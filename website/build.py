@@ -133,23 +133,23 @@ PAGES: dict[str, tuple[str, dict]] = {
         "canonical_url": "https://tuiml.ai/projects",
         "og_image_url": "https://tuiml.ai/static/images/tuiml_logo.png",
     }),
-    "/docs/getting_started.html": ("pages/getting_started.html", {
+    "/getting_started.html": ("pages/getting_started.html", {
         "active_nav": "docs", "page_title": "Getting Started",
     }),
-    "/docs/api-reference.html": ("pages/api-reference.html", {
+    "/api-reference.html": ("pages/api-reference.html", {
         "active_nav": "api", "page_title": "API Reference", "title": "API Reference",
         "meta_description": (
             "Complete API reference for TuiML: algorithms, datasets, preprocessing, "
             "evaluation, feature selection, and MCP server modules."
         ),
     }),
-    "/docs/benchmarks.html": ("pages/benchmarks.html", {
+    "/benchmarks.html": ("pages/benchmarks.html", {
         "active_nav": "benchmarks", "page_title": "Benchmarks",
     }),
-    "/docs/contributing.html": ("pages/contributing.html", {
+    "/contributing.html": ("pages/contributing.html", {
         "active_nav": "contributing", "page_title": "Contributing",
     }),
-    "/docs/privacy.html": ("pages/privacy.html", {
+    "/privacy.html": ("pages/privacy.html", {
         "title": "Privacy Policy — TuiML",
         "meta_description": (
             "Privacy policy for TuiML, an open-source agent-native ML runtime. "
@@ -157,7 +157,7 @@ PAGES: dict[str, tuple[str, dict]] = {
         ),
         "active_nav": "", "page_title": "Privacy Policy",
     }),
-    "/docs/terms.html": ("pages/terms.html", {
+    "/terms.html": ("pages/terms.html", {
         "title": "Terms of Service — TuiML",
         "meta_description": (
             "Terms of service for the TuiML open-source project, distributed "
@@ -165,7 +165,7 @@ PAGES: dict[str, tuple[str, dict]] = {
         ),
         "active_nav": "", "page_title": "Terms of Service",
     }),
-    "/docs/about.html": ("pages/about.html", {
+    "/about.html": ("pages/about.html", {
         "title": "About TuiML",
         "meta_description": (
             "About TuiML: agent-native ML runtime developed at the AI Institute, "
@@ -173,16 +173,31 @@ PAGES: dict[str, tuple[str, dict]] = {
         ),
         "active_nav": "about", "page_title": "About",
     }),
-    # /docs/changelog.html is rendered separately (needs the parsed CHANGELOG).
+    # /changelog.html is rendered separately (needs the parsed CHANGELOG).
 }
 
-# /about -> /docs/about.html etc. The old server answered 301; on Pages we emit
-# a static HTML redirect that preserves the same destination.
+# Old URLs kept alive. The hand-written pages used to sit under /docs/, which
+# is a directory for the generated API reference — a privacy policy is not
+# documentation. They now live at the root, and every previous URL redirects to
+# its new home so existing links and search results keep working. Pages has no
+# server to answer a 301, so these are static meta-refresh stubs.
+#
+# Only the eight hand-written pages moved. The 350 generated API pages stay
+# under /docs/, where an API reference belongs.
 REDIRECTS = {
     "/docs/tutorials.html": TUTORIALS_URL,
-    "/about.html": "/docs/about.html",
-    "/privacy.html": "/docs/privacy.html",
-    "/terms.html": "/docs/terms.html",
+    "/docs/getting_started.html": "/getting_started.html",
+    "/docs/api-reference.html": "/api-reference.html",
+    "/docs/benchmarks.html": "/benchmarks.html",
+    "/docs/changelog.html": "/changelog.html",
+    "/docs/contributing.html": "/contributing.html",
+    "/docs/privacy.html": "/privacy.html",
+    "/docs/terms.html": "/terms.html",
+    "/docs/about.html": "/about.html",
+    # Extensionless forms that predate the move.
+    "/about": "/about.html",
+    "/privacy": "/privacy.html",
+    "/terms": "/terms.html",
 }
 
 REDIRECT_STUB = """<!doctype html>
@@ -196,15 +211,15 @@ REDIRECT_STUB = """<!doctype html>
 # Core public URLs listed in sitemap.xml.
 SITEMAP_PATHS = [
     "/",
-    "/docs/getting_started.html",
+    "/getting_started.html",
     TUTORIALS_URL,
-    "/docs/api-reference.html",
-    "/docs/benchmarks.html",
-    "/docs/changelog.html",
-    "/docs/contributing.html",
-    "/docs/about.html",
-    "/docs/privacy.html",
-    "/docs/terms.html",
+    "/api-reference.html",
+    "/benchmarks.html",
+    "/changelog.html",
+    "/contributing.html",
+    "/about.html",
+    "/privacy.html",
+    "/terms.html",
 ]
 
 # Machine-readable install + setup instructions for LLM agents, served at
@@ -277,7 +292,7 @@ INSTALL_GUIDE = (
     "That unlocks `tuiml_algorithm_skeleton`, `tuiml_create_algorithm`,\n"
     "`tuiml_list_user_algorithms`, `tuiml_delete_user_algorithm`, and\n"
     "`tuiml_research_log` — the Auto-Research loop. See\n"
-    "https://tuiml.ai/docs/getting_started.html for details.\n"
+    "https://tuiml.ai/getting_started.html for details.\n"
     "\n"
     "## Verify the install\n"
     "Once restarted, the agent should call `tuiml_system_info` and confirm\n"
@@ -295,9 +310,9 @@ INSTALL_GUIDE = (
     "    uv tool uninstall tuiml  # removes the package itself\n"
     "\n"
     "## Documentation\n"
-    "- Getting started: https://tuiml.ai/docs/getting_started.html\n"
-    "- API reference:   https://tuiml.ai/docs/api-reference.html\n"
-    "- Changelog:       https://tuiml.ai/docs/changelog.html\n"
+    "- Getting started: https://tuiml.ai/getting_started.html\n"
+    "- API reference:   https://tuiml.ai/api-reference.html\n"
+    "- Changelog:       https://tuiml.ai/changelog.html\n"
     "- Source:          https://github.com/tuiml/tuiml\n"
 )
 
@@ -397,7 +412,6 @@ TUTORIALS = [
     ("quickstart/01_hello_tuiml", "Hello TuiML", "fa-solid fa-play"),
     ("llm_friendly/02_mcp_server", "Connect Your Agent", "fa-solid fa-bolt"),
     ("llm_friendly/01_llm_tools", "Tools an Agent Can Call", "fa-solid fa-robot"),
-    ("llm_friendly/04_agent_doing_ml", "Watch an Agent Do ML", "fa-solid fa-comments"),
     ("ml_simplified/01_high_level_api", "High-Level API", "fa-solid fa-rocket"),
     ("ml_simplified/02_workflow_builder", "Workflow Builder", "fa-solid fa-code"),
     ("ml_simplified/08_preprocessing", "Preprocessing", "fa-solid fa-wand-magic-sparkles"),
@@ -794,7 +808,7 @@ def freeze() -> None:
 
     # Changelog page (from the root CHANGELOG.md)
     render(
-        "/docs/changelog.html", "pages/changelog.html",
+        "/changelog.html", "pages/changelog.html",
         releases=parse_changelog(), title="Changelog",
         meta_description=(
             "Release history and changelog for TuiML. Track new algorithms, bug fixes, "

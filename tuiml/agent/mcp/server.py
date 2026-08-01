@@ -535,7 +535,7 @@ async def run_server():
 
     print("✓ TuiML MCP Server started (stdio transport, local only)", file=sys.stderr)
     print("  Loading TuiML components in the background...", file=sys.stderr)
-    print("  Remote/networked use: https://tuiml.ai/docs/remote-mcp.html", file=sys.stderr)
+    print("  Setup and docs: https://tuiml.ai/getting_started.html", file=sys.stderr)
     print("  Waiting for client...", file=sys.stderr)
 
     server = create_server()

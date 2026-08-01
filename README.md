@@ -10,7 +10,7 @@ Ask your agent to train a model, tune it, compare it to the last run, or find an
 <p align="center">
   <a href="https://pypi.org/project/tuiml/"><img src="https://img.shields.io/pypi/v/tuiml?style=for-the-badge" alt="PyPI version"></a>&nbsp;
   <a href="https://pypi.org/project/tuiml/"><img src="https://img.shields.io/badge/Python-≥3.10-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python versions"></a>&nbsp;
-  <a href="https://tuiml.ai/docs/getting_started.html"><img src="https://img.shields.io/badge/Docs-tuiml.ai-blue?style=for-the-badge" alt="Documentation"></a>&nbsp;
+  <a href="https://tuiml.ai/getting_started.html"><img src="https://img.shields.io/badge/Docs-tuiml.ai-blue?style=for-the-badge" alt="Documentation"></a>&nbsp;
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-BSD--3--Clause-blue.svg?style=for-the-badge" alt="BSD-3-Clause License"></a>&nbsp;
   <a href="https://pepy.tech/projects/tuiml"><img src="https://img.shields.io/pepy/dt/tuiml?style=for-the-badge" alt="Downloads"></a>
 </p>
@@ -79,7 +79,7 @@ print(result.metrics)          # {'accuracy_score': 0.97, 'f1_score': 0.96}
 preds = result.model.predict(X_new)
 ```
 
-Benchmark many algorithms across many datasets with `tuiml.experiment(...)`, and browse the same registry agents use with `tuiml.list_algorithms()` / `tuiml.search_algorithms(...)` / `tuiml.describe_algorithm(...)`. See the [tutorials](https://tuiml.ai/docs/tutorials.html) for the full tour.
+Benchmark many algorithms across many datasets with `tuiml.experiment(...)`, and browse the same registry agents use with `tuiml.list_algorithms()` / `tuiml.search_algorithms(...)` / `tuiml.describe_algorithm(...)`. See the [tutorials](https://tuiml.ai/tutorials/quickstart/01_hello_tuiml) for the full tour.
 
 ---
 
@@ -124,7 +124,7 @@ Average across **3,318 matched runs** — 13 algorithms × 51 real-world [TabAre
   <img src="https://raw.githubusercontent.com/tuiml/tuiml/main/assets/benchmark_summary_light.png" alt="TuiML vs scikit-learn vs Weka: accuracy, training time, inference time, and peak memory averaged across 51 TabArena datasets">
 </picture>
 
-<sub>Weka memory includes its in-process JVM baseline. Full per-algorithm and per-dataset results: [tuiml.ai/docs/benchmarks](https://tuiml.ai/docs/benchmarks.html).</sub>
+<sub>Weka memory includes its in-process JVM baseline. Full per-algorithm and per-dataset results: [tuiml.ai/benchmarks](https://tuiml.ai/benchmarks.html).</sub>
 
 ---
 
@@ -132,7 +132,7 @@ Average across **3,318 matched runs** — 13 algorithms × 51 real-world [TabAre
 
 ## Documentation
 
-Full documentation is available at [tuiml.ai/docs](https://tuiml.ai/docs/getting_started.html), including getting started guides, API reference, and tutorials. Want to contribute? Pick something from the [Build Board](https://tuiml.ai/projects) &mdash; algorithms, integrations, and good first issues.
+Full documentation is available at [tuiml.ai/docs](https://tuiml.ai/getting_started.html), including getting started guides, API reference, and tutorials. Want to contribute? Pick something from the [Build Board](https://tuiml.ai/projects) &mdash; algorithms, integrations, and good first issues.
 
 ---
 
@@ -157,8 +157,8 @@ BSD 3-Clause License. See [LICENSE](LICENSE) for details.
 
 | | | |
 |---|---|---|
-| 🌐 [Website](https://tuiml.ai) | 📚 [Documentation](https://tuiml.ai/docs/getting_started.html) | 🔧 [API Reference](https://tuiml.ai/docs/api-reference.html) |
-| 💻 [GitHub](https://github.com/tuiml/tuiml) | 📦 [PyPI](https://pypi.org/project/tuiml) | 📝 [Changelog](https://tuiml.ai/docs/changelog.html) |
+| 🌐 [Website](https://tuiml.ai) | 📚 [Documentation](https://tuiml.ai/getting_started.html) | 🔧 [API Reference](https://tuiml.ai/api-reference.html) |
+| 💻 [GitHub](https://github.com/tuiml/tuiml) | 📦 [PyPI](https://pypi.org/project/tuiml) | 📝 [Changelog](https://tuiml.ai/changelog.html) |
 
 </div>
 

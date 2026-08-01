@@ -150,6 +150,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   state left by a previous one.
 
 ### Removed
+- **The `/docs/` prefix on hand-written pages.** `/docs/` is where the 350
+  generated API pages live; a privacy policy is not documentation. The eight
+  hand-written pages moved to the site root — `/getting_started.html`,
+  `/api-reference.html`, `/benchmarks.html`, `/changelog.html`,
+  `/contributing.html`, `/privacy.html`, `/terms.html`, `/about.html` — and
+  every old URL redirects to its new home, so existing links and search
+  results keep working. The generated API tree is unchanged. Redirects
+  previously ran the other way (`/privacy.html` into `/docs/privacy.html`);
+  those are now reversed.
+- **`remote-mcp.html`.** Nothing linked to it from the nav, the footer, or any
+  page, and it was absent from the sitemap. The MCP server printed its URL on
+  startup, which is now the getting-started page.
 - **Dead test code.** 102 unused imports across 91 test files (mostly an
   `import pickle` copied into ~50 algorithm test modules), 6 unused locals, and
   from `tests/conftest.py` 10 fixtures and 3 assertion helpers no test has ever

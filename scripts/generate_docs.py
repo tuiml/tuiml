@@ -1585,7 +1585,7 @@ class HTMLDocGenerator:
         # Generate directory index pages
         self._generate_directory_indexes()
 
-        # Generate the landing page the site serves at /docs/api-reference.html,
+        # Generate the landing page the site serves at /api-reference.html,
         # so its package/module cards can never drift from the real code.
         self._generate_main_index()
 
@@ -1601,7 +1601,10 @@ class HTMLDocGenerator:
         self._current_source_rel = str(rel_path)
 
         depth = len(output_path.relative_to(self.output_dir).parts) - 1
-        index_path = '../' * depth + 'api-reference.html' if depth > 0 else 'api-reference.html'
+        # The API-reference landing page sits at the site root, not inside
+        # /docs/, so this is absolute rather than a ../ climb out of the
+        # generated tree.
+        index_path = '/api-reference.html'
 
         # Build breadcrumb
         breadcrumb_parts = list(rel_path.parts[:-1])
@@ -2052,7 +2055,7 @@ class HTMLDocGenerator:
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         depth = len(dir_path.parts)
-        root_index = '../' * depth + 'api-reference.html'
+        root_index = '/api-reference.html'
 
         # Build breadcrumb
         breadcrumb_items = []
@@ -2176,7 +2179,7 @@ class HTMLDocGenerator:
         """Generate the API-reference landing page.
 
         Written to ``templates/pages/api-reference.html`` — the template the
-        website serves at ``/docs/api-reference.html`` — so the package and
+        website serves at ``/api-reference.html`` — so the package and
         module rows always reflect the current source tree. Styled with the
         site's oc design system (see website/DESIGN.md): flat list-rows with
         ASCII bracket markers inside .oc-section blocks.
@@ -2197,8 +2200,13 @@ class HTMLDocGenerator:
             if len(rel_path.parts) > 1:
                 top_dirs.add(rel_path.parts[0])
 
+        # Absolute /docs/ links, not relative ones. This landing page is
+        # served from the site root (/api-reference.html) while the generated
+        # tree it links into stays under /docs/, so a relative 'agent/index.html'
+        # would resolve to /agent/index.html and 404.
         package_rows = '\n'.join(
-            name_box(f'{d}/index.html', d, self.PACKAGE_BLURBS.get(d, 'Package documentation.'))
+            name_box(f'/docs/{d}/index.html', d,
+                     self.PACKAGE_BLURBS.get(d, 'Package documentation.'))
             for d in sorted(top_dirs)
         )
 
@@ -2207,7 +2215,7 @@ class HTMLDocGenerator:
                         if len(doc.relative_path.relative_to(self.source_root).parts) == 1]
         module_rows = '\n'.join(
             name_box(
-                f'{doc.module_name}.html',
+                f'/docs/{doc.module_name}.html',
                 doc.module_name,
                 self._card_summary(
                     DocstringParser(doc.docstring, self._class_map).summary[:100]
@@ -2226,13 +2234,13 @@ class HTMLDocGenerator:
     <title>API Reference, {DOC_CONFIG["project_name"]} Documentation</title>
     <meta name="description" content="Complete API reference for TuiML: algorithms, datasets, preprocessing, evaluation, feature selection, and MCP server modules.">
     <meta name="robots" content="index,follow">
-    <link rel="canonical" href="https://tuiml.ai/docs/api-reference.html">
+    <link rel="canonical" href="https://tuiml.ai/api-reference.html">
 
     <meta property="og:type" content="article">
     <meta property="og:site_name" content="{{{{ config.project_name }}}}">
     <meta property="og:title" content="API Reference, {DOC_CONFIG["project_name"]} Documentation">
     <meta property="og:description" content="Complete API reference for all TuiML modules, classes, and functions.">
-    <meta property="og:url" content="https://tuiml.ai/docs/api-reference.html">
+    <meta property="og:url" content="https://tuiml.ai/api-reference.html">
     <meta property="og:image" content="https://tuiml.ai/static/images/tuiml_logo.png">
 
     <meta name="twitter:card" content="summary_large_image">
