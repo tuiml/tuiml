@@ -1650,8 +1650,20 @@ class HTMLDocGenerator:
         if doc.classes or doc.functions:
             content.append('<nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">')
             content.append('<div class="oc-toc-label">On this page</div>')
+            # Two levels: a class is a [+] row, its constructor and methods are
+            # [-] entries under it. Listing only the class names made the rail
+            # useless on the pages that need it most — a long class page is
+            # exactly where you want to jump straight to fit() or predict().
             for cls in doc.classes:
                 content.append(f'<a href="#class-{cls.name}">{cls.name}</a>')
+                if any(m.name == '__init__' for m in cls.methods):
+                    content.append(f'<a href="#init-{cls.name}" class="sub">Constructor</a>')
+                for method in self._public_methods(cls):
+                    if method.name == '__init__':
+                        continue  # already linked above as the Constructor
+                    content.append(
+                        f'<a href="#method-{cls.name}-{method.name}" class="sub">{method.name}</a>'
+                    )
             for func in doc.functions:
                 content.append(f'<a href="#func-{func.name}">{func.name}</a>')
             content.append('</nav>')
@@ -1700,6 +1712,27 @@ class HTMLDocGenerator:
             f.write(html)
 
         self._current_source_rel = None
+
+    def _public_methods(self, cls: DocItem) -> List[DocItem]:
+        """The methods rendered under a class's Methods heading.
+
+        The on-this-page rail links these, so it has to apply exactly the
+        filter the renderer applies, or it would offer anchors that were never
+        emitted. One function, both callers.
+        """
+        init_method = next((m for m in cls.methods if m.name == '__init__'), None)
+        class_sections: Dict[str, Any] = {}
+        if cls.docstring:
+            class_sections = DocstringParser(cls.docstring, self._class_map).sections
+        # __init__ is already shown as the Constructor beside the class-level
+        # Parameters table, so it is not repeated in the method list.
+        skip_init = init_method is not None and 'Parameters' in class_sections
+        return [
+            m for m in cls.methods
+            if (not m.name.startswith('_')
+                or m.name in ('__init__', '__call__', '__str__', '__repr__'))
+            and not (skip_init and m.name == '__init__')
+        ]
 
     def _render_class(self, cls: DocItem) -> str:
         """Render a class as HTML with CapyMOA-style design."""
@@ -1753,13 +1786,7 @@ class HTMLDocGenerator:
         # class-level Parameters table, so repeating it here would render the
         # same block twice. Keep it only for the rare class that documents its
         # arguments solely on __init__.
-        skip_init = init_method is not None and 'Parameters' in class_sections
-        public_methods = [
-            m for m in cls.methods
-            if (not m.name.startswith('_')
-                or m.name in ('__init__', '__call__', '__str__', '__repr__'))
-            and not (skip_init and m.name == '__init__')
-        ]
+        public_methods = self._public_methods(cls)
 
         if public_methods:
             parts.append(f'''

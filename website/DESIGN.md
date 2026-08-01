@@ -155,6 +155,13 @@ One face everywhere: JetBrains Mono. Roles by class, not by element:
   it renders as a fixed rail left of the column; below that, `.oc-toc-flow`
   keeps it as an in-flow block where it stands. Omit `.oc-toc-flow` only if
   the rail is pure navigation that can safely disappear on narrow screens.
+  A long rail scrolls inside its own column rather than running off-screen.
+  Two API variants add wrapping (in `api-doc.css`), because the entries are
+  identifiers whose tail carries the meaning and must not ellipsize:
+  `.api-tree` is the package rail on generated directory pages, scoped to the
+  directory you are in (ancestors above as `[+]` links, contents below as
+  `[-]`); `.api-rail` is the on-this-page rail on module pages, listing each
+  class as `[+]` with its constructor and methods as `[-]`.
 
 ## Rules of the language
 

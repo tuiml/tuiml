@@ -625,6 +625,14 @@
         line-height: 1.6;
     }
     @media (min-width: 1400px) { .oc-toc { display: block; } }
+    /* A rail listing every method of every class in a module can outrun the
+       viewport. Scroll it inside its own column rather than letting the tail
+       fall off the bottom of the screen. */
+    .oc-toc { max-height: calc(100vh - 160px); overflow-y: auto; scrollbar-width: thin; }
+    .oc-toc.oc-toc-flow { max-height: none; overflow-y: visible; }
+    @media (min-width: 1400px) {
+        .oc-toc.oc-toc-flow { max-height: calc(100vh - 160px); overflow-y: auto; }
+    }
     .oc-toc-label { font-weight: 700; color: var(--ink); margin-bottom: 8px; }
     .oc-toc a {
         display: block;

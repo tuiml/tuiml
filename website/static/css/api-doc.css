@@ -227,18 +227,31 @@
     height: 1.15em;
 }
 
-/* ---------------- On-this-page rail (module pages) ---------------- */
-/* Same wrap behavior as the tutorial rail: long class names break onto
-   the next line, aligned after the [+] marker, instead of ellipsizing. */
-.oc-toc.api-rail a {
+/* ---------------- API rails (module + directory pages) ---------------- */
+/* Both rails list identifiers, where the tail carries the meaning:
+   local_outlier_factor must not ellipsize to local_outlier_fa…. So they wrap
+   instead. Negative text-indent hangs the wrapped lines under the text rather
+   than under the marker, and the padding pair keeps the two levels' indent
+   (a class's methods sit in from the class) that .sub would otherwise lose to
+   this rule's higher specificity. */
+.oc-toc.api-rail a,
+.oc-toc.api-tree a {
     position: relative;
-    padding-left: 34px;
+    padding-left: 30px;
     white-space: normal;
     overflow: visible;
     text-overflow: clip;
     overflow-wrap: anywhere;
 }
-.oc-toc.api-rail a::before { position: absolute; left: 0; }
+/* The marker leaves the inline flow: left inline, "anywhere" would break at
+   the space right after it and strand it alone on the first line. */
+.oc-toc.api-rail a::before,
+.oc-toc.api-tree a::before { position: absolute; left: 0; }
+
+.oc-toc.api-rail a.sub,
+.oc-toc.api-tree a.sub { padding-left: 56px; }
+.oc-toc.api-rail a.sub::before,
+.oc-toc.api-tree a.sub::before { left: 26px; }
 
 /* ---------------- Docstring prose ---------------- */
 .api-doc .doc-section { margin-top: 48px; }

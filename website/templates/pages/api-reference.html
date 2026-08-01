@@ -57,9 +57,11 @@
                 from the real code.
             </p>
 
-            {# Same rail the generated /docs/ pages carry, so the package list
-               stays put as you move between the index and a package. #}
-            {% include 'components/_api_sidebar.html' %}
+            <nav class="oc-toc oc-toc-flow" aria-label="On this page">
+                <div class="oc-toc-label">On this page</div>
+                <a href="#packages">Packages</a>
+                <a href="#root-modules">Root modules</a>
+            </nav>
         </section>
 
         <!-- ===================== PACKAGES ===================== -->
@@ -67,9 +69,18 @@
             <h2 class="oc-h">Packages</h2>
             <hr class="oc-rule">
             <div class="why-grid" style="margin-top: 0;">
-                {%- for name, summary in api_packages %}
-                <a href="/docs/{{ name }}/index.html" class="why-card api-card"><div class="why-title">{{ name }}</div><p class="why-text">{{ summary }}</p></a>
-                {%- endfor %}
+                <a href="/docs/agent/index.html" class="why-card api-card"><div class="why-title">agent</div><p class="why-text">MCP server, LLM tool registry, and agent prompts.</p></a>
+                <a href="/docs/algorithms/index.html" class="why-card api-card"><div class="why-title">algorithms</div><p class="why-text">Native ML algorithms across 13 families.</p></a>
+                <a href="/docs/base/index.html" class="why-card api-card"><div class="why-title">base</div><p class="why-text">Classifier/Regressor base classes and decorators.</p></a>
+                <a href="/docs/capymoa/index.html" class="why-card api-card"><div class="why-title">capymoa</div><p class="why-text">Optional CapyMOA streaming wrappers.</p></a>
+                <a href="/docs/cli/index.html" class="why-card api-card"><div class="why-title">cli</div><p class="why-text">The tuiml command-line interface.</p></a>
+                <a href="/docs/datasets/index.html" class="why-card api-card"><div class="why-title">datasets</div><p class="why-text">Loaders, generators, and builtin datasets.</p></a>
+                <a href="/docs/evaluation/index.html" class="why-card api-card"><div class="why-title">evaluation</div><p class="why-text">Metrics, splitting, and cross-validation.</p></a>
+                <a href="/docs/features/index.html" class="why-card api-card"><div class="why-title">features</div><p class="why-text">Feature selection, extraction, and generation.</p></a>
+                <a href="/docs/preprocessing/index.html" class="why-card api-card"><div class="why-title">preprocessing</div><p class="why-text">Scalers, encoders, and transforms.</p></a>
+                <a href="/docs/serving/index.html" class="why-card api-card"><div class="why-title">serving</div><p class="why-text">Model serving and deployment.</p></a>
+                <a href="/docs/sklearn/index.html" class="why-card api-card"><div class="why-title">sklearn</div><p class="why-text">Optional scikit-learn wrappers.</p></a>
+                <a href="/docs/utils/index.html" class="why-card api-card"><div class="why-title">utils</div><p class="why-text">Shared helpers.</p></a>
             </div>
         </section>
 
@@ -78,9 +89,11 @@
             <h2 class="oc-h">Root modules</h2>
             <hr class="oc-rule">
             <div class="why-grid" style="margin-top: 0;">
-                {%- for name, summary in api_root_modules %}
-                <a href="/docs/{{ name }}.html" class="why-card api-card"><div class="why-title">{{ name }}</div><p class="why-text">{{ summary }}</p></a>
-                {%- endfor %}
+                <a href="/docs/benchmarking.html" class="why-card api-card"><div class="why-title">benchmarking</div><p class="why-text">Benchmark models across datasets.</p></a>
+                <a href="/docs/discovery.html" class="why-card api-card"><div class="why-title">discovery</div><p class="why-text">Find and inspect the registered components.</p></a>
+                <a href="/docs/registry.html" class="why-card api-card"><div class="why-title">registry</div><p class="why-text">Local component registry for TuiML.</p></a>
+                <a href="/docs/training.html" class="why-card api-card"><div class="why-title">training</div><p class="why-text">Train models from one declarative spec.</p></a>
+                <a href="/docs/workflow.html" class="why-card api-card"><div class="why-title">workflow</div><p class="why-text">Pipelines: an ordered list of steps ending in a model.</p></a>
             </div>
         </section>
     </div>

@@ -1,23 +1,39 @@
 {#
     API reference rail, the ONE package navigation.
 
+    Scoped to the directory you are in: opening algorithms/anomaly/ lists the
+    anomaly modules, not the top-level package list again. Ancestors sit above
+    as plain links, which is the way back up. The root page (no api_dir) lists
+    the packages and root modules instead.
+
     Used by /api-reference.html and by every generated /docs/ directory page
     (layouts/docs_generated.html includes it when the page does not already
     carry its own "On this page" rail — module pages do, and two fixed rails
     would sit on top of each other).
 
-    Entries come from build.py's api_packages / api_root_modules, which are
-    scanned off the generated docs tree, so a new package appears here on its
-    own. Same shape as the benchmarks rail: one label, [+] group rows, [-]
-    entries under them.
+    Same shape as the benchmarks rail: one label, [+] rows, [-] entries under
+    the row they belong to.
 
-    Variables:
-    - api_package: name of the package/module being viewed, marks it active
+    Variables (all set by build.py's _api_rail / _scan_api_index):
+    - api_trail:    ancestor directories, as {name, url}
+    - api_dir:      the directory being viewed
+    - api_children: what is inside it, as {name, url}
+    - api_package:  top-level package, marks it active on the root listing
 #}
-<nav class="oc-toc oc-toc-flow" aria-label="API reference">
+<nav class="oc-toc oc-toc-flow api-tree" aria-label="API reference">
     <div class="oc-toc-label">API Reference</div>
     <a href="/api-reference.html"{% if not api_package %} class="active"{% endif %}>Overview</a>
+    {%- for step in api_trail %}
+    <a href="{{ step.url }}">{{ step.name }}</a>
+    {%- endfor %}
 
+    {%- if api_dir %}
+    <span class="head">{{ api_dir }}/</span>
+    {%- for child in api_children %}
+    <a href="{{ child.url }}" class="sub">{{ child.name }}</a>
+    {%- endfor %}
+
+    {%- else %}
     <span class="head">Packages</span>
     {%- for name, _ in api_packages %}
     <a href="/docs/{{ name }}/index.html" class="sub{% if api_package == name %} active{% endif %}">{{ name }}</a>
@@ -27,4 +43,5 @@
     {%- for name, _ in api_root_modules %}
     <a href="/docs/{{ name }}.html" class="sub{% if api_package == name %} active{% endif %}">{{ name }}</a>
     {%- endfor %}
+    {%- endif %}
 </nav>

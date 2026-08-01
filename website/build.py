@@ -122,6 +122,38 @@ def _scan_api_index() -> tuple[list[tuple[str, str]], list[tuple[str, str]]]:
 
 API_PACKAGES, API_ROOT_MODULES = _scan_api_index()
 
+
+def _api_rail(rel: str) -> dict:
+    """Rail context for a generated directory page: where it sits, what is in it.
+
+    The rail is scoped to the directory you are actually in, so opening
+    algorithms/anomaly/ lists the anomaly modules rather than repeating the
+    top-level package list. Ancestors stay above it as links, which is the way
+    back up. Directories sort before modules and keep a trailing slash, the
+    same way the breadcrumb writes them.
+    """
+    dir_parts = rel.split("/")[:-1]
+    if not dir_parts:
+        return {}
+
+    directory = DOCS_API.joinpath(*dir_parts)
+    base = "/docs/" + "/".join(dir_parts)
+    packages, modules = [], []
+    for child in sorted(directory.iterdir()):
+        if child.is_dir() and (child / "index.html").is_file():
+            packages.append({"name": child.name + "/", "url": f"{base}/{child.name}/index.html"})
+        elif child.suffix == ".html" and child.name != "index.html":
+            modules.append({"name": child.stem, "url": f"{base}/{child.name}"})
+
+    return {
+        "api_trail": [
+            {"name": part, "url": "/docs/" + "/".join(dir_parts[: i + 1]) + "/index.html"}
+            for i, part in enumerate(dir_parts[:-1])
+        ],
+        "api_dir": dir_parts[-1],
+        "api_children": packages + modules,
+    }
+
 env = Environment(loader=FileSystemLoader(TEMPLATES), autoescape=True)
 env.globals["config"] = CONFIG
 env.globals["api_packages"] = API_PACKAGES
@@ -944,6 +976,7 @@ def freeze() -> None:
             # Module pages generate their own "On this page" rail; the layout
             # only adds the package rail to pages that have none.
             has_own_rail='class="oc-toc' in html.read_text(encoding="utf-8"),
+            **_api_rail(rel),
         )
         count += 1
 
