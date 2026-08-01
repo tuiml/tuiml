@@ -56,6 +56,10 @@ GITHUB_URL = "https://github.com/tuiml/tuiml"
 FIRST_TUTORIAL = "quickstart/01_hello_tuiml"
 TUTORIALS_URL = f"/tutorials/{FIRST_TUTORIAL}"
 
+# Rendered separately from PAGES (it needs the parsed CHANGELOG), but still a
+# real page, so the redirect-clash guard has to know about it.
+CHANGELOG_URL = "/changelog.html"
+
 CONFIG = {
     "project_name": PROJECT_NAME,
     "app_name": APP_NAME,
@@ -194,11 +198,12 @@ REDIRECTS = {
     "/docs/privacy.html": "/privacy.html",
     "/docs/terms.html": "/terms.html",
     "/docs/about.html": "/about.html",
-    # Extensionless forms that predate the move.
-    "/about": "/about.html",
-    "/privacy": "/privacy.html",
-    "/terms": "/terms.html",
 }
+# Note: no extensionless entries here. out_path() maps "/about" and
+# "/about.html" to the same file, so a redirect from the extensionless form
+# overwrites the page with a stub pointing at itself, and the browser loops.
+# Pages already serves /about from about.html, so such entries are pointless
+# as well as harmful. _assert_no_redirect_clashes() below enforces this.
 
 REDIRECT_STUB = """<!doctype html>
 <meta charset="utf-8">
@@ -335,6 +340,32 @@ def out_path(url_path: str) -> Path:
     elif "." not in clean.rsplit("/", 1)[-1]:
         clean += ".html"
     return OUT / clean
+
+
+def _assert_no_redirect_clashes() -> None:
+    """Fail the build if a redirect would overwrite a real page.
+
+    Redirect stubs are written after the pages, so a stub whose source maps to
+    the same file as a page silently replaces it. When the stub's destination
+    is that same URL, the result is a page that redirects to itself: every
+    visitor gets an infinite loop, and the build reports success.
+
+    This is easy to trip because :func:`out_path` appends ``.html`` to
+    extensionless URLs, making ``/about`` and ``/about.html`` the same file.
+
+    Raises
+    ------
+    SystemExit
+        If any redirect source collides with a rendered page.
+    """
+    page_files = {out_path(u) for u in PAGES} | {out_path(CHANGELOG_URL)}
+    clashes = sorted(src for src in REDIRECTS if out_path(src) in page_files)
+    if clashes:
+        raise SystemExit(
+            "build.py: these redirects would overwrite a real page, and a "
+            "self-referential one loops forever in the browser: "
+            + ", ".join(clashes)
+        )
 
 
 def write(url_path: str, content: str | bytes) -> None:
@@ -808,7 +839,7 @@ def freeze() -> None:
 
     # Changelog page (from the root CHANGELOG.md)
     render(
-        "/changelog.html", "pages/changelog.html",
+        CHANGELOG_URL, "pages/changelog.html",
         releases=parse_changelog(), title="Changelog",
         meta_description=(
             "Release history and changelog for TuiML. Track new algorithms, bug fixes, "
@@ -847,7 +878,10 @@ def freeze() -> None:
     write("/install", INSTALL_GUIDE)
     count += 4
 
-    # Redirect stubs (dest prefixed with BASE so subpath hosting still lands right)
+    # Redirect stubs (dest prefixed with BASE so subpath hosting still lands right).
+    # These are written after the pages, so a stub that maps onto a page's file
+    # would replace it; refuse to build rather than ship that.
+    _assert_no_redirect_clashes()
     for src, dest in REDIRECTS.items():
         write(src, REDIRECT_STUB.format(dest=BASE + dest))
         count += 1
