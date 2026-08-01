@@ -6,8 +6,7 @@
 {% block title %}trees - API Documentation{% endblock %}
 
 {% block content %}
-<p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a> / <a href="index.html">visualization</a> / <span class="api-crumb-file">trees.py</span></p>
-<div class="flex items-center justify-between gap-3" style="margin-bottom: 32px;"><h1 class="oc-display" style="margin: 0;">trees</h1><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/visualization/trees.py" target="_blank" rel="noopener noreferrer" title="View evaluation/visualization/trees.py source on GitHub" aria-label="View evaluation/visualization/trees.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
+<div class="api-crumb-row" style="margin-bottom: 32px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a> / <a href="index.html">visualization</a> / <h1 class="api-crumb-file">trees.py</h1></div><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/visualization/trees.py" target="_blank" rel="noopener noreferrer" title="View evaluation/visualization/trees.py source on GitHub" aria-label="View evaluation/visualization/trees.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
 <nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
 <div class="oc-toc-label">On this page</div>
 <a href="#func-plot_tree">plot_tree</a>
@@ -15,8 +14,8 @@
 <a href="#func-export_graphviz">export_graphviz</a>
 </nav>
 <main>
-<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Render fitted TuiML decision trees as figures, ASCII text, or GraphViz DOT.</p>
-<div class="doc-extended">This module turns the <em>node objects</em> built by TuiML&#x27;s tree learners into something a human can read. It accepts any fitted estimator from <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">trees</code> -- <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">DecisionTreeClassifier</code> and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">DecisionTreeRegressor</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">C45TreeClassifier</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">RandomTreeClassifier</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ReducedErrorPruningTreeClassifier</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">HoeffdingTreeClassifier</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">M5ModelTreeRegressor</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">LogisticModelTreeClassifier</code>, the <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">RandomForestClassifier</code> / <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">RandomForestRegressor</code> ensembles (one member tree at a time) and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">DecisionStumpClassifier</code> -- as well as a bare tree-node object.</div>
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Render fitted TuiML decision trees as figures, ASCII text, or GraphViz DOT.</p>
+<div class="doc-extended mb-8">This module turns the <em>node objects</em> built by TuiML&#x27;s tree learners into something a human can read. It accepts any fitted estimator from <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">trees</code> -- <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">DecisionTreeClassifier</code> and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">DecisionTreeRegressor</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">C45TreeClassifier</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">RandomTreeClassifier</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ReducedErrorPruningTreeClassifier</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">HoeffdingTreeClassifier</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">M5ModelTreeRegressor</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">LogisticModelTreeClassifier</code>, the <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">RandomForestClassifier</code> / <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">RandomForestRegressor</code> ensembles (one member tree at a time) and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">DecisionStumpClassifier</code> -- as well as a bare tree-node object.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -99,8 +98,8 @@ _draw_bigtree                                (boxes, edges, edge labels -&gt; Ax
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">plot_tree(decision_tree, *, max_depth=None, feature_names=None, class_names=None, label=&#x27;all&#x27;, filled=False, impurity=True, node_ids=False, proportion=False, rounded=False, precision=3, ax=None, fontsize=None, tree_index=0, figsize=None, save_path=None, title=None)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Draw a fitted decision tree as a matplotlib figure of labelled boxes.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Draw a fitted decision tree as a matplotlib figure of labelled boxes.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 Each internal node is drawn as a box holding its split condition, each leaf as a box holding its prediction, and edges run from a parent&#x27;s bottom edge to a child&#x27;s top edge. Positions come from the Reingold-Tilford tidy tree algorithm, which centres each parent over its children and keeps subtrees from overlapping; box sizes are then measured from the label text and the layout is scaled so no two boxes collide.
 </p>
@@ -518,8 +517,8 @@ The signature follows scikit-learn&#x27;s <code class="bg-gray-100 px-1 py-0.5 r
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">export_text(decision_tree, feature_names: Optional[List[str]]=None, class_names: Optional[List[str]]=None, max_depth: int=10, spacing: int=3, decimals: int=2, show_weights: bool=False) -&gt; str</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Build a text report showing the rules of a decision tree.</p>
-<div class="doc-extended">This is similar to scikit-learn&#x27;s export_text function and provides a human-readable ASCII representation of the tree structure.</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Build a text report showing the rules of a decision tree.</p>
+<div class="doc-extended mb-8">This is similar to scikit-learn&#x27;s export_text function and provides a human-readable ASCII representation of the tree structure.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -697,8 +696,8 @@ The signature follows scikit-learn&#x27;s <code class="bg-gray-100 px-1 py-0.5 r
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">export_graphviz(decision_tree, out_file: Optional[Union[str, StringIO]]=None, feature_names: Optional[List[str]]=None, class_names: Optional[List[str]]=None, label: str=&#x27;all&#x27;, filled: bool=False, leaves_parallel: bool=False, impurity: bool=True, node_ids: bool=False, proportion: bool=False, rotate: bool=False, rounded: bool=False, special_characters: bool=False, precision: int=3, fontname: str=&#x27;helvetica&#x27;, max_depth: Optional[int]=None) -&gt; Optional[str]</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Export a decision tree in DOT format.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Export a decision tree in DOT format.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 This function generates a GraphViz representation of the decision tree, which can be rendered using the GraphViz <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">dot</code> tool:
 </p>

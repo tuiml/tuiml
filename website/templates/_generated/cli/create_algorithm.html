@@ -6,15 +6,14 @@
 {% block title %}create_algorithm - API Documentation{% endblock %}
 
 {% block content %}
-<p class="oc-caption api-crumb" style="margin: 0;"><a href="../api-reference.html">API Reference</a> / <a href="index.html">cli</a> / <span class="api-crumb-file">create_algorithm.py</span></p>
-<div class="flex items-center justify-between gap-3" style="margin-bottom: 32px;"><h1 class="oc-display" style="margin: 0;">create_algorithm</h1><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/cli/create_algorithm.py" target="_blank" rel="noopener noreferrer" title="View cli/create_algorithm.py source on GitHub" aria-label="View cli/create_algorithm.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
+<div class="api-crumb-row" style="margin-bottom: 32px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="../api-reference.html">API Reference</a> / <a href="index.html">cli</a> / <h1 class="api-crumb-file">create_algorithm.py</h1></div><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/cli/create_algorithm.py" target="_blank" rel="noopener noreferrer" title="View cli/create_algorithm.py source on GitHub" aria-label="View cli/create_algorithm.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
 <nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
 <div class="oc-toc-label">On this page</div>
 <a href="#func-create_algorithm">create_algorithm</a>
 </nav>
 <main>
-<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3"><code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">tuiml create-algorithm</code>: register a user-authored algorithm.</p>
-<div class="doc-extended">Thin CLI wrapper over the <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_create_algorithm</code> tool. It stores the submitted source under <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">~/.tuiml/user_algorithms/</code> and adds the class to the component registry, so the rest of the CLI and every MCP tool can use it by class name.</div></div>
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4"><code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">tuiml create-algorithm</code>: register a user-authored algorithm.</p>
+<div class="doc-extended mb-8">Thin CLI wrapper over the <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_create_algorithm</code> tool. It stores the submitted source under <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">~/.tuiml/user_algorithms/</code> and adds the class to the component registry, so the rest of the CLI and every MCP tool can use it by class name.</div></div>
 <div class="mb-12">
 <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-code text-indigo-500"></i> Functions</h2>
 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-create_algorithm">
@@ -31,8 +30,8 @@
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">tuiml create-algorithm [OPTIONS]</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Validate, save, and register a new user-authored algorithm.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Validate, save, and register a new user-authored algorithm.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 The source must define exactly one <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">@classifier</code> or <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">@regressor</code> class. It is checked with an AST denylist before anything is written (no <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">subprocess</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">socket</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">os</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">urllib</code> or <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">requests</code> imports; no <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">eval</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">exec</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">open</code> or <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">__import__</code> calls), then saved to <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">~/.tuiml/user_algorithms/<name>/<version>/algorithm.py</code>.
 </p>

@@ -6,8 +6,7 @@
 {% block title %}json - API Documentation{% endblock %}
 
 {% block content %}
-<p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">datasets</a> / <a href="index.html">loaders</a> / <span class="api-crumb-file">json.py</span></p>
-<div class="flex items-center justify-between gap-3" style="margin-bottom: 32px;"><h1 class="oc-display" style="margin: 0;">json</h1><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/datasets/loaders/json.py" target="_blank" rel="noopener noreferrer" title="View datasets/loaders/json.py source on GitHub" aria-label="View datasets/loaders/json.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
+<div class="api-crumb-row" style="margin-bottom: 32px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">datasets</a> / <a href="index.html">loaders</a> / <h1 class="api-crumb-file">json.py</h1></div><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/datasets/loaders/json.py" target="_blank" rel="noopener noreferrer" title="View datasets/loaders/json.py source on GitHub" aria-label="View datasets/loaders/json.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
 <nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
 <div class="oc-toc-label">On this page</div>
 <a href="#func-load_json">load_json</a>
@@ -17,8 +16,8 @@
 <a href="#func-load_json_nested">load_json_nested</a>
 </nav>
 <main>
-<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">JSON reader and writer, in three layouts.</p>
-<div class="doc-extended">Covers the three shapes tabular data usually takes in JSON: a single document holding an array of records (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">load_json</code>), one record per line (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">load_jsonl</code>, for streaming and append-only logs), and records with nested objects that need flattening into columns (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">load_json_nested</code>).</div></div>
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">JSON reader and writer, in three layouts.</p>
+<div class="doc-extended mb-8">Covers the three shapes tabular data usually takes in JSON: a single document holding an array of records (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">load_json</code>), one record per line (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">load_jsonl</code>, for streaming and append-only logs), and records with nested objects that need flattening into columns (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">load_json_nested</code>).</div></div>
 <div class="mb-12">
 <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-code text-indigo-500"></i> Functions</h2>
 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-load_json">
@@ -35,7 +34,7 @@
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">load_json(filepath: Union[str, Path], target_column: Optional[Union[str, int]]=..., orient: str=&#x27;auto&#x27;, lines: bool=False, handle_categorical: str=&#x27;encode&#x27;) -&gt; Dataset</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Load data from JSON file.</p>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Load data from JSON file.</p>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -229,7 +228,7 @@
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">save_json(filepath: Union[str, Path], data: np.ndarray, feature_names: Optional[List[str]]=None, target: Optional[np.ndarray]=None, target_names: Optional[List[str]]=None, target_column_name: str=&#x27;target&#x27;, orient: str=&#x27;records&#x27;, lines: bool=False, indent: Optional[int]=2)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Save data to JSON format.</p>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Save data to JSON format.</p>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -402,8 +401,8 @@
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">load_jsonl(filepath: Union[str, Path], target_column: Optional[Union[str, int]]=..., handle_categorical: str=&#x27;encode&#x27;, max_lines: Optional[int]=None) -&gt; Dataset</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Load data from JSON Lines file.</p>
-<div class="doc-extended">Each line is a separate JSON object (records format).</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Load data from JSON Lines file.</p>
+<div class="doc-extended mb-8">Each line is a separate JSON object (records format).</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -529,7 +528,7 @@
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">save_jsonl(filepath: Union[str, Path], data: np.ndarray, feature_names: Optional[List[str]]=None, target: Optional[np.ndarray]=None, target_names: Optional[List[str]]=None, target_column_name: str=&#x27;target&#x27;)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Save data to JSON Lines format.</p>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Save data to JSON Lines format.</p>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -659,8 +658,8 @@
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">load_json_nested(filepath: Union[str, Path], record_path: Union[str, List[str]], meta: Optional[List[str]]=None, target_column: Optional[Union[str, int]]=..., handle_categorical: str=&#x27;encode&#x27;) -&gt; Dataset</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Load data from nested JSON structure.</p>
-<div class="doc-extended">Flattens nested JSON using pandas json_normalize.</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Load data from nested JSON structure.</p>
+<div class="doc-extended mb-8">Flattens nested JSON using pandas json_normalize.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">

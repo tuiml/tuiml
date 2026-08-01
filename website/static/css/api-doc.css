@@ -176,9 +176,26 @@
 .api-doc .api-crumb a { color: var(--mute); text-decoration: none; }
 .api-doc .api-crumb a:hover { color: var(--accent-deep); text-decoration: underline; }
 /* The trail's last segment is the file this page documents, extension and
-   all. Darker than the links above it, since it is where you are, not
-   somewhere to go. */
-.api-doc .api-crumb .api-crumb-file { color: var(--ink); font-weight: 600; }
+   all. Darker than the links before it, since it is where you are, not
+   somewhere to go. It is an <h1>, so the display-size defaults have to be
+   reset back down to the trail's own size. */
+.api-doc .api-crumb .api-crumb-file {
+    display: inline;
+    margin: 0;
+    color: var(--ink);
+    font-size: inherit;
+    font-weight: 600;
+    line-height: inherit;
+    letter-spacing: inherit;
+}
+
+/* Breadcrumb on the left, GitHub source link at the right-hand end. */
+.api-doc .api-crumb-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
 
 /* ---------------- On-this-page rail (module pages) ---------------- */
 /* Same wrap behavior as the tutorial rail: long class names break onto

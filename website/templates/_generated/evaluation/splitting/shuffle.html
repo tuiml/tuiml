@@ -6,16 +6,15 @@
 {% block title %}shuffle - API Documentation{% endblock %}
 
 {% block content %}
-<p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a> / <a href="index.html">splitting</a> / <span class="api-crumb-file">shuffle.py</span></p>
-<div class="flex items-center justify-between gap-3" style="margin-bottom: 32px;"><h1 class="oc-display" style="margin: 0;">shuffle</h1><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/splitting/shuffle.py" target="_blank" rel="noopener noreferrer" title="View evaluation/splitting/shuffle.py source on GitHub" aria-label="View evaluation/splitting/shuffle.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
+<div class="api-crumb-row" style="margin-bottom: 32px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a> / <a href="index.html">splitting</a> / <h1 class="api-crumb-file">shuffle.py</h1></div><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/splitting/shuffle.py" target="_blank" rel="noopener noreferrer" title="View evaluation/splitting/shuffle.py source on GitHub" aria-label="View evaluation/splitting/shuffle.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
 <nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
 <div class="oc-toc-label">On this page</div>
 <a href="#class-ShuffleSplit">ShuffleSplit</a>
 <a href="#class-StratifiedShuffleSplit">StratifiedShuffleSplit</a>
 </nav>
 <main>
-<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Random-permutation cross-validators (Monte-Carlo cross-validation).</p>
-<div class="doc-extended">
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Random-permutation cross-validators (Monte-Carlo cross-validation).</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 A shuffle splitter draws a <strong>fresh random train/test partition on every iteration</strong> instead of rotating over a fixed set of folds. That is the key difference from <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">KFold</code>: the number of iterations and the test proportion are decoupled, so you can ask for 50 splits with 10% test each, and the test sets are <em>independent draws</em> that may overlap rather than a disjoint cover of the data. Some samples may be tested many times, others never.
 </p>

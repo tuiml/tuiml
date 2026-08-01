@@ -184,14 +184,19 @@ class DocstringParser:
         """Convert parsed docstring to HTML."""
         parts = []
 
+        # The trailing margins separate the prose from the first section box
+        # below it, which is otherwise flush against the last line of text.
         if self.summary:
             parts.append(
-                f'<p class="doc-summary text-lg font-semibold text-gray-900 mb-3">'
+                f'<p class="doc-summary text-lg font-semibold text-gray-900 mb-4">'
                 f'{self._format_inline_code(html.escape(self.summary))}</p>'
             )
 
         if self.extended_summary:
-            parts.append(f'<div class="doc-extended">{self._format_text(self.extended_summary)}</div>')
+            parts.append(
+                f'<div class="doc-extended mb-8">'
+                f'{self._format_text(self.extended_summary)}</div>'
+            )
 
         for section_name, content in self.sections.items():
             parts.append(self._format_section(section_name, content))
@@ -1408,6 +1413,34 @@ class HTMLDocGenerator:
         url = f"{base}/blob/{GITHUB_BRANCH}/{GITHUB_SOURCE_PREFIX}/{rel}"
         return f"{url}#L{lineno}" if lineno else url
 
+    def _package_source_icon(self, dir_path) -> str:
+        """Render the GitHub icon for a package's directory.
+
+        Package index pages have no single source file, so this links to the
+        folder on GitHub rather than to a line in one.
+
+        Parameters
+        ----------
+        dir_path : Path
+            Package directory, relative to the source root.
+
+        Returns
+        -------
+        html : str
+            The anchor element.
+        """
+        base = DOC_CONFIG["github_url"]
+        url = f"{base}/tree/{GITHUB_BRANCH}/{GITHUB_SOURCE_PREFIX}/{dir_path}"
+        label = f"View {dir_path}/ on GitHub"
+        return (
+            f'<a href="{url}" target="_blank" rel="noopener noreferrer" '
+            f'title="{html.escape(label)}" aria-label="{html.escape(label)}" '
+            f'class="inline-flex items-center justify-center w-7 h-7 rounded-md '
+            f'text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors '
+            f'shrink-0">'
+            f'<i class="fa-brands fa-github text-base"></i></a>'
+        )
+
     def _source_icon(self, lineno: int = 0, label: str = "View source on GitHub") -> str:
         """Render the GitHub icon that links to an item's implementation.
 
@@ -1564,14 +1597,18 @@ class HTMLDocGenerator:
         for i, part in enumerate(breadcrumb_parts):
             up_levels = len(breadcrumb_parts) - i - 1
             crumbs.append(f'<a href="{"../" * up_levels}index.html">{part}</a>')
-        crumbs.append(f'<span class="api-crumb-file">{rel_path.name}</span>')
-        content.append(f'<p class="oc-caption api-crumb" style="margin: 0;">{" / ".join(crumbs)}</p>')
-        # Module heading, with the GitHub link pushed to the far right of the
-        # row. Each class, function and method below carries its own link,
-        # anchored to the line it starts on.
+        # The trail ends in the file name, and is the page's only heading: a
+        # separate display-size title just repeated it. Marked up as the h1 so
+        # the page still has one, styled to match the rest of the trail.
+        crumbs.append(f'<h1 class="api-crumb-file">{rel_path.name}</h1>')
+        # GitHub link sits at the right-hand end of that same row. Each class,
+        # function and method below carries its own, anchored to its line.
+        # A div, not a p: the trail contains the h1, and a <p> cannot legally
+        # hold one — the browser would close the paragraph early and drop the
+        # heading onto its own line.
         content.append(
-            '<div class="flex items-center justify-between gap-3" style="margin-bottom: 32px;">'
-            f'<h1 class="oc-display" style="margin: 0;">{doc.module_name}</h1>'
+            '<div class="api-crumb-row" style="margin-bottom: 32px;">'
+            f'<div class="oc-caption api-crumb" style="margin: 0;">{" / ".join(crumbs)}</div>'
             f'{self._source_icon(0, f"View {rel_path} source on GitHub")}'
             '</div>'
         )
@@ -2015,13 +2052,20 @@ class HTMLDocGenerator:
 
         content = []
 
-        # Page header: linked breadcrumb (API Reference / parent dirs) + dir name
+        # Page header: the linked trail, ending in this package. Same shape as
+        # the module pages — the trail is the heading, rather than repeating
+        # the name underneath it at display size.
         crumbs = [f'<a href="{root_index}">API Reference</a>']
         for i, part in enumerate(dir_path.parts[:-1]):
             up_levels = depth - i - 1
             crumbs.append(f'<a href="{"../" * up_levels}index.html">{part}</a>')
-        content.append(f'<p class="oc-caption api-crumb" style="margin: 0;">{" / ".join(crumbs)}</p>')
-        content.append(f'<h1 class="oc-display" style="margin-bottom: 48px;">{dir_path.name}/</h1>')
+        crumbs.append(f'<h1 class="api-crumb-file">{dir_path.name}/</h1>')
+        content.append(
+            '<div class="api-crumb-row" style="margin-bottom: 40px;">'
+            f'<div class="oc-caption api-crumb" style="margin: 0;">{" / ".join(crumbs)}</div>'
+            f'{self._package_source_icon(dir_path)}'
+            '</div>'
+        )
 
         # Package overview, straight from __init__.py's docstring. This is
         # where a package explains what it is and how to use it (see

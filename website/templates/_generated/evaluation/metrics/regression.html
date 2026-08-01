@@ -6,8 +6,7 @@
 {% block title %}regression - API Documentation{% endblock %}
 
 {% block content %}
-<p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a> / <a href="index.html">metrics</a> / <span class="api-crumb-file">regression.py</span></p>
-<div class="flex items-center justify-between gap-3" style="margin-bottom: 32px;"><h1 class="oc-display" style="margin: 0;">regression</h1><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/regression.py" target="_blank" rel="noopener noreferrer" title="View evaluation/metrics/regression.py source on GitHub" aria-label="View evaluation/metrics/regression.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
+<div class="api-crumb-row" style="margin-bottom: 32px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a> / <a href="index.html">metrics</a> / <h1 class="api-crumb-file">regression.py</h1></div><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/regression.py" target="_blank" rel="noopener noreferrer" title="View evaluation/metrics/regression.py source on GitHub" aria-label="View evaluation/metrics/regression.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
 <nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
 <div class="oc-toc-label">On this page</div>
 <a href="#func-mean_absolute_error">mean_absolute_error</a>
@@ -19,8 +18,8 @@
 <a href="#func-correlation_coefficient">correlation_coefficient</a>
 </nav>
 <main>
-<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Regression evaluation metrics.</p>
-<div class="doc-extended">
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Regression evaluation metrics.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 Scoring functions for models that predict a continuous target. The module covers two families:
 </p>
@@ -76,8 +75,8 @@ The relative errors are reported as percentages and the naming mirrors Weka&#x27
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">mean_absolute_error(y_true: np.ndarray, y_pred: np.ndarray) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute the <strong>Mean Absolute Error</strong> (MAE).</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute the <strong>Mean Absolute Error</strong> (MAE).</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 MAE is the average magnitude of the residuals. Because the errors are not squared, it weights every mistake linearly and is therefore far less sensitive to outliers than <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">mean_squared_error</code>.
 </p>
@@ -234,8 +233,8 @@ When to use: report MAE when the cost of an error grows linearly with its size, 
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">mean_squared_error(y_true: np.ndarray, y_pred: np.ndarray, squared: bool=True) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute the <strong>Mean Squared Error</strong> (MSE), or its square root (RMSE).</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute the <strong>Mean Squared Error</strong> (MSE), or its square root (RMSE).</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 Squaring the residuals penalises large mistakes quadratically, which makes MSE the natural loss for least-squares models but also makes it sensitive to outliers.
 </p>
@@ -404,8 +403,8 @@ When to use: MSE is the right choice when large errors are disproportionately co
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">root_mean_squared_error(y_true: np.ndarray, y_pred: np.ndarray) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute the <strong>Root Mean Squared Error</strong> (RMSE).</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute the <strong>Root Mean Squared Error</strong> (RMSE).</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 RMSE is the square root of <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">mean_squared_error</code>, which puts the score back into the units of the target while keeping MSE&#x27;s quadratic penalty on large residuals.
 </p>
@@ -562,8 +561,8 @@ When to use: the default headline number for a regression report — same rankin
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">r2_score(y_true: np.ndarray, y_pred: np.ndarray) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute :math:`R^2`, the <strong>coefficient of determination</strong>.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute :math:`R^2`, the <strong>coefficient of determination</strong>.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 <span class="katex-inline">R^2</span> is the fraction of the target&#x27;s variance that the model explains, measured against the trivial baseline that always predicts <span class="katex-inline">\bar{y}</span>.
 </p>
@@ -716,8 +715,8 @@ When to use: the standard scale-free summary of regression quality. Note that <s
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">relative_absolute_error(y_true: np.ndarray, y_pred: np.ndarray) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute the <strong>Relative Absolute Error</strong> (RAE), as a percentage.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute the <strong>Relative Absolute Error</strong> (RAE), as a percentage.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 RAE divides the model&#x27;s total absolute error by the total absolute error of the trivial predictor that always outputs <span class="katex-inline">\bar{y}</span>. Dividing out the target&#x27;s scale makes the score comparable across datasets.
 </p>
@@ -874,8 +873,8 @@ When to use: comparing a model across datasets whose targets have different unit
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">root_relative_squared_error(y_true: np.ndarray, y_pred: np.ndarray) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute the <strong>Root Relative Squared Error</strong> (RRSE), as a percentage.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute the <strong>Root Relative Squared Error</strong> (RRSE), as a percentage.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 RRSE is the model&#x27;s squared error divided by the squared error of the mean predictor, square-rooted and expressed as a percentage. It is the squared-error counterpart of <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">relative_absolute_error</code> and is tied directly to <span class="katex-inline">R^2</span> by <span class="katex-inline">\text{RRSE} = 100\sqrt{1 - R^2}</span>.
 </p>
@@ -1032,8 +1031,8 @@ When to use: the scale-free companion to RMSE, and the number Weka prints alongs
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">correlation_coefficient(y_true: np.ndarray, y_pred: np.ndarray) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute the <strong>Pearson correlation coefficient</strong> between truth and prediction.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute the <strong>Pearson correlation coefficient</strong> between truth and prediction.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 Measures how well the predictions track the targets <em>up to an arbitrary linear rescaling</em>: a model that predicts <span class="katex-inline">2y + 5</span> still scores <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">1.0</code>. That makes it a measure of ranking/shape agreement rather than of calibrated accuracy.
 </p>

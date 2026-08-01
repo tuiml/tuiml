@@ -6,8 +6,7 @@
 {% block title %}server - API Documentation{% endblock %}
 
 {% block content %}
-<p class="oc-caption api-crumb" style="margin: 0;"><a href="../api-reference.html">API Reference</a> / <a href="index.html">serving</a> / <span class="api-crumb-file">server.py</span></p>
-<div class="flex items-center justify-between gap-3" style="margin-bottom: 32px;"><h1 class="oc-display" style="margin: 0;">server</h1><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/serving/server.py" target="_blank" rel="noopener noreferrer" title="View serving/server.py source on GitHub" aria-label="View serving/server.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
+<div class="api-crumb-row" style="margin-bottom: 32px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="../api-reference.html">API Reference</a> / <a href="index.html">serving</a> / <h1 class="api-crumb-file">server.py</h1></div><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/serving/server.py" target="_blank" rel="noopener noreferrer" title="View serving/server.py source on GitHub" aria-label="View serving/server.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
 <nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
 <div class="oc-toc-label">On this page</div>
 <a href="#class-ModelServer">ModelServer</a>
@@ -17,8 +16,8 @@
 <a href="#func-server_status">server_status</a>
 </nav>
 <main>
-<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Model Serving Server - FastAPI REST API for serving trained models.</p>
-<div class="doc-extended">
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Model Serving Server - FastAPI REST API for serving trained models.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 Provides HTTP endpoints for loading models, making predictions, and managing the model serving lifecycle.
 </p>
@@ -361,7 +360,7 @@ Usage:     # Serve a single model     from tuiml.serving import serve     serve(
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">create_app(model_path: Optional[Union[str, Path]]=None, model_id: str=&#x27;default&#x27;, max_models: int=10) -&gt; &#x27;FastAPI&#x27;</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Create a FastAPI application for model serving.</p>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Create a FastAPI application for model serving.</p>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -473,8 +472,8 @@ Usage:     # Serve a single model     from tuiml.serving import serve     serve(
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">serve(model_or_path, host: str=&#x27;127.0.0.1&#x27;, port: int=8000, model_id: str=&#x27;default&#x27;, background: bool=True, reload: bool=False, workers: int=1)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Serve a trained model via REST API.</p>
-<div class="doc-extended">Accepts a file path, a fitted <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Workflow</code>, or a model object and starts a uvicorn server exposing prediction endpoints.</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Serve a trained model via REST API.</p>
+<div class="doc-extended mb-8">Accepts a file path, a fitted <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Workflow</code>, or a model object and starts a uvicorn server exposing prediction endpoints.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -748,7 +747,7 @@ $ tuiml.stop_server()                               # doctest: +SKIP</code></pre
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">stop_server(server_id: Optional[str]=None) -&gt; None</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Stop running model server(s).</p>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Stop running model server(s).</p>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -830,7 +829,7 @@ $ tuiml.stop_server()                               # doctest: +SKIP</code></pre
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">server_status() -&gt; List[Dict]</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Get status of running model servers.</p>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Get status of running model servers.</p>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">

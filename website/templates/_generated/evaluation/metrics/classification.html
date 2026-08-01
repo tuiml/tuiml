@@ -6,8 +6,7 @@
 {% block title %}classification - API Documentation{% endblock %}
 
 {% block content %}
-<p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a> / <a href="index.html">metrics</a> / <span class="api-crumb-file">classification.py</span></p>
-<div class="flex items-center justify-between gap-3" style="margin-bottom: 32px;"><h1 class="oc-display" style="margin: 0;">classification</h1><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/classification.py" target="_blank" rel="noopener noreferrer" title="View evaluation/metrics/classification.py source on GitHub" aria-label="View evaluation/metrics/classification.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
+<div class="api-crumb-row" style="margin-bottom: 32px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a> / <a href="index.html">metrics</a> / <h1 class="api-crumb-file">classification.py</h1></div><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/classification.py" target="_blank" rel="noopener noreferrer" title="View evaluation/metrics/classification.py source on GitHub" aria-label="View evaluation/metrics/classification.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
 <nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
 <div class="oc-toc-label">On this page</div>
 <a href="#func-confusion_matrix">confusion_matrix</a>
@@ -41,8 +40,8 @@
 <a href="#func-zero_one_loss">zero_one_loss</a>
 </nav>
 <main>
-<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Classification evaluation metrics.</p>
-<div class="doc-extended">
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Classification evaluation metrics.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 Scoring functions for models that predict a discrete class label. The module is organised around four groups:
 </p>
@@ -79,8 +78,8 @@ The metric names mirror Weka&#x27;s <code class="bg-gray-100 px-1 py-0.5 rounded
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray, labels: Optional[np.ndarray]=None, normalize: Optional[str]=None) -&gt; np.ndarray</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute the <strong>confusion matrix</strong> of a classification result.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute the <strong>confusion matrix</strong> of a classification result.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 Entry <span class="katex-inline">C_{ij}</span> counts the samples whose true class is <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">labels[i]</code> and whose predicted class is <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">labels[j]</code>. The diagonal therefore holds the correct predictions and every off-diagonal cell names a specific confusion.
 </p>
@@ -269,8 +268,8 @@ When to use: whenever a single accuracy number is not enough — the matrix is t
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">accuracy_score(y_true: np.ndarray, y_pred: np.ndarray, normalize: bool=True, sample_weight: Optional[np.ndarray]=None) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute the <strong>accuracy</strong> of a classification result.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute the <strong>accuracy</strong> of a classification result.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 Accuracy is the fraction (or, with <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">normalize=False</code>, the count) of samples whose predicted label matches the true label.
 </p>
@@ -457,8 +456,8 @@ When to use: only when the classes are roughly balanced <em>and</em> every kind 
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">balanced_accuracy_score(y_true: np.ndarray, y_pred: np.ndarray, adjusted: bool=False) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute the <strong>balanced accuracy</strong>: the mean per-class recall.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute the <strong>balanced accuracy</strong>: the mean per-class recall.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 Each class contributes equally regardless of how many samples it has, so a majority-class predictor scores <span class="katex-inline">1/k</span> rather than the majority frequency.
 </p>
@@ -627,8 +626,8 @@ When to use: the default replacement for <code class="bg-gray-100 px-1 py-0.5 ro
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">precision_score(y_true: np.ndarray, y_pred: np.ndarray, **kwargs) -&gt; Union[float, np.ndarray]</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute the <strong>precision</strong>: how many predicted positives are correct.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute the <strong>precision</strong>: how many predicted positives are correct.</p>
+<div class="doc-extended mb-8">
 <div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
 <span class="katex-display">\text{precision} = \frac{\text{TP}}{\text{TP} + \text{FP}}</span>
 </div>
@@ -801,8 +800,8 @@ When to use: pair it with <code class="bg-gray-100 px-1 py-0.5 rounded text-sm f
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">recall_score(y_true: np.ndarray, y_pred: np.ndarray, **kwargs) -&gt; Union[float, np.ndarray]</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute the <strong>recall</strong>: how many actual positives were found.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute the <strong>recall</strong>: how many actual positives were found.</p>
+<div class="doc-extended mb-8">
 <div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
 <span class="katex-display">\text{recall} = \frac{\text{TP}}{\text{TP} + \text{FN}}</span>
 </div>
@@ -973,8 +972,8 @@ When to use: alongside <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">f1_score(y_true: np.ndarray, y_pred: np.ndarray, **kwargs) -&gt; Union[float, np.ndarray]</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute the <strong>F1 score</strong>: the harmonic mean of precision and recall.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute the <strong>F1 score</strong>: the harmonic mean of precision and recall.</p>
+<div class="doc-extended mb-8">
 <div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
 <span class="katex-display">F_1 = 2 \cdot \frac{\text{precision} \cdot \text{recall}}     {\text{precision} + \text{recall}}</span>
 </div>
@@ -1157,8 +1156,8 @@ When to use: the standard single number for an imbalanced binary problem where t
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">true_positive_rate(y_true, y_pred, pos_label=1)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute the <strong>true positive rate</strong> (TPR, sensitivity, recall).</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute the <strong>true positive rate</strong> (TPR, sensitivity, recall).</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 The fraction of actual positives that the model correctly flags; it is the y-axis of an ROC curve.
 </p>
@@ -1309,8 +1308,8 @@ The fraction of actual positives that the model correctly flags; it is the y-axi
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">false_positive_rate(y_true, y_pred, pos_label=1)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute the <strong>false positive rate</strong> (FPR, fall-out).</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute the <strong>false positive rate</strong> (FPR, fall-out).</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 The fraction of actual negatives that the model wrongly flags as positive; it is the x-axis of an ROC curve.
 </p>
@@ -1461,8 +1460,8 @@ The fraction of actual negatives that the model wrongly flags as positive; it is
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">matthews_corrcoef(y_true, y_pred)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute the <strong>Matthews correlation coefficient</strong> (MCC).</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute the <strong>Matthews correlation coefficient</strong> (MCC).</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 MCC is the correlation between the true and predicted binary labels. Unlike F1 it uses all four cells of the confusion matrix, so it cannot be inflated by a model that simply predicts the majority class.
 </p>
@@ -1641,8 +1640,8 @@ When to use: the most informative single number for an imbalanced binary problem
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">cohen_kappa_score(y_true, y_pred)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute <strong>Cohen&#x27;s kappa</strong>: accuracy corrected for chance agreement.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute <strong>Cohen&#x27;s kappa</strong>: accuracy corrected for chance agreement.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 Kappa compares the observed agreement <span class="katex-inline">p_o</span> against the agreement <span class="katex-inline">p_e</span> you would expect if the two labellings were independent with the same marginals.
 </p>
@@ -1816,8 +1815,8 @@ When to use: whenever a high raw accuracy might just reflect a skewed class dist
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">roc_auc_score(y_true, y_score, average=&#x27;macro&#x27;, labels=None)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute the <strong>area under the ROC curve</strong> (AUC).</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute the <strong>area under the ROC curve</strong> (AUC).</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 AUC is the probability that a randomly chosen positive sample is ranked above a randomly chosen negative one, so it evaluates a model&#x27;s <em>ranking</em> across every decision threshold at once rather than at one fixed cut-off.
 </p>
@@ -2025,8 +2024,8 @@ When to use: for comparing rankers and probabilistic models independently of the
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">precision_recall_fscore_support(y_true, y_pred, beta=1.0, labels=None, pos_label=1, average=None, zero_division=0.0)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute precision, recall, F-measure and support in a single pass.</p>
-<div class="doc-extended">Returns all four quantities from one traversal of the data, which is both cheaper and more consistent than calling <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">precision_score</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">recall_score</code> and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">f1_score</code> separately.</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute precision, recall, F-measure and support in a single pass.</p>
+<div class="doc-extended mb-8">Returns all four quantities from one traversal of the data, which is both cheaper and more consistent than calling <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">precision_score</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">recall_score</code> and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">f1_score</code> separately.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -2278,8 +2277,8 @@ When to use: building a report, or logging several related metrics at once.
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">classification_report(y_true, y_pred, labels=None, target_names=None)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Build a text report of the main per-class classification metrics.</p>
-<div class="doc-extended">Produces a fixed-width table with one row per class (precision, recall, F1 and support) followed by the overall accuracy and the macro average.</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Build a text report of the main per-class classification metrics.</p>
+<div class="doc-extended mb-8">Produces a fixed-width table with one row per class (precision, recall, F1 and support) followed by the overall accuracy and the macro average.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -2457,8 +2456,8 @@ When to use: for a human-readable summary. Parse <code class="bg-gray-100 px-1 p
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">fbeta_score(y_true, y_pred, beta=1.0, **kwargs)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute the <strong>F-beta score</strong>, a precision/recall trade-off.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute the <strong>F-beta score</strong>, a precision/recall trade-off.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 The F-beta score is the weighted harmonic mean of precision and recall, with <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">beta</code> controlling how much more recall counts than precision.
 </p>
@@ -2623,8 +2622,8 @@ The F-beta score is the weighted harmonic mean of precision and recall, with <co
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">true_negative_rate(y_true, y_pred, pos_label=1)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute the <strong>true negative rate</strong> (TNR, specificity).</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute the <strong>true negative rate</strong> (TNR, specificity).</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 The fraction of actual negatives that the model correctly leaves unflagged — the mirror image of recall.
 </p>
@@ -2775,8 +2774,8 @@ The fraction of actual negatives that the model correctly leaves unflagged — t
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">false_negative_rate(y_true, y_pred, pos_label=1)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute the <strong>false negative rate</strong> (FNR, miss rate).</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute the <strong>false negative rate</strong> (FNR, miss rate).</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 The fraction of actual positives the model misses, i.e. <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">1 - TPR</code>.
 </p>
@@ -2917,7 +2916,7 @@ The fraction of actual positives the model misses, i.e. <code class="bg-gray-100
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">sensitivity_score(y_true, y_pred, pos_label=1)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute the <strong>sensitivity</strong>, the clinical name for the true positive rate.</p>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute the <strong>sensitivity</strong>, the clinical name for the true positive rate.</p>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -3060,7 +3059,7 @@ The fraction of actual positives the model misses, i.e. <code class="bg-gray-100
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">specificity_score(y_true, y_pred, pos_label=1)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute the <strong>specificity</strong>, the clinical name for the true negative rate.</p>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute the <strong>specificity</strong>, the clinical name for the true negative rate.</p>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -3203,7 +3202,7 @@ The fraction of actual positives the model misses, i.e. <code class="bg-gray-100
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">num_true_positives(y_true, y_pred, pos_label=1)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Count the <strong>true positives</strong>: positives correctly predicted as positive.</p>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Count the <strong>true positives</strong>: positives correctly predicted as positive.</p>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -3336,7 +3335,7 @@ The fraction of actual positives the model misses, i.e. <code class="bg-gray-100
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">num_true_negatives(y_true, y_pred, pos_label=1)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Count the <strong>true negatives</strong>: negatives correctly predicted as negative.</p>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Count the <strong>true negatives</strong>: negatives correctly predicted as negative.</p>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -3469,7 +3468,7 @@ The fraction of actual positives the model misses, i.e. <code class="bg-gray-100
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">num_false_positives(y_true, y_pred, pos_label=1)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Count the <strong>false positives</strong>: negatives wrongly predicted as positive.</p>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Count the <strong>false positives</strong>: negatives wrongly predicted as positive.</p>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -3602,7 +3601,7 @@ The fraction of actual positives the model misses, i.e. <code class="bg-gray-100
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">num_false_negatives(y_true, y_pred, pos_label=1)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Count the <strong>false negatives</strong>: positives wrongly predicted as negative.</p>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Count the <strong>false negatives</strong>: positives wrongly predicted as negative.</p>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -3735,8 +3734,8 @@ The fraction of actual positives the model misses, i.e. <code class="bg-gray-100
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">roc_curve(y_true, y_score, pos_label=1)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute the <strong>receiver operating characteristic</strong> (ROC) curve.</p>
-<div class="doc-extended">Sweeps the decision threshold from <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">+inf</code> down through every distinct score and records the resulting (FPR, TPR) operating points. Plotting TPR against FPR shows the full trade-off a model offers; the diagonal is random guessing.</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute the <strong>receiver operating characteristic</strong> (ROC) curve.</p>
+<div class="doc-extended mb-8">Sweeps the decision threshold from <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">+inf</code> down through every distinct score and records the resulting (FPR, TPR) operating points. Plotting TPR against FPR shows the full trade-off a model offers; the diagonal is random guessing.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -3951,8 +3950,8 @@ When to use: to pick an operating threshold, not just to score a model — the c
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">auc(x, y)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute the area under a curve by the <strong>trapezoidal rule</strong>.</p>
-<div class="doc-extended">A generic integrator: given the x and y coordinates of a curve it returns <span class="katex-inline">\int y \, dx</span> approximated by trapezoids.</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute the area under a curve by the <strong>trapezoidal rule</strong>.</p>
+<div class="doc-extended mb-8">A generic integrator: given the x and y coordinates of a curve it returns <span class="katex-inline">\int y \, dx</span> approximated by trapezoids.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -4098,8 +4097,8 @@ When to use: to integrate any curve produced elsewhere in this module. <code cla
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">precision_recall_curve(y_true, y_score, pos_label=1)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute the <strong>precision-recall curve</strong>.</p>
-<div class="doc-extended">Walks the samples in order of decreasing score and records the precision and recall obtained by treating each prefix as the set of positive predictions. Unlike an ROC curve it ignores true negatives, which makes it the informative view when positives are rare.</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute the <strong>precision-recall curve</strong>.</p>
+<div class="doc-extended mb-8">Walks the samples in order of decreasing score and records the precision and recall obtained by treating each prefix as the set of positive predictions. Unlike an ROC curve it ignores true negatives, which makes it the informative view when positives are rare.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -4289,8 +4288,8 @@ When to use: on imbalanced problems, where a large true-negative pool makes an R
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">average_precision_score(y_true, y_score, pos_label=1)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute the <strong>average precision</strong> (AP), the area under the PR curve.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute the <strong>average precision</strong> (AP), the area under the PR curve.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 AP summarises <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">precision_recall_curve</code> as the precision achieved at each threshold, weighted by the gain in recall it produces.
 </p>
@@ -4440,8 +4439,8 @@ When to use: as the headline ranking metric on heavily imbalanced data, where <c
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">log_loss(y_true, y_pred_proba, eps=1e-15)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute the <strong>logistic loss</strong> (cross-entropy) of predicted probabilities.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute the <strong>logistic loss</strong> (cross-entropy) of predicted probabilities.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 Log loss scores a <em>probabilistic</em> classifier: it rewards assigning high probability to the correct class and punishes confident mistakes severely, because the penalty grows without bound as the predicted probability of the true class approaches zero.
 </p>
@@ -4608,8 +4607,8 @@ When to use: whenever calibrated probabilities matter — ranking or thresholdin
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">hamming_loss(y_true, y_pred)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute the <strong>Hamming loss</strong>: the fraction of mismatched labels.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute the <strong>Hamming loss</strong>: the fraction of mismatched labels.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 For single-label input this is simply <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">1 - accuracy</code>. For multi-label indicator arrays it is the fraction of individual label positions that disagree, which makes it more forgiving than an exact-match criterion.
 </p>
@@ -4762,8 +4761,8 @@ When to use: for multi-label problems, where partial credit for getting most lab
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">zero_one_loss(y_true, y_pred, normalize=True)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute the <strong>0-1 loss</strong>: the fraction (or count) of misclassifications.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute the <strong>0-1 loss</strong>: the fraction (or count) of misclassifications.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 The direct complement of <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">accuracy_score</code>; it charges 1 for every wrong prediction regardless of how wrong it was.
 </p>

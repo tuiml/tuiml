@@ -6,8 +6,7 @@
 {% block title %}serialization - API Documentation{% endblock %}
 
 {% block content %}
-<p class="oc-caption api-crumb" style="margin: 0;"><a href="../api-reference.html">API Reference</a> / <a href="index.html">utils</a> / <span class="api-crumb-file">serialization.py</span></p>
-<div class="flex items-center justify-between gap-3" style="margin-bottom: 32px;"><h1 class="oc-display" style="margin: 0;">serialization</h1><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/utils/serialization.py" target="_blank" rel="noopener noreferrer" title="View utils/serialization.py source on GitHub" aria-label="View utils/serialization.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
+<div class="api-crumb-row" style="margin-bottom: 32px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="../api-reference.html">API Reference</a> / <a href="index.html">utils</a> / <h1 class="api-crumb-file">serialization.py</h1></div><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/utils/serialization.py" target="_blank" rel="noopener noreferrer" title="View utils/serialization.py source on GitHub" aria-label="View utils/serialization.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
 <nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
 <div class="oc-toc-label">On this page</div>
 <a href="#class-ModelSerializer">ModelSerializer</a>
@@ -18,8 +17,8 @@
 <a href="#func-export_to_onnx">export_to_onnx</a>
 </nav>
 <main>
-<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Persist trained models to disk, and export them to other runtimes.</p>
-<div class="doc-extended">Reach for this module whenever a fitted TuiML model (or any picklable Python object) needs to survive past the current process: hand it <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">save_model</code> / <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">load_model</code> for a quick round trip, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ModelSerializer</code> when you want to reuse one format/protocol configuration across many saves, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ModelCheckpoint</code> to snapshot a model periodically during a training loop, or <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">export_to_onnx</code> to hand the model to a non-Python runtime.</div>
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Persist trained models to disk, and export them to other runtimes.</p>
+<div class="doc-extended mb-8">Reach for this module whenever a fitted TuiML model (or any picklable Python object) needs to survive past the current process: hand it <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">save_model</code> / <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">load_model</code> for a quick round trip, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ModelSerializer</code> when you want to reuse one format/protocol configuration across many saves, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ModelCheckpoint</code> to snapshot a model periodically during a training loop, or <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">export_to_onnx</code> to hand the model to a non-Python runtime.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -1157,8 +1156,8 @@ The serializer supports the following backend formats:
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">save_model(model: Any, filepath: Union[str, Path], format: str=&#x27;pickle&#x27;, metadata: Optional[Dict]=None, compress: bool=False) -&gt; str</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Save a trained model to disk with automatic metadata tracking.</p>
-<div class="doc-extended">Thin functional wrapper around <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ModelSerializer</code>: builds one with the resolved format and delegates to <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">save</code>.</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Save a trained model to disk with automatic metadata tracking.</p>
+<div class="doc-extended mb-8">Thin functional wrapper around <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ModelSerializer</code>: builds one with the resolved format and delegates to <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">save</code>.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -1345,8 +1344,8 @@ The serializer supports the following backend formats:
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">load_model(filepath: Union[str, Path]) -&gt; Any</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Load a model from disk, discarding any stored metadata.</p>
-<div class="doc-extended">Detects the format from <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">filepath</code>&#x27;s extension: <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">.gz</code> is loaded as gzip-compressed pickle, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">.joblib</code>/<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">.jbl</code> via <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">joblib</code>, and anything else as a plain pickle.</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Load a model from disk, discarding any stored metadata.</p>
+<div class="doc-extended mb-8">Detects the format from <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">filepath</code>&#x27;s extension: <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">.gz</code> is loaded as gzip-compressed pickle, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">.joblib</code>/<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">.jbl</code> via <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">joblib</code>, and anything else as a plain pickle.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -1481,8 +1480,8 @@ array([0])</code></pre>
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">load_model_info(filepath: Union[str, Path]) -&gt; Dict[str, Any]</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Load a saved model&#x27;s metadata and hyper-parameters, without the model itself.</p>
-<div class="doc-extended">Useful for inspecting model properties, comparing performance, or retrieving training timestamps when only the recorded metadata is needed, so the caller&#x27;s code doesn&#x27;t have to unpack <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">load_with_metadata</code>&#x27;s dict by hand.</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Load a saved model&#x27;s metadata and hyper-parameters, without the model itself.</p>
+<div class="doc-extended mb-8">Useful for inspecting model properties, comparing performance, or retrieving training timestamps when only the recorded metadata is needed, so the caller&#x27;s code doesn&#x27;t have to unpack <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">load_with_metadata</code>&#x27;s dict by hand.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -1627,7 +1626,7 @@ Model: NaiveBayesClassifier | Acc: 0.98</code></pre>
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">export_to_onnx(model: Any, filepath: Union[str, Path], input_shape: tuple, input_names: list=None, output_names: list=None) -&gt; str</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Export a trained model to ONNX format for cross-platform interoperability.</p>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Export a trained model to ONNX format for cross-platform interoperability.</p>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">

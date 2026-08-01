@@ -6,8 +6,7 @@
 {% block title %}information_theoretic - API Documentation{% endblock %}
 
 {% block content %}
-<p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a> / <a href="index.html">metrics</a> / <span class="api-crumb-file">information_theoretic.py</span></p>
-<div class="flex items-center justify-between gap-3" style="margin-bottom: 32px;"><h1 class="oc-display" style="margin: 0;">information_theoretic</h1><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py" target="_blank" rel="noopener noreferrer" title="View evaluation/metrics/information_theoretic.py source on GitHub" aria-label="View evaluation/metrics/information_theoretic.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
+<div class="api-crumb-row" style="margin-bottom: 32px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a> / <a href="index.html">metrics</a> / <h1 class="api-crumb-file">information_theoretic.py</h1></div><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py" target="_blank" rel="noopener noreferrer" title="View evaluation/metrics/information_theoretic.py source on GitHub" aria-label="View evaluation/metrics/information_theoretic.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
 <nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
 <div class="oc-toc-label">On this page</div>
 <a href="#func-entropy">entropy</a>
@@ -26,8 +25,8 @@
 <a href="#func-mean_kb_information">mean_kb_information</a>
 </nav>
 <main>
-<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Information-theoretic evaluation metrics.</p>
-<div class="doc-extended">These metrics are used by Weka for measuring information gain, entropy, etc. Equivalent to Weka&#x27;s information-theoretic evaluation methods.</div></div>
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Information-theoretic evaluation metrics.</p>
+<div class="doc-extended mb-8">These metrics are used by Weka for measuring information gain, entropy, etc. Equivalent to Weka&#x27;s information-theoretic evaluation methods.</div></div>
 <div class="mb-12">
 <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-code text-indigo-500"></i> Functions</h2>
 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-entropy">
@@ -44,8 +43,8 @@
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">entropy(labels: np.ndarray, base: Optional[float]=None) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Calculate entropy of a label distribution, the average information content (uncertainty) of the labels.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Calculate entropy of a label distribution, the average information content (uncertainty) of the labels.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 Equivalent to Weka&#x27;s information-theoretic calculations.
 </p>
@@ -153,8 +152,8 @@ Equivalent to Weka&#x27;s information-theoretic calculations.
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">conditional_entropy(y_true: np.ndarray, y_pred: np.ndarray, base: Optional[float]=None) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Calculate conditional entropy H(Y|X), the remaining uncertainty in Y once X is known.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Calculate conditional entropy H(Y|X), the remaining uncertainty in Y once X is known.</p>
+<div class="doc-extended mb-8">
 <div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
 <span class="katex-display">H(Y|X) = \sum_x p(x) H(Y|X=x)</span>
 </div>
@@ -272,7 +271,7 @@ Equivalent to Weka&#x27;s information-theoretic calculations.
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">mutual_information(y_true: np.ndarray, y_pred: np.ndarray, base: Optional[float]=None) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Calculate mutual information I(Y;X) = H(Y) - H(Y|X), the reduction in uncertainty about Y from observing X.</p>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Calculate mutual information I(Y;X) = H(Y) - H(Y|X), the reduction in uncertainty about Y from observing X.</p>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -386,8 +385,8 @@ Equivalent to Weka&#x27;s information-theoretic calculations.
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">information_gain(y_true: np.ndarray, y_pred: np.ndarray, base: Optional[float]=2) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Calculate information gain, numerically identical to mutual information.</p>
-<div class="doc-extended">Equivalent to Weka&#x27;s information gain calculation.</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Calculate information gain, numerically identical to mutual information.</p>
+<div class="doc-extended mb-8">Equivalent to Weka&#x27;s information gain calculation.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -499,8 +498,8 @@ Equivalent to Weka&#x27;s information-theoretic calculations.
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">gain_ratio(y_true: np.ndarray, y_pred: np.ndarray, base: Optional[float]=2) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Calculate gain ratio, information gain normalized by split information.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Calculate gain ratio, information gain normalized by split information.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 Equivalent to Weka&#x27;s gain ratio used in C4.5/J48, and defined as
 </p>
@@ -624,8 +623,8 @@ which corrects information gain&#x27;s bias toward splits with many values.
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">kullback_leibler_divergence(y_true_proba: np.ndarray, y_pred_proba: np.ndarray, base: Optional[float]=None) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Calculate Kullback-Leibler divergence KL(P||Q), the expected extra information needed to encode samples from P using a code optimized for Q instead of P.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Calculate Kullback-Leibler divergence KL(P||Q), the expected extra information needed to encode samples from P using a code optimized for Q instead of P.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 Equivalent to Weka&#x27;s KB Information metric.
 </p>
@@ -745,8 +744,8 @@ Equivalent to Weka&#x27;s KB Information metric.
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">jensen_shannon_divergence(p: np.ndarray, q: np.ndarray, base: Optional[float]=None) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Calculate Jensen-Shannon divergence, a smoothed and symmetric version of KL divergence.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Calculate Jensen-Shannon divergence, a smoothed and symmetric version of KL divergence.</p>
+<div class="doc-extended mb-8">
 <div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
 <span class="katex-display">JSD(P \| Q) = \frac{1}{2} KL(P \| M) + \frac{1}{2} KL(Q \| M),     \quad M = \frac{1}{2}(P + Q)</span>
 </div>
@@ -868,7 +867,7 @@ Unlike KL divergence, JSD is symmetric in P and Q, always finite, and its square
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">cross_entropy(y_true_proba: np.ndarray, y_pred_proba: np.ndarray, base: Optional[float]=None) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Calculate cross-entropy H(P,Q) = H(P) + KL(P||Q), the average number of units needed to identify an event drawn from P when using a code optimized for Q.</p>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Calculate cross-entropy H(P,Q) = H(P) + KL(P||Q), the average number of units needed to identify an event drawn from P when using a code optimized for Q.</p>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -982,8 +981,8 @@ Unlike KL divergence, JSD is symmetric in P and Q, always finite, and its square
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">symmetrical_uncertainty(y_true: np.ndarray, y_pred: np.ndarray, base: Optional[float]=2) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Calculate symmetrical uncertainty, a normalized, symmetric variant of mutual information.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Calculate symmetrical uncertainty, a normalized, symmetric variant of mutual information.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 Equivalent to Weka&#x27;s <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">SymmetricalUncertAttributeEval</code>.
 </p>
@@ -1109,8 +1108,8 @@ Normalizing by H(X) + H(Y) compensates for mutual information&#x27;s bias toward
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">prior_entropy(y_true: np.ndarray, base: Optional[float]=2) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Calculate prior entropy, the entropy of the class distribution before any model prediction is taken into account.</p>
-<div class="doc-extended">Equivalent to Weka&#x27;s <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Evaluation.SFPriorEntropy()</code>. A thin wrapper around <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">entropy</code> that defaults to base 2.</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Calculate prior entropy, the entropy of the class distribution before any model prediction is taken into account.</p>
+<div class="doc-extended mb-8">Equivalent to Weka&#x27;s <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Evaluation.SFPriorEntropy()</code>. A thin wrapper around <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">entropy</code> that defaults to base 2.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -1208,8 +1207,8 @@ Normalizing by H(X) + H(Y) compensates for mutual information&#x27;s bias toward
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">scheme_entropy(y_pred_proba: np.ndarray, base: Optional[float]=2) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Calculate scheme entropy, the average entropy of the model&#x27;s predicted class distributions.</p>
-<div class="doc-extended">Equivalent to Weka&#x27;s <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Evaluation.SFSchemeEntropy()</code>. Low scheme entropy means the model makes confident (low-entropy), peaked predictions; high scheme entropy means predictions are close to uniform.</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Calculate scheme entropy, the average entropy of the model&#x27;s predicted class distributions.</p>
+<div class="doc-extended mb-8">Equivalent to Weka&#x27;s <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Evaluation.SFSchemeEntropy()</code>. Low scheme entropy means the model makes confident (low-entropy), peaked predictions; high scheme entropy means predictions are close to uniform.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -1307,8 +1306,8 @@ Normalizing by H(X) + H(Y) compensates for mutual information&#x27;s bias toward
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">entropy_gain(y_true: np.ndarray, y_pred_proba: np.ndarray, base: Optional[float]=2) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Calculate entropy gain, the reduction in entropy from using the model&#x27;s predictions instead of the prior class distribution.</p>
-<div class="doc-extended">Equivalent to Weka&#x27;s <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Evaluation.SFEntropyGain()</code>, computed as <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">prior_entropy</code> minus <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">scheme_entropy</code>.</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Calculate entropy gain, the reduction in entropy from using the model&#x27;s predictions instead of the prior class distribution.</p>
+<div class="doc-extended mb-8">Equivalent to Weka&#x27;s <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Evaluation.SFEntropyGain()</code>, computed as <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">prior_entropy</code> minus <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">scheme_entropy</code>.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -1422,8 +1421,8 @@ Normalizing by H(X) + H(Y) compensates for mutual information&#x27;s bias toward
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">kb_information(y_true: np.ndarray, y_pred_proba: np.ndarray, base: Optional[float]=2) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Calculate KB (Kononenko-Bratko) information, the average per-instance information gained by using the model&#x27;s predicted probability for the true class instead of the prior probability of that class.</p>
-<div class="doc-extended">Equivalent to Weka&#x27;s <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Evaluation.KBInformation()</code>. For each instance, the log-ratio of the predicted probability of the true class to the prior probability of the true class is accumulated and averaged.</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Calculate KB (Kononenko-Bratko) information, the average per-instance information gained by using the model&#x27;s predicted probability for the true class instead of the prior probability of that class.</p>
+<div class="doc-extended mb-8">Equivalent to Weka&#x27;s <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Evaluation.KBInformation()</code>. For each instance, the log-ratio of the predicted probability of the true class to the prior probability of the true class is accumulated and averaged.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -1537,8 +1536,8 @@ Normalizing by H(X) + H(Y) compensates for mutual information&#x27;s bias toward
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">mean_kb_information(y_true: np.ndarray, y_pred_proba: np.ndarray, base: Optional[float]=2) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Calculate mean KB information per instance.</p>
-<div class="doc-extended">Equivalent to Weka&#x27;s Evaluation.SFMeanKBInformation().</div></div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Calculate mean KB information per instance.</p>
+<div class="doc-extended mb-8">Equivalent to Weka&#x27;s Evaluation.SFMeanKBInformation().</div></div>
 </div></div>
 </div>
 </main>

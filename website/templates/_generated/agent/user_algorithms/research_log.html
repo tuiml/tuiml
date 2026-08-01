@@ -6,15 +6,14 @@
 {% block title %}research_log - API Documentation{% endblock %}
 
 {% block content %}
-<p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">agent</a> / <a href="index.html">user_algorithms</a> / <span class="api-crumb-file">research_log.py</span></p>
-<div class="flex items-center justify-between gap-3" style="margin-bottom: 32px;"><h1 class="oc-display" style="margin: 0;">research_log</h1><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/agent/user_algorithms/research_log.py" target="_blank" rel="noopener noreferrer" title="View agent/user_algorithms/research_log.py source on GitHub" aria-label="View agent/user_algorithms/research_log.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
+<div class="api-crumb-row" style="margin-bottom: 32px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">agent</a> / <a href="index.html">user_algorithms</a> / <h1 class="api-crumb-file">research_log.py</h1></div><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/agent/user_algorithms/research_log.py" target="_blank" rel="noopener noreferrer" title="View agent/user_algorithms/research_log.py source on GitHub" aria-label="View agent/user_algorithms/research_log.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
 <nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
 <div class="oc-toc-label">On this page</div>
 <a href="#func-record_experiment_runs">record_experiment_runs</a>
 <a href="#func-research_log">research_log</a>
 </nav>
 <main>
-<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Per-algorithm experiment history recorded from benchmark runs.</p></div>
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Per-algorithm experiment history recorded from benchmark runs.</p></div>
 <div class="mb-12">
 <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-code text-indigo-500"></i> Functions</h2>
 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-record_experiment_runs">
@@ -31,8 +30,8 @@
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">record_experiment_runs(experiment_result: Dict[str, Any]) -&gt; List[Dict[str, Any]]</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Append matching experiment results to user algorithms&#x27; <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">runs.jsonl</code> files.</p>
-<div class="doc-extended">Scans a <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_benchmark</code> result for algorithms that resolve to user algorithms on disk and logs one entry per (dataset, algorithm) pair. Never raises: logging failures are swallowed so the caller&#x27;s experiment result is not affected.</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Append matching experiment results to user algorithms&#x27; <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">runs.jsonl</code> files.</p>
+<div class="doc-extended mb-8">Scans a <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_benchmark</code> result for algorithms that resolve to user algorithms on disk and logs one entry per (dataset, algorithm) pair. Never raises: logging failures are swallowed so the caller&#x27;s experiment result is not affected.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -94,8 +93,8 @@
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">research_log(name: Optional[str]=None) -&gt; Dict[str, Any]</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Return the aggregated research view for one (or all) user algorithms.</p>
-<div class="doc-extended">Combines <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">metadata.json</code> (static: class, kind, version, source hash) with <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">runs.jsonl</code> (dynamic: every recorded experiment run) and computes: best primary score per version, run count per version, and the most recent timestamp. Agents use this as the equivalent of the landing-page &quot;research log&quot; panel.</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Return the aggregated research view for one (or all) user algorithms.</p>
+<div class="doc-extended mb-8">Combines <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">metadata.json</code> (static: class, kind, version, source hash) with <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">runs.jsonl</code> (dynamic: every recorded experiment run) and computes: best primary score per version, run count per version, and the most recent timestamp. Agents use this as the equivalent of the landing-page &quot;research log&quot; panel.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">

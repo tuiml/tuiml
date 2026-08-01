@@ -6,15 +6,14 @@
 {% block title %}markdown - API Documentation{% endblock %}
 
 {% block content %}
-<p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a> / <a href="index.html">reporting</a> / <span class="api-crumb-file">markdown.py</span></p>
-<div class="flex items-center justify-between gap-3" style="margin-bottom: 32px;"><h1 class="oc-display" style="margin: 0;">markdown</h1><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/reporting/markdown.py" target="_blank" rel="noopener noreferrer" title="View evaluation/reporting/markdown.py source on GitHub" aria-label="View evaluation/reporting/markdown.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
+<div class="api-crumb-row" style="margin-bottom: 32px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a> / <a href="index.html">reporting</a> / <h1 class="api-crumb-file">markdown.py</h1></div><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/reporting/markdown.py" target="_blank" rel="noopener noreferrer" title="View evaluation/reporting/markdown.py source on GitHub" aria-label="View evaluation/reporting/markdown.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
 <nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
 <div class="oc-toc-label">On this page</div>
 <a href="#func-to_markdown_table">to_markdown_table</a>
 </nav>
 <main>
-<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Markdown renderer for benchmark result matrices.</p>
-<div class="doc-extended">
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Markdown renderer for benchmark result matrices.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 Turns a <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ResultMatrix</code> into a GitHub-flavoured pipe table. This is the format to reach for when the results are headed somewhere that renders Markdown but not HTML or LaTeX: a README, a pull-request comment, an issue, a lab notebook, or a docs page built from Markdown sources.
 </p>
@@ -39,8 +38,8 @@ Significance against the baseline model is carried by inline emphasis rather tha
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">to_markdown_table(matrix, precision: int=4) -&gt; str</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Render a result matrix as a GitHub-flavoured Markdown pipe table.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Render a result matrix as a GitHub-flavoured Markdown pipe table.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 The table has a leading <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Dataset</code> column, one column per model in <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">matrix.model_names</code>, one row per dataset, and a final bolded <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono"><strong>W/L/T</strong></code> row giving each model&#x27;s win / loss / tie record against the baseline:
 </p>

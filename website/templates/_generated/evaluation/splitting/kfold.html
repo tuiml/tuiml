@@ -6,8 +6,7 @@
 {% block title %}kfold - API Documentation{% endblock %}
 
 {% block content %}
-<p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a> / <a href="index.html">splitting</a> / <span class="api-crumb-file">kfold.py</span></p>
-<div class="flex items-center justify-between gap-3" style="margin-bottom: 32px;"><h1 class="oc-display" style="margin: 0;">kfold</h1><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/splitting/kfold.py" target="_blank" rel="noopener noreferrer" title="View evaluation/splitting/kfold.py source on GitHub" aria-label="View evaluation/splitting/kfold.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
+<div class="api-crumb-row" style="margin-bottom: 32px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a> / <a href="index.html">splitting</a> / <h1 class="api-crumb-file">kfold.py</h1></div><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/splitting/kfold.py" target="_blank" rel="noopener noreferrer" title="View evaluation/splitting/kfold.py source on GitHub" aria-label="View evaluation/splitting/kfold.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
 <nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
 <div class="oc-toc-label">On this page</div>
 <a href="#class-KFold">KFold</a>
@@ -17,8 +16,8 @@
 <a href="#func-cross_val_score">cross_val_score</a>
 </nav>
 <main>
-<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Fold-based cross-validation splitters and the <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">cross_val_score</code> driver.</p>
-<div class="doc-extended">
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Fold-based cross-validation splitters and the <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">cross_val_score</code> driver.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 This module contains the cross-validators that partition a dataset into <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">n_splits</code> mutually exclusive test folds, plus a convenience function that fits and scores an estimator across any splitter:
 </p>
@@ -1841,8 +1840,8 @@ Use this instead of <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mo
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">cross_val_score(estimator: Any, X: np.ndarray, y: np.ndarray, *, cv: Union[int, &#x27;BaseSplitter&#x27;]=5, scoring: Optional[Union[str, Callable]]=None, random_state: Optional[int]=None) -&gt; np.ndarray</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Fit and score an estimator once per cross-validation split.</p>
-<div class="doc-extended">For every <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">(train_index, test_index)</code> pair produced by <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">cv</code> the estimator is cloned (via <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">estimator.__class__(**estimator.get_params())</code>), fitted on the training rows and scored on the held-out rows. The original <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">estimator</code> is left unfitted whenever cloning succeeds.</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Fit and score an estimator once per cross-validation split.</p>
+<div class="doc-extended mb-8">For every <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">(train_index, test_index)</code> pair produced by <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">cv</code> the estimator is cloned (via <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">estimator.__class__(**estimator.get_params())</code>), fitted on the training rows and scored on the held-out rows. The original <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">estimator</code> is left unfitted whenever cloning succeeds.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">

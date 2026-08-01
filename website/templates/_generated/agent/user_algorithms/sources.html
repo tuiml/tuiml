@@ -6,8 +6,7 @@
 {% block title %}sources - API Documentation{% endblock %}
 
 {% block content %}
-<p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">agent</a> / <a href="index.html">user_algorithms</a> / <span class="api-crumb-file">sources.py</span></p>
-<div class="flex items-center justify-between gap-3" style="margin-bottom: 32px;"><h1 class="oc-display" style="margin: 0;">sources</h1><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/agent/user_algorithms/sources.py" target="_blank" rel="noopener noreferrer" title="View agent/user_algorithms/sources.py source on GitHub" aria-label="View agent/user_algorithms/sources.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
+<div class="api-crumb-row" style="margin-bottom: 32px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">agent</a> / <a href="index.html">user_algorithms</a> / <h1 class="api-crumb-file">sources.py</h1></div><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/agent/user_algorithms/sources.py" target="_blank" rel="noopener noreferrer" title="View agent/user_algorithms/sources.py source on GitHub" aria-label="View agent/user_algorithms/sources.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
 <nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
 <div class="oc-toc-label">On this page</div>
 <a href="#func-read_source">read_source</a>
@@ -16,7 +15,7 @@
 <a href="#func-edit_algorithm">edit_algorithm</a>
 </nav>
 <main>
-<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Read, search and edit algorithm source, user-authored or built-in.</p></div>
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Read, search and edit algorithm source, user-authored or built-in.</p></div>
 <div class="mb-12">
 <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-code text-indigo-500"></i> Functions</h2>
 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-read_source">
@@ -33,8 +32,8 @@
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">read_source(name: str, version: Optional[str]=None, builtin: bool=False) -&gt; Dict[str, Any]</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Return the full source code of a user or built-in algorithm.</p>
-<div class="doc-extended">For user algorithms, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">name</code> is the directory name under USER_ALGS_DIR. For built-in algorithms, set <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">builtin=True</code> and pass the class name or file stem (e.g. <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&#x27;RandomForestClassifier&#x27;</code> or <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&#x27;random_forest&#x27;</code>).</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Return the full source code of a user or built-in algorithm.</p>
+<div class="doc-extended mb-8">For user algorithms, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">name</code> is the directory name under USER_ALGS_DIR. For built-in algorithms, set <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">builtin=True</code> and pass the class name or file stem (e.g. <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&#x27;RandomForestClassifier&#x27;</code> or <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&#x27;random_forest&#x27;</code>).</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -124,7 +123,7 @@
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">list_algorithm_files(builtin: bool=True, user: bool=True) -&gt; Dict[str, Any]</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">List all algorithm source files, built-in and/or user-authored.</p>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">List all algorithm source files, built-in and/or user-authored.</p>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -200,7 +199,7 @@
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">search_source(query: str, name: Optional[str]=None, builtin: bool=True, user: bool=True) -&gt; Dict[str, Any]</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Grep for <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">query</code> across algorithm source files.</p>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Grep for <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">query</code> across algorithm source files.</p>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -304,8 +303,8 @@
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">edit_algorithm(name: str, old_string: str, new_string: str, version: Optional[str]=None, bump_version: bool=False) -&gt; Dict[str, Any]</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Apply a str_replace edit to a user algorithm source.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Apply a str_replace edit to a user algorithm source.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 Replaces exactly one occurrence of <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">old_string</code> with <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">new_string</code>. Fails if <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">old_string</code> is not found, or if it appears more than once (ambiguous, make the search string more specific in that case).
 </p>

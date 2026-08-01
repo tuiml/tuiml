@@ -6,8 +6,7 @@
 {% block title %}restart - API Documentation{% endblock %}
 
 {% block content %}
-<p class="oc-caption api-crumb" style="margin: 0;"><a href="../../../api-reference.html">API Reference</a> / <a href="../../index.html">agent</a> / <a href="../index.html">tools</a> / <a href="index.html">system</a> / <span class="api-crumb-file">restart.py</span></p>
-<div class="flex items-center justify-between gap-3" style="margin-bottom: 32px;"><h1 class="oc-display" style="margin: 0;">restart</h1><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/agent/tools/system/restart.py" target="_blank" rel="noopener noreferrer" title="View agent/tools/system/restart.py source on GitHub" aria-label="View agent/tools/system/restart.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
+<div class="api-crumb-row" style="margin-bottom: 32px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="../../../api-reference.html">API Reference</a> / <a href="../../index.html">agent</a> / <a href="../index.html">tools</a> / <a href="index.html">system</a> / <h1 class="api-crumb-file">restart.py</h1></div><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/agent/tools/system/restart.py" target="_blank" rel="noopener noreferrer" title="View agent/tools/system/restart.py source on GitHub" aria-label="View agent/tools/system/restart.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
 <nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
 <div class="oc-toc-label">On this page</div>
 <a href="#func-find_mcp_processes">find_mcp_processes</a>
@@ -15,8 +14,8 @@
 <a href="#func-execute_restart">execute_restart</a>
 </nav>
 <main>
-<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Restarting tuiml-mcp processes.</p>
-<div class="doc-extended">
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Restarting tuiml-mcp processes.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 stdio MCP servers are spawned as child processes by their parent AI clients (Claude Desktop, Cursor, ...). When the child exits, every mainstream client respawns it on the next request. So &quot;restart&quot; really means &quot;kill the running children and let the clients respawn them with the freshly installed code&quot;.
 </p>
@@ -41,7 +40,7 @@ Used by both <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tui
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">find_mcp_processes(exclude_self: bool=True) -&gt; List[Dict]</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Return a list of running tuiml-mcp processes.</p>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Return a list of running tuiml-mcp processes.</p>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -103,7 +102,7 @@ Used by both <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tui
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">kill_mcp_processes(procs: Optional[List[Dict]]=None, grace_seconds: float=2.0, include_self: bool=False, self_delay_seconds: float=0.5) -&gt; Dict</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Send SIGTERM to each tuiml-mcp process; SIGKILL after grace.</p>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Send SIGTERM to each tuiml-mcp process; SIGKILL after grace.</p>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -207,8 +206,8 @@ Used by both <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tui
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">execute_restart(**kwargs) -&gt; Dict[str, Any]</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Restart every running tuiml-mcp child process.</p>
-<div class="doc-extended">When called from an MCP context the current server is one of those children. We schedule a deferred self-exit (after a short delay) so this response can be flushed back to the agent before the process dies; the parent client (Claude Desktop, Cursor, …) will auto-respawn the child with the newly installed code on its next request.</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Restart every running tuiml-mcp child process.</p>
+<div class="doc-extended mb-8">When called from an MCP context the current server is one of those children. We schedule a deferred self-exit (after a short delay) so this response can be flushed back to the agent before the process dies; the parent client (Claude Desktop, Cursor, …) will auto-respawn the child with the newly installed code on its next request.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">

@@ -6,8 +6,7 @@
 {% block title %}server - API Documentation{% endblock %}
 
 {% block content %}
-<p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">agent</a> / <a href="index.html">mcp</a> / <span class="api-crumb-file">server.py</span></p>
-<div class="flex items-center justify-between gap-3" style="margin-bottom: 32px;"><h1 class="oc-display" style="margin: 0;">server</h1><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/agent/mcp/server.py" target="_blank" rel="noopener noreferrer" title="View agent/mcp/server.py source on GitHub" aria-label="View agent/mcp/server.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
+<div class="api-crumb-row" style="margin-bottom: 32px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">agent</a> / <a href="index.html">mcp</a> / <h1 class="api-crumb-file">server.py</h1></div><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/agent/mcp/server.py" target="_blank" rel="noopener noreferrer" title="View agent/mcp/server.py source on GitHub" aria-label="View agent/mcp/server.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
 <nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
 <div class="oc-toc-label">On this page</div>
 <a href="#func-create_server">create_server</a>
@@ -16,8 +15,8 @@
 <a href="#func-get_server_info">get_server_info</a>
 </nav>
 <main>
-<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">MCP (Model Context Protocol) server for TuiML.</p>
-<div class="doc-extended">Exposes workflow and discovery tools that give LLMs access to all TuiML components (algorithms, preprocessors, datasets, features). New algorithms added to the component registry are automatically discoverable via <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_list</code> / <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_describe</code> and usable via <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_train</code> / <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_benchmark</code>.</div>
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">MCP (Model Context Protocol) server for TuiML.</p>
+<div class="doc-extended mb-8">Exposes workflow and discovery tools that give LLMs access to all TuiML components (algorithms, preprocessors, datasets, features). New algorithms added to the component registry are automatically discoverable via <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_list</code> / <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_describe</code> and usable via <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_train</code> / <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_benchmark</code>.</div>
 <div class="mb-8 last:mb-0"><p class="text-gray-600 my-2">Run the server (installed with <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">pip install tuiml</code>):</p>
 
         <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
@@ -125,8 +124,8 @@ tuiml-mcp --info   # Show server info</code></pre>
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">create_server() -&gt; &#x27;Server&#x27;</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Create and configure the TuiML MCP server.</p>
-<div class="doc-extended">Only workflow and discovery tools are exposed as MCP tools (11 total). The internal registry still tracks all 200+ components so that tuiml_list, tuiml_describe, and tuiml_train can dynamically access any algorithm - including new ones added later.</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Create and configure the TuiML MCP server.</p>
+<div class="doc-extended mb-8">Only workflow and discovery tools are exposed as MCP tools (11 total). The internal registry still tracks all 200+ components so that tuiml_list, tuiml_describe, and tuiml_train can dynamically access any algorithm - including new ones added later.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -188,7 +187,7 @@ tuiml-mcp --info   # Show server info</code></pre>
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">run_server()</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Run the MCP server using stdio transport.</p>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Run the MCP server using stdio transport.</p>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -227,8 +226,8 @@ tuiml-mcp --info   # Show server info</code></pre>
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">main()</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Main entry point for the MCP server (the <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">tuiml-mcp</code> command).</p>
-<div class="doc-extended">Handles the <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">--info</code> and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">--help</code> flags, otherwise runs the stdio server.</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Main entry point for the MCP server (the <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">tuiml-mcp</code> command).</p>
+<div class="doc-extended mb-8">Handles the <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">--info</code> and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">--help</code> flags, otherwise runs the stdio server.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -267,7 +266,7 @@ tuiml-mcp --info   # Show server info</code></pre>
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">get_server_info() -&gt; Dict[str, Any]</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Get information about the MCP server.</p>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Get information about the MCP server.</p>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">

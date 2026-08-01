@@ -6,8 +6,7 @@
 {% block title %}clustering - API Documentation{% endblock %}
 
 {% block content %}
-<p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a> / <a href="index.html">metrics</a> / <span class="api-crumb-file">clustering.py</span></p>
-<div class="flex items-center justify-between gap-3" style="margin-bottom: 32px;"><h1 class="oc-display" style="margin: 0;">clustering</h1><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/clustering.py" target="_blank" rel="noopener noreferrer" title="View evaluation/metrics/clustering.py source on GitHub" aria-label="View evaluation/metrics/clustering.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
+<div class="api-crumb-row" style="margin-bottom: 32px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a> / <a href="index.html">metrics</a> / <h1 class="api-crumb-file">clustering.py</h1></div><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/clustering.py" target="_blank" rel="noopener noreferrer" title="View evaluation/metrics/clustering.py source on GitHub" aria-label="View evaluation/metrics/clustering.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
 <nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
 <div class="oc-toc-label">On this page</div>
 <a href="#func-adjusted_rand_score">adjusted_rand_score</a>
@@ -24,8 +23,8 @@
 <a href="#func-fowlkes_mallows_score">fowlkes_mallows_score</a>
 </nav>
 <main>
-<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Clustering evaluation metrics.</p>
-<div class="doc-extended">
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Clustering evaluation metrics.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 Two kinds of measure live here, and mixing them up is the usual mistake.
 </p>
@@ -84,8 +83,8 @@ Two directions to watch. <code class="bg-gray-100 px-1 py-0.5 rounded text-sm fo
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">adjusted_rand_score(labels_true: np.ndarray, labels_pred: np.ndarray) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute Adjusted Rand Index (ARI).</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute Adjusted Rand Index (ARI).</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 The Rand index corrected for chance, using the contingency table <span class="katex-inline">n_{ij}</span> with row sums <span class="katex-inline">a_i</span> and column sums <span class="katex-inline">b_j</span>:
 </p>
@@ -197,8 +196,8 @@ Subtracting the expected index makes 0.0 the score of random labelling, so unlik
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">rand_score(labels_true: np.ndarray, labels_pred: np.ndarray) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute Rand Index (RI).</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute Rand Index (RI).</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 The fraction of sample pairs that both labellings agree about, where <span class="katex-inline">a</span> counts pairs together in both and <span class="katex-inline">b</span> counts pairs apart in both:
 </p>
@@ -310,8 +309,8 @@ Not corrected for chance: random labellings score well above 0. Use <code class=
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">silhouette_score(X: np.ndarray, labels: np.ndarray, metric: str=&#x27;euclidean&#x27;) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute mean Silhouette Coefficient.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute mean Silhouette Coefficient.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 The mean silhouette over all samples. For one sample, with <span class="katex-inline">a(i)</span> its mean distance to its own cluster and <span class="katex-inline">b(i)</span> the mean distance to the nearest other cluster:
 </p>
@@ -438,8 +437,8 @@ The mean silhouette over all samples. For one sample, with <span class="katex-in
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">silhouette_samples(X: np.ndarray, labels: np.ndarray, metric: str=&#x27;euclidean&#x27;) -&gt; np.ndarray</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute Silhouette Coefficient for each sample.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute Silhouette Coefficient for each sample.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 Per-sample version of <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">silhouette_score</code>:
 </p>
@@ -566,8 +565,8 @@ array([0.412, 0.225, 0.225, 0.412, 0.225, 0.225])</code></pre>
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">davies_bouldin_score(X: np.ndarray, labels: np.ndarray) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute Davies-Bouldin Index.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute Davies-Bouldin Index.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 Lower values indicate better clustering (minimum is 0).
 </p>
@@ -684,8 +683,8 @@ LOWER is better, and 0 is the best possible value: the opposite direction to mos
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">calinski_harabasz_score(X: np.ndarray, labels: np.ndarray) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute Calinski-Harabasz Index (Variance Ratio Criterion).</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute Calinski-Harabasz Index (Variance Ratio Criterion).</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 Higher values indicate better clustering.
 </p>
@@ -802,8 +801,8 @@ Higher is better. The score is unbounded above, so it is meaningful for ranking 
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">mutual_info_score(labels_true: np.ndarray, labels_pred: np.ndarray) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute Mutual Information between two clusterings.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute Mutual Information between two clusterings.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 How much knowing the cluster tells you about the true class:
 </p>
@@ -915,8 +914,8 @@ Measured in nats and unbounded above, which makes raw MI hard to compare; <code 
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">normalized_mutual_info_score(labels_true: np.ndarray, labels_pred: np.ndarray, average_method: str=&#x27;arithmetic&#x27;) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute Normalized Mutual Information (NMI).</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute Normalized Mutual Information (NMI).</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 Mutual information rescaled by the entropies of the two labellings:
 </p>
@@ -1042,8 +1041,8 @@ Bounded in [0, 1], reaching 1.0 exactly when the two labellings agree up to rela
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">v_measure_score(labels_true: np.ndarray, labels_pred: np.ndarray, beta: float=1.0) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute V-measure (harmonic mean of homogeneity and completeness).</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute V-measure (harmonic mean of homogeneity and completeness).</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 The harmonic mean of homogeneity <span class="katex-inline">h</span> and completeness <span class="katex-inline">c</span>:
 </p>
@@ -1169,8 +1168,8 @@ Symmetric in the two labellings, and equal to <code class="bg-gray-100 px-1 py-0
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">homogeneity_score(labels_true: np.ndarray, labels_pred: np.ndarray) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute homogeneity metric (each cluster contains only members of a single class).</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute homogeneity metric (each cluster contains only members of a single class).</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 Whether each cluster contains only members of a single class:
 </p>
@@ -1282,8 +1281,8 @@ Splitting one true class across many clusters does not hurt this score -- that i
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">completeness_score(labels_true: np.ndarray, labels_pred: np.ndarray) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute completeness metric (all members of a class are in the same cluster).</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute completeness metric (all members of a class are in the same cluster).</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 Whether all members of a class land in the same cluster:
 </p>
@@ -1395,8 +1394,8 @@ The mirror image of <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mo
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">fowlkes_mallows_score(labels_true: np.ndarray, labels_pred: np.ndarray) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Compute Fowlkes-Mallows Index.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Compute Fowlkes-Mallows Index.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 The geometric mean of the pairwise precision and recall, counting pairs of samples placed in the same cluster:
 </p>

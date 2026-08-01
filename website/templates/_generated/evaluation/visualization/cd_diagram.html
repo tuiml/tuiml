@@ -6,8 +6,7 @@
 {% block title %}cd_diagram - API Documentation{% endblock %}
 
 {% block content %}
-<p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a> / <a href="index.html">visualization</a> / <span class="api-crumb-file">cd_diagram.py</span></p>
-<div class="flex items-center justify-between gap-3" style="margin-bottom: 32px;"><h1 class="oc-display" style="margin: 0;">cd_diagram</h1><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/visualization/cd_diagram.py" target="_blank" rel="noopener noreferrer" title="View evaluation/visualization/cd_diagram.py source on GitHub" aria-label="View evaluation/visualization/cd_diagram.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
+<div class="api-crumb-row" style="margin-bottom: 32px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a> / <a href="index.html">visualization</a> / <h1 class="api-crumb-file">cd_diagram.py</h1></div><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/visualization/cd_diagram.py" target="_blank" rel="noopener noreferrer" title="View evaluation/visualization/cd_diagram.py source on GitHub" aria-label="View evaluation/visualization/cd_diagram.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
 <nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
 <div class="oc-toc-label">On this page</div>
 <a href="#class-CDDiagramResult">CDDiagramResult</a>
@@ -16,8 +15,8 @@
 <a href="#func-plot_critical_difference">plot_critical_difference</a>
 </nav>
 <main>
-<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Critical Difference (CD) diagrams: the standard way to report a benchmark of many algorithms over many datasets.</p>
-<div class="doc-extended">
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Critical Difference (CD) diagrams: the standard way to report a benchmark of many algorithms over many datasets.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 Averaging accuracy across datasets is misleading — the scale of a metric differs per dataset, and one easy dataset can dominate the mean. Demšar (2006) instead recommends <strong>ranking</strong> the algorithms <em>within</em> each dataset, averaging those ranks, running a Friedman test for &quot;are any of them different at all?&quot;, and following up with a Nemenyi post-hoc test that yields a single <em>critical difference</em> (CD): the smallest gap between two average ranks that counts as significant.
 </p>
@@ -335,8 +334,8 @@ datasets at a significance level.
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">compute_ranks(scores: np.ndarray, lower_better: bool=False) -&gt; np.ndarray</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Rank algorithms <strong>within each dataset</strong>, averaging tied ranks.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Rank algorithms <strong>within each dataset</strong>, averaging tied ranks.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 This is the first step of the Demšar (2006) comparison protocol: ranking per dataset removes the effect of datasets having wildly different score scales, which is what makes a plain average across datasets untrustworthy.
 </p>
@@ -494,8 +493,8 @@ array([[1., 2., 3.]])</code></pre>
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">critical_difference(n_datasets: int, n_algorithms: int, alpha: float=0.05, test: str=&#x27;nemenyi&#x27;) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Smallest gap between two average ranks that counts as significant.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Smallest gap between two average ranks that counts as significant.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 Implements the Nemenyi critical difference of Demšar (2006). For <span class="katex-inline">k</span> algorithms compared over <span class="katex-inline">N</span> datasets,
 </p>
@@ -711,8 +710,8 @@ Two consequences worth internalising: the CD <em>shrinks</em> as you add dataset
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">plot_critical_difference(scores: Union[np.ndarray, Dict[str, np.ndarray]], names: List[str]=None, lower_better: bool=False, alpha: float=0.05, test: Literal[&#x27;nemenyi&#x27;, &#x27;wilcoxon&#x27;]=&#x27;nemenyi&#x27;, correction: Literal[&#x27;holm&#x27;, &#x27;bonferroni&#x27;, &#x27;none&#x27;]=&#x27;holm&#x27;, title: str=None, figsize: Tuple[int, int]=None, save_path: str=None) -&gt; Optional[CDDiagramResult]</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Draw a Critical Difference diagram comparing algorithms over many datasets.</p>
-<div class="doc-extended">
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Draw a Critical Difference diagram comparing algorithms over many datasets.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 The plot answers one question: <em>which of these algorithms can I actually claim are different?</em> Each algorithm is ranked within every dataset (see <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">compute_ranks</code>), the ranks are averaged, and a Nemenyi critical difference is computed from the number of algorithms and datasets.
 </p>

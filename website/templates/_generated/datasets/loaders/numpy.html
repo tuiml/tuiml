@@ -6,16 +6,15 @@
 {% block title %}numpy - API Documentation{% endblock %}
 
 {% block content %}
-<p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">datasets</a> / <a href="index.html">loaders</a> / <span class="api-crumb-file">numpy.py</span></p>
-<div class="flex items-center justify-between gap-3" style="margin-bottom: 32px;"><h1 class="oc-display" style="margin: 0;">numpy</h1><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/datasets/loaders/numpy.py" target="_blank" rel="noopener noreferrer" title="View datasets/loaders/numpy.py source on GitHub" aria-label="View datasets/loaders/numpy.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
+<div class="api-crumb-row" style="margin-bottom: 32px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">datasets</a> / <a href="index.html">loaders</a> / <h1 class="api-crumb-file">numpy.py</h1></div><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/datasets/loaders/numpy.py" target="_blank" rel="noopener noreferrer" title="View datasets/loaders/numpy.py source on GitHub" aria-label="View datasets/loaders/numpy.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
 <nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
 <div class="oc-toc-label">On this page</div>
 <a href="#func-load_numpy">load_numpy</a>
 <a href="#func-save_numpy">save_numpy</a>
 </nav>
 <main>
-<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">NumPy binary format reader and writer.</p>
-<div class="doc-extended">Reads and writes <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">.npy</code> (a single array) and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">.npz</code> (an archive holding the feature matrix, the target, and the feature names together). This is the fastest and most faithful round trip for data that is already numeric, since nothing is parsed or re-typed.</div></div>
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">NumPy binary format reader and writer.</p>
+<div class="doc-extended mb-8">Reads and writes <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">.npy</code> (a single array) and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">.npz</code> (an archive holding the feature matrix, the target, and the feature names together). This is the fastest and most faithful round trip for data that is already numeric, since nothing is parsed or re-typed.</div></div>
 <div class="mb-12">
 <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-code text-indigo-500"></i> Functions</h2>
 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-load_numpy">
@@ -32,8 +31,8 @@
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">load_numpy(filepath: Union[str, Path], target_key: str=&#x27;y&#x27;, data_key: str=&#x27;X&#x27;) -&gt; Dataset</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Load data from NumPy format (.npy or .npz).</p>
-<div class="doc-extended">For .npy files: assumes the file contains feature data only. For .npz files: looks for &#x27;X&#x27; (features) and &#x27;y&#x27; (target) arrays.</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Load data from NumPy format (.npy or .npz).</p>
+<div class="doc-extended mb-8">For .npy files: assumes the file contains feature data only. For .npz files: looks for &#x27;X&#x27; (features) and &#x27;y&#x27; (target) arrays.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -146,8 +145,8 @@
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">save_numpy(filepath: Union[str, Path], data: np.ndarray, target: Optional[np.ndarray]=None, feature_names: Optional[List[str]]=None, compressed: bool=True)</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Save data to NumPy&#x27;s <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">.npy</code> or <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">.npz</code> format.</p>
-<div class="doc-extended">Writes a plain <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">.npy</code> array when only <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">data</code> is given. As soon as a target or feature names are supplied it writes an <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">.npz</code> archive instead, with the features under the <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">X</code> key and the target under <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">y</code>, so that <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">load_numpy</code> can restore everything in one call.</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Save data to NumPy&#x27;s <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">.npy</code> or <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">.npz</code> format.</p>
+<div class="doc-extended mb-8">Writes a plain <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">.npy</code> array when only <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">data</code> is given. As soon as a target or feature names are supplied it writes an <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">.npz</code> archive instead, with the features under the <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">X</code> key and the target under <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">y</code>, so that <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">load_numpy</code> can restore everything in one call.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">

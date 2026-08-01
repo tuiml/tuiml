@@ -6,8 +6,7 @@
 {% block title %}result_matrix - API Documentation{% endblock %}
 
 {% block content %}
-<p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a> / <a href="index.html">reporting</a> / <span class="api-crumb-file">result_matrix.py</span></p>
-<div class="flex items-center justify-between gap-3" style="margin-bottom: 32px;"><h1 class="oc-display" style="margin: 0;">result_matrix</h1><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/reporting/result_matrix.py" target="_blank" rel="noopener noreferrer" title="View evaluation/reporting/result_matrix.py source on GitHub" aria-label="View evaluation/reporting/result_matrix.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
+<div class="api-crumb-row" style="margin-bottom: 32px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a> / <a href="index.html">reporting</a> / <h1 class="api-crumb-file">result_matrix.py</h1></div><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/reporting/result_matrix.py" target="_blank" rel="noopener noreferrer" title="View evaluation/reporting/result_matrix.py source on GitHub" aria-label="View evaluation/reporting/result_matrix.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
 <nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
 <div class="oc-toc-label">On this page</div>
 <a href="#class-ComparisonCell">ComparisonCell</a>
@@ -15,8 +14,8 @@
 <a href="#func-format_results">format_results</a>
 </nav>
 <main>
-<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Models-by-datasets result grids for benchmark reporting.</p>
-<div class="doc-extended">
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Models-by-datasets result grids for benchmark reporting.</p>
+<div class="doc-extended mb-8">
 <p class="mb-4">
 This module provides <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ResultMatrix</code>, the data structure that sits at the end of a benchmark loop: it collects the raw per-fold scores of every (dataset, model) pair, reduces each pair to a mean/standard-deviation cell, runs a paired t-test of every model against a chosen baseline model, and renders the whole grid as a table.
 </p>
@@ -1282,8 +1281,8 @@ The win/loss/tie counters are accumulated inside <code class="bg-gray-100 px-1 p
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">format_results(results: Dict[str, Dict[str, np.ndarray]], metric_name: str=&#x27;metric&#x27;, format_type: str=&#x27;plain&#x27;, **kwargs) -&gt; str</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Build a <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">ResultMatrix</code> from nested scores and render it.</p>
-<div class="doc-extended">A one-call shortcut for the common case where a benchmark loop has already collected its per-fold scores into a <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">{dataset: {model: values}}</code> dictionary. The dataset rows follow the insertion order of <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">results</code>; the model columns are collected from the union of the inner dictionaries. The first model column acts as the baseline, exactly as with <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">baseline_index=0</code> on the matrix itself.</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Build a <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">ResultMatrix</code> from nested scores and render it.</p>
+<div class="doc-extended mb-8">A one-call shortcut for the common case where a benchmark loop has already collected its per-fold scores into a <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">{dataset: {model: values}}</code> dictionary. The dataset rows follow the insertion order of <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">results</code>; the model columns are collected from the union of the inner dictionaries. The first model column acts as the baseline, exactly as with <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">baseline_index=0</code> on the matrix itself.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
