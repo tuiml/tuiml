@@ -197,9 +197,9 @@
 
             <div class="oc-panel" data-panel="agent">
                 <div class="snippet">
-                    <span class="cmd">Help me install https://tuiml.ai/install</span>
+                    <span class="cmd">Help me install https://tuiml.ai/install.md</span>
                     <button type="button" class="copy-btn" aria-label="Copy agent prompt"
-                        onclick="navigator.clipboard.writeText('Help me install https://tuiml.ai/install'); this.textContent='[ok]'; setTimeout(() => this.textContent='[copy]', 1500)">[copy]</button>
+                        onclick="navigator.clipboard.writeText('Help me install https://tuiml.ai/install.md'); this.textContent='[ok]'; setTimeout(() => this.textContent='[copy]', 1500)">[copy]</button>
                 </div>
             </div>
         </div>
@@ -441,10 +441,10 @@
 /* ------------------------------------------------------------------
    Build board, live from GitHub issues.
 
-   Same source of truth as /projects: the open issues of tuiml/tuiml that
+   Same source of truth as /projects.html: the open issues of tuiml/tuiml that
    carry an `area:*` label. Closed issues drop off automatically and each
    row deep-links to its own issue. Shares the sessionStorage cache with
-   the /projects page, so navigating between them costs no extra API call.
+   the /projects.html page, so navigating between them costs no extra API call.
 
    The rows in the markup above are the fallback; they are only replaced
    once a fetch succeeds, so an API outage degrades to the static set
@@ -453,7 +453,7 @@
 (function () {
     const REPO_URL = "https://github.com/tuiml/tuiml";
     const API = "https://api.github.com/repos/tuiml/tuiml/issues?state=open&per_page=100";
-    const CACHE_KEY = "tuiml_board_v2";           // shared with /projects, same key AND same schema
+    const CACHE_KEY = "tuiml_board_v2";           // shared with /projects.html, same key AND same schema
     const CACHE_TTL = 10 * 60 * 1000;
     const MAX_ROWS = 10;
 
@@ -472,7 +472,7 @@
         progress: { label: "[in progress]",   cls: "bb-testing" },
         planned:  { label: "[planned]",       cls: "bb-planned" },
     };
-    // NOTE: this must produce the SAME card shape as /projects, both pages share
+    // NOTE: this must produce the SAME card shape as /projects.html, both pages share
     // the cache below, so a leaner object here would break the board (and vice
     // versa) whenever a visitor hits one page after the other.
     const LABEL_MAP = {

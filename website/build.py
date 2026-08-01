@@ -16,8 +16,7 @@ Then ``_site/`` is a self-contained static copy of the site. Preview it with
 
     uv run python build.py serve [port]
 
-which serves ``_site/`` with GitHub Pages' pretty-URL rules (``/tutorials/x``
--> ``tutorials/x.html``) — a plain ``http.server`` would 404 on those links.
+which serves ``_site/`` with GitHub Pages' URL rules and a custom 404 page.
 """
 
 from __future__ import annotations
@@ -56,7 +55,7 @@ GITHUB_URL = "https://github.com/tuiml/tuiml"
 # Kept in sync with TUTORIALS by an assertion below.
 FIRST_TUTORIAL = "hello_tuiml"
 
-TUTORIALS_URL = f"/tutorials/{FIRST_TUTORIAL}"
+TUTORIALS_URL = f"/tutorials/{FIRST_TUTORIAL}.html"
 
 # Rendered separately from PAGES (it needs the parsed CHANGELOG), but still a
 # real page, so the redirect-clash guard has to know about it.
@@ -197,7 +196,7 @@ PAGES: dict[str, tuple[str, dict]] = {
         "canonical_url": "https://tuiml.ai/",
         "og_image_url": "https://tuiml.ai/static/images/tuiml_logo.png",
     }),
-    "/projects": ("pages/projects.html", {
+    "/projects.html": ("pages/projects.html", {
         "title": "Build Board — TuiML",
         "meta_description": (
             "A living list of algorithms, integrations, and tools the community can "
@@ -209,7 +208,7 @@ PAGES: dict[str, tuple[str, dict]] = {
             "student projects, RAPIDS, JAX, Keras, PyTorch, CapyMOA, AutoML, "
             "missing algorithms, machine learning tasks"
         ),
-        "canonical_url": "https://tuiml.ai/projects",
+        "canonical_url": "https://tuiml.ai/projects.html",
         "og_image_url": "https://tuiml.ai/static/images/tuiml_logo.png",
     }),
     "/getting_started.html": ("pages/getting_started.html", {
@@ -291,6 +290,7 @@ REDIRECT_STUB = """<!doctype html>
 # Core public URLs listed in sitemap.xml.
 SITEMAP_PATHS = [
     "/",
+    "/projects.html",
     "/getting_started.html",
     TUTORIALS_URL,
     "/api-reference.html",
@@ -303,20 +303,22 @@ SITEMAP_PATHS = [
 ]
 
 # Machine-readable install + setup instructions for LLM agents, served at
-# /install. Paired with the "Agent" tab on the landing page — a user pastes
-# "Help me install https://tuiml.ai/install" into any agent with web access;
+# /install.md. Paired with the "Agent" tab on the landing page — a user pastes
+# "Help me install https://tuiml.ai/install.md" into any agent with web access;
 # the agent fetches this plain-text guide and follows the steps.
 INSTALL_GUIDE = (
     "# TuiML install + setup guide (for agents)\n"
     "\n"
     "You are being asked to install TuiML and wire it into the current AI client.\n"
-    "TuiML is an open-source Python ML library with an MCP server that exposes\n"
-    "200+ algorithms, datasets, and workflow tools to any MCP-capable agent.\n"
+    "TuiML is an open-source Python ML library with an MCP server. Its focused\n"
+    "workflow, discovery, data, system, and authoring tools provide access to\n"
+    "200+ discoverable algorithms, preprocessors, datasets, and features.\n"
     "\n"
     "## Prerequisites (check before running)\n"
     "- A POSIX shell (bash/zsh). macOS or Linux; Windows users should run in WSL.\n"
+    "- `git` and `curl`.\n"
     "- A C++ compiler (macOS: `xcode-select --install`; Debian/Ubuntu: `build-essential`).\n"
-    "- Network access to github.com and pypi.org.\n"
+    "- Network access to github.com and pypi.org; astral.sh is also needed if `uv` is absent.\n"
     "\n"
     "## NemoClaw sandbox note\n"
     "NemoClaw sandboxes are deny-by-default. Do not use the tuiml.ai curl\n"
@@ -331,13 +333,15 @@ INSTALL_GUIDE = (
     "    python -m venv /sandbox/.openclaw/workspace/tuiml_venv\n"
     "    . /sandbox/.openclaw/workspace/tuiml_venv/bin/activate\n"
     "    pip install tuiml\n"
-    "    openclaw mcp set tuiml '{\"command\":\"/sandbox/.openclaw/workspace/tuiml_venv/bin/tuiml-mcp\"}'\n"
+    "    tuiml setup --client openclaw -y\n"
     "    openclaw gateway restart\n"
     "\n"
     "## Step 1 — Install the package\n"
     "Run this single command in a shell tool. It installs `uv` if missing,\n"
-    "then builds and installs tuiml as an isolated uv tool (no global Python\n"
-    "pollution). The script is idempotent and safe to re-run.\n"
+    "then builds the latest TuiML source from GitHub and installs it as an\n"
+    "isolated uv tool (no global Python pollution). The script is idempotent\n"
+    "and safe to re-run. In an interactive terminal it also offers the optional\n"
+    "scikit-learn and CapyMOA integrations.\n"
     "\n"
     "    curl -fsSL https://tuiml.ai/install.sh | bash\n"
     "\n"
@@ -345,12 +349,12 @@ INSTALL_GUIDE = (
     "the PATH (usually `~/.local/bin`).\n"
     "\n"
     "## Step 2 — Wire TuiML into the current AI client\n"
-    "Run the setup CLI. It auto-detects installed MCP clients (Claude Desktop,\n"
-    "Claude Code, Cursor, OpenClaw, ChatGPT Desktop, Codex CLI, Zed,\n"
-    "Continue, Windsurf, VS Code Copilot, Perplexity Desktop, Goose, NemoClaw)\n"
-    "and writes a `tuiml` MCP server entry into each client's config. For\n"
-    "NemoClaw, host-side setup prints the sandbox commands because the\n"
-    "OpenClaw config lives inside the sandbox.\n"
+    "Run the setup CLI. It detects OpenClaw, Claude Desktop, Claude Code,\n"
+    "OpenAI Codex (ChatGPT Desktop, Codex CLI, and the IDE extension share one\n"
+    "config), Antigravity and its agy CLI, Cursor, Windsurf, Zed, VS Code,\n"
+    "Continue, Goose, OpenCode, Perplexity Desktop, Cline, Roo Code, Kilo Code,\n"
+    "and the legacy Gemini CLI. For NemoClaw, host-side setup prints the sandbox\n"
+    "commands because the OpenClaw config lives inside the sandbox.\n"
     "\n"
     "    tuiml setup -y\n"
     "\n"
@@ -363,24 +367,20 @@ INSTALL_GUIDE = (
     "will only appear after a restart. Tell the user to restart their client\n"
     "(Claude Desktop, Cursor, etc.) once step 2 succeeds.\n"
     "\n"
-    "## Step 4 (optional) — Enable agent-authored algorithms\n"
-    "Set this environment variable in whichever shell spawns the MCP server,\n"
-    "then restart the client:\n"
-    "\n"
-    "    export TUIML_ALLOW_USER_ALGORITHMS=1\n"
-    "\n"
-    "That unlocks `tuiml_algorithm_skeleton`, `tuiml_create_algorithm`,\n"
-    "`tuiml_list_user_algorithms`, `tuiml_delete_user_algorithm`, and\n"
-    "`tuiml_research_log` — the Auto-Research loop. See\n"
-    "https://tuiml.ai/getting_started.html for details.\n"
+    "## Step 4 (optional) — Use agent-authored algorithms\n"
+    "No environment flag is required. The authoring workflow uses\n"
+    "`tuiml_get_skeleton`, `tuiml_create_algorithm`, `tuiml_read_algorithm`,\n"
+    "`tuiml_edit_algorithm`, `tuiml_search_source`, `tuiml_list_files`, and\n"
+    "`tuiml_delete_algorithm`. Call `tuiml_list` with `category=\"custom\"`\n"
+    "and `include_runs=true` to inspect versions and experiment history.\n"
     "\n"
     "## Verify the install\n"
-    "Once restarted, the agent should call `tuiml_system_info` and confirm\n"
-    "the expected version, install method (`uv-tool`), and that\n"
-    "`update_available` is false. Then try:\n"
+    "Once restarted, call `tuiml_system_info` and confirm `status` is `success`,\n"
+    "the version is expected, and `install_method` is `uv-tool`. The optional\n"
+    "latest-version fields may be absent when PyPI cannot be reached. Then try:\n"
     "\n"
     "    tuiml_train(algorithm=\"RandomForestClassifier\",\n"
-    "                data=\"iris\", target=\"target\", cv=5)\n"
+    "                data=\"iris\", cv=5)\n"
     "\n"
     "Success: `status: \"success\"` plus a `metrics` block. Report the\n"
     "accuracy back to the user and TuiML is ready.\n"
@@ -404,10 +404,10 @@ INSTALL_GUIDE = (
 def out_path(url_path: str) -> Path:
     """Map a URL path to a file inside ``_site/``.
 
-    ``/`` and dir URLs become ``index.html``; extensionless "pretty" URLs
-    (``/projects``, ``/tutorials/x``, ``/install``) get a ``.html`` suffix, which
-    GitHub Pages serves back at the clean path. Paths that already carry an
-    extension (``.html``, ``.txt``, ``.xml``, ``.sh``) are written verbatim.
+    ``/`` and directory URLs become ``index.html``. Extensionless legacy
+    redirect paths get a ``.html`` suffix. Paths that already carry an
+    extension (``.html``, ``.md``, ``.txt``, ``.xml``, ``.sh``) are written
+    verbatim.
     """
     clean = url_path.lstrip("/")
     if clean == "" or clean.endswith("/"):
@@ -784,11 +784,11 @@ assert not any("/" in nb_id for nb_id in _on_disk), (
 # Both previous URL shapes — the grouped path and the numbered file name —
 # redirect to the current one.
 REDIRECTS.update({
-    f"/tutorials/{old}": f"/tutorials/{new}"
+    f"/tutorials/{old}": f"/tutorials/{new}.html"
     for old, new in LEGACY_TUTORIAL_IDS.items()
 })
 REDIRECTS.update({
-    f"/tutorials/{old.rsplit('/', 1)[-1]}": f"/tutorials/{new}"
+    f"/tutorials/{old.rsplit('/', 1)[-1]}": f"/tutorials/{new}.html"
     for old, new in LEGACY_TUTORIAL_IDS.items()
 })
 
@@ -833,12 +833,12 @@ def render_notebook(nb_file: Path) -> str:
 
     # Tutorial rail: same oc-toc component as the benchmarks algorithm rail —
     # fixed beside the column on wide screens, in-flow block on narrow ones.
-    # TUTORIALS order reads start-to-finish. Extensionless links: /tutorials/<id>
-    # serves <id>.html.
+    # TUTORIALS order reads start-to-finish. Tutorial links use explicit
+    # ``.html`` suffixes so the visible URL matches the generated file.
     rail_items = ""
     for nb_id, nb_title, _nb_icon in TUTORIALS:
         active = ' class="active"' if current_notebook == nb_id else ""
-        rail_items += f'                <a href="/tutorials/{nb_id}"{active}>{nb_title}</a>\n'
+        rail_items += f'                <a href="/tutorials/{nb_id}.html"{active}>{nb_title}</a>\n'
     rail_items += (
         f'                <a href="{GITHUB_URL}/tree/main/tutorials"'
         ' target="_blank" rel="noopener">Notebook on GitHub</a>\n'
@@ -874,7 +874,7 @@ def render_notebook(nb_file: Path) -> str:
     head = full_html[:head_end].replace(
         "<title>Notebook</title>",
         f"<title>{tutorial_title}, TuiML Tutorials</title>"
-        f'\n<link rel="canonical" href="{DOMAIN}/tutorials/{current_notebook}">',
+        f'\n<link rel="canonical" href="{DOMAIN}/tutorials/{current_notebook}.html">',
         1,
     )
 
@@ -902,18 +902,17 @@ def render_notebook(nb_file: Path) -> str:
 # ---------------------------------------------------------------------------
 
 def _normalize_tutorial_links() -> None:
-    """Strip the ``.ipynb`` suffix from in-page ``/tutorials/...`` links.
+    """Replace ``.ipynb`` in in-page tutorial links with ``.html``.
 
     Notebook markdown cells (and any template) may link tutorials with the
     ``.ipynb`` extension, but the static freeze only writes ``/tutorials/x.html``,
-    so those links would 404. Rewrite them to the extensionless form, which
-    GitHub Pages serves back as the ``.html`` page. Must run BEFORE
-    _apply_base_path (matches the un-prefixed path).
+    so those links would 404. Rewrite them to the public ``.html`` URL. Must
+    run BEFORE _apply_base_path (matches the un-prefixed path).
     """
     pat = re.compile(r"(/tutorials/[A-Za-z0-9_/\-]+)\.ipynb")
     for html in OUT.rglob("*.html"):
         text = html.read_text(encoding="utf-8")
-        new = pat.sub(r"\1", text)
+        new = pat.sub(r"\1.html", text)
         if new != text:
             html.write_text(new, encoding="utf-8")
 
@@ -984,7 +983,7 @@ def freeze() -> None:
     for nb in sorted(TUTORIALS_DIR.rglob("*.ipynb")):
         if ".ipynb_checkpoints" in nb.parts:
             continue
-        url = f"/tutorials/{nb.relative_to(TUTORIALS_DIR).with_suffix('').as_posix()}"
+        url = f"/tutorials/{nb.relative_to(TUTORIALS_DIR).with_suffix('').as_posix()}.html"
         write(url, render_notebook(nb))
         count += 1
 
@@ -999,7 +998,7 @@ def freeze() -> None:
         "</urlset>\n",
     )
     write("/install.sh", (STATIC_SRC / "install.sh").read_text())
-    write("/install", INSTALL_GUIDE)
+    write("/install.md", INSTALL_GUIDE)
     count += 4
 
     # Redirect stubs (dest prefixed with BASE so subpath hosting still lands right).
@@ -1014,7 +1013,7 @@ def freeze() -> None:
     shutil.copytree(STATIC_SRC, OUT / "static")
 
     # Static-hosting link fixes
-    _normalize_tutorial_links()   # /tutorials/x.ipynb -> /tutorials/x (served as .html)
+    _normalize_tutorial_links()   # /tutorials/x.ipynb -> /tutorials/x.html
     _apply_base_path()            # prefix root-absolute links for subpath hosting (no-op at root)
 
     # Pages hygiene:
@@ -1040,11 +1039,11 @@ def freeze() -> None:
 
 
 def serve(port: int = 8000) -> None:
-    """Preview ``_site/`` with GitHub Pages' URL semantics.
+    """Preview ``_site/`` with GitHub Pages' custom 404 behavior.
 
-    Pages serves the pretty URL ``/tutorials/x`` from ``tutorials/x.html`` and
-    falls back to ``404.html``; the stock ``http.server`` does neither, so
-    extensionless links 404 in a plain preview. This handler adds both rules.
+    The stock ``http.server`` does not fall back to ``404.html``, so this
+    handler adds that behavior. It also resolves extensionless legacy URLs in
+    the same way as GitHub Pages.
     """
     import http.server
 

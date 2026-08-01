@@ -79,7 +79,7 @@ print(result.metrics)          # {'accuracy_score': 0.97, 'f1_score': 0.96}
 preds = result.model.predict(X_new)
 ```
 
-Benchmark many algorithms across many datasets with `tuiml.experiment(...)`, and browse the same registry agents use with `tuiml.list_algorithms()` / `tuiml.search_algorithms(...)` / `tuiml.describe_algorithm(...)`. See the [tutorials](https://tuiml.ai/tutorials/quickstart/01_hello_tuiml) for the full tour.
+Benchmark many algorithms across many datasets with `tuiml.experiment(...)`, and browse the same registry agents use with `tuiml.list_algorithms()` / `tuiml.search_algorithms(...)` / `tuiml.describe_algorithm(...)`. See the [tutorials](https://tuiml.ai/tutorials/hello_tuiml.html) for the full tour.
 
 ---
 
@@ -132,7 +132,7 @@ Average across **3,318 matched runs** — 13 algorithms × 51 real-world [TabAre
 
 ## Documentation
 
-Full documentation is available at [tuiml.ai/docs](https://tuiml.ai/getting_started.html), including getting started guides, API reference, and tutorials. Want to contribute? Pick something from the [Build Board](https://tuiml.ai/projects) &mdash; algorithms, integrations, and good first issues.
+Full documentation is available at [tuiml.ai/docs](https://tuiml.ai/getting_started.html), including getting started guides, API reference, and tutorials. Want to contribute? Pick something from the [Build Board](https://tuiml.ai/projects.html) &mdash; algorithms, integrations, and good first issues.
 
 ---
 
