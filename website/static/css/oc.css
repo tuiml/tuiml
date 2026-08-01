@@ -86,6 +86,9 @@
     .oc-body strong { color: var(--ink); font-weight: 500; }
     .oc-caption { font-size: 14px; line-height: 2; color: var(--mute); }
     .oc-max { max-width: 720px; }
+    /* Landing-page descriptions should use the full editorial column; the
+       narrower cap remains on documentation pages for comfortable reading. */
+    .landing-page .oc-body.oc-max { max-width: none; }
 
     .landing-page a:focus-visible,
     .landing-page button:focus-visible,
@@ -341,7 +344,7 @@
     .code-block .op { color: var(--body); }
     .code-block .key { color: var(--accent-deep); }
 
-    /* Setup terminal: lines reveal one by one when scrolled into view. */
+    /* Setup terminal: lines reveal in sequence and replay after a short hold. */
     .term-reveal .sl {
         opacity: 0;
         transform: translateY(4px);

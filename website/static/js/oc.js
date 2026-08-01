@@ -10,8 +10,9 @@
                         copies its text (captured before the button is
                         appended, so "[copy]" never lands in the clipboard).
      3. Term reveal   — elements with class .term-reveal reveal their
-                        .sl lines one by one the first time they scroll
-                        into view. Per-line extra delay via data-d="ms".
+                        .sl lines one by one after they first scroll into
+                        view, hold the finished frame, then replay. Per-line
+                        delay can be set with data-d="ms".
                         Reduced motion / no IntersectionObserver get the
                         finished frame instantly.
    ================================================================== */
@@ -52,7 +53,7 @@
         });
     }
 
-    /* ---------------- 3. Scroll-reveal terminals ---------------- */
+    /* ---------------- 3. Looping scroll-reveal terminals ---------------- */
     function wireTermReveal() {
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         document.querySelectorAll('.term-reveal').forEach(term => {
@@ -64,11 +65,19 @@
             const io = new IntersectionObserver(entries => {
                 if (!entries.some(e => e.isIntersecting)) return;
                 io.disconnect();
-                let t = 0;
-                lines.forEach(l => {
-                    t += parseInt(l.dataset.d || '110', 10);
-                    setTimeout(() => l.classList.add('show'), t);
-                });
+
+                const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+                (async function loop() {
+                    while (term.isConnected) {
+                        lines.forEach(line => line.classList.remove('show'));
+                        await sleep(350);
+                        for (const line of lines) {
+                            await sleep(parseInt(line.dataset.d || '110', 10));
+                            line.classList.add('show');
+                        }
+                        await sleep(5000);
+                    }
+                })();
             }, { threshold: 0.3 });
             io.observe(term);
         });
