@@ -8,24 +8,84 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">statistics/</h1>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Statistical tests for model comparison. - PairedTTester.java - PairedStats.java</p>
-<div class="doc-extended">This module provides:
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Statistical tests for model comparison.</p>
+<div class="doc-extended">Deciding whether one model actually beat another. A difference in mean cross-validation score is not evidence on its own; these tests say whether it survives the variance across folds.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Comparing two models</h4>
+            </div>
+            <div class="p-4">
 <ul class="list-disc list-inside my-3 space-y-1 pl-4">
 
 <li class="text-gray-700">
-Parametric tests: t-test, corrected t-test
+<strong>paired_t_test:</strong> Paired t-test over per-fold scores.
 </li>
 
 <li class="text-gray-700">
-Non-parametric tests: Wilcoxon, Friedman, Nemenyi
-</li>
-
-<li class="text-gray-700">
-Multiple comparison corrections: Bonferroni, Holm
+<strong>corrected_paired_t_test:</strong> The Nadeau-Bengio correction, which accounts
 </li>
 
 </ul>
-</div></div>
+for the training data that cross-validation folds share. Prefer it over the   plain t-test for CV results, whose independence assumption k-fold violates.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>wilcoxon_signed_rank_test:</strong> Non-parametric alternative, for scores that
+</li>
+
+</ul>
+are not normally distributed.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Comparing several models</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>friedman_test:</strong> Rank-based omnibus test across models and datasets.
+</li>
+
+<li class="text-gray-700">
+<strong>friedman_aligned_ranks_test:</strong> More powerful when datasets are few.
+</li>
+
+<li class="text-gray-700">
+<strong>quade_test:</strong> Weights each dataset by how much the models differ on it.
+</li>
+
+<li class="text-gray-700">
+<strong>one_way_anova:</strong> Parametric alternative.
+</li>
+
+<li class="text-gray-700">
+<strong>nemenyi_post_hoc:</strong> Which pairs differ, once an omnibus test is
+</li>
+
+</ul>
+significant.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Multiple-comparison corrections</h4>
+            </div>
+            <div class="p-4"><strong>bonferroni_correction</strong>, <strong>holm_correction</strong>, <strong>hochberg_correction</strong>, <strong>hommel_correction</strong> and <strong>benjamini_hochberg</strong>. Comparing many models multiplies the chance of a false positive; these adjust for it.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">Run an omnibus test before the post-hoc. Testing every pair without one inflates the error rate, which is exactly what the corrections above control.</div>
+        </div>
+        </div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

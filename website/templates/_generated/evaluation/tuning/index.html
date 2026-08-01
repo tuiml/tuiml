@@ -8,24 +8,72 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">tuning/</h1>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Hyperparameter tuning utilities. - CVParameterSelection.java - GridSearch.java</p>
-<div class="doc-extended">This module provides:
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Hyperparameter search.</p>
+<div class="doc-extended">Searching a parameter space for the settings that score best under cross-validation. The three strategies trade breadth against cost.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Searchers</h4>
+            </div>
+            <div class="p-4">
 <ul class="list-disc list-inside my-3 space-y-1 pl-4">
 
 <li class="text-gray-700">
-GridSearchCV: Exhaustive search over parameter grid
-</li>
-
-<li class="text-gray-700">
-RandomSearchCV: Random search over parameter distributions
-</li>
-
-<li class="text-gray-700">
-BayesianSearchCV: Bayesian optimization using Gaussian Processes
+<strong>GridSearchCV:</strong> Every combination in the grid. Exhaustive and
 </li>
 
 </ul>
-</div></div>
+reproducible, but the cost multiplies with each parameter added.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>RandomSearchCV:</strong> Samples a fixed number of combinations. Usually finds a
+</li>
+
+</ul>
+comparable result far sooner when only a few parameters actually matter,   since it spends its budget on distinct values rather than a full lattice.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>BayesianSearchCV:</strong> Models the score surface with a Gaussian process and
+</li>
+
+</ul>
+picks each next trial from it. Fewest evaluations, best when a single fit   is expensive.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Supporting types</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>ParameterGrid / ParameterDistribution:</strong> The spaces to search.
+</li>
+
+<li class="text-gray-700">
+<strong>TuningResult:</strong> Best parameters, best score and the per-trial record.
+</li>
+
+<li class="text-gray-700">
+<strong>BaseTuner:</strong> The base class to subclass for a new strategy.
+</li>
+
+</ul>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">Tuning and evaluating on the same split reports an optimistic score: the parameters were chosen using that data. <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Benchmark</code> avoids this by running tuning inside each outer fold&#x27;s training half, so the reported score stays honest.</div>
+        </div>
+        </div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

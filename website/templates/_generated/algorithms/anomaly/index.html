@@ -9,7 +9,85 @@
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">algorithms</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">anomaly/</h1>
 <div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Anomaly detection algorithms.</p>
-<div class="doc-extended">This module provides algorithms for detecting anomalies and outliers in data, including isolation-based, density-based, geometric, and SVM-based methods.</div></div>
+<div class="doc-extended">Finding the rare rows: fraud, faults, intrusions. These fit on what normal looks like and score how far each point departs from it, which is what makes them work when anomalies are too few — or too varied — to learn as a class.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Algorithms</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>IsolationForestDetector:</strong> Isolates points with random splits; anomalies
+</li>
+
+</ul>
+need fewer splits to separate. Fast, scales well, and the usual first   choice.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>LocalOutlierFactorDetector:</strong> Compares a point&#x27;s local density to its
+</li>
+
+</ul>
+neighbours&#x27;. Catches anomalies that are only unusual for their region,   which a global method misses.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>OneClassSVMDetector:</strong> Learns a boundary enclosing the normal data.
+</li>
+
+<li class="text-gray-700">
+<strong>EllipticEnvelopeDetector:</strong> Fits a Gaussian and flags low-probability
+</li>
+
+</ul>
+points. Strong when the data really is roughly normal, poor when it is not.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>ABODDetector:</strong> Angle-based; designed to stay meaningful in high
+</li>
+
+</ul>
+dimensions, where distances concentrate and become uninformative.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+These take a <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">contamination</code> parameter — the expected proportion of anomalies — which sets the threshold. It is a prior, not something learned, so it is the parameter worth getting right.
+</p>
+
+<p class="mb-4">
+Accuracy is the wrong metric here: with 1% anomalies, calling everything normal scores 99%. Use precision, recall or ROC AUC on the anomaly class.
+</p>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/preprocessing/outliers/index.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">outliers</code>
+                            <p class="text-sm text-gray-600 mt-0.5">When extreme values are noise to remove before modelling, rather than the thing to predict.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        </div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

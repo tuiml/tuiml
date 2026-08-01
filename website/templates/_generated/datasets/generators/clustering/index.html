@@ -8,8 +8,75 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../../api-reference.html">API Reference</a> / <a href="../../index.html">datasets</a> / <a href="../index.html">generators</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">clustering/</h1>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Clustering data generators.</p>
-<div class="doc-extended">Generate synthetic data for testing clustering algorithms.</div></div>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Synthetic clustering datasets.</p>
+<div class="doc-extended">Unlabelled data whose true grouping you know, which is the only way to check what a clusterer actually found. The shapes are chosen to separate algorithms that assume round clusters from those that do not.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Generators</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>Blobs:</strong> Isotropic Gaussian clusters. The easy case, and what k-means
+</li>
+
+</ul>
+assumes — every algorithm should handle it.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>Moons:</strong> Two interleaved crescents. Not linearly separable, so k-means
+</li>
+
+</ul>
+splits them the wrong way while a density-based clusterer gets them right.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>Circles:</strong> One ring inside another. Same lesson, concentric.
+</li>
+
+<li class="text-gray-700">
+<strong>SwissRoll:</strong> A 2-D sheet rolled through 3-D. Points near each other in
+</li>
+
+</ul>
+space can be far apart along the sheet, which is the problem manifold   learning exists to solve.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">These return <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">y</code> as well: the true cluster assignment. Do not fit on it — it is there so you can score the result with a metric like <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">adjusted_rand_score</code>.</div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.datasets.generators.clustering import Moons
+&gt;&gt;&gt; data = Moons(n_samples=200, noise=0.05, random_state=0).generate()
+&gt;&gt;&gt; data.X.shape
+(200, 2)</code></pre>
+            </div>
+        </div>
+        </div></div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

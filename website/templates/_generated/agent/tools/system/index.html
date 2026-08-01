@@ -8,7 +8,56 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../../api-reference.html">API Reference</a> / <a href="../../index.html">agent</a> / <a href="../index.html">tools</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">system/</h1>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">System tools.</p></div>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">The tools for the installation itself, and for serving models.</p>
+<div class="doc-extended">Housekeeping rather than modelling: what version is running, how to update it, and how to put a trained model behind an HTTP endpoint.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Tools</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>tuiml_system_info:</strong> Installed version, install method, Python and
+</li>
+
+</ul>
+platform, optionally checking PyPI for a newer release.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>tuiml_self_update:</strong> Reinstall TuiML at the latest or a pinned version.
+</li>
+
+</ul>
+Supports <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">dry_run</code> to report what it would do without doing it.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>tuiml_restart:</strong> Kill running <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml-mcp</code> processes so their parent
+</li>
+
+</ul>
+clients respawn them on the freshly installed code.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>tuiml_serve_model / tuiml_stop_server / tuiml_server_status:</strong> Run a
+</li>
+
+</ul>
+trained model as a REST API, and manage those servers.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4"><code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_self_update</code> refuses to upgrade an editable checkout, since the fix there is <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">git pull</code>. <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_restart</code> is genuinely destructive: it terminates processes, and it excludes the calling process so an agent does not kill the server handling its own request. The serving tools are thin wrappers over <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">serving</code>, sharing one registry with it, so a server started from Python can be stopped by an agent and vice versa.</div>
+        </div>
+        </div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

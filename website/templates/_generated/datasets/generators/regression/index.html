@@ -8,8 +8,63 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../../api-reference.html">API Reference</a> / <a href="../../index.html">datasets</a> / <a href="../index.html">generators</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">regression/</h1>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Regression data generators.</p>
-<div class="doc-extended">Generate synthetic data for testing regression algorithms.</div></div>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Synthetic regression datasets.</p>
+<div class="doc-extended">Continuous targets generated from a function you know, so you can measure how much of it a model recovered. All three are non-linear on purpose: a linear model should visibly struggle where a tree ensemble does not.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Generators</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>Friedman:</strong> The Friedman benchmarks. The target combines products, a
+</li>
+
+</ul>
+squared term and linear terms, and the data carries extra features that do   not affect it at all — so it tests feature selection as well as fit.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>MexicanHat:</strong> The radially symmetric <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">sinc</code> surface: smooth, with
+</li>
+
+</ul>
+concentric ridges no linear model can follow.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>Sine:</strong> A sine wave with configurable noise. The simplest case, and a
+</li>
+
+</ul>
+quick check that a regressor can fit any curve.</div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.datasets.generators.regression import Friedman
+&gt;&gt;&gt; data = Friedman(n_samples=500, noise=0.1, random_state=0).generate()
+&gt;&gt;&gt; data.X.shape[0]
+500</code></pre>
+            </div>
+        </div>
+        </div></div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

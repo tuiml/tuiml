@@ -7,7 +7,7 @@
 
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a> / <a href="index.html">splitting</a></p>
-<h1 class="oc-display" style="margin-bottom: 32px;">group</h1>
+<div class="flex items-center gap-3" style="margin-bottom: 32px;"><h1 class="oc-display" style="margin: 0;">group</h1><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/splitting/group.py" target="_blank" rel="noopener noreferrer" title="View evaluation/splitting/group.py source on GitHub" aria-label="View evaluation/splitting/group.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
 <nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
 <div class="oc-toc-label">On this page</div>
 <a href="#class-GroupKFold">GroupKFold</a>
@@ -37,8 +37,11 @@ Both require the <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono"
 <div class="mb-12 scroll-mt-24" id="class-GroupKFold">
 
         <div class="mb-6">
-            <h2 class="text-3xl font-bold text-gray-900 mb-2">GroupKFold</h2>
-            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">evaluation.splitting.group.GroupKFold</span>(<span class="text-cyan-400">BaseSplitter</span>)</p>
+            <div class="flex items-center gap-2">
+                <h2 class="text-3xl font-bold text-gray-900">GroupKFold</h2>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/splitting/group.py#L28" target="_blank" rel="noopener noreferrer" title="View GroupKFold source on GitHub" aria-label="View GroupKFold source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a>
+            </div>
+            <p class="text-gray-500 font-mono text-sm mt-2">class <span class="text-indigo-600">evaluation.splitting.group.GroupKFold</span>(<span class="text-cyan-400">BaseSplitter</span>)</p>
         </div>
         
 <p class="text-gray-700 text-lg mb-6 leading-relaxed">K-fold over <strong>whole groups</strong>: a group never spans train and test.</p>
@@ -117,7 +120,7 @@ T = test, . = train</pre></div></div>
                 <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
             </div>
             <div class="p-4"><div class="space-y-2">
-                    <a href="/docs/evaluation/splitting/group.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                    <a href="/docs/evaluation/splitting/group.html#class-StratifiedGroupKFold" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
                         <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
                             <i class="fa-solid fa-link text-sm"></i>
                         </span>
@@ -127,7 +130,7 @@ T = test, . = train</pre></div></div>
                         </div>
                     </a>
                     
-                    <a href="/docs/evaluation/splitting/kfold.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                    <a href="/docs/evaluation/splitting/kfold.html#class-KFold" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
                         <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
                             <i class="fa-solid fa-link text-sm"></i>
                         </span>
@@ -194,7 +197,10 @@ T = test, . = train</pre></div></div>
                             <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; dict</span>
                         </div>
                     </div>
-                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    <span class="flex items-center gap-1">
+                        <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/splitting/group.py#L98" target="_blank" rel="noopener noreferrer" title="View GroupKFold.get_parameter_schema source on GitHub" aria-label="View GroupKFold.get_parameter_schema source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a>
+                        <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    </span>
                 </summary>
                 <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
                     <p class="text-sm text-gray-600 mt-3">Return JSON Schema for constructor parameters.</p>
@@ -216,7 +222,10 @@ T = test, . = train</pre></div></div>
                             <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray, y: Optional[np.ndarray]=None, groups: Optional[np.ndarray]=None) -&gt; Iterator[Tuple[np.ndarray, np.ndarray]]</span>
                         </div>
                     </div>
-                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    <span class="flex items-center gap-1">
+                        <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/splitting/group.py#L108" target="_blank" rel="noopener noreferrer" title="View GroupKFold.split source on GitHub" aria-label="View GroupKFold.split source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a>
+                        <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    </span>
                 </summary>
                 <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
                     <p class="text-sm text-gray-600 mt-3">Yield the <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">n_splits</code> train/test index pairs of a grouped K-fold.</p>
@@ -346,7 +355,10 @@ T = test, . = train</pre></div></div>
                             <span class="text-sm text-gray-400 font-mono ml-1">(self, X: Optional[np.ndarray]=None, y: Optional[np.ndarray]=None, groups: Optional[np.ndarray]=None) -&gt; int</span>
                         </div>
                     </div>
-                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    <span class="flex items-center gap-1">
+                        <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/splitting/group.py#L172" target="_blank" rel="noopener noreferrer" title="View GroupKFold.get_n_splits source on GitHub" aria-label="View GroupKFold.get_n_splits source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a>
+                        <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    </span>
                 </summary>
                 <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
                     <p class="text-sm text-gray-600 mt-3">Return the number of folds, i.e. how many pairs <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">split</code> will yield.</p>
@@ -440,7 +452,10 @@ T = test, . = train</pre></div></div>
                             <span class="text-sm text-gray-400 font-mono ml-1">(self) -&gt; str</span>
                         </div>
                     </div>
-                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    <span class="flex items-center gap-1">
+                        <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/splitting/group.py#L196" target="_blank" rel="noopener noreferrer" title="View GroupKFold.__repr__ source on GitHub" aria-label="View GroupKFold.__repr__ source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a>
+                        <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    </span>
                 </summary>
                 <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
                     <p class="text-sm text-gray-600 mt-3">Return a short string showing the fold count.</p>
@@ -454,8 +469,11 @@ T = test, . = train</pre></div></div>
 <div class="mb-12 scroll-mt-24" id="class-StratifiedGroupKFold">
 
         <div class="mb-6">
-            <h2 class="text-3xl font-bold text-gray-900 mb-2">StratifiedGroupKFold</h2>
-            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">evaluation.splitting.group.StratifiedGroupKFold</span>(<span class="text-cyan-400">BaseSplitter</span>)</p>
+            <div class="flex items-center gap-2">
+                <h2 class="text-3xl font-bold text-gray-900">StratifiedGroupKFold</h2>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/splitting/group.py#L200" target="_blank" rel="noopener noreferrer" title="View StratifiedGroupKFold source on GitHub" aria-label="View StratifiedGroupKFold source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a>
+            </div>
+            <p class="text-gray-500 font-mono text-sm mt-2">class <span class="text-indigo-600">evaluation.splitting.group.StratifiedGroupKFold</span>(<span class="text-cyan-400">BaseSplitter</span>)</p>
         </div>
         
 <p class="text-gray-700 text-lg mb-6 leading-relaxed">Grouped K-fold that <strong>also</strong> tries to balance classes across folds.</p>
@@ -559,7 +577,7 @@ Fold assignment is driven by each group&#x27;s majority class, so a group whose 
                 <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
             </div>
             <div class="p-4"><div class="space-y-2">
-                    <a href="/docs/evaluation/splitting/group.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                    <a href="/docs/evaluation/splitting/group.html#class-GroupKFold" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
                         <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
                             <i class="fa-solid fa-link text-sm"></i>
                         </span>
@@ -569,7 +587,7 @@ Fold assignment is driven by each group&#x27;s majority class, so a group whose 
                         </div>
                     </a>
                     
-                    <a href="/docs/evaluation/splitting/kfold.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                    <a href="/docs/evaluation/splitting/kfold.html#class-StratifiedKFold" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
                         <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
                             <i class="fa-solid fa-link text-sm"></i>
                         </span>
@@ -636,7 +654,10 @@ Fold assignment is driven by each group&#x27;s majority class, so a group whose 
                             <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; dict</span>
                         </div>
                     </div>
-                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    <span class="flex items-center gap-1">
+                        <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/splitting/group.py#L277" target="_blank" rel="noopener noreferrer" title="View StratifiedGroupKFold.get_parameter_schema source on GitHub" aria-label="View StratifiedGroupKFold.get_parameter_schema source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a>
+                        <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    </span>
                 </summary>
                 <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
                     <p class="text-sm text-gray-600 mt-3">Return JSON Schema for constructor parameters.</p>
@@ -658,7 +679,10 @@ Fold assignment is driven by each group&#x27;s majority class, so a group whose 
                             <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray, y: Optional[np.ndarray]=None, groups: Optional[np.ndarray]=None) -&gt; Iterator[Tuple[np.ndarray, np.ndarray]]</span>
                         </div>
                     </div>
-                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    <span class="flex items-center gap-1">
+                        <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/splitting/group.py#L297" target="_blank" rel="noopener noreferrer" title="View StratifiedGroupKFold.split source on GitHub" aria-label="View StratifiedGroupKFold.split source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a>
+                        <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    </span>
                 </summary>
                 <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
                     <p class="text-sm text-gray-600 mt-3">Yield the <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">n_splits</code> grouped, class-balanced train/test index pairs.</p>
@@ -788,7 +812,10 @@ Fold assignment is driven by each group&#x27;s majority class, so a group whose 
                             <span class="text-sm text-gray-400 font-mono ml-1">(self, X: Optional[np.ndarray]=None, y: Optional[np.ndarray]=None, groups: Optional[np.ndarray]=None) -&gt; int</span>
                         </div>
                     </div>
-                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    <span class="flex items-center gap-1">
+                        <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/splitting/group.py#L421" target="_blank" rel="noopener noreferrer" title="View StratifiedGroupKFold.get_n_splits source on GitHub" aria-label="View StratifiedGroupKFold.get_n_splits source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a>
+                        <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    </span>
                 </summary>
                 <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
                     <p class="text-sm text-gray-600 mt-3">Return the number of folds, i.e. how many pairs <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">split</code> will yield.</p>
@@ -882,7 +909,10 @@ Fold assignment is driven by each group&#x27;s majority class, so a group whose 
                             <span class="text-sm text-gray-400 font-mono ml-1">(self) -&gt; str</span>
                         </div>
                     </div>
-                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    <span class="flex items-center gap-1">
+                        <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/splitting/group.py#L445" target="_blank" rel="noopener noreferrer" title="View StratifiedGroupKFold.__repr__ source on GitHub" aria-label="View StratifiedGroupKFold.__repr__ source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a>
+                        <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    </span>
                 </summary>
                 <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
                     <p class="text-sm text-gray-600 mt-3">Return a short string showing the fold count and shuffle flag.</p>

@@ -8,20 +8,66 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">preprocessing</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">outliers/</h1>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Outlier handling transformers.</p>
-<div class="doc-extended">Available:
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Handling extreme values before they distort a model.</p>
+<div class="doc-extended">A few extreme rows can move a mean, stretch a scaler&#x27;s range, and dominate any squared-error objective. These transformers deal with them as a preprocessing step.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Transformers</h4>
+            </div>
+            <div class="p-4">
 <ul class="list-disc list-inside my-3 space-y-1 pl-4">
 
 <li class="text-gray-700">
-IQROutlierDetector: IQR-based outlier detection (WEKA: InterquartileRange)
-</li>
-
-<li class="text-gray-700">
-ValueClipper: Clip values to specified range
+<strong>IQROutlierDetector:</strong> Flags values beyond a multiple of the interquartile
 </li>
 
 </ul>
-</div></div>
+range. Quartiles are themselves resistant to outliers, so the rule does not   get dragged around by the points it is trying to find.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>ValueClipper:</strong> Caps values at explicit bounds, keeping the row and its
+</li>
+
+</ul>
+label while limiting how far the value can pull a fit.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+Clipping preserves your sample size; dropping rows does not, and it discards labels along with them. Prefer clipping unless the extremes are known to be recording errors.
+</p>
+
+<p class="mb-4">
+An outlier is not automatically noise. In fraud, fault and intrusion detection the rare rows <em>are</em> the signal — there, model them with <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">anomaly</code> rather than removing them here.
+</p>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/algorithms/anomaly/index.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">anomaly</code>
+                            <p class="text-sm text-gray-600 mt-0.5">When anomalies are the thing to predict.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        </div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

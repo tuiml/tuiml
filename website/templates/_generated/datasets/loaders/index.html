@@ -8,8 +8,95 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">datasets</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">loaders/</h1>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Data loaders for various file formats.</p>
-<div class="doc-extended">Supports: ARFF, CSV, Excel, NumPy, Pandas DataFrame, Parquet, JSON</div></div>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Reading and writing datasets, in whatever format they arrive.</p>
+<div class="doc-extended">Every loader returns the same <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Dataset</code> — <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">X</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">y</code> and feature names — so the rest of TuiML never has to care where the data came from. Each format also has a matching <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">save_*</code>.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Formats</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>CSV / TSV:</strong> <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">load_csv</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">save_csv</code>.
+</li>
+
+<li class="text-gray-700">
+<strong>ARFF:</strong> <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">load_arff</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">save_arff</code>. Weka&#x27;s format, which
+</li>
+
+</ul>
+carries column types and nominal values in its header.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>Parquet:</strong> <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">load_parquet</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">save_parquet</code>, plus
+</li>
+
+</ul>
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">load_parquet_partitioned</code> for directory-partitioned datasets.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>Excel:</strong> <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">load_excel</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">save_excel</code>, and
+</li>
+
+</ul>
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">load_excel_sheets</code> for a workbook of several sheets.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>JSON:</strong> <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">load_json</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">load_jsonl</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">load_json_nested</code>
+</li>
+
+</ul>
+for records that are not flat, and their <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">save_*</code> counterparts.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>NumPy:</strong> <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">load_numpy</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">save_numpy</code> (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">.npy</code> / <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">.npz</code>).
+</li>
+
+<li class="text-gray-700">
+<strong>pandas:</strong> <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">from_pandas</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">to_pandas</code> for in-memory frames.
+</li>
+
+</ul>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Detecting the format</h4>
+            </div>
+            <div class="p-4"><code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">load</code> and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">save</code> pick the right one from the file extension, so a path is usually all you need. This is what lets <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">{&quot;source&quot;: &quot;sales.csv&quot;}</code> work in a <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">train</code> spec.</div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.datasets.loaders import load
+&gt;&gt;&gt; data = load(&quot;sales.csv&quot;, target=&quot;label&quot;)     # doctest: +SKIP
+&gt;&gt;&gt; data.X.shape                                 # doctest: +SKIP
+(1000, 12)</code></pre>
+            </div>
+        </div>
+        </div></div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

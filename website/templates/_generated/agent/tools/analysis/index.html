@@ -8,7 +8,32 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../../api-reference.html">API Reference</a> / <a href="../../index.html">agent</a> / <a href="../index.html">tools</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">analysis/</h1>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Analysis tools.</p></div>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Statistical testing over benchmark results.</p>
+<div class="doc-extended">Deciding whether one algorithm actually beat another, rather than eyeballing a table of means. Exposes <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">statistics</code> as a tool so an agent can reach for a significance test on the results it just produced.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Tools</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>tuiml_test_statistics:</strong> Run a significance test over per-fold scores,
+</li>
+
+</ul>
+keyed by algorithm name. Paired t-test and Wilcoxon for two algorithms;   Friedman, Quade and ANOVA with post-hoc Nemenyi for more than two, plus   the usual multiple-comparison corrections.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">The results it takes are the per-fold scores <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_benchmark</code> returns, so the two chain directly.</div>
+        </div>
+        </div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

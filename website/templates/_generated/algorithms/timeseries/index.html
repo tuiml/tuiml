@@ -8,7 +8,60 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">algorithms</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">timeseries/</h1>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Time series analysis and forecasting algorithms.</p></div>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Time series analysis and forecasting algorithms.</p>
+<div class="doc-extended">Models for data where order matters and observations are not independent. Unlike the rest of <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">algorithms</code>, these learn from a sequence&#x27;s own history rather than from a feature matrix.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Algorithms</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>AR:</strong> Autoregressive — the next value from its own past values.
+</li>
+
+<li class="text-gray-700">
+<strong>MA:</strong> Moving average — the next value from past forecast errors.
+</li>
+
+<li class="text-gray-700">
+<strong>ARMA:</strong> Autoregressive moving average, for stationary series.
+</li>
+
+<li class="text-gray-700">
+<strong>ARIMA:</strong> ARMA plus differencing, for series with a trend.
+</li>
+
+<li class="text-gray-700">
+<strong>ExponentialSmoothing:</strong> Weighted average with exponentially decaying
+</li>
+
+</ul>
+weights; handles level, trend and seasonality.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>Prophet:</strong> Additive model with trend, seasonality and holiday terms.
+</li>
+
+<li class="text-gray-700">
+<strong>STLDecomposition:</strong> Splits a series into trend, seasonal and residual
+</li>
+
+</ul>
+components.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">These subclass <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Regressor</code>, not <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Classifier</code>: forecasting predicts a continuous value. Ordinary cross-validation shuffles observations and leaks the future into the past, so evaluate with <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">TimeSeriesSplit</code>, which only ever trains on data preceding the test fold.</div>
+        </div>
+        </div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

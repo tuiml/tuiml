@@ -8,7 +8,56 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">algorithms</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">gradient_boosting/</h1>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Gradient Boosting frameworks (XGBoost, CatBoost, LightGBM).</p></div>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Gradient boosting frameworks (XGBoost, CatBoost, LightGBM).</p>
+<div class="doc-extended">Boosted tree ensembles, each fitting the next tree to the previous ensemble&#x27;s errors. These are usually the strongest option on tabular data, at the cost of longer training and more hyperparameters than a single tree.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Algorithms</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>XGBoostClassifier / XGBoostRegressor:</strong> Regularised boosting; the
+</li>
+
+</ul>
+general-purpose default of the three.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>LightGBMClassifier / LightGBMRegressor:</strong> Leaf-wise growth with
+</li>
+
+</ul>
+histogram binning; fastest on wide or large data.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>CatBoostClassifier / CatBoostRegressor:</strong> Ordered boosting with native
+</li>
+
+</ul>
+categorical handling; strongest when categorical columns dominate.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+These wrap the three upstream libraries, which are required dependencies of TuiML rather than optional extras. Unlike most of <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">algorithms</code>, the implementations are not native.
+</p>
+
+<p class="mb-4">
+Trees are scale-invariant, so feature scaling gains nothing here. Set <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">random_state</code> (or pass <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">random_seed</code> to <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">train</code>) for reproducible fits — all three sample rows and columns while boosting.
+</p>
+</div>
+        </div>
+        </div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

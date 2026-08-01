@@ -8,40 +8,138 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">splitting/</h1>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Data splitting utilities for model evaluation. - CrossValidationResultProducer.java - RandomSplitResultProducer.java</p>
-<div class="doc-extended">This module provides various strategies for splitting data:
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Data splitting strategies for model evaluation.</p>
+<div class="doc-extended">How you split decides whether a score means anything. The strategies here differ in what they hold constant — class balance, group membership, or time order — and picking the wrong one leaks information from test into training and reports a score the model will not reproduce in production.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Cross-validation</h4>
+            </div>
+            <div class="p-4">
 <ul class="list-disc list-inside my-3 space-y-1 pl-4">
 
 <li class="text-gray-700">
-KFold / StratifiedKFold: K-fold cross-validation
-</li>
-
-<li class="text-gray-700">
-train_test_split: Simple holdout split
-</li>
-
-<li class="text-gray-700">
-LeaveOneOut: Leave-one-out cross-validation
-</li>
-
-<li class="text-gray-700">
-BootstrapSplit: Bootstrap sampling
-</li>
-
-<li class="text-gray-700">
-TimeSeriesSplit: Time series cross-validation
-</li>
-
-<li class="text-gray-700">
-GroupKFold: K-fold with groups
-</li>
-
-<li class="text-gray-700">
-ShuffleSplit: Random permutation splits
+<strong>KFold / StratifiedKFold:</strong> K-fold, the stratified variant preserving
 </li>
 
 </ul>
-</div></div>
+class proportions in every fold. Prefer stratified for classification,   especially with imbalanced classes.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>RepeatedKFold / RepeatedStratifiedKFold:</strong> K-fold repeated with different
+</li>
+
+</ul>
+shuffles, for a more stable estimate.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>LeaveOneOut / LeavePOut:</strong> One (or p) samples held out per fold.
+</li>
+
+</ul>
+Near-unbiased but expensive; for small datasets.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Holdout and resampling</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>train_test_split:</strong> One-line holdout split.
+</li>
+
+<li class="text-gray-700">
+<strong>HoldoutSplit / StratifiedHoldoutSplit:</strong> The same as a splitter object.
+</li>
+
+<li class="text-gray-700">
+<strong>ShuffleSplit / StratifiedShuffleSplit:</strong> Repeated random splits, with
+</li>
+
+</ul>
+test sizes independent of the number of iterations.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>BootstrapSplit:</strong> Sampling with replacement.
+</li>
+
+</ul>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Constrained splits</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>GroupKFold / StratifiedGroupKFold:</strong> Keeps rows sharing a group id in the
+</li>
+
+</ul>
+same fold. Use when several rows describe one subject, patient or session:   splitting them apart lets the model recognise the subject rather than learn   the task.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>TimeSeriesSplit:</strong> Trains only on data preceding each test fold. The
+</li>
+
+</ul>
+right choice for anything ordered in time, where a shuffled split would   train on the future.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Scoring</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>cross_val_score:</strong> Fit and score across a splitter in one call.
+</li>
+
+</ul>
+</div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.evaluation.splitting import train_test_split
+&gt;&gt;&gt; from tuiml.datasets import load_iris
+&gt;&gt;&gt; data = load_iris()
+&gt;&gt;&gt; X_train, X_test, y_train, y_test = train_test_split(
+...     data.X, data.y, test_size=0.2, random_state=0)
+&gt;&gt;&gt; X_train.shape[0], X_test.shape[0]
+(120, 30)</code></pre>
+            </div>
+        </div>
+        </div></div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

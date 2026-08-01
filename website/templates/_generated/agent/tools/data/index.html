@@ -8,7 +8,68 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../../api-reference.html">API Reference</a> / <a href="../../index.html">agent</a> / <a href="../index.html">tools</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">data/</h1>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Data tools.</p></div>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">The tools that get data in and ready.</p>
+<div class="doc-extended">Everything an agent needs before it can train: bringing a file into TuiML, looking at it, reshaping it, or synthesising one when there is no real data to hand.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Tools</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>tuiml_upload_data:</strong> Register a dataset from a file path or from inline
+</li>
+
+</ul>
+text, giving it a name later tools can refer to.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>tuiml_read_data:</strong> Show rows (head, tail, sample, or specific indices)
+</li>
+
+</ul>
+so the agent can see what it is working with.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>tuiml_profile_data:</strong> Shape, dtypes, missing values, class balance and
+</li>
+
+</ul>
+summary statistics.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>tuiml_generate_data:</strong> Synthesise a dataset from a built-in generator
+</li>
+
+</ul>
+(Blobs, Agrawal, Friedman, ...).
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>tuiml_preprocess:</strong> Apply preprocessing steps and save the result.
+</li>
+
+<li class="text-gray-700">
+<strong>tuiml_select_features:</strong> Reduce to the most informative columns.
+</li>
+
+</ul>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">Anywhere these take a <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">data</code> argument, it accepts a built-in dataset name (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&quot;iris&quot;</code>), a path to a file, or the name of a previous upload.</div>
+        </div>
+        </div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

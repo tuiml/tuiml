@@ -8,24 +8,128 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">datasets</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">generators/</h1>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Data Generators for synthetic dataset creation.</p>
-<div class="doc-extended">Organized by task type:
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Synthetic datasets, generated to order.</p>
+<div class="doc-extended">Data whose ground truth you control: the exact shape, size, noise level and class structure you want. Useful for testing an algorithm against a known answer, reproducing a result without shipping data, and building streams with concept drift, which real datasets rarely provide on demand.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Classification</h4>
+            </div>
+            <div class="p-4">
 <ul class="list-disc list-inside my-3 space-y-1 pl-4">
 
 <li class="text-gray-700">
-classification: Generators for classification problems
-</li>
-
-<li class="text-gray-700">
-regression: Generators for regression problems
-</li>
-
-<li class="text-gray-700">
-clustering: Generators for clustering problems
+<strong>Agrawal:</strong> Loan-application data with ten selectable functions; a
 </li>
 
 </ul>
-</div></div>
+standard stream-mining benchmark.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>Hyperplane:</strong> Rotating hyperplane, for gradual concept drift.
+</li>
+
+<li class="text-gray-700">
+<strong>RandomRBF:</strong> Radial basis clusters, optionally drifting.
+</li>
+
+<li class="text-gray-700">
+<strong>LED:</strong> Seven-segment display digits with configurable noise.
+</li>
+
+</ul>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Regression</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>Friedman:</strong> The Friedman benchmarks, mixing non-linear and irrelevant
+</li>
+
+</ul>
+features.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>MexicanHat:</strong> The radially symmetric <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">sinc</code> surface.
+</li>
+
+<li class="text-gray-700">
+<strong>Sine:</strong> Sine wave with noise.
+</li>
+
+</ul>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Clustering</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>Blobs:</strong> Isotropic Gaussian clusters.
+</li>
+
+<li class="text-gray-700">
+<strong>Moons / Circles:</strong> Two interleaved shapes — not linearly separable, so
+</li>
+
+</ul>
+they show where a centroid-based clusterer fails.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>SwissRoll:</strong> A 2-D manifold rolled through 3-D, for manifold learning.
+</li>
+
+</ul>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">Every generator takes <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">random_state</code>: set it and the dataset is reproducible. All return a <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">GeneratedData</code> carrying <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">X</code> and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">y</code>.</div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.datasets.generators import Blobs
+&gt;&gt;&gt; data = Blobs(n_samples=300, n_features=2, n_clusters=3,
+...              random_state=0).generate()
+&gt;&gt;&gt; data.X.shape
+(300, 2)</code></pre>
+            </div>
+        </div>
+        </div></div>
 <h2 class="oc-h">Packages</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0; margin-bottom: 48px;">

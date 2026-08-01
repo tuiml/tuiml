@@ -8,7 +8,60 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../../api-reference.html">API Reference</a> / <a href="../../index.html">agent</a> / <a href="../index.html">tools</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">authoring/</h1>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Authoring tools.</p></div>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">The tools that let an agent write its own algorithms.</p>
+<div class="doc-extended">An agent that can only call built-in algorithms is limited to what shipped. These tools let it read the source of existing ones, then write, register and iterate on a new algorithm of its own — which then behaves like any other TuiML component and can be trained and benchmarked by name.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Tools</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>tuiml_get_skeleton:</strong> A correct starting template for a classifier or
+</li>
+
+</ul>
+regressor, with the decorator and required methods in place.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>tuiml_create_algorithm:</strong> Validate and register new source, versioned.
+</li>
+
+<li class="text-gray-700">
+<strong>tuiml_read_algorithm:</strong> Read a user-authored or built-in algorithm.
+</li>
+
+<li class="text-gray-700">
+<strong>tuiml_edit_algorithm:</strong> Exact-string edit, optionally bumping the version.
+</li>
+
+<li class="text-gray-700">
+<strong>tuiml_delete_algorithm:</strong> Remove an authored algorithm, or one version.
+</li>
+
+<li class="text-gray-700">
+<strong>tuiml_list_files:</strong> List the algorithm source files available to read.
+</li>
+
+<li class="text-gray-700">
+<strong>tuiml_search_source:</strong> Regex search across that source.
+</li>
+
+</ul>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">Authored algorithms live under <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">~/.tuiml/user_algorithms/<name>/<version>/</code> and are re-registered from disk at import, so they survive a server restart. Source is AST-validated before it is accepted: it must define exactly one <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">@classifier</code> or <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">@regressor</code> class.</div>
+        </div>
+        </div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

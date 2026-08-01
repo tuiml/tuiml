@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page not found, TuiML</title>
+    <meta name="description" content="That page does not exist on tuiml.ai.">
+    <meta name="robots" content="noindex,follow">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{{ config.project_name }}">
+    <meta property="og:title" content="Page not found, TuiML">
+    <meta property="og:description" content="That page does not exist on tuiml.ai.">
+
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32.png?v=10">
+    <link rel="icon" type="image/png" sizes="512x512" href="/static/images/favicon.png?v=10">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png?v=10">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-white text-gray-900 font-sans antialiased flex flex-col min-h-screen">
+
+    {% include 'components/_docs_navbar.html' %}
+
+    <div class="container mx-auto px-4 py-24 flex-grow">
+        <div class="max-w-2xl mx-auto text-center">
+            <p class="font-mono text-sm tracking-widest text-gray-400 uppercase">Error 404</p>
+            <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 mt-3">
+                Page not found
+            </h1>
+            <p class="text-gray-600 mt-4 text-lg leading-relaxed">
+                That URL does not exist on this site. If you followed a link from
+                the documentation, it is a bug worth reporting.
+            </p>
+
+            <div class="flex flex-wrap gap-3 justify-center mt-10">
+                <a href="/"
+                    class="px-5 py-2.5 rounded-lg bg-gray-900 text-white font-semibold hover:bg-gray-700 transition-colors">
+                    Home
+                </a>
+                <a href="/docs/api-reference.html"
+                    class="px-5 py-2.5 rounded-lg border border-gray-300 text-gray-800 font-semibold hover:bg-gray-50 transition-colors">
+                    API reference
+                </a>
+                <a href="/docs/getting_started.html"
+                    class="px-5 py-2.5 rounded-lg border border-gray-300 text-gray-800 font-semibold hover:bg-gray-50 transition-colors">
+                    Getting started
+                </a>
+                <a href="https://github.com/tuiml/tuiml/issues"
+                    class="px-5 py-2.5 rounded-lg border border-gray-300 text-gray-800 font-semibold hover:bg-gray-50 transition-colors">
+                    Report a broken link
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {% include 'components/_footer.html' %}
+</body>
+</html>

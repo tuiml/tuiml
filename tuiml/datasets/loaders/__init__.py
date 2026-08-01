@@ -1,7 +1,35 @@
-"""
-Data loaders for various file formats.
+"""Reading and writing datasets, in whatever format they arrive.
 
-Supports: ARFF, CSV, Excel, NumPy, Pandas DataFrame, Parquet, JSON
+Every loader returns the same :class:`Dataset` — ``X``, ``y`` and feature
+names — so the rest of TuiML never has to care where the data came from.
+Each format also has a matching ``save_*``.
+
+Formats
+-------
+- **CSV / TSV:** :func:`load_csv`, :func:`save_csv`.
+- **ARFF:** :func:`load_arff`, :func:`save_arff`. Weka's format, which
+  carries column types and nominal values in its header.
+- **Parquet:** :func:`load_parquet`, :func:`save_parquet`, plus
+  :func:`load_parquet_partitioned` for directory-partitioned datasets.
+- **Excel:** :func:`load_excel`, :func:`save_excel`, and
+  :func:`load_excel_sheets` for a workbook of several sheets.
+- **JSON:** :func:`load_json`, :func:`load_jsonl`, :func:`load_json_nested`
+  for records that are not flat, and their ``save_*`` counterparts.
+- **NumPy:** :func:`load_numpy`, :func:`save_numpy` (``.npy`` / ``.npz``).
+- **pandas:** :func:`from_pandas`, :func:`to_pandas` for in-memory frames.
+
+Detecting the format
+--------------------
+:func:`load` and :func:`save` pick the right one from the file extension, so
+a path is usually all you need. This is what lets ``{"source": "sales.csv"}``
+work in a :func:`tuiml.train` spec.
+
+Examples
+--------
+>>> from tuiml.datasets.loaders import load
+>>> data = load("sales.csv", target="label")     # doctest: +SKIP
+>>> data.X.shape                                 # doctest: +SKIP
+(1000, 12)
 """
 
 from tuiml.datasets.loaders.arff import load_arff, save_arff, Dataset

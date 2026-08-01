@@ -1,4 +1,29 @@
-"""Time series analysis and forecasting algorithms."""
+"""Time series analysis and forecasting algorithms.
+
+Models for data where order matters and observations are not independent.
+Unlike the rest of :mod:`tuiml.algorithms`, these learn from a sequence's own
+history rather than from a feature matrix.
+
+Algorithms
+----------
+- **AR:** Autoregressive — the next value from its own past values.
+- **MA:** Moving average — the next value from past forecast errors.
+- **ARMA:** Autoregressive moving average, for stationary series.
+- **ARIMA:** ARMA plus differencing, for series with a trend.
+- **ExponentialSmoothing:** Weighted average with exponentially decaying
+  weights; handles level, trend and seasonality.
+- **Prophet:** Additive model with trend, seasonality and holiday terms.
+- **STLDecomposition:** Splits a series into trend, seasonal and residual
+  components.
+
+Notes
+-----
+These subclass :class:`~tuiml.base.algorithms.Regressor`, not ``Classifier``:
+forecasting predicts a continuous value. Ordinary cross-validation shuffles
+observations and leaks the future into the past, so evaluate with
+:class:`~tuiml.evaluation.splitting.TimeSeriesSplit`, which only ever trains
+on data preceding the test fold.
+"""
 
 # Base classes (single source of truth)
 from tuiml.base.algorithms import Regressor, Classifier, regressor, classifier

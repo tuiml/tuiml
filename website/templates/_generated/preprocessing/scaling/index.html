@@ -8,24 +8,73 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">preprocessing</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">scaling/</h1>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Scaling transformers for numerical feature normalization.</p>
-<div class="doc-extended">Available:
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Putting numeric features on a comparable scale.</p>
+<div class="doc-extended">Any algorithm that measures distance or follows a gradient — k-NN, SVMs, k-means, neural networks, the SGD linear models — is dominated by whichever column happens to have the largest numbers. Scaling removes that accident. Tree-based algorithms split one feature at a time and are unaffected.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Transformers</h4>
+            </div>
+            <div class="p-4">
 <ul class="list-disc list-inside my-3 space-y-1 pl-4">
 
 <li class="text-gray-700">
-MinMaxScaler: Min-max scaling (WEKA: Normalize)
-</li>
-
-<li class="text-gray-700">
-StandardScaler: Z-score normalization (WEKA: Standardize)
-</li>
-
-<li class="text-gray-700">
-CenterScaler: Mean centering (WEKA: Center)
+<strong>StandardScaler:</strong> Centre at zero, scale to unit variance. The usual
 </li>
 
 </ul>
-</div></div>
+default, and what most algorithms assume.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>MinMaxScaler:</strong> Squash into a fixed range, by default <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">[0, 1]</code>. Keeps
+</li>
+
+</ul>
+zeros zero and bounds the output, but a single extreme value compresses   everything else.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>CenterScaler:</strong> Subtract the mean only, leaving the spread alone.
+</li>
+
+</ul>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">Fit on the training split and apply that fit to the test split — never fit on both. Fitting on all the data lets the test set&#x27;s mean and variance influence the transform, which inflates the score. Passing these as <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">pipeline</code> steps to <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">train</code> handles the ordering for you, refitting the scaler inside each cross-validation fold.</div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.preprocessing.scaling import StandardScaler
+&gt;&gt;&gt; from tuiml.datasets import load_iris
+&gt;&gt;&gt; data = load_iris()
+&gt;&gt;&gt; X_scaled = StandardScaler().fit_transform(data.X)
+&gt;&gt;&gt; bool(abs(X_scaled.mean()) &lt; 1e-9)
+True</code></pre>
+            </div>
+        </div>
+        </div></div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

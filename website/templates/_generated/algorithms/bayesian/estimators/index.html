@@ -8,7 +8,66 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../../api-reference.html">API Reference</a> / <a href="../../index.html">algorithms</a> / <a href="../index.html">bayesian</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">estimators/</h1>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Probability estimators module.</p></div>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Probability estimators for Naive Bayes.</p>
+<div class="doc-extended">A Naive Bayes classifier needs <span class="katex-inline">P(x_i \mid c)</span> for every feature. These estimators are the pluggable pieces that supply it, which is what lets one classifier handle numeric and categorical features by swapping the estimator rather than the algorithm.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Estimators</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>NormalEstimator:</strong> Fits a Gaussian per feature and class. The default for
+</li>
+
+</ul>
+numeric data, and the right choice when a feature is roughly bell-shaped.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>KernelEstimator:</strong> Kernel density estimation. Slower, but assumes no
+</li>
+
+</ul>
+particular distribution — use it for skewed or multi-modal features.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>DiscreteEstimator:</strong> Smoothed counts, for categorical or already
+</li>
+
+</ul>
+discretised features.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>Estimator:</strong> The base class to subclass for a new one.
+</li>
+
+</ul>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/algorithms/bayesian/index.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">bayesian</code>
+                            <p class="text-sm text-gray-600 mt-0.5">The classifiers these plug into.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        </div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

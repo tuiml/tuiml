@@ -8,8 +8,80 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">evaluation</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">metrics/</h1>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Evaluation metrics for TuiML.</p>
-<div class="doc-extended">Complete implementation of all Weka evaluation metrics plus sklearn-style APIs.</div></div>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Scoring functions for every task type.</p>
+<div class="doc-extended">Around seventy metrics, all as plain functions taking <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">(y_true, y_pred)</code>. Anywhere TuiML accepts a <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">metrics</code> list — <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">train</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Benchmark</code>, the MCP tools — the names come from here.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Classification</h4>
+            </div>
+            <div class="p-4"><strong>accuracy_score</strong>, <strong>balanced_accuracy_score</strong>, <strong>precision_score</strong>, <strong>recall_score</strong>, <strong>f1_score</strong>, <strong>fbeta_score</strong>, <strong>roc_auc_score</strong>, <strong>average_precision_score</strong>, <strong>log_loss</strong>, <strong>matthews_corrcoef</strong>, <strong>cohen_kappa_score</strong>, <strong>confusion_matrix</strong>, <strong>classification_report</strong>, plus the rate family (<strong>true_positive_rate</strong>, <strong>false_positive_rate</strong>, <strong>specificity_score</strong>, ...) and the curves (<strong>roc_curve</strong>, <strong>precision_recall_curve</strong>).</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Regression</h4>
+            </div>
+            <div class="p-4"><strong>mean_squared_error</strong>, <strong>root_mean_squared_error</strong>, <strong>mean_absolute_error</strong>, <strong>r2_score</strong>, <strong>correlation_coefficient</strong>, and the relative errors (<strong>relative_absolute_error</strong>, <strong>root_relative_squared_error</strong>).</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Clustering</h4>
+            </div>
+            <div class="p-4"><strong>silhouette_score</strong>, <strong>davies_bouldin_score</strong>, <strong>calinski_harabasz_score</strong> for unlabelled data; <strong>adjusted_rand_score</strong>, <strong>normalized_mutual_info_score</strong>, <strong>homogeneity_score</strong>, <strong>completeness_score</strong>, <strong>v_measure_score</strong> when true labels are known.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Information theory</h4>
+            </div>
+            <div class="p-4"><strong>entropy</strong>, <strong>information_gain</strong>, <strong>gain_ratio</strong>, <strong>mutual_information</strong>, <strong>symmetrical_uncertainty</strong>, <strong>kullback_leibler_divergence</strong> and friends, used for splitting criteria and feature ranking as well as evaluation.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+On imbalanced data accuracy is misleading: predicting the majority class for everything already scores well. Prefer <strong>balanced_accuracy_score</strong>, <strong>f1_score</strong> or <strong>matthews_corrcoef</strong> there.
+</p>
+
+<p class="mb-4">
+Multi-class variants take an <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">average</code> argument (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&quot;macro&quot;</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&quot;micro&quot;</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&quot;weighted&quot;</code>); <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&quot;macro&quot;</code> weights every class equally, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&quot;weighted&quot;</code> by class frequency.
+</p>
+</div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.evaluation.metrics import accuracy_score, f1_score
+&gt;&gt;&gt; y_true = [0, 1, 1, 0, 1]
+&gt;&gt;&gt; y_pred = [0, 1, 0, 0, 1]
+&gt;&gt;&gt; float(accuracy_score(y_true, y_pred))
+0.8</code></pre>
+            </div>
+        </div>
+        </div></div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

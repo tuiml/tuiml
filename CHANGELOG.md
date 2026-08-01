@@ -31,6 +31,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `tuiml_list(search=...)`, which has always worked.
 
 ### Fixed
+- **A quarter of the See Also links in the API docs were broken, and the site
+  hid it.** 147 of 544 pointed at pages that do not exist. The resolver only
+  indexed *classes*, so every `:func:` reference fell through to a fallback
+  that guessed a path — producing URLs like
+  `/docs/utils/serialization/load_model.html` for a function documented on
+  its module's page — while `:mod:` references produced `/docs//train.html`
+  or a dead `#`. Modules, packages and functions are now indexed too, with
+  anchors, and a reference that resolves to nothing renders as plain text
+  rather than a link that only fails once clicked.
+
+  The reason this went unnoticed: `404.html` was a byte-for-byte copy of
+  `getting_started.html`, so every broken link looked like a successful
+  navigation to the Getting Started page. It is now a real not-found page.
 - **The next release would have shipped two files on the old version.**
   `bump_version.py` still pointed at `tuiml/agent/SKILL.md`, which moved to
   `tuiml/agent/prompts/` in the agent reorg. The script printed `SKIP (not
@@ -115,6 +128,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   no longer read-only and `tuiml_system_info` is marked open-world.
 
 ### Added
+- **"View source on GitHub" links throughout the API docs.** Every module,
+  class, function and method now carries a GitHub icon linking to its own
+  implementation, anchored to the line it starts on and opening in a new tab.
+  2501 links, each verified to point at a file that exists at a line that
+  does.
+- **Package overviews for every package.** All 65 package index pages now
+  carry real documentation — what the package is for, what is in it, and when
+  to reach for which piece. 31 were previously under 400 characters and
+  `tuiml/agent/mcp/` had no docstring at all, so its page rendered blank.
 - **Smoke test covering all 30 MCP tools** (`tests/test_agent/`). Each tool is
   dispatched through `execute_tool` — the entry point `server.py` uses — in one
   coherent session, so ids flow from the tool that produces them to the tools

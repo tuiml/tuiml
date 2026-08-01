@@ -52,7 +52,7 @@ GITHUB_URL = "https://github.com/tuiml/tuiml"
 
 # The Tutorials nav opens the first notebook directly — there is no index page
 # to step through, since every tutorial already carries the full sidebar.
-# Kept in sync with TUTORIAL_GROUPS by an assertion below.
+# Kept in sync with TUTORIALS by an assertion below.
 FIRST_TUTORIAL = "quickstart/01_hello_tuiml"
 TUTORIALS_URL = f"/tutorials/{FIRST_TUTORIAL}"
 
@@ -392,36 +392,22 @@ def parse_changelog() -> list[dict]:
 # Tutorials (Jupyter notebooks -> HTML with the site's header/sidebar/footer)
 # ---------------------------------------------------------------------------
 
-# Tutorial list for the sidebar, organised into three tracks:
-# A — agent-first (the homepage promise), B — Python APIs, C — ship it.
-TUTORIAL_GROUPS = [
-    ("Start Here", [
-        ("quickstart/01_hello_tuiml", "Hello TuiML", "fa-solid fa-play"),
-    ]),
-    ("Track A · I have an agent", [
-        ("llm_friendly/02_mcp_server", "Connect Your Agent", "fa-solid fa-bolt"),
-        ("llm_friendly/01_llm_tools", "Tools an Agent Can Call", "fa-solid fa-robot"),
-        ("llm_friendly/04_agent_doing_ml", "Watch an Agent Do ML", "fa-solid fa-comments"),
-        ("llm_friendly/03_agentic_workflows", "Build an Agentic Workflow", "fa-solid fa-wand-sparkles"),
-    ]),
-    ("Track B · I want the Python API", [
-        ("ml_simplified/01_high_level_api", "High-Level API", "fa-solid fa-rocket"),
-        ("ml_simplified/02_workflow_builder", "Workflow Builder", "fa-solid fa-code"),
-        ("ml_simplified/08_preprocessing", "Preprocessing", "fa-solid fa-wand-magic-sparkles"),
-        ("ml_simplified/09_feature_engineering", "Feature Engineering", "fa-solid fa-filter"),
-        ("ml_simplified/03_classification", "Classification", "fa-solid fa-tags"),
-        ("ml_simplified/04_regression", "Regression", "fa-solid fa-chart-line"),
-        ("ml_simplified/05_clustering", "Clustering", "fa-solid fa-circle-nodes"),
-        ("ml_simplified/06_anomaly_detection", "Anomaly Detection", "fa-solid fa-triangle-exclamation"),
-        ("ml_simplified/07_timeseries", "Time Series", "fa-solid fa-chart-area"),
-        ("ml_simplified/10_benchmarking", "Benchmarking", "fa-solid fa-flask"),
-    ]),
-    ("Track C · I want to ship it", [
-        ("deploy/01_cli", "CLI", "fa-solid fa-terminal"),
-        ("deploy/02_model_serving", "Model Serving", "fa-solid fa-server"),
-        ("case_studies/01_diabetes_prediction", "Case Study: Diabetes", "fa-solid fa-heart-pulse"),
-        ("case_studies/02_credit_scoring", "Case Study: Credit Scoring", "fa-solid fa-credit-card"),
-    ]),
+# Tutorial list for the sidebar: one flat, start-to-finish sequence. The order
+# is the reading order — connect an agent, learn the Python API, then ship it —
+# but it is deliberately NOT grouped: the tracks split a short list into stubs
+# and forced readers to pick a lane before they knew which one they wanted.
+TUTORIALS = [
+    ("quickstart/01_hello_tuiml", "Hello TuiML", "fa-solid fa-play"),
+    ("llm_friendly/02_mcp_server", "Connect Your Agent", "fa-solid fa-bolt"),
+    ("llm_friendly/01_llm_tools", "Tools an Agent Can Call", "fa-solid fa-robot"),
+    ("llm_friendly/04_agent_doing_ml", "Watch an Agent Do ML", "fa-solid fa-comments"),
+    ("ml_simplified/01_high_level_api", "High-Level API", "fa-solid fa-rocket"),
+    ("ml_simplified/02_workflow_builder", "Workflow Builder", "fa-solid fa-code"),
+    ("ml_simplified/08_preprocessing", "Preprocessing", "fa-solid fa-wand-magic-sparkles"),
+    ("ml_simplified/09_feature_engineering", "Feature Engineering", "fa-solid fa-filter"),
+    ("ml_simplified/10_benchmarking", "Benchmarking", "fa-solid fa-flask"),
+    ("deploy/02_model_serving", "Model Serving", "fa-solid fa-server"),
+    ("case_studies/01_diabetes_prediction", "Case Study: Diabetes", "fa-solid fa-heart-pulse"),
 ]
 
 # Head additions for tutorial pages: favicons, fonts, nav/footer chrome deps,
@@ -636,11 +622,26 @@ document.querySelectorAll('.nb-doc .jp-InputArea-editor').forEach(function (el) 
 '''
 
 # The Tutorials nav and the /docs/tutorials.html redirect both point at
-# FIRST_TUTORIAL, so a reordering of TUTORIAL_GROUPS must not leave them
-# pointing at a notebook that is no longer first.
-assert TUTORIAL_GROUPS[0][1][0][0] == FIRST_TUTORIAL, (
-    f"FIRST_TUTORIAL is {FIRST_TUTORIAL!r} but TUTORIAL_GROUPS now starts with "
-    f"{TUTORIAL_GROUPS[0][1][0][0]!r} — update FIRST_TUTORIAL."
+# FIRST_TUTORIAL, so a reordering of TUTORIALS must not leave them pointing at
+# a notebook that is no longer first.
+assert TUTORIALS[0][0] == FIRST_TUTORIAL, (
+    f"FIRST_TUTORIAL is {FIRST_TUTORIAL!r} but TUTORIALS now starts with "
+    f"{TUTORIALS[0][0]!r} — update FIRST_TUTORIAL."
+)
+
+# Every listed tutorial must exist on disk, and every notebook on disk must be
+# listed — otherwise a deleted notebook leaves a dead rail link, and a new one
+# renders to a page nothing links to.
+_listed = {nb_id for nb_id, _t, _i in TUTORIALS}
+_on_disk = {
+    nb.relative_to(TUTORIALS_DIR).with_suffix("").as_posix()
+    for nb in TUTORIALS_DIR.rglob("*.ipynb")
+    if ".ipynb_checkpoints" not in nb.parts
+}
+assert _listed == _on_disk, (
+    f"TUTORIALS is out of sync with {TUTORIALS_DIR}/ — "
+    f"listed but missing: {sorted(_listed - _on_disk)}; "
+    f"on disk but unlisted: {sorted(_on_disk - _listed)}"
 )
 
 
@@ -668,22 +669,21 @@ def render_notebook(nb_file: Path) -> str:
 
     current_notebook = nb_file.relative_to(TUTORIALS_DIR).with_suffix("").as_posix()
 
-    # Title + owning group for the header section
+    # Title for the header section. The caption above it is the same on every
+    # page now that the list is flat — there is no owning group to name.
     tutorial_title, tutorial_group = current_notebook, "Tutorials"
-    for group_name, items in TUTORIAL_GROUPS:
-        for nb_id, nb_title, _nb_icon in items:
-            if nb_id == current_notebook:
-                tutorial_title, tutorial_group = nb_title, group_name
+    for nb_id, nb_title, _nb_icon in TUTORIALS:
+        if nb_id == current_notebook:
+            tutorial_title = nb_title
 
     # Tutorial rail: same oc-toc component as the benchmarks algorithm rail —
     # fixed beside the column on wide screens, in-flow block on narrow ones.
-    # A flat list (no group headings — TUTORIAL_GROUPS order already reads
-    # start-to-finish). Extensionless links: /tutorials/<id> serves <id>.html.
+    # TUTORIALS order reads start-to-finish. Extensionless links: /tutorials/<id>
+    # serves <id>.html.
     rail_items = ""
-    for _group_name, items in TUTORIAL_GROUPS:
-        for nb_id, nb_title, _nb_icon in items:
-            active = ' class="active"' if current_notebook == nb_id else ""
-            rail_items += f'                <a href="/tutorials/{nb_id}"{active}>{nb_title}</a>\n'
+    for nb_id, nb_title, _nb_icon in TUTORIALS:
+        active = ' class="active"' if current_notebook == nb_id else ""
+        rail_items += f'                <a href="/tutorials/{nb_id}"{active}>{nb_title}</a>\n'
     rail_items += (
         f'                <a href="{GITHUB_URL}/tree/main/tutorials"'
         ' target="_blank" rel="noopener">Notebook on GitHub</a>\n'
@@ -859,10 +859,12 @@ def freeze() -> None:
     if not BASE:
         (OUT / "CNAME").write_text("tuiml.ai\n")
 
-    # 404 fallback so unknown paths render the site's own not-found styling.
-    err = OUT / "docs" / "getting_started.html"
-    if err.exists():
-        shutil.copyfile(err, OUT / "404.html")
+    # 404 page. This was a byte-for-byte copy of getting_started.html, which
+    # meant a broken link looked like a successful navigation to the wrong
+    # page: no error, no clue, and nothing to report. Serve a real not-found
+    # page instead, built from the same components so it still looks like the
+    # site.
+    render("/404.html", "pages/404.html")
 
     mode = f"subpath {BASE}" if BASE else "root (+ CNAME tuiml.ai)"
     print(f"  ✓ froze {count} pages + static assets -> {OUT.relative_to(HERE)}/  [{mode}]")

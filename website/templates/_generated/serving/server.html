@@ -7,7 +7,7 @@
 
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../api-reference.html">API Reference</a> / <a href="index.html">serving</a></p>
-<h1 class="oc-display" style="margin-bottom: 32px;">server</h1>
+<div class="flex items-center gap-3" style="margin-bottom: 32px;"><h1 class="oc-display" style="margin: 0;">server</h1><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/serving/server.py" target="_blank" rel="noopener noreferrer" title="View serving/server.py source on GitHub" aria-label="View serving/server.py source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a></div>
 <nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
 <div class="oc-toc-label">On this page</div>
 <a href="#class-ModelServer">ModelServer</a>
@@ -36,8 +36,11 @@ Usage:     # Serve a single model     from tuiml.serving import serve     serve(
 <div class="mb-12 scroll-mt-24" id="class-ModelServer">
 
         <div class="mb-6">
-            <h2 class="text-3xl font-bold text-gray-900 mb-2">ModelServer</h2>
-            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">serving.server.ModelServer</span></p>
+            <div class="flex items-center gap-2">
+                <h2 class="text-3xl font-bold text-gray-900">ModelServer</h2>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/serving/server.py#L52" target="_blank" rel="noopener noreferrer" title="View ModelServer source on GitHub" aria-label="View ModelServer source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a>
+            </div>
+            <p class="text-gray-500 font-mono text-sm mt-2">class <span class="text-indigo-600">serving.server.ModelServer</span></p>
         </div>
         
 <p class="text-gray-700 text-lg mb-6 leading-relaxed">REST API server for serving trained TuiML models.</p>
@@ -158,7 +161,10 @@ Usage:     # Serve a single model     from tuiml.serving import serve     serve(
                             <span class="text-sm text-gray-400 font-mono ml-1">(self, model_id: str, path: Union[str, Path], metadata: Optional[Dict]=None) -&gt; Dict[str, Any]</span>
                         </div>
                     </div>
-                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    <span class="flex items-center gap-1">
+                        <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/serving/server.py#L94" target="_blank" rel="noopener noreferrer" title="View ModelServer.load_model source on GitHub" aria-label="View ModelServer.load_model source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a>
+                        <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    </span>
                 </summary>
                 <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
                     <p class="text-sm text-gray-600 mt-3">Load a model into the server.</p>
@@ -252,7 +258,10 @@ Usage:     # Serve a single model     from tuiml.serving import serve     serve(
                             <span class="text-sm text-gray-400 font-mono ml-1">(self, model_id: str) -&gt; bool</span>
                         </div>
                     </div>
-                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    <span class="flex items-center gap-1">
+                        <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/serving/server.py#L119" target="_blank" rel="noopener noreferrer" title="View ModelServer.unload_model source on GitHub" aria-label="View ModelServer.unload_model source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a>
+                        <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    </span>
                 </summary>
                 <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
                     <p class="text-sm text-gray-600 mt-3">Unload a model from memory.</p>
@@ -274,7 +283,10 @@ Usage:     # Serve a single model     from tuiml.serving import serve     serve(
                             <span class="text-sm text-gray-400 font-mono ml-1">(self) -&gt; &#x27;FastAPI&#x27;</span>
                         </div>
                     </div>
-                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    <span class="flex items-center gap-1">
+                        <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/serving/server.py#L123" target="_blank" rel="noopener noreferrer" title="View ModelServer.create_app source on GitHub" aria-label="View ModelServer.create_app source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a>
+                        <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    </span>
                 </summary>
                 <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
                     <p class="text-sm text-gray-600 mt-3">Create the FastAPI application with all endpoints.</p>
@@ -318,7 +330,10 @@ Usage:     # Serve a single model     from tuiml.serving import serve     serve(
                             <span class="text-sm text-gray-400 font-mono ml-1">(self) -&gt; &#x27;FastAPI&#x27;</span>
                         </div>
                     </div>
-                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    <span class="flex items-center gap-1">
+                        <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/serving/server.py#L405" target="_blank" rel="noopener noreferrer" title="View ModelServer.app source on GitHub" aria-label="View ModelServer.app source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a>
+                        <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    </span>
                 </summary>
                 <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
                     <p class="text-sm text-gray-600 mt-3">Get or create the FastAPI application.</p>
@@ -339,6 +354,7 @@ Usage:     # Serve a single model     from tuiml.serving import serve     serve(
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">create_app</h3>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/serving/server.py#L412" target="_blank" rel="noopener noreferrer" title="View create_app source on GitHub" aria-label="View create_app source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a>
             </div>
             <div class="text-xs text-gray-400 mt-1 font-mono">Line 412</div>
         </div>
@@ -450,6 +466,7 @@ Usage:     # Serve a single model     from tuiml.serving import serve     serve(
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">serve</h3>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/serving/server.py#L452" target="_blank" rel="noopener noreferrer" title="View serve source on GitHub" aria-label="View serve source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a>
             </div>
             <div class="text-xs text-gray-400 mt-1 font-mono">Line 452</div>
         </div>
@@ -724,6 +741,7 @@ $ tuiml.stop_server()                               # doctest: +SKIP</code></pre
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">stop_server</h3>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/serving/server.py#L672" target="_blank" rel="noopener noreferrer" title="View stop_server source on GitHub" aria-label="View stop_server source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a>
             </div>
             <div class="text-xs text-gray-400 mt-1 font-mono">Line 672</div>
         </div>
@@ -805,6 +823,7 @@ $ tuiml.stop_server()                               # doctest: +SKIP</code></pre
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">server_status</h3>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/serving/server.py#L703" target="_blank" rel="noopener noreferrer" title="View server_status source on GitHub" aria-label="View server_status source on GitHub" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"><i class="fa-brands fa-github text-base"></i></a>
             </div>
             <div class="text-xs text-gray-400 mt-1 font-mono">Line 703</div>
         </div>

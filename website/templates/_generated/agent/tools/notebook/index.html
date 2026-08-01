@@ -8,7 +8,56 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../../api-reference.html">API Reference</a> / <a href="../../index.html">agent</a> / <a href="../index.html">tools</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">notebook/</h1>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Notebook tools.</p></div>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Turning a finished agent session into a runnable notebook.</p>
+<div class="doc-extended">A conversation with an agent produces results but no artefact anyone can re-run or review. This exports the session as a <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">.ipynb</code> of plain TuiML Python — no MCP, no agent — so the work can be checked, edited and repeated.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Tools</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>tuiml_export_notebook:</strong> Write the session so far to a notebook, with a
+</li>
+
+</ul>
+markdown heading per step and the equivalent Python beneath it.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Modules</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">translate</code> turns one recorded tool call
+</li>
+
+</ul>
+into the Python that reproduces it.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">export</code> orders those cells and writes the
+</li>
+
+</ul>
+notebook.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">Only <em>successful</em> calls are recorded, and only reproducible ones: a failed call would make the exported notebook raise when re-run, and a lookup like <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_list</code> produces no analysis worth exporting. The effective random seed is folded into each cell even when it was auto-generated, so the notebook reproduces the exact run rather than a similar one.</div>
+        </div>
+        </div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

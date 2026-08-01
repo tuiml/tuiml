@@ -1,4 +1,40 @@
-"""Distance metrics for measuring similarity between data points."""
+"""Distance metrics for measuring similarity between data points.
+
+The metric decides what "similar" means, so it shapes a clusterer's output as
+much as the algorithm does. Each metric comes in two forms: a scalar function
+over two points, and a vectorised ``*_pairwise`` over whole matrices.
+
+Metrics
+-------
+- **euclidean_distance:** Straight-line distance. The default, and what
+  k-means assumes.
+- **manhattan_distance:** Sum of absolute differences. Less sensitive to
+  outliers than Euclidean, and natural for grid-like data.
+- **chebyshev_distance:** The largest single-dimension difference.
+- **minkowski_distance:** The family the three above belong to, parametrised
+  by ``p`` (1 gives Manhattan, 2 Euclidean, ∞ Chebyshev).
+- **cosine_distance:** Angle between vectors, ignoring magnitude. Use for
+  text and other high-dimensional sparse data, where vector length reflects
+  document size rather than content.
+
+Helpers
+-------
+- **get_distance_function:** Look a metric up by name.
+- **pairwise_distances / cdist / pdist:** Full distance matrices.
+- **DISTANCE_FUNCTIONS / PAIRWISE_FUNCTIONS:** The name-to-function tables.
+
+Notes
+-----
+Every metric except cosine is scale-sensitive: a column measured in thousands
+overwhelms one measured in units, so scale features first.
+
+Examples
+--------
+>>> import numpy as np
+>>> from tuiml.algorithms.clustering.distance import euclidean_distance
+>>> float(euclidean_distance(np.array([0.0, 0.0]), np.array([3.0, 4.0])))
+5.0
+"""
 
 import numpy as np
 from typing import Callable, Optional
@@ -66,9 +102,10 @@ def get_distance_function(name: str) -> Callable:
 
     Examples
     --------
+    >>> import numpy as np
     >>> from tuiml.algorithms.clustering.distance import get_distance_function
     >>> dist_fn = get_distance_function('euclidean')
-    >>> dist_fn(np.array([0, 0]), np.array([3, 4]))
+    >>> float(dist_fn(np.array([0, 0]), np.array([3, 4])))
     5.0
     """
     if name not in DISTANCE_FUNCTIONS:

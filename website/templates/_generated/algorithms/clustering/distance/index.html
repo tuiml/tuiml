@@ -8,7 +8,107 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../../api-reference.html">API Reference</a> / <a href="../../index.html">algorithms</a> / <a href="../index.html">clustering</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">distance/</h1>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Distance metrics for measuring similarity between data points.</p></div>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Distance metrics for measuring similarity between data points.</p>
+<div class="doc-extended">The metric decides what &quot;similar&quot; means, so it shapes a clusterer&#x27;s output as much as the algorithm does. Each metric comes in two forms: a scalar function over two points, and a vectorised <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">*_pairwise</code> over whole matrices.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Metrics</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>euclidean_distance:</strong> Straight-line distance. The default, and what
+</li>
+
+</ul>
+k-means assumes.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>manhattan_distance:</strong> Sum of absolute differences. Less sensitive to
+</li>
+
+</ul>
+outliers than Euclidean, and natural for grid-like data.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>chebyshev_distance:</strong> The largest single-dimension difference.
+</li>
+
+<li class="text-gray-700">
+<strong>minkowski_distance:</strong> The family the three above belong to, parametrised
+</li>
+
+</ul>
+by <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">p</code> (1 gives Manhattan, 2 Euclidean, ∞ Chebyshev).
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>cosine_distance:</strong> Angle between vectors, ignoring magnitude. Use for
+</li>
+
+</ul>
+text and other high-dimensional sparse data, where vector length reflects   document size rather than content.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Helpers</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>get_distance_function:</strong> Look a metric up by name.
+</li>
+
+<li class="text-gray-700">
+<strong>pairwise_distances / cdist / pdist:</strong> Full distance matrices.
+</li>
+
+<li class="text-gray-700">
+<strong>DISTANCE_FUNCTIONS / PAIRWISE_FUNCTIONS:</strong> The name-to-function tables.
+</li>
+
+</ul>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">Every metric except cosine is scale-sensitive: a column measured in thousands overwhelms one measured in units, so scale features first.</div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; from tuiml.algorithms.clustering.distance import euclidean_distance
+&gt;&gt;&gt; float(euclidean_distance(np.array([0.0, 0.0]), np.array([3.0, 4.0])))
+5.0</code></pre>
+            </div>
+        </div>
+        </div></div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

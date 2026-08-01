@@ -8,8 +8,71 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../../api-reference.html">API Reference</a> / <a href="../../index.html">datasets</a> / <a href="../index.html">generators</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">classification/</h1>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Classification data generators.</p>
-<div class="doc-extended">Generate synthetic data for testing classification algorithms.</div></div>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Synthetic classification datasets.</p>
+<div class="doc-extended">Labelled data with a known decision boundary, so you can check what an algorithm recovers. Several also generate <em>concept drift</em> — the boundary moving partway through the stream — which is what streaming learners have to detect and adapt to.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Generators</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>Agrawal:</strong> Loan applications over nine attributes, with ten selectable
+</li>
+
+</ul>
+target functions. A standard stream-mining benchmark; switching function   mid-stream produces abrupt drift.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>Hyperplane:</strong> Points labelled by which side of a rotating hyperplane they
+</li>
+
+</ul>
+fall on. Rotating it slowly gives gradual drift.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>RandomRBF:</strong> Radial basis clusters with random centroids, optionally
+</li>
+
+</ul>
+drifting.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>LED:</strong> The seven-segment digits, with a tunable proportion of segments
+</li>
+
+</ul>
+flipped — a controlled way to vary label noise.</div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.datasets.generators.classification import Agrawal
+&gt;&gt;&gt; data = Agrawal(n_samples=1000, function=1, random_state=0).generate()
+&gt;&gt;&gt; data.X.shape
+(1000, 9)</code></pre>
+            </div>
+        </div>
+        </div></div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

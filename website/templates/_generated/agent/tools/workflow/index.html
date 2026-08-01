@@ -8,7 +8,60 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../../api-reference.html">API Reference</a> / <a href="../../index.html">agent</a> / <a href="../index.html">tools</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">workflow/</h1>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Workflow tools.</p></div>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">The tools that actually run machine learning.</p>
+<div class="doc-extended">One module per tool, each declaring its <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ToolSpec</code> next to its executor. These are the calls an agent chains together to get from a dataset to a served model, and the only group whose results become notebook cells.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Tools</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>tuiml_train:</strong> Fit a model, with optional preprocessing, feature
+</li>
+
+</ul>
+selection and cross-validation. Returns a <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">model_id</code>.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>tuiml_predict:</strong> Predict with a previously trained model.
+</li>
+
+<li class="text-gray-700">
+<strong>tuiml_evaluate:</strong> Score a trained model on a dataset.
+</li>
+
+<li class="text-gray-700">
+<strong>tuiml_benchmark:</strong> Compare several algorithms over the same data.
+</li>
+
+<li class="text-gray-700">
+<strong>tuiml_tune:</strong> Grid or random hyperparameter search.
+</li>
+
+<li class="text-gray-700">
+<strong>tuiml_plot:</strong> Confusion matrix, ROC, PR, learning curve, CD diagram.
+</li>
+
+<li class="text-gray-700">
+<strong>tuiml_save_model:</strong> Write a trained model to a path of your choosing.
+</li>
+
+</ul>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">Most of these take a <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">model_id</code> produced by <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_train</code>. Ids resolve through an index rehydrated from <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">~/.tuiml/models/</code> at import, so one survives an MCP server restart.</div>
+        </div>
+        </div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

@@ -34,6 +34,17 @@ DOC_CONFIG = {
 }
 DOC_CONFIG["version_label"] = f"v{DOC_CONFIG['version']} {DOC_CONFIG['status']}"
 
+#: Branch the "view source" links point at. ``main`` tracks the code the docs
+#: were generated from, since the site rebuilds on every push to it. Pin this
+#: to a tag if you ever publish docs for a release separately from main.
+GITHUB_BRANCH = "main"
+
+#: Path prefix from the repository root down to the package the docs cover.
+#: The generator's source root is ``tuiml/tuiml``, so a module recorded as
+#: ``evaluation/metrics.py`` lives at ``tuiml/evaluation/metrics.py`` in the
+#: repo.
+GITHUB_SOURCE_PREFIX = "tuiml"
+
 
 @dataclass
 class DocItem:
@@ -546,6 +557,44 @@ class DocstringParser:
         </div>
         '''
 
+    def _resolve_reference(self, ref: str):
+        """Resolve an RST cross-reference target to a URL, or None.
+
+        Tries the full dotted path first, then progressively drops trailing
+        components: ``tuiml.workflow.Workflow.fit`` is a method, which has no
+        page of its own, so it resolves to the page documenting ``Workflow``.
+        The bare final name is the last resort, since it is the most ambiguous
+        — several packages define a ``fit``.
+
+        Returning None is meaningful: it says nothing documents this target,
+        and the caller renders plain text instead of a link. The previous
+        behaviour guessed a path from the name, which produced URLs like
+        ``/docs/utils/serialization/load_model.html`` for a function that is
+        documented on its module's page, and ``#`` when there was nothing to
+        guess from.
+
+        Parameters
+        ----------
+        ref : str
+            Dotted reference target, e.g. ``tuiml.algorithms.svm.SMOReg``.
+
+        Returns
+        -------
+        url : str or None
+            The URL documenting it, or None if it is not documented.
+        """
+        if not ref:
+            return None
+
+        parts = ref.split('.')
+        for cut in range(len(parts), 0, -1):
+            candidate = '.'.join(parts[:cut])
+            href = self._class_map.get(candidate)
+            if href:
+                return href
+
+        return self._class_map.get(parts[-1])
+
     def _format_see_also(self, content: str) -> str:
         """Format See Also section with clickable links."""
         # NumPy style wraps a long description onto indented continuation
@@ -573,25 +622,10 @@ class DocstringParser:
                     parts = ref.split('.')
                     class_name = parts[-1] if parts else ref
 
-                    # Look up actual file path in class map
-                    href = self._class_map.get(ref) or self._class_map.get(class_name)
+                    href = self._resolve_reference(ref)
 
-                    if not href:
-                        # Fall back to snake_case conversion
-                        if len(parts) > 1:
-                            path_parts = [p for p in parts[:-1] if p != 'tuiml']
-
-                            def to_snake_case(name):
-                                result = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
-                                return re.sub('([a-z0-9])([A-Z])', r'\1_\2', result).lower()
-
-                            file_name = to_snake_case(class_name)
-                            file_path = '/'.join(path_parts) + '/' + file_name
-                            href = f"/docs/{file_path}.html"
-                        else:
-                            href = '#'
-                    
-                    items.append(f'''
+                    if href:
+                        items.append(f'''
                     <a href="{href}" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
                         <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
                             <i class="fa-solid fa-link text-sm"></i>
@@ -601,6 +635,17 @@ class DocstringParser:
                             <p class="text-sm text-gray-600 mt-0.5">{self._format_inline_code(html.escape(desc))}</p>
                         </div>
                     </a>
+                    ''')
+                    else:
+                        # Nothing documents this reference. Render it as text
+                        # rather than a link: a dead link looks like a working
+                        # one until it is clicked, and the site's 404 is easy
+                        # to mistake for a real page.
+                        items.append(f'''
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <code class="font-bold text-gray-700">{html.escape(class_name)}</code>
+                        <span class="text-sm text-gray-600">{self._format_inline_code(html.escape(desc))}</span>
+                    </div>
                     ''')
                 else:
                     # Simple format: ClassName : description
@@ -1342,28 +1387,128 @@ class HTMLDocGenerator:
         rendered = re.sub(r'``([^`]+)``', r'<code class="text-indigo-600">\1</code>', escaped)
         return DocstringParser._format_emphasis(rendered)
 
+    def _source_url(self, lineno: int = 0) -> str:
+        """Return the GitHub URL for the module being rendered.
+
+        Parameters
+        ----------
+        lineno : int, default=0
+            Line to anchor on. Omit (or 0) to link at the top of the file.
+
+        Returns
+        -------
+        url : str
+            A ``blob`` URL on :data:`GITHUB_BRANCH`, or an empty string when
+            no module is currently being rendered.
+        """
+        rel = getattr(self, "_current_source_rel", None)
+        if not rel:
+            return ""
+        base = DOC_CONFIG["github_url"]
+        url = f"{base}/blob/{GITHUB_BRANCH}/{GITHUB_SOURCE_PREFIX}/{rel}"
+        return f"{url}#L{lineno}" if lineno else url
+
+    def _source_icon(self, lineno: int = 0, label: str = "View source on GitHub") -> str:
+        """Render the GitHub icon that links to an item's implementation.
+
+        Opens in a new tab, so a reader following it does not lose their place
+        in the docs. ``rel="noopener"`` goes with ``target="_blank"``: without
+        it the opened page gets a handle on this one through ``window.opener``.
+
+        Parameters
+        ----------
+        lineno : int, default=0
+            Line the item starts on.
+        label : str, default="View source on GitHub"
+            Accessible label and tooltip.
+
+        Returns
+        -------
+        html : str
+            The anchor, or an empty string when there is no source URL.
+        """
+        url = self._source_url(lineno)
+        if not url:
+            return ''
+        return (
+            f'<a href="{url}" target="_blank" rel="noopener noreferrer" '
+            f'title="{html.escape(label)}" aria-label="{html.escape(label)}" '
+            f'class="inline-flex items-center justify-center w-7 h-7 rounded-md '
+            f'text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors '
+            f'shrink-0">'
+            f'<i class="fa-brands fa-github text-base"></i></a>'
+        )
+
     def _build_class_map(self):
-        """Build mapping from class reference paths to actual file URLs."""
+        """Map every documented reference path to the URL that documents it.
+
+        Covers all four things a ``See Also`` entry can name, because a key
+        that is missing here sends the entry down a guess-the-path fallback
+        that usually produces a 404:
+
+        - a **class**, linking to its module page and its anchor;
+        - a **function**, likewise (``:func:`` refs outnumber ``:class:``
+          ones in this codebase, and used to resolve to a per-function page
+          that has never existed);
+        - a **module**, linking to its own page;
+        - a **package**, linking to its ``index.html``.
+
+        Each is registered under its fully qualified name, the same name
+        without the ``tuiml.`` prefix, and its bare name, so ``:class:``
+        entries written in any of those styles all resolve.
+        """
         self._class_map = {}
+
+        def register(keys, url):
+            """Record ``url`` for each key, without overwriting a better one."""
+            for key in keys:
+                self._class_map.setdefault(key, url)
+
         for doc in self.all_modules:
             rel_path = doc.relative_path.relative_to(self.source_root)
             html_url = f"/docs/{str(rel_path.with_suffix('.html'))}"
-            parent_parts = rel_path.parent.parts
-            parent_dotted = '.'.join(parent_parts)
+            parent_dotted = '.'.join(rel_path.parent.parts)
+            module_dotted = '.'.join(rel_path.with_suffix('').parts)
+
+            # The module itself, for :mod:`tuiml.evaluation.metrics`.
+            register([f"tuiml.{module_dotted}", module_dotted], html_url)
 
             for cls in doc.classes:
-                # Primary key: tuiml.<package>.<ClassName>
-                if parent_dotted:
-                    full_ref = f"tuiml.{parent_dotted}.{cls.name}"
-                    short_ref = f"{parent_dotted}.{cls.name}"
-                else:
-                    full_ref = f"tuiml.{cls.name}"
-                    short_ref = cls.name
+                anchor = f"{html_url}#class-{cls.name}"
+                prefix = f"{parent_dotted}." if parent_dotted else ""
+                register([
+                    f"tuiml.{prefix}{cls.name}",
+                    f"{prefix}{cls.name}",
+                    f"tuiml.{module_dotted}.{cls.name}",
+                    f"{module_dotted}.{cls.name}",
+                    cls.name,
+                ], anchor)
 
-                self._class_map[full_ref] = html_url
-                self._class_map[short_ref] = html_url
-                # Class name only as fallback
-                self._class_map[cls.name] = html_url
+            # Functions live inside their module's page, not on one of their
+            # own. Point at the module, anchored to the function.
+            for func in doc.functions:
+                anchor = f"{html_url}#func-{func.name}"
+                prefix = f"{parent_dotted}." if parent_dotted else ""
+                register([
+                    f"tuiml.{module_dotted}.{func.name}",
+                    f"{module_dotted}.{func.name}",
+                    f"tuiml.{prefix}{func.name}",
+                    f"{prefix}{func.name}",
+                    func.name,
+                ], anchor)
+
+        # Packages resolve to their index page, for :mod:`tuiml.sklearn`.
+        # Derived from the modules themselves, so a package without an
+        # __init__ docstring still resolves.
+        packages = set()
+        for doc in self.all_modules:
+            parent = doc.relative_path.relative_to(self.source_root).parent
+            for depth in range(len(parent.parts)):
+                packages.add(Path(*parent.parts[:depth + 1]))
+        for dir_path in packages | set(self.package_docstrings):
+            dotted = '.'.join(dir_path.parts)
+            if dotted:
+                register([f"tuiml.{dotted}", dotted], f"/docs/{dir_path}/index.html")
 
     def generate_all(self):
         """Generate all HTML documentation."""
@@ -1389,6 +1534,11 @@ class HTMLDocGenerator:
         output_path = self.output_dir / rel_path.with_suffix('.html')
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
+        # Which file the members rendered below come from, so each can link to
+        # its own lines on GitHub. Set here rather than threaded through every
+        # _render_* signature, and cleared at the end of this method.
+        self._current_source_rel = str(rel_path)
+
         depth = len(output_path.relative_to(self.output_dir).parts) - 1
         index_path = '../' * depth + 'api-reference.html' if depth > 0 else 'api-reference.html'
 
@@ -1413,7 +1563,15 @@ class HTMLDocGenerator:
             up_levels = len(breadcrumb_parts) - i - 1
             crumbs.append(f'<a href="{"../" * up_levels}index.html">{part}</a>')
         content.append(f'<p class="oc-caption api-crumb" style="margin: 0;">{" / ".join(crumbs)}</p>')
-        content.append(f'<h1 class="oc-display" style="margin-bottom: 32px;">{doc.module_name}</h1>')
+        # Module heading, with a link to the whole file on GitHub beside it.
+        # Each class, function and method below carries its own link, anchored
+        # to the line it starts on.
+        content.append(
+            '<div class="flex items-center gap-3" style="margin-bottom: 32px;">'
+            f'<h1 class="oc-display" style="margin: 0;">{doc.module_name}</h1>'
+            f'{self._source_icon(0, f"View {rel_path} source on GitHub")}'
+            '</div>'
+        )
 
         # On-this-page rail: same oc-toc component as the tutorials/benchmarks
         # pages — fixed beside the column on wide screens, in-flow block on
@@ -1470,6 +1628,8 @@ class HTMLDocGenerator:
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(html)
 
+        self._current_source_rel = None
+
     def _render_class(self, cls: DocItem) -> str:
         """Render a class as HTML with CapyMOA-style design."""
         parts = [f'<div class="mb-12 scroll-mt-24" id="class-{cls.name}">']
@@ -1488,8 +1648,11 @@ class HTMLDocGenerator:
 
         parts.append(f'''
         <div class="mb-6">
-            <h2 class="text-3xl font-bold text-gray-900 mb-2">{cls.name}</h2>
-            <p class="text-gray-500 font-mono text-sm">class <span class="text-indigo-600">{cls.module}.{cls.name}</span>{bases_html}</p>
+            <div class="flex items-center gap-2">
+                <h2 class="text-3xl font-bold text-gray-900">{cls.name}</h2>
+                {self._source_icon(cls.lineno, f'View {cls.name} source on GitHub')}
+            </div>
+            <p class="text-gray-500 font-mono text-sm mt-2">class <span class="text-indigo-600">{cls.module}.{cls.name}</span>{bases_html}</p>
         </div>
         ''')
 
@@ -1681,7 +1844,10 @@ class HTMLDocGenerator:
                             <span class="text-sm text-gray-400 font-mono ml-1">{highlighted_sig}</span>
                         </div>
                     </div>
-                    <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    <span class="flex items-center gap-1">
+                        {self._source_icon(method.lineno, f'View {class_name}.{method.name} source on GitHub')}
+                        <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    </span>
                 </summary>
                 <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
                     <p class="text-sm text-gray-600 mt-3">{parser._format_inline_code(html.escape(parser.summary))}</p>
@@ -1716,6 +1882,7 @@ class HTMLDocGenerator:
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold {badge_class} uppercase tracking-wide">{badge_label}</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">{display_name}</h3>
+                {self._source_icon(func.lineno, f'View {func.name} source on GitHub')}
             </div>
             <div class="text-xs text-gray-400 mt-1 font-mono">Line {func.lineno}</div>
         </div>

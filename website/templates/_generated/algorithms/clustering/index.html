@@ -8,7 +8,97 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">algorithms</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">clustering/</h1>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Unsupervised algorithms for grouping similar data instances.</p></div>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Unsupervised algorithms for grouping similar data instances.</p>
+<div class="doc-extended">Clusterers find structure without labels. They differ mainly in what they assume a cluster <em>is</em> — a centroid, a density region, or a node in a hierarchy — so the right choice depends on the shape you expect.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Algorithms</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>KMeansClusterer:</strong> Partition into <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">k</code> spherical clusters by centroid.
+</li>
+
+<li class="text-gray-700">
+<strong>GaussianMixtureClusterer:</strong> Soft assignment via expectation-maximisation.
+</li>
+
+<li class="text-gray-700">
+<strong>DBSCANClusterer:</strong> Density-based; finds arbitrary shapes and labels
+</li>
+
+</ul>
+sparse points as noise, without being told how many clusters to expect.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>DensityBasedClusterer:</strong> Density estimation wrapped around a clusterer.
+</li>
+
+<li class="text-gray-700">
+<strong>AgglomerativeClusterer:</strong> Bottom-up hierarchy of merges.
+</li>
+
+<li class="text-gray-700">
+<strong>CobwebClusterer:</strong> Incremental conceptual clustering.
+</li>
+
+<li class="text-gray-700">
+<strong>CanopyClusterer:</strong> Cheap approximate pre-clustering, used to seed a
+</li>
+
+</ul>
+more expensive algorithm.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>FarthestFirstClusterer:</strong> Fast farthest-point seeding.
+</li>
+
+<li class="text-gray-700">
+<strong>FilteredClusterer:</strong> Applies preprocessing before a wrapped clusterer.
+</li>
+
+</ul>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">Every distance-based clusterer here takes its metric from <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">distance</code>, which is re-exported at this level. Scale features first when using Euclidean distance, or the widest-ranging column silently dominates the metric.</div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.algorithms.clustering import KMeansClusterer
+&gt;&gt;&gt; from tuiml.datasets import load_iris
+&gt;&gt;&gt; data = load_iris()
+&gt;&gt;&gt; labels = KMeansClusterer(n_clusters=3, random_state=0).fit_predict(data.X)
+&gt;&gt;&gt; len(set(labels.tolist()))
+3</code></pre>
+            </div>
+        </div>
+        </div></div>
 <h2 class="oc-h">Packages</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0; margin-bottom: 48px;">

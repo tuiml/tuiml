@@ -42,7 +42,8 @@ Detects Claude Desktop, Claude Code (skill file), OpenClaw, Cursor, ChatGPT Desk
 ### Update / uninstall
 
 ```bash
-tuiml self_update         # via the MCP tool, tells the agent `restart_required: true`
+tuiml update              # CLI; the MCP twin is the `tuiml_self_update` tool,
+                          # which tells the agent `restart_required: true`
 uv tool install --reinstall --force tuiml   # from the shell
 tuiml uninstall           # remove TuiML from every wired AI client
                           # (does NOT remove the Python package itself)
@@ -83,6 +84,65 @@ clf.fit(X_train, y_train)
 print(accuracy_score(y_test, clf.predict(X_test)))
 ```
 
+### Two dialects: Python specs vs MCP tool arguments
+
+TuiML is driven two ways, and **they take different shapes for the same
+information**. Mixing them is the most common source of errors, so fix which
+one you are in before writing a call.
+
+| | **Python spec** (`train`, `Benchmark`) | **MCP tool args** (`tuiml_train`, …) |
+|---|---|---|
+| Shape | nested, strict | flat, permissive |
+| Component | `{"name": "X", "params": {...}}` only | `"X"` **or** `{"name": "X", <params inline>}` |
+| Hyperparameters | inside `"params"` | inline, or `algorithm_params` |
+| Evaluation | `{"evaluation": {"cv": 10}}` | `cv=10` as a top-level argument |
+| Bare strings | rejected | accepted |
+| Loose keys | rejected | accepted |
+
+```python
+# Python: strict and nested. Every component is {"name", "params"}.
+train({
+    "model": {"name": "SVC", "params": {"C": 2.0}},
+    "data": {"source": "data.csv", "target": "label"},
+    "pipeline": [{"name": "SimpleImputer", "params": {"strategy": "median"}}],
+    "evaluation": {"cv": 10},
+})
+```
+
+```python
+# MCP: flat. The same run, as tool arguments.
+execute_tool("tuiml_train",
+             algorithm="SVC", algorithm_params={"C": 2.0},
+             data="data.csv", target="label",
+             preprocessing=[{"name": "SimpleImputer", "strategy": "median"}],
+             cv=10)
+```
+
+Both are correct **in their own dialect**. The flat form exists because models
+emit flat schemas more reliably; the strict form exists so an agent-authored
+plan is serializable and replayable. Common mistakes:
+
+```python
+train(spec, cv=5)                                    # ✗ train() takes ONE argument
+train({..., "evaluation": {"cv": 5}})                # ✓
+
+train({"model": "SVC", ...})                         # ✗ bare string in a Python spec
+train({"model": {"name": "SVC"}, ...})               # ✓
+
+train({"model": {"name": "SVC", "C": 2.0}, ...})     # ✗ loose key
+train({"model": {"name": "SVC", "params": {"C": 2.0}}, ...})   # ✓
+
+from sklearn.svm import SVC
+train({"model": SVC(C=2.0), ...})                    # ✗ raw estimator objects are rejected
+train({"model": {"name": "sklearn.SVC", "params": {"C": 2.0}}, ...})   # ✓ namespaced wrapper
+Workflow([SVC(C=2.0)])                               # ✓ instances belong to Workflow
+```
+
+Note also two similarly-named parameters that are **not** interchangeable:
+`random_seed` is the run-level seed (spec, `Workflow.fit`, CLI `--random-seed`);
+`random_state` is a constructor parameter on individual algorithms
+(`RandomForestClassifier(random_state=42)`).
+
 ---
 
 ## 2. High-Level API
@@ -91,7 +151,7 @@ All top-level functions are importable from `tuiml` directly.
 
 ```python
 from tuiml import (
-    train, benchmark,
+    train, Benchmark,                    # Benchmark is a CLASS; there is no `benchmark` function
     list_algorithms, describe_algorithm, search_algorithms,
     serve, stop_server, server_status,
     PRESETS,
@@ -152,7 +212,7 @@ bench = Benchmark(
     models=[                                   # strict {"name","params"} specs
         {"name": "NaiveBayesClassifier"},
         {"name": "RandomForestClassifier", "params": {"n_estimators": 100}},
-        {"name": "DecisionTreeClassifier",     # optional per-model tuning (nested,
+        {"name": "C45TreeClassifier",          # optional per-model tuning (nested,
          "tune": {"method": "grid",            #  runs on training folds only;
                   "space": {"max_depth": [3, 5, 8]}}},   # also "random" + "iterations")
         {"name": "SVC",                        # optional per-model pipeline
@@ -359,7 +419,7 @@ from tuiml.algorithms import (
     KStarClassifier, LocallyWeightedLearningRegressor,
     # Linear
     LogisticRegression, LinearRegression, SGDClassifier, SGDRegressor,
-    SimpleLinearRegression, SimpleLogisticClassifier,
+    SimpleLinearRegression, SimpleLogisticRegression,
     # SVM
     SVC, SVR,
     # Neural
@@ -767,8 +827,15 @@ from tuiml.evaluation import (
     SignificanceLevel,
 )
 
-t_stat, p_value = paired_t_test(scores_a, scores_b)
-f_stat, p_value = friedman_test([scores_a, scores_b, scores_c])
+# paired_t_test returns a PairedStats OBJECT, not a tuple - do not unpack it
+stats = paired_t_test(scores_a, scores_b)
+print(stats.t_statistic, stats.p_value, stats.significance)
+
+# The multi-model tests take a DICT of {model_name: fold_scores}, not a list,
+# and friedman_test returns THREE values.
+results = {"rf": scores_a, "svc": scores_b, "nb": scores_c}
+chi2, p_value, significant = friedman_test(results)
+pairwise = nemenyi_post_hoc(results, significance_level=0.05)   # {(m1, m2): is_significant}
 ```
 
 ### Visualization
@@ -923,11 +990,22 @@ class MyMetric(Metric):
 
 ## 10. CLI
 
+**Two rules cover almost every CLI mistake:**
+
+1. **Everything is an option; there are no positional arguments.** Not
+   `tuiml train RandomForestClassifier data.csv class` but
+   `tuiml train -a RandomForestClassifier -d data.csv -t class`.
+2. **Multi-word commands use hyphens, not underscores.** `tuiml select-features`,
+   not `tuiml select_features`. (The MCP *tools* use underscores —
+   `tuiml_select_features` — which is why this is easy to get backwards.)
+
 ```bash
-# Train
-tuiml train RandomForestClassifier data.csv class --cv 10
-tuiml train SVC data.csv class -p StandardScaler -p SimpleImputer
-tuiml train NaiveBayesClassifier data.csv class --params '{"use_kernel_estimator": true}'
+# Train  (-a algorithm, -d data, -t target)
+tuiml train -a RandomForestClassifier -d iris -t class --cv 10
+tuiml train -a SVC -d data.csv -t label -p SimpleImputer -p StandardScaler
+tuiml train -a NaiveBayesClassifier -d data.csv -t label -P '{"use_kernel_estimator": true}'
+tuiml train -a LogisticRegression -d data.csv -t label -f SelectKBestSelector --save-path model.pkl
+# also: --test-size, --preset, -m metrics, -o report.json, --random-seed, --stage
 
 # List & search
 tuiml list
@@ -935,51 +1013,51 @@ tuiml list --type classifier --search "forest"
 tuiml list --format json
 
 # Describe
-tuiml describe RandomForestClassifier
+tuiml describe --name RandomForestClassifier
 
-# Predict & evaluate
-tuiml predict model.pkl data.csv
-tuiml evaluate RandomForestClassifier data.csv class --cv 10
+# Predict & evaluate  (identify the model by --model-path OR --model-id)
+tuiml predict --model-path model.pkl -d data.csv -o predictions.csv
+tuiml evaluate --model-path model.pkl -d data.csv -t class -m accuracy_score
 
-# Benchmark
-tuiml benchmark -a RandomForestClassifier -a SVC -a NaiveBayesClassifier -d iris.csv -t class --cv 10
+# Benchmark  (-a repeats per model, -d repeats per dataset)
+tuiml benchmark -a RandomForestClassifier -a SVC -a NaiveBayesClassifier -d iris -t class --cv 10
 tuiml benchmark -a SVC -a RandomForestClassifier -d iris -d glass --baseline SVC
 # also: --test-size, --repeats, -m metrics, -o out -f markdown|latex|csv|html, --plot
 
 # Tuning
-tuiml tune RandomForestClassifier data.csv class --method grid
+tuiml tune --algorithm RandomForestClassifier --data iris --target class \
+           --method grid --param-grid '{"n_estimators": [50, 100]}'
 
 # Preprocessing & feature selection
-tuiml preprocess data.csv --steps SimpleImputer StandardScaler
-tuiml select_features data.csv class --method CFSSelector
+tuiml preprocess --data data.csv --steps SimpleImputer --steps StandardScaler
+tuiml select-features --data data.csv --target class --method CFSSelector
 
 # Plotting
-tuiml plot confusion_matrix --model model.pkl --data data.csv --target class
+tuiml plot --plot-type confusion_matrix --model-path model.pkl --data data.csv --target class
 
 # Statistical tests
-tuiml test_statistics --results results.json --test friedman --post-hoc nemenyi
+tuiml test-statistics --test friedman --results results.json
 
 # Serve
-tuiml serve model.pkl --port 8000
-tuiml stop_server
+tuiml serve --model-path model.pkl -p 8000
+tuiml stop-server                       # omit --server-id to stop all
 tuiml status
 
 # Data tools
-tuiml profile data.csv
-tuiml read_data data.csv --n-rows 20
-tuiml generate Blobs --n-samples 1000 --n-clusters 5
-tuiml datasets list
-tuiml datasets search "classification"
-tuiml datasets info iris
+tuiml profile --data data.csv
+tuiml read-data --data data.csv --n-rows 20
+tuiml generate --generator Blobs --n-samples 1000 --n-clusters 5
+tuiml upload --file-path data.csv --name sales
+tuiml save --model-id a1b2c3d4 --destination model.pkl
 
 # Agent-authored algorithms
-tuiml get_skeleton --kind classifier
-tuiml create_algorithm --name MyAlgo --kind classifier --file algo.py
-tuiml read_algorithm MyAlgo
-tuiml edit_algorithm MyAlgo
-tuiml delete_algorithm MyAlgo
-tuiml list_files
-tuiml search_source --query "def fit"
+tuiml get-skeleton --kind classifier
+tuiml create-algorithm --name MyAlgo --kind classifier --code "$(cat algo.py)"
+tuiml read-algorithm --name MyAlgo
+tuiml edit-algorithm --name MyAlgo --old-string "..." --new-string "..." --bump-version
+tuiml delete-algorithm --name MyAlgo
+tuiml list-files
+tuiml search-source --query "def fit"
 
 # Setup / uninstall (MCP-client wiring)
 tuiml setup                     # Auto/Manual menu
@@ -990,6 +1068,7 @@ tuiml uninstall                 # unwire every client
 tuiml info
 tuiml update
 tuiml restart
+tuiml trace                     # follow MCP tool calls live
 ```
 
 ---
@@ -1021,17 +1100,32 @@ pip install tuiml[capymoa]    # CapyMOA streaming learners (needs Java)
 ```
 
 ```python
-# Curated, namespaced wrappers, discoverable via tuiml_list / train / benchmark
+# Curated, namespaced wrappers, discoverable via tuiml_list / train / Benchmark
 from tuiml.sklearn import RandomForestClassifier      # sklearn-backed
 from tuiml.algorithms import RandomForestClassifier   # native (no clash)
-train("sklearn.RandomForestClassifier", {"source": "iris", "target": "class"}, cv=5)
-train("capymoa.HoeffdingTree", {"source": "electricity", "target": "class"})
 
-# Generic adapter: wrap ANY scikit-learn-compatible estimator (incl. pipelines,
-# GridSearchCV, third-party). train() also auto-wraps a passed estimator;
-# benchmark() takes name specs only, so use the namespaced "sklearn.<Name>" keys there.
+# In a spec, reach them by their namespaced NAME - train() takes one spec dict:
+train({
+    "model": {"name": "sklearn.RandomForestClassifier", "params": {"n_estimators": 100}},
+    "data": {"source": "iris", "target": "class"},
+    "evaluation": {"cv": 5},
+})
+train({
+    "model": {"name": "capymoa.HoeffdingTree"},
+    "data": {"source": "electricity", "target": "class"},
+})
+```
+
+Raw third-party estimator **instances** are rejected in specs, with an error
+naming the wrapper to use instead. Use the namespaced name, or drop the
+instance into a `Workflow`, which takes configured objects by design:
+
+```python
 from sklearn.svm import SVC
-train(SVC(C=2.0), {"source": "iris", "target": "class"}, cv=10)   # no wrapper needed
+
+train({"model": SVC(C=2.0), "data": {"source": "iris"}})       # ✗ ValueError
+train({"model": {"name": "sklearn.SVC", "params": {"C": 2.0}},  # ✓
+       "data": {"source": "iris", "target": "class"}})
 ```
 
 A missing backend only errors at instantiation (with a `pip install tuiml[...]`
@@ -1436,8 +1530,8 @@ chi2, p_val, significant = friedman_test(per_model)
 pairwise = nemenyi_post_hoc(per_model, significance_level=0.05)
 
 # Publication-ready output
-print(result.to_latex())
-print(result.to_markdown())
+print(bench.to_latex())
+print(bench.to_markdown())
 ```
 
 ### Preprocessing Order

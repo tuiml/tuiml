@@ -8,20 +8,48 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">preprocessing</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">imputation/</h1>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Imputation transformers for handling missing values.</p>
-<div class="doc-extended">Available:
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Filling in missing values.</p>
+<div class="doc-extended">Most algorithms cannot fit on <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">NaN</code> at all, so missing data has to be resolved before anything else in a pipeline. These transformers learn what to fill from the training data and apply the same values later, which is what keeps a test split from influencing its own imputation.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Transformers</h4>
+            </div>
+            <div class="p-4">
 <ul class="list-disc list-inside my-3 space-y-1 pl-4">
 
 <li class="text-gray-700">
-SimpleImputer: Mean/median/mode/constant imputation (WEKA: ReplaceMissingValues)
-</li>
-
-<li class="text-gray-700">
-KNNImputer: K-nearest neighbors imputation
+<strong>SimpleImputer:</strong> Replace with the column&#x27;s mean, median, most frequent
 </li>
 
 </ul>
-</div></div>
+value, or a constant. Fast, and the sensible default.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>KNNImputer:</strong> Replace using the k most similar rows. More faithful when
+</li>
+
+</ul>
+features are correlated, and considerably slower — it searches neighbours   for every missing entry.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+Impute before scaling: a scaler fitted on data still containing <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">NaN</code> propagates it into the mean and variance. The <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&quot;standard&quot;</code> and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&quot;full&quot;</code> pipeline presets already order the two correctly.
+</p>
+
+<p class="mb-4">
+Missingness is sometimes informative — a blank field can mean &quot;not applicable&quot; rather than &quot;unknown&quot;. Where that is true, record it as its own feature before imputing, or the signal is erased.
+</p>
+</div>
+        </div>
+        </div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

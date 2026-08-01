@@ -8,24 +8,56 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">preprocessing</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">discretization/</h1>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Discretization transformers for binning continuous features.</p>
-<div class="doc-extended">Available:
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Binning continuous features into discrete intervals.</p>
+<div class="doc-extended">Turning a numeric column into a small number of bins. This is what algorithms that expect categorical input need, and it can help elsewhere by letting a model express a non-linear relationship it could not otherwise fit.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Transformers</h4>
+            </div>
+            <div class="p-4">
 <ul class="list-disc list-inside my-3 space-y-1 pl-4">
 
 <li class="text-gray-700">
-EqualWidthDiscretizer: Equal-width binning (WEKA: Discretize)
-</li>
-
-<li class="text-gray-700">
-QuantileDiscretizer: Equal-frequency/quantile binning (WEKA: Discretize)
-</li>
-
-<li class="text-gray-700">
-MDLDiscretizer: MDL-based discretization (WEKA: Discretize)
+<strong>EqualWidthDiscretizer:</strong> Bins of equal range. Simple, but a skewed
 </li>
 
 </ul>
-</div></div>
+feature leaves most bins nearly empty.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>QuantileDiscretizer:</strong> Bins holding equal numbers of samples. Robust to
+</li>
+
+</ul>
+skew, at the cost of uneven bin widths.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>MDLDiscretizer:</strong> Chooses cut points by minimum description length,
+</li>
+
+</ul>
+using the target to place boundaries where the class actually changes, and   deciding the number of bins for you.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+MDL is supervised: it reads <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">y</code>. Fit it on the training split only — fitting on everything chooses boundaries informed by the test labels and inflates the score.
+</p>
+
+<p class="mb-4">
+Discretising always discards information. It is worth it when the algorithm requires it or the relationship is genuinely non-monotonic, not by default.
+</p>
+</div>
+        </div>
+        </div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">
