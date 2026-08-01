@@ -55,7 +55,7 @@ VERSION_FILES = [
     ),
     # build.py's APP_VERSION is the site's single source of truth (injected into
     # every template as `settings`). A broad `version="..."` rule here once
-    # matched the sitemap's `<?xml version="...">` declaration — keep this
+    # matched the sitemap's `<?xml version="...">` declaration, keep this
     # anchored to APP_VERSION.
     (
         HUB / "build.py",
@@ -120,8 +120,8 @@ def update_version_files(old_version: str, new_version: str) -> None:
 def update_hub_templates(old_version: str, new_version: str) -> None:
     """Replace version strings in bundled website HTML templates and docs."""
     template_dirs = [
-        HUB / "templates" / "docs",
-        HUB / "templates" / "docs_api",
+        HUB / "templates" / "pages",
+        HUB / "templates" / "_generated",
     ]
     count = 0
     for tdir in template_dirs:

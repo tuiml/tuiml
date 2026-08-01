@@ -41,7 +41,7 @@ carries one. Current tracked files:
 **Bundled website (`website/`):**
 - `website/pyproject.toml`
 - `website/build.py` (`APP_VERSION` — the site's single source of truth)
-- All `website/templates/docs/**/*.html` and `docs_api/**/*.html`
+- All `website/templates/pages/**/*.html` and `_generated/**/*.html`
   (raw string replace of the old version)
 
 The site's changelog page is built from the root `CHANGELOG.md` directly —
