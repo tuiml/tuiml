@@ -1551,23 +1551,26 @@ class HTMLDocGenerator:
             up_levels = len(breadcrumb_parts) - i - 1
             current_path = '../' * up_levels + 'index.html' if up_levels > 0 else 'index.html'
             breadcrumb_items.append(f'<a href="{current_path}" class="hover:text-gray-900">{part}</a>')
-        breadcrumb_items.append(f'<span class="text-gray-900 font-semibold">{doc.module_name}</span>')
+        breadcrumb_items.append(f'<span class="text-gray-900 font-semibold">{rel_path.name}</span>')
         breadcrumb_html = ' <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> '.join(breadcrumb_items)
 
         # Build content
         content = []
 
-        # Page header: linked breadcrumb (API Reference / pkg / subpkg) + module name
+        # Page header: linked breadcrumb, ending in the actual file name. The
+        # heading shows the module name without an extension, so the trail is
+        # where the reader finds out which file on disk this page documents.
         crumbs = [f'<a href="{index_path}">API Reference</a>']
         for i, part in enumerate(breadcrumb_parts):
             up_levels = len(breadcrumb_parts) - i - 1
             crumbs.append(f'<a href="{"../" * up_levels}index.html">{part}</a>')
+        crumbs.append(f'<span class="api-crumb-file">{rel_path.name}</span>')
         content.append(f'<p class="oc-caption api-crumb" style="margin: 0;">{" / ".join(crumbs)}</p>')
-        # Module heading, with a link to the whole file on GitHub beside it.
-        # Each class, function and method below carries its own link, anchored
-        # to the line it starts on.
+        # Module heading, with the GitHub link pushed to the far right of the
+        # row. Each class, function and method below carries its own link,
+        # anchored to the line it starts on.
         content.append(
-            '<div class="flex items-center gap-3" style="margin-bottom: 32px;">'
+            '<div class="flex items-center justify-between gap-3" style="margin-bottom: 32px;">'
             f'<h1 class="oc-display" style="margin: 0;">{doc.module_name}</h1>'
             f'{self._source_icon(0, f"View {rel_path} source on GitHub")}'
             '</div>'

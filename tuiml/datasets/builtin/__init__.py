@@ -1,23 +1,37 @@
-"""
-Built-in datasets for TuiML.
+"""Classic datasets, shipped with the library.
 
-Provides easy access to classic ML datasets organized by task type:
+Real data available offline and by name, so an example, a benchmark or an
+agent's first request needs no download and no file path. This is what makes
+``{"source": "iris"}`` work anywhere TuiML takes a data spec.
 
-- ``classification``: iris, diabetes, breast_cancer, glass, etc.
-- ``regression``: cpu, airline
-- ``other``: supermarket (association), reuters (text)
+Datasets
+--------
+- **Classification:** ``iris``, ``breast_cancer``, ``glass``, ``diabetes``
+  and others.
+- **Regression:** ``cpu``, ``airline``.
+- **Other:** ``supermarket`` (association rule mining), ``reuters`` (text).
 
-The ARFF files themselves ship under ``builtin/data/``, and ``catalog``
-carries the metadata table used to look datasets up by name or by task.
+Layout
+------
+The ARFF files ship under ``builtin/data/``; ``catalog`` holds the metadata
+table used to look a dataset up by name or by task.
 
-Usage:
-    >>> from tuiml.datasets import load_iris
-    >>> data = load_iris()
-    >>> X, y = load_iris()  # Can unpack
+Notes
+-----
+Loaders return a :class:`~tuiml.datasets.loaders.Dataset`, which also unpacks
+as ``X, y`` — so both styles below are the same call.
 
-    >>> from tuiml.datasets import list_datasets
-    >>> list_datasets()  # All datasets
-    >>> list_datasets("classification")  # Only classification
+Examples
+--------
+>>> from tuiml.datasets import load_iris, list_datasets
+>>> data = load_iris()
+>>> data.X.shape
+(150, 4)
+>>> X, y = load_iris()          # unpacks directly
+>>> len(set(y.tolist()))
+3
+>>> "iris" in list_datasets("classification")
+True
 """
 
 from tuiml.datasets.builtin.catalog import (

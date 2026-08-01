@@ -1,20 +1,76 @@
-"""
-Machine Learning Algorithms.
+"""Every learning algorithm TuiML implements.
 
-Organized by algorithm family:
-- bayesian: Probabilistic models (NaiveBayesClassifier, BayesianNetworkClassifier, GaussianProcessesRegressor)
-- trees: Decision trees and forests (C45TreeClassifier, RandomForestClassifier, M5ModelTreeRegressor)
-- neighbors: Instance-based learning (KNearestNeighborsClassifier, KStarClassifier, LocallyWeightedLearningRegressor)
-- linear: Linear models (LogisticRegression, LinearRegression, SGDClassifier)
-- svm: Support Vector Machines (SMO, SMOreg)
-- neural: Neural networks (MultilayerPerceptronClassifier)
-- rules: Rule-based classifiers/regressors (ZeroRuleClassifier, OneRuleClassifier, RIPPERClassifier, PARTClassifier, M5ModelRulesRegressor)
-- ensemble: WEKA-style meta-learners (BaggingClassifier, AdaBoostClassifier, StackingClassifier, VotingClassifier)
-- gradient_boosting: External frameworks (XGBoostClassifier, CatBoostClassifier, LightGBMClassifier)
-- clustering: Clustering algorithms (KMeansClusterer, DBSCANClusterer, AgglomerativeClusterer, GaussianMixtureClusterer)
-- associations: Association rule mining (AprioriAssociator, FPGrowthAssociator)
-- anomaly: Anomaly detection (IsolationForestDetector, LocalOutlierFactorDetector, EllipticEnvelopeDetector)
-- timeseries: Time series analysis (ARIMA, ExponentialSmoothing, STLDecomposition)
+Grouped into thirteen families by what the algorithm *does*, so a wrapped
+scikit-learn or CapyMOA estimator sits in the same place as its native
+counterpart. Every class here is registered in the hub under its own name,
+which is how :func:`tuiml.train` and the MCP tools reach it — you name the
+algorithm, you do not import it.
+
+Supervised learning
+-------------------
+- :mod:`~tuiml.algorithms.trees` — decision trees and forests. The strongest
+  default on tabular data: ``RandomForestClassifier``, ``C45TreeClassifier``,
+  ``M5ModelTreeRegressor``, ``HoeffdingTreeClassifier``.
+- :mod:`~tuiml.algorithms.gradient_boosting` — boosted ensembles wrapping
+  XGBoost, LightGBM and CatBoost. Usually the accuracy ceiling, at the cost
+  of tuning.
+- :mod:`~tuiml.algorithms.ensemble` — meta-learners that combine other
+  algorithms: ``BaggingClassifier``, ``AdaBoostClassifier``,
+  ``StackingClassifier``, ``VotingClassifier``.
+- :mod:`~tuiml.algorithms.linear` — the interpretable baseline:
+  ``LinearRegression``, ``LogisticRegression``, ``SGDClassifier``.
+- :mod:`~tuiml.algorithms.svm` — maximum-margin classifiers with pluggable
+  kernels: ``SMO``, ``SMOreg``.
+- :mod:`~tuiml.algorithms.bayesian` — probabilistic models:
+  ``NaiveBayesClassifier``, ``BayesianNetworkClassifier``,
+  ``GaussianProcessesRegressor``.
+- :mod:`~tuiml.algorithms.neighbors` — instance-based learning, which stores
+  the training data instead of building a model:
+  ``KNearestNeighborsClassifier``, ``KStarClassifier``.
+- :mod:`~tuiml.algorithms.rules` — human-readable rule sets:
+  ``OneRuleClassifier``, ``RIPPERClassifier``, ``PARTClassifier``. Reach for
+  these when the model has to be explainable to someone who did not build it.
+- :mod:`~tuiml.algorithms.neural` — ``MultilayerPerceptronClassifier``.
+
+Unsupervised learning
+---------------------
+- :mod:`~tuiml.algorithms.clustering` — grouping without labels:
+  ``KMeansClusterer``, ``DBSCANClusterer``, ``AgglomerativeClusterer``,
+  ``GaussianMixtureClusterer``.
+- :mod:`~tuiml.algorithms.anomaly` — finding the rare rows:
+  ``IsolationForestDetector``, ``LocalOutlierFactorDetector``.
+- :mod:`~tuiml.algorithms.associations` — co-occurrence rules:
+  ``AprioriAssociator``, ``FPGrowthAssociator``.
+
+Sequential data
+---------------
+- :mod:`~tuiml.algorithms.timeseries` — forecasting, where order matters and
+  ordinary cross-validation leaks the future into the past: ``ARIMA``,
+  ``ExponentialSmoothing``, ``STLDecomposition``.
+
+Notes
+-----
+Names are addressed through the hub, and the namespace is what disambiguates
+them: ``"RandomForestClassifier"`` is the native implementation,
+``"sklearn.RandomForestClassifier"`` the wrapped one. Both can appear in the
+same benchmark.
+
+Examples
+--------
+>>> import tuiml
+>>> model = tuiml.train({
+...     "model": {"name": "RandomForestClassifier",
+...               "params": {"n_estimators": 50}},
+...     "data": {"source": "iris", "target": "class"},
+...     "evaluation": {"cv": 5, "metrics": ["accuracy_score"]},
+... })
+>>> round(model.metrics_["cv_accuracy_score_mean"], 1)
+1.0
+
+See Also
+--------
+:mod:`tuiml.sklearn` : scikit-learn estimators, under ``sklearn.*`` names.
+:mod:`tuiml.capymoa` : CapyMOA streaming learners, under ``capymoa.*`` names.
 """
 
 # Base classes (single source of truth)

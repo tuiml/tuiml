@@ -1,12 +1,43 @@
-"""TuiML Command-Line Interface (CLI).
+"""The ``tuiml`` command-line interface.
 
-This package provides a comprehensive set of command-line tools for
-building, evaluating, and managing machine learning workflows.
+The same operations the Python API and the MCP tools expose, driven from a
+shell — train, evaluate, benchmark, tune, plot, serve — plus the commands
+that manage the installation itself.
 
-Every command lives in its own flat module under ``tuiml.cli`` (for example
-``tuiml.cli.train``), and is attached to the top-level ``tuiml`` group by
-:func:`cli`. Each module exposes exactly one ``click`` command whose docstring
-doubles as its ``--help`` text.
+Commands
+--------
+- **Modelling:** ``train``, ``predict``, ``evaluate``, ``benchmark``,
+  ``tune``, ``plot``, ``save``, ``test-statistics``.
+- **Data:** ``upload``, ``read-data``, ``profile``, ``preprocess``,
+  ``select-features``, ``generate``.
+- **Discovery:** ``list``, ``describe``, ``search-source``, ``list-files``.
+- **Authoring:** ``create-algorithm``, ``read-algorithm``,
+  ``edit-algorithm``, ``delete-algorithm``, ``get-skeleton``.
+- **Serving:** ``serve``, ``stop-server``, ``status``.
+- **Agents:** ``setup``, ``uninstall``, ``mcp``, ``trace``.
+- **Admin:** ``info``, ``update``, ``restart``.
+
+Layout
+------
+Every command lives in its own flat module (``tuiml.cli.train``), exposing
+exactly one ``click`` command whose docstring doubles as its ``--help`` text,
+and is attached to the top-level group by :func:`cli`.
+
+Examples
+--------
+Connect TuiML to your AI clients, then check what it found::
+
+    tuiml setup
+    tuiml setup --list
+
+Train and serve a model::
+
+    tuiml train --algorithm RandomForestClassifier --data iris --target class
+    tuiml serve model.pkl --port 8000
+
+See Also
+--------
+:mod:`tuiml.agent.mcp` : The same operations, for an AI agent.
 """
 
 import inspect

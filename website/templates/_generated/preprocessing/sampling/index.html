@@ -8,88 +8,140 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">preprocessing</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">sampling/</h1>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Sampling transformers for instance-level operations.</p>
-<div class="doc-extended">
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Resampling to fix class imbalance.</p>
+<div class="doc-extended">When one class dominates, a model can score well by ignoring the rare one — and the rare one is usually the class you care about: the fraud, the fault, the diagnosis. These transformers rebalance the training set so the minority carries real weight.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Oversampling</h4>
+            </div>
+            <div class="p-4">
 <p class="mb-4">
-This module provides:
+Adds minority examples, keeping every majority row.
 </p>
-Class Balancing:
+
 <ul class="list-disc list-inside my-3 space-y-1 pl-4">
 
 <li class="text-gray-700">
-ClassBalanceSampler: Balance class distribution
+<strong>RandomOverSampler:</strong> Duplicates minority rows, optionally jittered.
 </li>
 
 <li class="text-gray-700">
-ReservoirSampler: Reservoir sampling algorithm
+<strong>SMOTESampler:</strong> Interpolates <em>new</em> points between neighbouring minority
 </li>
 
 </ul>
-SMOTE Family (smote.py):
+rows, so the model sees fresh points rather than repeats.
 <ul class="list-disc list-inside my-3 space-y-1 pl-4">
 
 <li class="text-gray-700">
-SMOTESampler: Synthetic Minority Over-sampling Technique
-</li>
-
-<li class="text-gray-700">
-BorderlineSMOTESampler: SMOTE for borderline instances
-</li>
-
-<li class="text-gray-700">
-ADASYNSampler: Adaptive Synthetic Sampling
-</li>
-
-<li class="text-gray-700">
-SVMSMOTESampler: SVM-based SMOTE
-</li>
-
-<li class="text-gray-700">
-KMeansSMOTESampler: K-Means clustering SMOTE
+<strong>BorderlineSMOTESampler:</strong> SMOTE concentrated near the decision boundary,
 </li>
 
 </ul>
-Oversampling (oversampling.py):
+where the errors actually happen.
 <ul class="list-disc list-inside my-3 space-y-1 pl-4">
 
 <li class="text-gray-700">
-RandomOverSampler: Random duplication of minority samples
+<strong>ADASYNSampler:</strong> Generates more where the minority is hardest to learn.
 </li>
 
 <li class="text-gray-700">
-ClusterOverSampler: Cluster-aware oversampling
+<strong>SVMSMOTESampler / KMeansSMOTESampler:</strong> SMOTE guided by an SVM boundary
 </li>
 
 </ul>
-Undersampling (undersampling.py):
+or by clusters.
 <ul class="list-disc list-inside my-3 space-y-1 pl-4">
 
 <li class="text-gray-700">
-RandomUnderSampler: Random removal of majority samples
-</li>
-
-<li class="text-gray-700">
-TomekLinksSampler: Remove Tomek links
-</li>
-
-<li class="text-gray-700">
-ENNSampler: Edited Nearest Neighbours cleaning
-</li>
-
-<li class="text-gray-700">
-CNNSampler: Condensed Nearest Neighbour condensing
-</li>
-
-<li class="text-gray-700">
-NearMissSampler: Distance-based undersampling
-</li>
-
-<li class="text-gray-700">
-HardnessThresholdSampler: Classifier-based undersampling
+<strong>ClusterOverSampler:</strong> Cluster-aware oversampling.
 </li>
 
 </ul>
-</div></div>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Undersampling</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+Drops majority examples. Faster to train, at the cost of discarding data.
+</p>
+
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>RandomUnderSampler:</strong> Removes majority rows at random.
+</li>
+
+<li class="text-gray-700">
+<strong>TomekLinksSampler:</strong> Removes majority rows that sit right against a
+</li>
+
+</ul>
+minority row, cleaning the boundary rather than thinning everywhere.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>ENNSampler:</strong> Edited Nearest Neighbours cleaning.
+</li>
+
+<li class="text-gray-700">
+<strong>CNNSampler:</strong> Condensed Nearest Neighbour condensing.
+</li>
+
+<li class="text-gray-700">
+<strong>NearMissSampler:</strong> Distance-based selection.
+</li>
+
+<li class="text-gray-700">
+<strong>HardnessThresholdSampler:</strong> Drops the rows a classifier finds easy.
+</li>
+
+</ul>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Other</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>ClassBalanceSampler:</strong> Balance the class distribution directly.
+</li>
+
+<li class="text-gray-700">
+<strong>ReservoirSampler:</strong> Fixed-size random sample from a stream.
+</li>
+
+</ul>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+Resample the <strong>training split only</strong>. Synthetic or duplicated rows in a test set produce a score that cannot be reproduced on real data — and with oversampling, near-copies of training rows end up in test, which inflates it outright. Passing these as <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">pipeline</code> steps to <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">train</code> handles this: they are applied inside each fold, to the training half.
+</p>
+
+<p class="mb-4">
+Accuracy stays misleading after resampling. Judge on the original distribution, with a metric that respects the minority class.
+</p>
+</div>
+        </div>
+        </div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

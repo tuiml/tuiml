@@ -8,48 +8,80 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">agent</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">user_algorithms/</h1>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Agent-authored algorithms: persistence, safety checks, and registry bootstrap.</p>
-<div class="doc-extended">
-<p class="mb-4">
-Agents can call <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_create_algorithm</code> with raw Python source describing a new <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">@classifier</code> / <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">@regressor</code> class. This package:
-</p>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Algorithms an agent wrote itself.</p>
+<div class="doc-extended">An agent that can only call built-in algorithms is limited to what shipped. <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_create_algorithm</code> lets it submit raw Python for a new <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">@classifier</code> / <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">@regressor</code> class, which this package validates, stores and registers — after which the new algorithm behaves like any other, and every existing tool works on it unchanged.</div>
 
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>The pipeline</h4>
+            </div>
+            <div class="p-4">
 <ol class="list-decimal list-inside my-3 space-y-1">
 
 <li class="text-gray-700">
-AST-validates the source against a conservative denylist (no network,
+<strong>Validate</strong> — the source is AST-checked against a conservative denylist:
 </li>
 
 </ol>
-subprocess, or filesystem escape hatches) -- <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">validation</code>.
+no network, no subprocess, no filesystem escape hatches. Accepting    arbitrary generated code is the risk here, so this runs before anything    touches disk (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">validation</code>).
 <ol class="list-decimal list-inside my-3 space-y-1">
 
 <li class="text-gray-700">
-Saves each accepted submission under
+<strong>Store</strong> — accepted source is written to
 </li>
 
 </ol>
-<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">~/.tuiml/user_algorithms/<Name>/<version>/algorithm.py</code> -- <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">storage</code>,    <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">_paths</code>.
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">~/.tuiml/user_algorithms/<Name>/<version>/algorithm.py</code>, versioned, so    an edit never destroys the version that worked    (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">storage</code>).
 <ol class="list-decimal list-inside my-3 space-y-1">
 
 <li class="text-gray-700">
-Imports the file and registers both the <em>versioned</em> alias
+<strong>Register</strong> — the file is imported and registered under both a versioned
 </li>
 
 </ol>
-(<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">MyAlg_v1_0_0</code>) and the bare latest-alias (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">MyAlg</code>) into the TuiML    registry, so every existing MCP tool (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_train</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_benchmark</code>,    <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_describe</code>) works on user algorithms unchanged -- <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">registration</code>.
+alias (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">MyAlg_v1_0_0</code>) and a bare latest alias (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">MyAlg</code>), which is what    makes <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_train</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_benchmark</code> and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuiml_describe</code> work on    it with no special-casing    (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">registration</code>).
 <ol class="list-decimal list-inside my-3 space-y-1">
 
 <li class="text-gray-700">
-On <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">load_all()</code> scans the directory and re-registers everything,
+<strong>Reload</strong> — <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">load_all()</code> rescans the directory at import and
 </li>
 
 </ol>
-preserving agent work across MCP server restarts -- <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">registration</code>.
-<p class="mb-4">
-Experiment history per algorithm version lives in <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">research_log</code>; reading, searching and editing algorithm source (user-authored <em>and</em> built-in) lives in <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">sources</code>.
-</p>
-</div></div>
+re-registers everything, so an agent&#x27;s work survives an MCP server    restart.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Also here</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">research_log</code> — experiment history per
+</li>
+
+</ul>
+algorithm version, so an agent can see what it already tried.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">sources</code> — reading, searching and
+</li>
+
+</ul>
+editing algorithm source, user-authored <em>and</em> built-in.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">The denylist is a guard against an agent&#x27;s mistakes, not a sandbox. Source that reaches here still runs in your interpreter with your permissions.</div>
+        </div>
+        </div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

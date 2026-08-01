@@ -1,23 +1,44 @@
-"""
-TuiML Model Serving - REST API for serving trained models.
+"""Serving trained models over HTTP.
 
-This module provides a built-in REST API server for serving trained models
-and making predictions via HTTP endpoints.
+A trained model is only useful once something else can call it. This puts one
+behind a REST API — a FastAPI app with prediction and health endpoints — in a
+single call, with no separate serving framework to stand up.
 
-Usage:
-    # Programmatic API
-    from tuiml.serving import ModelServer, serve
+API
+---
+- **serve:** Load a model and start a server. Binds the port, waits until
+  uvicorn actually reports ready, and returns the server's details, so a
+  failure surfaces as an error rather than a URL for a server that never
+  started.
+- **stop_server / server_status:** Manage running servers by ``"host:port"``.
+- **ModelServer:** The server itself, for hosting several models at once.
+- **ModelManager:** Loading and holding those models.
+- **create_app:** The FastAPI app, for mounting inside your own service.
 
-    # Serve a single model
+Three ways in
+-------------
+All three share one registry, so a server started by any of them can be
+inspected or stopped by the others::
+
+    from tuiml.serving import serve       # Python
     serve("model.pkl", port=8000)
 
-    # Or use the server directly
-    server = ModelServer()
-    server.load_model("my_model", "model.pkl")
-    app = server.create_app()
+    tuiml serve model.pkl --port 8000     # CLI
 
-    # CLI
-    tuiml serve model.pkl --port 8000
+    # or ask an agent, via the tuiml_serve_model MCP tool
+
+Notes
+-----
+The port must be free: :func:`serve` raises rather than silently picking
+another one, so nothing ends up listening where you did not expect.
+
+Examples
+--------
+>>> from tuiml.serving import serve, stop_server
+>>> info = serve("model.pkl", port=8000)          # doctest: +SKIP
+>>> info["url"]                                   # doctest: +SKIP
+'http://127.0.0.1:8000'
+>>> stop_server("127.0.0.1:8000")                 # doctest: +SKIP
 """
 
 from tuiml.serving.model_manager import ModelManager

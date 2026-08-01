@@ -8,36 +8,80 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../../api-reference.html">API Reference</a> / <a href="../index.html">datasets</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">builtin/</h1>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Built-in datasets for TuiML.</p>
-<div class="doc-extended">
-<p class="mb-4">
-Provides easy access to classic ML datasets organized by task type:
-</p>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Classic datasets, shipped with the library.</p>
+<div class="doc-extended">Real data available offline and by name, so an example, a benchmark or an agent&#x27;s first request needs no download and no file path. This is what makes <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">{&quot;source&quot;: &quot;iris&quot;}</code> work anywhere TuiML takes a data spec.</div>
 
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Datasets</h4>
+            </div>
+            <div class="p-4">
 <ul class="list-disc list-inside my-3 space-y-1 pl-4">
 
 <li class="text-gray-700">
-<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">classification</code>: iris, diabetes, breast_cancer, glass, etc.
-</li>
-
-<li class="text-gray-700">
-<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">regression</code>: cpu, airline
-</li>
-
-<li class="text-gray-700">
-<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">other</code>: supermarket (association), reuters (text)
+<strong>Classification:</strong> <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">iris</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">breast_cancer</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">glass</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">diabetes</code>
 </li>
 
 </ul>
-The ARFF files themselves ship under <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">builtin/data/</code>, and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">catalog</code> carries the metadata table used to look datasets up by name or by task.
-<p class="mb-4">
-Usage:     &gt;&gt;&gt; from tuiml.datasets import load_iris     &gt;&gt;&gt; data = load_iris()     &gt;&gt;&gt; X, y = load_iris()  # Can unpack
-</p>
+and others.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
 
-<p class="mb-4">
-&gt;&gt;&gt; from tuiml.datasets import list_datasets     &gt;&gt;&gt; list_datasets()  # All datasets     &gt;&gt;&gt; list_datasets(&quot;classification&quot;)  # Only classification
-</p>
-</div></div>
+<li class="text-gray-700">
+<strong>Regression:</strong> <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">cpu</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">airline</code>.
+</li>
+
+<li class="text-gray-700">
+<strong>Other:</strong> <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">supermarket</code> (association rule mining), <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">reuters</code> (text).
+</li>
+
+</ul>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Layout</h4>
+            </div>
+            <div class="p-4">The ARFF files ship under <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">builtin/data/</code>; <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">catalog</code> holds the metadata table used to look a dataset up by name or by task.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">Loaders return a <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Dataset</code>, which also unpacks as <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">X, y</code> — so both styles below are the same call.</div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.datasets import load_iris, list_datasets
+&gt;&gt;&gt; data = load_iris()
+&gt;&gt;&gt; data.X.shape
+(150, 4)
+&gt;&gt;&gt; X, y = load_iris()          # unpacks directly
+&gt;&gt;&gt; len(set(y.tolist()))
+3
+&gt;&gt;&gt; &quot;iris&quot; in list_datasets(&quot;classification&quot;)
+True</code></pre>
+            </div>
+        </div>
+        </div></div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">

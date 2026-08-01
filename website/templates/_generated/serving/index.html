@@ -8,28 +8,93 @@
 {% block content %}
 <p class="oc-caption api-crumb" style="margin: 0;"><a href="../api-reference.html">API Reference</a></p>
 <h1 class="oc-display" style="margin-bottom: 48px;">serving/</h1>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">TuiML Model Serving - REST API for serving trained models.</p>
-<div class="doc-extended">
-<p class="mb-4">
-This module provides a built-in REST API server for serving trained models and making predictions via HTTP endpoints.
-</p>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-3">Serving trained models over HTTP.</p>
+<div class="doc-extended">A trained model is only useful once something else can call it. This puts one behind a REST API — a FastAPI app with prediction and health endpoints — in a single call, with no separate serving framework to stand up.</div>
 
-<p class="mb-4">
-Usage:     # Programmatic API     from tuiml.serving import ModelServer, serve
-</p>
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>API</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
 
-<p class="mb-4">
-# Serve a single model     serve(&quot;model.pkl&quot;, port=8000)
-</p>
+<li class="text-gray-700">
+<strong>serve:</strong> Load a model and start a server. Binds the port, waits until
+</li>
 
-<p class="mb-4">
-# Or use the server directly     server = ModelServer()     server.load_model(&quot;my_model&quot;, &quot;model.pkl&quot;)     app = server.create_app()
-</p>
+</ul>
+uvicorn actually reports ready, and returns the server&#x27;s details, so a   failure surfaces as an error rather than a URL for a server that never   started.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
 
+<li class="text-gray-700">
+<strong>stop_server / server_status:</strong> Manage running servers by <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&quot;host:port&quot;</code>.
+</li>
+
+<li class="text-gray-700">
+<strong>ModelServer:</strong> The server itself, for hosting several models at once.
+</li>
+
+<li class="text-gray-700">
+<strong>ModelManager:</strong> Loading and holding those models.
+</li>
+
+<li class="text-gray-700">
+<strong>create_app:</strong> The FastAPI app, for mounting inside your own service.
+</li>
+
+</ul>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Three ways in</h4>
+            </div>
+            <div class="p-4">
 <p class="mb-4">
-# CLI     tuiml serve model.pkl --port 8000
+All three share one registry, so a server started by any of them can be inspected or stopped by the others:
 </p>
-</div></div>
+<div class="bg-slate-900 rounded-lg p-4 my-3 overflow-x-auto"><pre class="text-sm font-mono text-slate-100 leading-relaxed">from tuiml.serving import serve       # Python
+serve(&quot;model.pkl&quot;, port=8000)
+
+tuiml serve model.pkl --port 8000     # CLI
+
+# or ask an agent, via the tuiml_serve_model MCP tool</pre></div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">The port must be free: <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">serve</code> raises rather than silently picking another one, so nothing ends up listening where you did not expect.</div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.serving import serve, stop_server
+&gt;&gt;&gt; info = serve(&quot;model.pkl&quot;, port=8000)          # doctest: +SKIP
+&gt;&gt;&gt; info[&quot;url&quot;]                                   # doctest: +SKIP
+&#x27;http://127.0.0.1:8000&#x27;
+&gt;&gt;&gt; stop_server(&quot;127.0.0.1:8000&quot;)                 # doctest: +SKIP</code></pre>
+            </div>
+        </div>
+        </div></div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">
