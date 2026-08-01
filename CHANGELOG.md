@@ -7,7 +7,66 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed (breaking)
+- **Flat agent adapter modules.** The five framework adapters moved under
+  `tuiml.agent.adapters`. The old module paths are gone, with no compatibility
+  shims — pre-1.0, one blessed path per concept:
+
+  | Old | New |
+  |-----|-----|
+  | `from tuiml.agent import openai` | `from tuiml.agent.adapters import openai` |
+  | `from tuiml.agent import anthropic` | `from tuiml.agent.adapters import anthropic` |
+  | `from tuiml.agent.langchain import get_tools` | `from tuiml.agent.adapters.langchain import get_tools` |
+  | `from tuiml.agent.crewai import get_tools` | `from tuiml.agent.adapters.crewai import get_tools` |
+  | `from tuiml.agent.pydantic_ai import get_tools` | `from tuiml.agent.adapters.pydantic_ai import get_tools` |
+
+  `tuiml.agent.registry` moved to `tuiml.agent.tools._components`, and
+  `tuiml.agent.restart_util` to `tuiml.agent.tools.system.restart`.
+- **`tuiml.agent()` as a top-level function.** Binding it at the root shadowed
+  the `tuiml.agent` *package*, so `import tuiml.agent as x` handed back the
+  function instead of the module. Use `from tuiml.agent import agent` (or
+  `tuiml.agent.agent()`). The returned Pydantic-AI agent is unchanged.
+- **`tuiml_search` MCP tool.** It was never registered in any tool table, so
+  calling it always returned `Unknown tool`. Keyword search over components is
+  `tuiml_list(search=...)`, which has always worked.
+
+### Fixed
+- **Staged training raised `ImportError`.** `tuiml_train` with `stage="init"`,
+  `stage="fit"` (new model), or `stage="partial_fit"` imported
+  `_inject_seed_to_algorithm` from `tuiml.workflow`, which is named
+  `_inject_seed`. All four staged paths work again.
+- **Framework adapters were missing the discovery tools.** `get_tools()` for
+  LangChain / OpenAI / Anthropic / CrewAI / Pydantic-AI exposed only the 24
+  workflow tools, so agents had no `tuiml_list` or `tuiml_describe` and could
+  only train an algorithm whose exact class name they already knew. All 30
+  tools are now exposed, matching what an MCP client sees.
+- **Agent-started and library-started model servers could not see each other.**
+  The `tuiml_serve_model` / `tuiml_stop_server` / `tuiml_server_status` tools
+  kept their own server registry, separate from `tuiml.serve()` /
+  `tuiml.stop_server()` / `tuiml.server_status()`. They are now wrappers over
+  the root serving API: one registry, one `"host:port"` server-id scheme, and
+  the real readiness wait instead of a fixed one-second sleep (so a busy port
+  now reports an error rather than handing back a URL for a dead server).
+- **`model_id`s no longer survive only in memory.** The model index is
+  rehydrated from `~/.tuiml/models/` at import, matching the dataset index, so
+  a `model_id` still resolves after an MCP server restart.
+- **MCP annotations understated several tools.** `tuiml_delete_algorithm`,
+  `tuiml_edit_algorithm`, `tuiml_self_update` and `tuiml_restart` had no
+  annotation entry and were advertised to clients as read-only and
+  non-destructive. They are now marked destructive; `tuiml_create_algorithm` is
+  no longer read-only and `tuiml_system_info` is marked open-world.
+
 ### Changed
+- **`tuiml/agent/` reorganized into packages.** The 6741-line
+  `tuiml/agent/tools.py` is now a `tools/` package with one module per tool,
+  grouped by domain (`workflow/`, `data/`, `analysis/`, `discovery/`,
+  `authoring/`, `system/`, `notebook/`). Each tool declares a single `ToolSpec`
+  next to its executor; the schema tables, dispatch table, MCP annotations and
+  notebook-export skip list are all derived from those specs rather than
+  maintained as parallel dicts. `user_algorithms.py` was likewise split into a
+  package, and `SKILL.md` moved to `tuiml/agent/prompts/`. Public entry points
+  (`tuiml.agent.execute_tool`, `get_workflow_tools`, and the whole `tuiml.cli`
+  surface) are unchanged.
 - **`train()` / `run()`: spec-based, consistent component API.** Every ML
   component is now described the same way — a spec dict `{"name": ..., **params}`
   — for the model, each preprocessing step, and the feature selector. The data
