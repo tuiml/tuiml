@@ -10,6 +10,16 @@ on:
     branches: [main]
     paths:
       - 'website/**'
+      # build.py reads two more sources from the repo root (its TUTORIALS_DIR
+      # and CHANGELOG constants). Editing either changes what the site would
+      # publish, so both belong in the trigger: without them the live page
+      # lags the repo until some unrelated website/ change fires a deploy.
+      # Tutorials are the live case — the 19 /tutorials/ pages are built
+      # straight from tutorials/*.ipynb. The changelog matters only at release
+      # time, since parse_changelog() skips [Unreleased] on purpose and the
+      # page lists shipped versions only.
+      - 'tutorials/**'
+      - 'CHANGELOG.md'
       - '.github/workflows/pages.yml'
   workflow_dispatch:   # allow manual runs from the Actions tab
 
