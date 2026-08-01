@@ -3,9 +3,7 @@
 Auto-generated test stub. Please implement comprehensive tests.
 """
 
-import numpy as np
 import pytest
-import pickle
 
 from tuiml.algorithms.timeseries import ARIMA
 

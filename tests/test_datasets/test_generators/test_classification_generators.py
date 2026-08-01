@@ -1,7 +1,6 @@
 """Tests for classification data generators."""
 
 import numpy as np
-import pytest
 
 from tuiml.datasets.generators.classification.hyperplane import Hyperplane
 from tuiml.datasets.generators.classification.agrawal import Agrawal

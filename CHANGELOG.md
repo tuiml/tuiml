@@ -31,6 +31,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `tuiml_list(search=...)`, which has always worked.
 
 ### Fixed
+- **`tuiml_self_update(dry_run=True)` failed in a dev checkout.** The
+  editable-install guard ran before the dry-run branch, so a call that promises
+  to change nothing and report what would happen returned an error instead. A
+  dry run now always succeeds, reporting the refusal as its prediction.
+- **The notebook-export smoke test had been dead since the `tuiml/agent/`
+  reorg.** It imported `_SESSION_CALLS` and `execute_export_notebook` from
+  `tuiml.agent.tools`, which moved to `tools/_state.py` and behind
+  `execute_tool`, so the test errored on import rather than checking anything —
+  leaving every generated notebook cell unverified. Fixed, and it again
+  executes all 21 generated cells.
 - **Eight `tuiml.sklearn` wrappers were unusable inside a pipeline.** The
   wrappers read `get_params()` off `__dict__`, which also picked up the
   attributes TuiML's own base classes set (`FeatureSelector` sets `k` and
@@ -80,6 +90,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   annotation entry and were advertised to clients as read-only and
   non-destructive. They are now marked destructive; `tuiml_create_algorithm` is
   no longer read-only and `tuiml_system_info` is marked open-world.
+
+### Added
+- **Smoke test covering all 30 MCP tools** (`tests/test_agent/`). Each tool is
+  dispatched through `execute_tool` — the entry point `server.py` uses — in one
+  coherent session, so ids flow from the tool that produces them to the tools
+  that consume them, and each result is recorded exactly as the server records
+  it. A coverage test compares the registry against the plan, so a tool added
+  without being smoke-tested fails the suite instead of shipping untested. One
+  tool is deliberately not executed, with the reason stated in code:
+  `tuiml_restart` kills every running `tuiml-mcp` process, so only its
+  read-only discovery half runs. Fixtures redirect every `~/.tuiml` write
+  target at a tmp dir, so a test run neither pollutes the user's home nor reads
+  state left by a previous one.
+
+### Removed
+- **Dead test code.** 102 unused imports across 91 test files (mostly an
+  `import pickle` copied into ~50 algorithm test modules), 6 unused locals, and
+  from `tests/conftest.py` 10 fixtures and 3 assertion helpers no test has ever
+  referenced — shrinking conftest from 557 lines to 299. Test count is
+  unchanged at 1647.
+- **A test that asserted nothing.** `test_shrinkage_adds_noise` set up the
+  minority rows, then asserted only that resampling produced *some* new rows,
+  which is true with or without shrinkage — so it passed whether or not the
+  feature worked. It now asserts what its comment always claimed: that no new
+  sample is an exact copy of a minority row.
 
 ### Changed
 - **`tuiml setup` client registry brought up to date.** Three entries pointed

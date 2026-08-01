@@ -1,7 +1,6 @@
 """Tests for clustering data generators."""
 
 import numpy as np
-import pytest
 
 from tuiml.datasets.generators.clustering.blobs import Blobs
 from tuiml.datasets.generators.clustering.moons import Moons

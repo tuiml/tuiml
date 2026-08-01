@@ -1,7 +1,6 @@
 """Tests for the NumPy format loader (tuiml.datasets.loaders.numpy)."""
 
 import numpy as np
-import pytest
 
 from tuiml.datasets.loaders.numpy import load_numpy, save_numpy
 from tuiml.datasets.loaders.arff import Dataset

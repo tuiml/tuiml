@@ -23,7 +23,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 plt.show = lambda *a, **k: None  # no-op so plot cells return cleanly
 
-from tuiml.agent import tools as t
+from tuiml.agent.tools import _state, execute_tool, record_session_call
 
 MODEL_ID = "smoke_model_1"
 
@@ -103,13 +103,15 @@ SESSION = [
 
 
 def build_notebook():
-    t._SESSION_CALLS.clear()
-    t._MODEL_ID_TO_VAR.clear()
-    t._TRAIN_CALL_SEQ.clear()
+    # The session log lives in tools/_state.py and is imported by value
+    # elsewhere, so it is emptied in place rather than rebound.
+    _state._SESSION_CALLS.clear()
+    _state._MODEL_ID_TO_VAR.clear()
+    _state._TRAIN_CALL_SEQ.clear()
     for tool, args, result in SESSION:
-        t.record_session_call(tool, args, result)
+        record_session_call(tool, args, result)
     out = os.path.join(tempfile.mkdtemp(), "smoke.ipynb")
-    res = t.execute_export_notebook(path=out, title="Smoke Test")
+    res = execute_tool("tuiml_export_notebook", path=out, title="Smoke Test")
     assert res["status"] == "success", res
     return json.load(open(out))
 
@@ -138,7 +140,7 @@ def run_cells(nb):
         try:
             exec(src, ns)
             results.append((last_header, "PASS", ""))
-        except Exception as e:
+        except Exception:
             tb = traceback.format_exc().strip().splitlines()[-1]
             results.append((last_header, "FAIL", tb))
     return results

@@ -40,12 +40,18 @@ def test_shrinkage_adds_noise(imbalanced_data):
     X, y = imbalanced_data
     sampler = RandomOverSampler(random_state=42, shrinkage=0.1)
     X_res, y_res = sampler.fit_resample(X, y)
-    # New samples should NOT be exact copies of existing ones
     new_samples = X_res[len(X):]
-    minority_mask = y == 1
-    X_minority = X[minority_mask]
-    # At least some new samples should differ from all originals
+    X_minority = X[y == 1]
     assert len(new_samples) > 0
+
+    # Without shrinkage every new sample is an exact copy of a minority row;
+    # with it, each one is jittered. Asserting only that new samples exist
+    # would pass either way and so would not test shrinkage at all.
+    exact_copies = sum(
+        bool(np.any(np.all(np.isclose(X_minority, row), axis=1)))
+        for row in new_samples
+    )
+    assert exact_copies == 0
 
 
 def test_reproducibility(imbalanced_data):

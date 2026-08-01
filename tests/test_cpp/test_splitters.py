@@ -28,7 +28,6 @@ class TestClassifierSplitter:
 
     def test_basic_gini_split(self):
         """Both backends find the same split on a simple separable dataset."""
-        rng = np.random.RandomState(42)
         # Class 0: features < 0, Class 1: features > 0
         X = np.array([[-2.0, 0.1], [-1.0, 0.3], [1.0, -0.2], [2.0, -0.1]])
         y = np.array([0, 0, 1, 1], dtype=np.intc)

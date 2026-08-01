@@ -28,6 +28,10 @@ def execute_self_update(**kwargs) -> Dict[str, Any]:
         ``version_before``, ``version_after``, ``restart_required`` and
         ``note`` (dry runs return ``dry_run`` and ``command`` only). On
         failure: ``status`` (``'error'``), ``error`` and ``error_type``.
+
+        A dry run always succeeds: in an editable checkout, where a real
+        upgrade is refused, it reports that refusal as its prediction with
+        ``command`` set to None, rather than failing.
     """
     import subprocess
     import sys
@@ -36,6 +40,17 @@ def execute_self_update(**kwargs) -> Dict[str, Any]:
     method = install["method"]
 
     if method == "editable-dev":
+        # A dry run promises to report what would happen and change nothing, so
+        # it answers rather than failing: what *would* happen here is a refusal.
+        if kwargs.get("dry_run"):
+            return {
+                "status": "success",
+                "dry_run": True,
+                "install_method": method,
+                "command": None,
+                "note": "would refuse: this is an editable / dev checkout, "
+                        "run `git pull` in the source tree instead",
+            }
         return {
             "status": "error",
             "error": "refusing to upgrade an editable / dev checkout, run `git pull` in the source tree instead",

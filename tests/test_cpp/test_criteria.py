@@ -6,7 +6,6 @@ import pytest
 from tuiml.algorithms.trees._core.criteria import (
     gini_impurity,
     entropy,
-    classifier_node_impurity,
     squared_error,
 )
 

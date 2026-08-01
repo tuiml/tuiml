@@ -1,10 +1,8 @@
 import random
 import numpy as np
-import pytest
 import pandas as pd
 from tuiml.utils.seed import set_global_seed, get_global_seed
 from tuiml.training import train
-from tuiml.benchmarking import Benchmark
 from tuiml.agent.tools import execute_tool
 
 

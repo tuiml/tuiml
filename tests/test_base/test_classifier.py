@@ -6,7 +6,6 @@ the expected interface and behavior.
 
 import numpy as np
 import pytest
-from abc import ABC
 
 from tuiml.base.algorithms import (
     Algorithm, Classifier, Regressor, Clusterer, Associator

@@ -9,7 +9,6 @@ Tests cover:
 """
 
 import numpy as np
-import pytest
 
 from tuiml.algorithms.clustering.distance import euclidean_distance, euclidean_pairwise
 

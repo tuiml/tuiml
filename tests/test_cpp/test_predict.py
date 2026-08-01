@@ -114,8 +114,6 @@ class TestDispatchFallback:
     def test_dispatch_module_imports(self):
         """The dispatch module can always be imported."""
         from tuiml.algorithms.trees._core_dispatch import (
-            best_split_classifier,
-            best_split_regressor,
             has_cpp_backend,
         )
         # Should not raise

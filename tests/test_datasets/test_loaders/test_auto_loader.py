@@ -2,11 +2,9 @@
 
 import numpy as np
 import pytest
-from pathlib import Path
 
 from tuiml.datasets.loaders.auto import load, save, LOADERS, SAVERS
 from tuiml.datasets.loaders.arff import Dataset, save_arff
-from tuiml.datasets.loaders.csv import save_csv
 
 
 class TestAutoLoad:

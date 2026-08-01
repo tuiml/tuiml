@@ -10,7 +10,6 @@ Tests cover:
 """
 
 import numpy as np
-import pytest
 
 from tuiml.algorithms.bayesian.estimators import NormalEstimator
 

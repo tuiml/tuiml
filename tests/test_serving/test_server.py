@@ -1,10 +1,8 @@
 """Tests for tuiml.serving.server.ModelServer and REST endpoints."""
 
-from unittest.mock import patch, MagicMock
 import numpy as np
 import pytest
 
-from tuiml.serving.model_manager import ModelManager
 from tuiml.serving.server import ModelServer
 
 # FastAPI TestClient — skip tests gracefully if fastapi is missing

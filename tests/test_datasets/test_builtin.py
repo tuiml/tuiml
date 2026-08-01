@@ -1,6 +1,5 @@
 """Tests for built-in datasets (tuiml.datasets.builtin)."""
 
-import numpy as np
 import pytest
 
 from tuiml.datasets.builtin import (

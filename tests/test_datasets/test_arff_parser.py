@@ -1,9 +1,7 @@
 """Tests for the ARFF parser (tuiml.datasets._core.arff_parser)."""
 
 import importlib
-import sys
 import numpy as np
-import pytest
 from pathlib import Path
 
 # The _core/__init__.py has a broken import (ArffParser does not exist).

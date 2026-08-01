@@ -9,7 +9,6 @@ Tests cover:
 """
 
 import numpy as np
-import pytest
 
 from tuiml.algorithms.svm.kernels import PearsonUniversalKernel
 

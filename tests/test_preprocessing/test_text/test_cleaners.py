@@ -1,6 +1,5 @@
 """Tests for text cleaner transformers."""
 
-import pytest
 
 from tuiml.preprocessing.text.cleaners import (
     TextCleaner,

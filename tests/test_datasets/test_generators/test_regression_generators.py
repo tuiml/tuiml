@@ -1,7 +1,6 @@
 """Tests for regression data generators."""
 
 import numpy as np
-import pytest
 
 from tuiml.datasets.generators.regression.friedman import Friedman
 from tuiml.datasets.generators.regression.mexican_hat import MexicanHat

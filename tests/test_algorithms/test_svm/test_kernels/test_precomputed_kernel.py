@@ -64,7 +64,6 @@ class TestPrecomputedKernelBuild:
 
     def test_build_non_square_without_matrix_raises(self):
         """Test that a non-square X without kernel_matrix raises ValueError."""
-        X = np.array([[1.0, 2.0], [3.0, 4.0]])  # 2x2 is square
         X_nonsquare = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])  # 2x3
 
         k = PrecomputedKernel()
