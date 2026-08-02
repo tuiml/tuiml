@@ -53,7 +53,7 @@ GITHUB_URL = "https://github.com/tuiml/tuiml"
 # The Tutorials nav opens the first notebook directly — there is no index page
 # to step through, since every tutorial already carries the full sidebar.
 # Kept in sync with TUTORIALS by an assertion below.
-FIRST_TUTORIAL = "hello_tuiml"
+FIRST_TUTORIAL = "00_getting_started"
 
 TUTORIALS_URL = f"/tutorials/{FIRST_TUTORIAL}.html"
 
@@ -510,21 +510,31 @@ def parse_changelog() -> list[dict]:
 # Tutorials (Jupyter notebooks -> HTML with the site's header/sidebar/footer)
 # ---------------------------------------------------------------------------
 
-# Tutorial list for the sidebar: one flat, start-to-finish sequence. The order
-# is the reading order — connect an agent, learn the Python API, then ship it —
-# but it is deliberately NOT grouped: the tracks split a short list into stubs
-# and forced readers to pick a lane before they knew which one they wanted.
+# Tutorial list for the sidebar: the book, in reading order. Chapters are
+# numbered in both the file name and the title, and each one assumes the ones
+# before it — 0-8 build the Python arc (data, evaluation, pipelines, features,
+# imbalance, tuning, benchmarking), 9 is the hinge (an experiment is data),
+# 10-12 cover driving all of it from an agent, and 13-14 ship it.
+#
+# The list stays flat rather than grouped into parts: the numbers already carry
+# the ordering, and an earlier attempt at named tracks split a short list into
+# stubs and made readers pick a lane before they knew which one they wanted.
 TUTORIALS = [
-    ("hello_tuiml", "Hello TuiML", "fa-solid fa-play"),
-    ("mcp_server", "Connect Your Agent", "fa-solid fa-bolt"),
-    ("llm_tools", "Tools an Agent Can Call", "fa-solid fa-robot"),
-    ("high_level_api", "High-Level API", "fa-solid fa-rocket"),
-    ("workflow_builder", "Workflow Builder", "fa-solid fa-code"),
-    ("preprocessing", "Preprocessing", "fa-solid fa-wand-magic-sparkles"),
-    ("feature_engineering", "Feature Engineering", "fa-solid fa-filter"),
-    ("benchmarking", "Benchmarking", "fa-solid fa-flask"),
-    ("model_serving", "Model Serving", "fa-solid fa-server"),
-    ("diabetes_prediction", "Case Study: Diabetes", "fa-solid fa-heart-pulse"),
+    ("00_getting_started", "0. Getting Started", "fa-solid fa-play"),
+    ("01_loading_data", "1. Loading & Profiling Data", "fa-solid fa-table"),
+    ("02_first_model", "2. Training & Evaluating", "fa-solid fa-bullseye"),
+    ("03_preprocessing", "3. Preprocessing", "fa-solid fa-wand-magic-sparkles"),
+    ("04_workflow", "4. Pipelines with Workflow", "fa-solid fa-diagram-project"),
+    ("05_feature_engineering", "5. Feature Engineering", "fa-solid fa-filter"),
+    ("06_imbalanced_data", "6. Imbalanced Data", "fa-solid fa-scale-unbalanced"),
+    ("07_choosing_and_tuning", "7. Choosing & Tuning", "fa-solid fa-sliders"),
+    ("08_benchmarking", "8. Benchmarking", "fa-solid fa-flask"),
+    ("09_specs", "9. Specs: ML as Config", "fa-solid fa-file-code"),
+    ("10_connect_your_agent", "10. Connect Your Agent", "fa-solid fa-bolt"),
+    ("11_working_with_an_agent", "11. Working with an Agent", "fa-solid fa-robot"),
+    ("12_agents_in_your_code", "12. Agents in Your Code", "fa-solid fa-code"),
+    ("13_serving", "13. Serving & Deploying", "fa-solid fa-server"),
+    ("14_case_study", "14. Case Study: Credit Risk", "fa-solid fa-landmark"),
 ]
 
 # Notebooks used to be filed in group folders with a numeric prefix
@@ -533,17 +543,33 @@ TUTORIALS = [
 # numbers are dropped, and reading order lives in TUTORIALS above — so the file
 # name *is* the URL. Every previous form redirects to it.
 LEGACY_TUTORIAL_IDS = {
-    "quickstart/01_hello_tuiml": "hello_tuiml",
-    "llm_friendly/02_mcp_server": "mcp_server",
-    "llm_friendly/01_llm_tools": "llm_tools",
-    "llm_friendly/04_agent_doing_ml": "llm_tools",   # notebook removed
-    "ml_simplified/01_high_level_api": "high_level_api",
-    "ml_simplified/02_workflow_builder": "workflow_builder",
-    "ml_simplified/08_preprocessing": "preprocessing",
-    "ml_simplified/09_feature_engineering": "feature_engineering",
-    "ml_simplified/10_benchmarking": "benchmarking",
-    "deploy/02_model_serving": "model_serving",
-    "case_studies/01_diabetes_prediction": "diabetes_prediction",
+    # The flat, unnumbered set that the numbered book replaced. Each maps to
+    # the chapter that now covers its material; several old notebooks were
+    # split across chapters, so these point at the closest starting place.
+    "hello_tuiml": "00_getting_started",
+    "high_level_api": "09_specs",
+    "workflow_builder": "04_workflow",
+    "preprocessing": "03_preprocessing",
+    "feature_engineering": "05_feature_engineering",
+    "benchmarking": "08_benchmarking",
+    "mcp_server": "10_connect_your_agent",
+    "llm_tools": "11_working_with_an_agent",
+    "model_serving": "13_serving",
+    "diabetes_prediction": "14_case_study",
+
+    # The original grouped paths, from before tutorials/ was flattened. The
+    # bare-file-name form of each is registered too, further down.
+    "quickstart/01_hello_tuiml": "00_getting_started",
+    "llm_friendly/02_mcp_server": "10_connect_your_agent",
+    "llm_friendly/01_llm_tools": "11_working_with_an_agent",
+    "llm_friendly/04_agent_doing_ml": "11_working_with_an_agent",
+    "ml_simplified/01_high_level_api": "09_specs",
+    "ml_simplified/02_workflow_builder": "04_workflow",
+    "ml_simplified/08_preprocessing": "03_preprocessing",
+    "ml_simplified/09_feature_engineering": "05_feature_engineering",
+    "ml_simplified/10_benchmarking": "08_benchmarking",
+    "deploy/02_model_serving": "13_serving",
+    "case_studies/01_diabetes_prediction": "14_case_study",
 }
 
 # Head additions for tutorial pages: favicons, fonts, nav/footer chrome deps,

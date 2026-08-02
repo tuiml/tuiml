@@ -115,7 +115,11 @@ STYLE_CONFIG = {
     'font.family': 'sans-serif',
     'font.sans-serif': ['Arial', 'Helvetica Neue', 'DejaVu Sans', 'sans-serif'],
     'font.size': 12,
-    'font.weight': 'medium',
+    # 'normal', not 'medium': both resolve to weight 400, but no bundled font
+    # advertises a face named "medium", so matplotlib logs
+    # "findfont: Failed to find font weight medium, now using 400" on every
+    # figure drawn. Same rendering, without the warning on every plot.
+    'font.weight': 'normal',
 
     # Axes
     'axes.facecolor': 'white',

@@ -142,7 +142,10 @@ def plot_ranking_table(
     for i, label in enumerate(row_labels):
         cell = table[(i + 1, -1)]
         cell.set_facecolor('#F3F4F6')
-        cell.set_text_props(fontweight='medium')
+        # 'normal' rather than 'medium': both are weight 400, but no bundled
+        # font advertises a "medium" face, so matplotlib logs a findfont
+        # warning for every cell rendered. See _style.py STYLE_CONFIG.
+        cell.set_text_props(fontweight='normal')
 
     # Highlight best values with modern green
     for i in range(n_datasets):

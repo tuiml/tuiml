@@ -11,6 +11,14 @@ Three levels of API:
 
 from tuiml.registry import registry, ComponentType
 
+# Importing the package is what registers every native algorithm in the hub —
+# the @classifier / @regressor decorators only fire on module import. Without
+# this line a bare ``import tuiml`` leaves ``list_algorithms()`` and
+# ``search_algorithms()`` seeing only the optional sklearn/capymoa wrappers,
+# so RandomForestClassifier and friends are missing from the catalog until
+# something else happens to import them.
+import tuiml.algorithms  # noqa: F401,E402
+
 # High-level API, one root module per concern
 from tuiml.training import train, PRESETS
 from tuiml.benchmarking import Benchmark
