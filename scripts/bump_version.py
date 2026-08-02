@@ -42,11 +42,28 @@ VERSION_FILES = [
         r"(^version:\s*)[^\s]+",
         r"\g<1>{version}",
     ),
-    # The published tutorial prints the version in a stored output cell, so a
-    # reader on tuiml.ai sees whatever it last said.
+    # Four tutorial chapters print the version in a stored output cell, so a
+    # reader on tuiml.ai sees whatever it last said. The formats differ
+    # because each one is showing a different thing: the library version, the
+    # server's health payload, the agent skill-file frontmatter.
     (
-        TUIML / "tutorials" / "mcp_server.ipynb",
-        r'(TuiML version: )\d+\.\d+\.\d+',
+        TUIML / "tutorials" / "00_getting_started.ipynb",
+        r"(TuiML )\d+\.\d+\.\d+",
+        r"\g<1>{version}",
+    ),
+    (
+        TUIML / "tutorials" / "10_connect_your_agent.ipynb",
+        r"(TuiML )\d+\.\d+\.\d+",
+        r"\g<1>{version}",
+    ),
+    (
+        TUIML / "tutorials" / "12_agents_in_your_code.ipynb",
+        r"(version: )\d+\.\d+\.\d+",
+        r"\g<1>{version}",
+    ),
+    (
+        TUIML / "tutorials" / "13_serving.ipynb",
+        r"('version': ')\d+\.\d+\.\d+",
         r"\g<1>{version}",
     ),
     # --- bundled website (website/) ---

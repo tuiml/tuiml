@@ -1,7 +1,7 @@
 ---
 name: TuiML ML
 description: Machine learning toolkit - train, evaluate, and compare models using 200+ algorithms, preprocessors, and datasets
-version: 0.1.6
+version: 0.1.7
 mcp_server: tuiml-mcp
 ---
 

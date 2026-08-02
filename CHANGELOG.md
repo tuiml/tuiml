@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-08-02
+
 ### Removed (breaking)
 - **Flat agent adapter modules.** The five framework adapters moved under
   `tuiml.agent.adapters`. The old module paths are gone, with no compatibility
@@ -31,6 +33,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `tuiml_list(search=...)`, which has always worked.
 
 ### Fixed
+- **Fitting a tree on data with missing values never returned.**
+  `DecisionTreeClassifier`, `DecisionTreeRegressor` and both random forests
+  hung and then died with a `RecursionError` on any `X` containing `NaN` —
+  including the built-in `vote` dataset — with a traceback pointing at
+  impurity arithmetic several frames from the cause.
+
+  In the split search, `np.argsort` sorts `NaN` last and the candidate mask
+  `sorted_col[1:] != sorted_col[:-1]` counts a boundary at a `NaN` as valid,
+  because `NaN != NaN` is True. The chosen threshold was then the midpoint of
+  two values one of which was `NaN`, so the threshold itself was `NaN`; every
+  `x <= NaN` is False, so the builder put all rows on one side and recursed on
+  a subproblem identical to its parent forever. `build_classifier_tree`
+  already routed `NaN` away from the C++ builder and into the Python one, so
+  the Python path was the designated missing-value path — it just could not
+  handle them.
+
+  Candidate thresholds now come from observed values only, so a threshold is
+  always finite. Impurities are normalised over that subset and the gain is
+  scaled by the fraction observed — C4.5's correction, which stops a
+  mostly-missing feature outranking a complete one by being scored on an
+  easier subset; `j48` already dropped `NaN` the same way. Missing rows route
+  right, matching `NaN <= t`, and a split that fails to partition falls back
+  to a leaf. Verified a no-op on complete data: predictions are unchanged
+  across `gini`/`entropy`/`gain_ratio`,
+  `squared_error`/`friedman_mse`/`absolute_error` and `RandomForest` on
+  diabetes, iris, glass and cpu. `vote` now trains at 0.961 ± 0.025 under
+  10-fold CV.
+- **A batch prediction and a single-sample prediction could disagree on the
+  same row.** `predict_single_numpy` sent missing values to whichever child
+  held more training samples, which matched neither the structure the tree was
+  actually fitted with nor the flattened batch predictor that `predict()`
+  uses. Fitting, batch prediction and single-sample prediction now share one
+  rule. Previously unreachable, because fitting on such data crashed first.
+- **`list_algorithms()` hid every native algorithm after a bare `import
+  tuiml`.** `tuiml/__init__.py` never imported `tuiml.algorithms`, and the
+  `@classifier` / `@regressor` decorators only register on module import — so
+  discovery reported 103 of 189 components and `RandomForestClassifier` was
+  absent from the catalog entirely until something else happened to import it.
+  Machines with entries in `~/.tuiml/user_algorithms` never saw this, because
+  loading those pulls the imports in as a side effect. `train()` was
+  unaffected (it resolves lazily), as was the MCP `tuiml_list` tool.
+- **Every plot logged a matplotlib warning.** The stylesheet set
+  `font.weight: 'medium'`, which no bundled font advertises as a face, so each
+  figure emitted `findfont: Failed to find font weight medium, now using 400`.
+  Same rendering, without the noise. The comparison-table renderer set it too.
 - **A quarter of the See Also links in the API docs were broken, and the site
   hid it.** 147 of 544 pointed at pages that do not exist. The resolver only
   indexed *classes*, so every `:func:` reference fell through to a fallback
@@ -174,6 +221,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sample is an exact copy of a minority row.
 
 ### Changed
+- **The tutorials are now a book.** The ten notebooks are replaced by fifteen
+  numbered chapters that run in reading order, each assuming the ones before
+  it: chapters 0–8 build the Python arc (data, evaluation, pipelines,
+  features, imbalance, tuning, benchmarking), 9 covers experiments-as-data,
+  10–12 cover driving TuiML from an agent, and 13–14 serve and apply it. Every
+  notebook ships executed, so the published pages carry real tables, plots and
+  CD diagrams.
+
+  The old set mirrored the API's own table of contents; this one is organised
+  around decisions, and reports what the library actually does rather than
+  what a tutorial would prefer it did — imputation barely moves a random
+  forest on the diabetes data, every feature-engineering technique loses on
+  eight curated columns, logistic regression beats a 200-tree forest, and
+  tuning's reported gain is smaller than its own optimism. Two leakage
+  demonstrations carry the fold-discipline argument: feature selection outside
+  the fold scores 82% on pure noise, and SMOTE before splitting inflates by
+  six points.
+
+  Every previous tutorial URL redirects to the chapter that now covers it.
 - **`tuiml setup` client registry brought up to date.** Three entries pointed
   at config files the vendors no longer read:
   - **ChatGPT Desktop** has no MCP config of its own. OpenAI put the desktop
@@ -423,6 +489,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Model serialization via joblib with save/load utilities.
 - Cross-validation, grid search, and hyperparameter tuning support.
 
+[0.1.7]: https://github.com/tuiml/tuiml/releases/tag/v0.1.7
 [0.1.6]: https://github.com/tuiml/tuiml/releases/tag/v0.1.6
 [0.1.5]: https://github.com/tuiml/tuiml/releases/tag/v0.1.5
 [0.1.4]: https://github.com/tuiml/tuiml/releases/tag/v0.1.4
