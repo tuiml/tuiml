@@ -79,7 +79,6 @@ def best_split_classifier(
     from .criteria import classifier_node_impurity
 
     n_samples, n_features = X.shape
-    parent_impurity = classifier_node_impurity(y, criterion, n_classes)
     best_gain = -np.inf
     best_feature = -1
     best_threshold = 0.0
@@ -90,13 +89,33 @@ def best_split_classifier(
 
     for feat_idx in feature_order:
         col = X[:, feat_idx]
-        sorted_indices = np.argsort(col)
-        sorted_col = col[sorted_indices]
-        sorted_y = y[sorted_indices]
 
-        # One-hot encode sorted labels -> (n_samples, n_classes)
-        one_hot = np.zeros((n_samples, n_classes), dtype=np.float64)
-        one_hot[np.arange(n_samples), sorted_y] = 1.0
+        # Candidate thresholds come from observed values only. np.argsort sorts
+        # NaN to the end and `NaN != NaN` is True, so leaving them in would mark
+        # a boundary at a NaN as a valid split and produce a NaN threshold —
+        # against which every comparison is False, so the split puts every row
+        # on one side and the builder recurses on an identical subproblem
+        # forever. Dropping them here is also what j48 does.
+        missing = np.isnan(col)
+        n_finite = n_samples - int(missing.sum())
+        if n_finite < 2 * min_samples_leaf:
+            continue
+
+        if n_finite == n_samples:
+            sub_col, sub_y = col, y
+        else:
+            sub_col, sub_y = col[~missing], y[~missing]
+
+        n_sub = n_finite
+        parent_impurity = classifier_node_impurity(sub_y, criterion, n_classes)
+
+        sorted_indices = np.argsort(sub_col)
+        sorted_col = sub_col[sorted_indices]
+        sorted_y = sub_y[sorted_indices]
+
+        # One-hot encode sorted labels -> (n_sub, n_classes)
+        one_hot = np.zeros((n_sub, n_classes), dtype=np.float64)
+        one_hot[np.arange(n_sub), sorted_y] = 1.0
 
         # Cumulative class counts
         cum_counts = np.cumsum(one_hot, axis=0)
@@ -105,8 +124,8 @@ def best_split_classifier(
         left_counts = cum_counts[:-1]
         right_counts = total_counts - left_counts
 
-        n_left = np.arange(1, n_samples, dtype=np.float64)
-        n_right = n_samples - n_left
+        n_left = np.arange(1, n_sub, dtype=np.float64)
+        n_right = n_sub - n_left
 
         left_probs = left_counts / n_left[:, None]
         right_probs = right_counts / n_right[:, None]
@@ -126,17 +145,27 @@ def best_split_classifier(
                 axis=1,
             )
 
+        # Normalised over the observed rows, since that is the set the
+        # impurities above were computed on. With no missing values n_sub ==
+        # n_samples, so this is unchanged for complete data.
         gains = (
             parent_impurity
-            - (n_left / n_samples) * imp_left
-            - (n_right / n_samples) * imp_right
+            - (n_left / n_sub) * imp_left
+            - (n_right / n_sub) * imp_right
         )
 
         if criterion == "gain_ratio":
-            p_left = n_left / n_samples
-            p_right = n_right / n_samples
+            p_left = n_left / n_sub
+            p_right = n_right / n_sub
             split_info = -(p_left * np.log2(p_left) + p_right * np.log2(p_right))
             gains = np.where(split_info > 0, gains / split_info, -np.inf)
+
+        # C4.5's correction for missing values: a feature that is only observed
+        # for part of the node gets its gain scaled by the fraction observed,
+        # so a sparse feature cannot outrank a complete one purely by being
+        # evaluated on an easier subset.
+        if n_finite != n_samples:
+            gains = gains * (n_finite / n_samples)
 
         # Mask invalid splits
         valid = sorted_col[1:] != sorted_col[:-1]
@@ -191,7 +220,6 @@ def best_split_regressor(
         Impurity reduction of the best split.
     """
     n_samples, n_features = X.shape
-    parent_impurity = float(np.mean((y - np.mean(y)) ** 2))
     best_gain = -np.inf
     best_feature = -1
     best_threshold = 0.0
@@ -202,9 +230,26 @@ def best_split_regressor(
 
     for feat_idx in feature_order:
         col = X[:, feat_idx]
-        sorted_indices = np.argsort(col)
-        sorted_col = col[sorted_indices]
-        sorted_y = y[sorted_indices]
+
+        # See best_split_classifier: NaN sorts last and compares unequal to
+        # itself, so leaving it in yields a NaN threshold and a split that
+        # never partitions the node.
+        missing = np.isnan(col)
+        n_finite = n_samples - int(missing.sum())
+        if n_finite < 2 * min_samples_leaf:
+            continue
+
+        if n_finite == n_samples:
+            sub_col, sub_y = col, y
+        else:
+            sub_col, sub_y = col[~missing], y[~missing]
+
+        n_sub = n_finite
+        parent_impurity = float(np.mean((sub_y - np.mean(sub_y)) ** 2))
+
+        sorted_indices = np.argsort(sub_col)
+        sorted_col = sub_col[sorted_indices]
+        sorted_y = sub_y[sorted_indices]
 
         cum_sum = np.cumsum(sorted_y)
         cum_sq_sum = np.cumsum(sorted_y ** 2)
@@ -214,8 +259,8 @@ def best_split_regressor(
         left_sum = cum_sum[:-1]
         left_sq_sum = cum_sq_sum[:-1]
 
-        n_left = np.arange(1, n_samples, dtype=np.float64)
-        n_right = n_samples - n_left
+        n_left = np.arange(1, n_sub, dtype=np.float64)
+        n_right = n_sub - n_left
 
         right_sum = total_sum - left_sum
         right_sq_sum = total_sq_sum - left_sq_sum
@@ -224,15 +269,19 @@ def best_split_regressor(
         right_mean = right_sum / n_right
 
         if criterion == "friedman_mse":
-            gains = (n_left * n_right / n_samples ** 2) * (left_mean - right_mean) ** 2
+            gains = (n_left * n_right / n_sub ** 2) * (left_mean - right_mean) ** 2
         else:
             left_mse = left_sq_sum / n_left - left_mean ** 2
             right_mse = right_sq_sum / n_right - right_mean ** 2
             gains = (
                 parent_impurity
-                - (n_left / n_samples) * left_mse
-                - (n_right / n_samples) * right_mse
+                - (n_left / n_sub) * left_mse
+                - (n_right / n_sub) * right_mse
             )
+
+        # C4.5's missing-value correction, as in best_split_classifier.
+        if n_finite != n_samples:
+            gains = gains * (n_finite / n_samples)
 
         # Mask invalid splits
         valid = sorted_col[1:] != sorted_col[:-1]

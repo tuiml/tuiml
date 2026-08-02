@@ -27,6 +27,39 @@ _CPP_CLASSIFIER_CRITERIA = ("gini", "entropy", "log_loss")
 _CPP_REGRESSOR_CRITERIA = ("squared_error", "friedman_mse")
 
 
+def _partition(column: np.ndarray, threshold: float) -> tuple:
+    """Left/right masks for a split. Missing rows go right.
+
+    ``NaN <= t`` is False, so a missing value falls right. That is not a
+    considered choice so much as an inherited one, but it *must* match how
+    prediction routes — ``predict`` compares ``x[feat] <= threshold`` with no
+    missing-value branch, so any cleverer rule here (sending them to the
+    larger side, say) would need the direction stored per node and honoured
+    by both the NumPy and C++ predictors. Until it is, training and inference
+    have to agree, and this is what inference does.
+
+    The invariant that keeps the recursion finite is that both sides are
+    non-empty. ``best_split_*`` enforces ``n_left >= min_samples_leaf`` over
+    the observed rows, so the left side always has at least one; the right
+    then takes the remainder plus every missing row. Both children are
+    therefore strictly smaller than the parent.
+
+    Parameters
+    ----------
+    column : np.ndarray of shape (n_samples,)
+        The split feature's values, possibly containing NaN.
+    threshold : float
+        Split point. Finite by construction — see ``best_split_classifier``.
+
+    Returns
+    -------
+    left_mask, right_mask : np.ndarray of bool
+        Disjoint masks covering every row.
+    """
+    left = column <= threshold
+    return left, ~left
+
+
 @dataclass
 class TreeConfig:
     """Configuration for tree building.
@@ -172,8 +205,18 @@ def _build_classifier_subtree(
             impurity=impurity,
         )
 
-    left_mask = X[:, best_feature] <= best_threshold
-    right_mask = ~left_mask
+    left_mask, right_mask = _partition(X[:, best_feature], best_threshold)
+
+    # A split that leaves one side empty would recurse on an identical
+    # subproblem forever. The splitter should never return one, so this is a
+    # backstop rather than an expected path.
+    if not left_mask.any() or not right_mask.any():
+        return TreeNode(
+            is_leaf=True,
+            value=distribution,
+            n_samples=n_samples,
+            impurity=impurity,
+        )
 
     left_node = _build_classifier_subtree(X[left_mask], y[left_mask], config, rng, depth + 1)
     right_node = _build_classifier_subtree(X[right_mask], y[right_mask], config, rng, depth + 1)
@@ -302,8 +345,17 @@ def _build_regressor_subtree(
             impurity=impurity,
         )
 
-    left_mask = X[:, best_feature] <= best_threshold
-    right_mask = ~left_mask
+    left_mask, right_mask = _partition(X[:, best_feature], best_threshold)
+
+    # Backstop against a split that fails to partition; see the classifier
+    # builder for why an empty side would recurse forever.
+    if not left_mask.any() or not right_mask.any():
+        return TreeNode(
+            is_leaf=True,
+            value=np.array([leaf_val]),
+            n_samples=n_samples,
+            impurity=impurity,
+        )
 
     left_node = _build_regressor_subtree(X[left_mask], y[left_mask], config, rng, depth + 1)
     right_node = _build_regressor_subtree(X[right_mask], y[right_mask], config, rng, depth + 1)
