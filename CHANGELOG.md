@@ -7,6 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-08-02
+
+### Changed (breaking)
+- **The MCP server now targets the 2.x MCP SDK** (`mcp>=2.0.0`, was
+  `mcp>=1.0.0`). The 2.0 SDK replaced the low-level decorator API the server
+  was built on — `@server.list_tools()`, `@server.call_tool()` and the
+  resource decorators — with handlers registered on the `Server(...)`
+  constructor, so the two are not source-compatible and there is no single
+  code path that serves both. Because the old pin was unbounded, a fresh
+  `pip install tuiml` / `uv tool install tuiml` resolved mcp 2.0.0 and
+  `tuiml-mcp` died at startup with `AttributeError: 'Server' object has no
+  attribute 'list_tools'`, which surfaced in Claude Desktop and Cursor as
+  `connection closed: calling "initialize"`. If you pin `mcp` yourself, move
+  to 2.x; an SDK that is too old is now reported at startup with an
+  actionable message instead of an `AttributeError`.
+
+### Fixed
+- **Tuning and benchmark progress reaches the client again.** Progress was
+  streamed as `notifications/message` log entries, which 2.x gates behind a
+  per-request opt-in that no client sends by default. It now goes out as
+  spec-correct `notifications/progress` against the client's `progressToken`,
+  so `tuiml_tune` and `tuiml_benchmark` report live progress in clients that
+  ask for it, with the iteration total attached for tuning runs.
+- **Tool arguments are validated again.** Input validation against each
+  tool's `inputSchema` was performed by the 1.x decorator; on 2.x it has to
+  be done in the handler, without which a malformed argument reached the tool
+  as a confusing `TypeError` instead of a clear validation error.
+- **`tuiml-mcp --info` reported version `1.0.0`** regardless of the installed
+  version. It now reports the package version, which is also what the server
+  advertises in the initialize handshake.
+- **`tuiml_plot(plot_type='tree')` failed for every agent-trained model** with
+  "The tree model is not fitted yet." `tuiml_train` saves a `Workflow`, and
+  the `tree` branch handed that wrapper to `plot_tree` instead of unwrapping
+  `workflow.model_` the way `feature_importance` already did — so a `model_id`
+  could never plot, however tree-based the model was. Asking for a tree plot
+  of a model that genuinely has no tree now returns a clear message naming the
+  model and pointing at `feature_importance`, instead of claiming it is
+  unfitted. `NaiveBayesClassifier` is excluded correctly: it stores a
+  list-of-lists of *probability* estimators under `estimators_`, which a
+  looser check mistook for a tree ensemble and drew nonsense from.
+
 ## [0.1.7] - 2026-08-02
 
 ### Removed (breaking)
@@ -489,6 +530,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Model serialization via joblib with save/load utilities.
 - Cross-validation, grid search, and hyperparameter tuning support.
 
+[0.1.8]: https://github.com/tuiml/tuiml/releases/tag/v0.1.8
 [0.1.7]: https://github.com/tuiml/tuiml/releases/tag/v0.1.7
 [0.1.6]: https://github.com/tuiml/tuiml/releases/tag/v0.1.6
 [0.1.5]: https://github.com/tuiml/tuiml/releases/tag/v0.1.5

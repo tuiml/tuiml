@@ -227,13 +227,53 @@ def execute_plot(**kwargs) -> Dict[str, Any]:
             if model is None:
                 return {'status': 'error', 'error': 'Model not found. Provide model_id or model_path.'}
 
+            # tuiml_train saves a Workflow, so a model_id always resolves to
+            # one; the tree lives in its final estimator. Handing the wrapper
+            # to plot_tree fails its fitted-check ("The tree model is not
+            # fitted yet"), because a Workflow carries none of the markers it
+            # looks for. A model_path may point at a bare estimator, so fall
+            # back to the object itself.
+            estimator = getattr(model, 'model_', None)
+            if estimator is None:
+                estimator = model
+
+            # Only trees, tree ensembles and stumps can be drawn. Say so
+            # plainly rather than letting plot_tree report a fitted model as
+            # unfitted.
+            #
+            # `estimators_` alone is not evidence of an ensemble of trees:
+            # NaiveBayesClassifier stores a list-of-lists of *probability*
+            # estimators under the same name, and plot_tree would happily
+            # draw nonsense from it. Require the members to be trees.
+            def _is_tree_like(obj):
+                return getattr(obj, 'tree_', None) is not None or hasattr(obj, 'is_leaf')
+
+            members = getattr(estimator, 'estimators_', None) or []
+            if not (
+                _is_tree_like(estimator)
+                or getattr(estimator, 'feature_index_', None) is not None
+                or (len(members) > 0 and _is_tree_like(members[0]))
+            ):
+                return {
+                    'status': 'error',
+                    'error': (
+                        f"'{type(estimator).__name__}' is not a tree-based model, so "
+                        f"plot_type='tree' does not apply. Use it with a decision "
+                        f"tree, a tree ensemble (e.g. RandomForestClassifier) or a "
+                        f"decision stump; for other models try "
+                        f"plot_type='feature_importance'."
+                    ),
+                }
+
             # Get feature names from the model if available
             feature_names = None
-            if hasattr(model, 'feature_names_'):
-                feature_names = model.feature_names_
+            for source in (estimator, model):
+                if getattr(source, 'feature_names_', None) is not None:
+                    feature_names = source.feature_names_
+                    break
 
             plot_tree(
-                model,
+                estimator,
                 feature_names=feature_names,
                 filled=True,
                 rounded=True,

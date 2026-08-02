@@ -73,10 +73,15 @@ from tuiml.agent.tools._components import (
     ToolDefinition,
 )
 
-# MCP server availability check
+# MCP server availability check. Checked here rather than imported from
+# tuiml.agent.mcp.server, which imports back from tuiml.agent.tools; the
+# server module is only reachable lazily from inside the functions below.
 try:
     from mcp.server import Server
-    MCP_AVAILABLE = True
+    # A 1.x SDK imports cleanly but cannot serve: it registers handlers by
+    # decorator, and tuiml.agent.mcp.server is written against the 2.x
+    # constructor API. ``Server.list_tools`` is the 1.x-only decorator.
+    MCP_AVAILABLE = not hasattr(Server, "list_tools")
 except ImportError:
     MCP_AVAILABLE = False
 
@@ -92,10 +97,13 @@ def get_mcp_server():
     Raises
     ------
     ImportError
-        If the ``mcp`` package is not installed.
+        If the 2.x ``mcp`` package is not installed.
     """
     if not MCP_AVAILABLE:
-        raise ImportError("MCP package not installed. Install with: pip install mcp")
+        raise ImportError(
+            "TuiML's MCP server requires the 2.x MCP SDK. "
+            "Install it with: pip install 'mcp>=2'"
+        )
     from tuiml.agent.mcp.server import create_server
     return create_server()
 

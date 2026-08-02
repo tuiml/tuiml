@@ -51,7 +51,7 @@ try:
 except Exception:  # pragma: no cover
     pass
 
-__version__ = "0.1.7"
+__version__ = "0.1.8"
 
 __all__ = [
     # Core registry

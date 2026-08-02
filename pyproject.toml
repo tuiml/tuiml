@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "tuiml"
-version = "0.1.7"
+version = "0.1.8"
 description = "An open-source agentic ML ecosystem with a clean Python API, MCP server for AI agents, and a community Hub for sharing algorithms, datasets, and models"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -50,7 +50,12 @@ dependencies = [
     "xgboost>=2.0.0",
     "catboost>=1.2.0",
     "lightgbm>=4.0.0",
-    "mcp>=1.0.0",
+    # 2.x only. The 2.0 SDK replaced the low-level decorator API the MCP
+    # server was built on (@server.list_tools / @server.call_tool / the
+    # resource decorators) with constructor-registered on_* handlers, so the
+    # two are not source-compatible and there is no single code path that
+    # serves both. tuiml/agent/mcp/server.py targets 2.x.
+    "mcp>=2.0.0",
     "fastapi>=0.100.0",
     "uvicorn>=0.23.0",
     "pydantic>=2.0.0",

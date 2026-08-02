@@ -41,7 +41,7 @@ import sys
 import threading
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 
 # ─── MCP call tracing ────────────────────────────────────────────────
@@ -147,8 +147,17 @@ def _trace_call_end(name: str, result: Optional[dict], duration_ms: int,
         "error": error,
     })
 
-# MCP imports - optional dependency
+# MCP imports - optional dependency.
+#
+# This module targets the 2.x SDK. The handlers below are registered through
+# the ``Server(...)`` constructor (``on_list_tools=`` and friends) and return
+# whole result models; 1.x registered them with decorators and returned bare
+# lists. The two shapes are mutually exclusive, so an SDK that is too old is
+# reported as unavailable rather than half-wired.
+_MCP_UNAVAILABLE_REASON = None
+
 try:
+    import jsonschema
     from mcp.server import Server
     from mcp.server.stdio import stdio_server
     from mcp.types import (
@@ -157,11 +166,37 @@ try:
         ResourceTemplate,
         TextContent,
         ImageContent,
+        TextResourceContents,
+        CallToolResult,
+        ListToolsResult,
+        ListResourcesResult,
+        ListResourceTemplatesResult,
+        ReadResourceResult,
     )
     MCP_AVAILABLE = True
 except ImportError:
     MCP_AVAILABLE = False
     Server = None
+    _MCP_UNAVAILABLE_REASON = (
+        "The MCP package is not installed. Install it with: pip install 'mcp>=2'"
+    )
+
+# 1.x also exports ``Server`` from ``mcp.server``, so the import above
+# succeeds against it and the failure would otherwise surface much later as a
+# bare TypeError about unexpected keyword arguments — which reaches the user
+# as an opaque "connection closed" in their MCP client. The decorator method
+# is the cheapest 1.x fingerprint: 2.x has no ``Server.list_tools``.
+if MCP_AVAILABLE and hasattr(Server, "list_tools"):
+    MCP_AVAILABLE = False
+    try:
+        from importlib.metadata import version as _pkg_version
+        _found = _pkg_version("mcp")
+    except Exception:
+        _found = "1.x"
+    _MCP_UNAVAILABLE_REASON = (
+        f"Installed MCP SDK {_found} is too old. TuiML's MCP server targets "
+        f"the 2.x SDK. Upgrade with: pip install 'mcp>=2'"
+    )
 
 def _strip_none(obj):
     """Recursively remove None values from dicts so absent optional fields pass schema validation.
@@ -235,7 +270,7 @@ def create_server() -> "Server":
     """
     Create and configure the TuiML MCP server.
 
-    Only workflow and discovery tools are exposed as MCP tools (11 total).
+    Only workflow and discovery tools are exposed as MCP tools (30 total).
     The internal registry still tracks all 200+ components so that
     tuiml_list, tuiml_describe, and tuiml_train
     can dynamically access any algorithm - including new ones added later.
@@ -243,110 +278,175 @@ def create_server() -> "Server":
     Returns
     -------
     Server
-        Configured MCP server exposing TuiML workflow tools.
+        Configured MCP server exposing TuiML workflow tools, with every
+        handler registered on the constructor as the 2.x SDK expects.
 
     Raises
     ------
     ImportError
-        If MCP package is not installed.
+        If the 2.x ``mcp`` package is not installed.
     """
     if not MCP_AVAILABLE:
-        raise ImportError(
-            "MCP package not installed. Install with: pip install mcp"
-        )
+        raise ImportError(_MCP_UNAVAILABLE_REASON)
 
-    server = Server("tuiml")
+    # Tools that return image content blocks cannot use outputSchema
+    # (MCP validates structured output against the schema, but image
+    # responses use [TextContent, ImageContent] which is unstructured)
+    IMAGE_TOOLS = {"tuiml_plot"}
 
-    # =========================================================================
-    # List Tools Handler - only workflow + discovery tools
-    # =========================================================================
-    @server.list_tools()
-    async def list_tools() -> List[Tool]:
-        """List workflow and discovery tools (not 200+ component tools).
+    # Tools that benefit from real-time progress notifications
+    _PROGRESS_TOOLS = {"tuiml_tune", "tuiml_benchmark"}
+
+    def _build_tools() -> Dict[str, Tool]:
+        """Build the exposed tool set, keyed by name.
 
         Returns
         -------
-        list of mcp.types.Tool
+        dict of str to mcp.types.Tool
             One Tool per workflow/discovery tool, each carrying name,
             description, inputSchema, annotations, and (except for
             image-returning tools) outputSchema.
         """
-        tools = []
+        from tuiml.agent.tools import (
+            get_workflow_tools,
+            get_tool_output_schema,
+            get_tool_annotations,
+        )
 
-        from tuiml.agent.tools import get_workflow_tools, get_tool_output_schema, get_tool_annotations
-
-        # Tools that return image content blocks cannot use outputSchema
-        # (MCP validates structured output against the schema, but image
-        # responses use [TextContent, ImageContent] which is unstructured)
-        IMAGE_TOOLS = {"tuiml_plot"}
-
+        tools: Dict[str, Tool] = {}
         for name, schema in get_workflow_tools().items():
             tool_kwargs = dict(
                 name=name,
                 description=schema["description"],
-                inputSchema=schema["inputSchema"],
+                input_schema=schema["inputSchema"],
                 annotations=get_tool_annotations(name),
             )
             if name not in IMAGE_TOOLS:
-                tool_kwargs["outputSchema"] = get_tool_output_schema(name)
-            tools.append(Tool(**tool_kwargs))
-
+                tool_kwargs["output_schema"] = get_tool_output_schema(name)
+            tools[name] = Tool(**tool_kwargs)
         return tools
+
+    def _error_result(message: str) -> "CallToolResult":
+        """Wrap a message as a failed tool call.
+
+        Parameters
+        ----------
+        message : str
+            Human-readable failure description.
+
+        Returns
+        -------
+        mcp.types.CallToolResult
+            Result carrying the message as text with ``isError`` set.
+        """
+        return CallToolResult(
+            content=[TextContent(type="text", text=message)],
+            is_error=True,
+        )
+
+    # =========================================================================
+    # List Tools Handler - only workflow + discovery tools
+    # =========================================================================
+    async def on_list_tools(ctx, params) -> "ListToolsResult":
+        """Serve ``tools/list`` with the workflow and discovery tools.
+
+        The 200+ registry components are deliberately not exposed as tools;
+        they stay reachable through tuiml_list / tuiml_describe / tuiml_train.
+
+        Parameters
+        ----------
+        ctx : mcp.server.context.ServerRequestContext
+            Per-request context (unused here).
+        params : mcp.types.PaginatedRequestParams or None
+            Pagination params; the tool set is small enough to send whole.
+
+        Returns
+        -------
+        mcp.types.ListToolsResult
+            Every exposed tool, unpaginated.
+        """
+        return ListToolsResult(tools=list(_build_tools().values()))
 
     # =========================================================================
     # Call Tool Handler - runs CPU-bound work off the event loop
     # =========================================================================
-    # Tools that benefit from real-time progress notifications
-    _PROGRESS_TOOLS = {"tuiml_tune", "tuiml_benchmark"}
-
-    @server.call_tool()
-    async def call_tool(name: str, arguments: Dict[str, Any]):
-        """Execute any TuiML tool.
+    async def on_call_tool(ctx, params) -> "CallToolResult":
+        """Serve ``tools/call`` for any TuiML tool.
 
         Parameters
         ----------
-        name : str
-            Name of the workflow/discovery tool to run (e.g. "tuiml_train").
-        arguments : dict
-            Keyword arguments forwarded to the tool.
+        ctx : mcp.server.context.ServerRequestContext
+            Per-request context, used for progress notifications.
+        params : mcp.types.CallToolRequestParams
+            Carries the tool ``name`` and its ``arguments``.
 
         Returns
         -------
-        dict or list
-            JSON-serializable result dict on success (or a dict with
-            ``"status": "error"`` on failure). Tools that produce images
-            return ``[TextContent, ImageContent]`` instead.
+        mcp.types.CallToolResult
+            Structured result on success, or a result with ``"status":
+            "error"`` when the tool itself raised. Tools that produce images
+            return ``[TextContent, ImageContent]`` as unstructured content.
         """
         from tuiml.agent.tools import execute_tool, record_session_call
+
+        name = params.name
+        arguments: Dict[str, Any] = dict(params.arguments or {})
+
+        # 1.x validated arguments against inputSchema inside the decorator.
+        # 2.x hands the handler the raw params, so do it here or a bad
+        # argument reaches execute_tool as a confusing TypeError.
+        tool = _build_tools().get(name)
+        if tool is None:
+            return _error_result(f"Unknown tool: {name}")
+        try:
+            jsonschema.validate(instance=arguments, schema=tool.input_schema)
+        except jsonschema.ValidationError as e:
+            return _error_result(f"Input validation error: {e.message}")
 
         _trace_call_start(name, arguments)
         _t0 = time.perf_counter()
 
         try:
-            # For long-running tools, set up real-time progress notifications
-            if name in _PROGRESS_TOOLS:
+            # For long-running tools, stream real-time progress. This is
+            # opt-in per the spec: notifications/progress is only legal when
+            # the client attached a progressToken to the request, and 2.x
+            # gates notifications/message behind a separate per-request
+            # opt-in, so there is nowhere to send otherwise.
+            progress_token = (ctx.meta or {}).get("progress_token")
+            if name in _PROGRESS_TOOLS and progress_token is not None:
                 progress_queue: queue.Queue = queue.Queue()
-                loop = asyncio.get_running_loop()
 
                 def _sync_progress_callback(info):
                     """Sync callback invoked from worker thread, posts to queue."""
                     progress_queue.put(info)
 
                 async def _drain_progress():
-                    """Async task that drains the queue and sends MCP log notifications."""
+                    """Drain the queue and forward each item as notifications/progress."""
+                    # `progress` must increase monotonically across the
+                    # request. Benchmark fold counters restart per model, so
+                    # count notifications sent rather than trusting the
+                    # payload; `total` is only meaningful when a tool knows
+                    # its own iteration count up front.
+                    sent = 0
                     while True:
                         try:
                             info = progress_queue.get_nowait()
                         except queue.Empty:
                             await asyncio.sleep(0.1)
                             continue
-                        # Format a human-readable progress message
-                        msg = _format_progress(info)
+                        sent += 1
+                        total = None
+                        if info.get("type") == "tune_progress":
+                            raw_total = info.get("total")
+                            if isinstance(raw_total, (int, float)):
+                                total = float(raw_total)
                         try:
-                            await server.request_context.session.send_log_message(
-                                level="info",
-                                data=msg,
-                                logger="tuiml.progress"
+                            await ctx.session.send_progress_notification(
+                                progress_token=progress_token,
+                                progress=float(sent),
+                                total=total,
+                                message=_format_progress(info),
+                                related_request_id=ctx.request_id,
                             )
                         except Exception:
                             pass  # Don't break execution if notification fails
@@ -382,36 +482,60 @@ def create_server() -> "Server":
             record_session_call(name, {k: v for k, v in arguments.items()
                                        if not k.startswith('_')}, result)
 
-            # If the result contains image data, return mixed content
+            # If the result contains image data, return mixed content. These
+            # tools publish no outputSchema, so there is nothing to validate
+            # and the payload rides as unstructured content only.
             if '_image_base64' in result:
                 image_data = result.pop('_image_base64')
                 mime_type = result.pop('_image_mime', 'image/png')
-                return [
+                return CallToolResult(content=[
                     TextContent(type="text", text=json.dumps(result)),
-                    ImageContent(type="image", data=image_data, mimeType=mime_type),
-                ]
+                    ImageContent(type="image", data=image_data, mime_type=mime_type),
+                ])
 
-            return result
+            # 1.x built this pair from a bare dict return: the structured
+            # payload plus a JSON rendering for clients that only read text.
+            if tool.output_schema is not None:
+                try:
+                    jsonschema.validate(instance=result, schema=tool.output_schema)
+                except jsonschema.ValidationError as e:
+                    return _error_result(f"Output validation error: {e.message}")
+
+            return CallToolResult(
+                content=[TextContent(type="text", text=json.dumps(result, indent=2))],
+                structured_content=result,
+            )
 
         except Exception as e:
             duration_ms = int((time.perf_counter() - _t0) * 1000)
             _trace_call_end(name, None, duration_ms, error=str(e))
-            return {
+            error = {
                 "status": "error",
                 "error": str(e),
-                "tool": name
+                "tool": name,
             }
+            return CallToolResult(
+                content=[TextContent(type="text", text=json.dumps(error, indent=2))],
+                structured_content=error,
+                is_error=True,
+            )
 
     # =========================================================================
     # List Resources Handler (Datasets)
     # =========================================================================
-    @server.list_resources()
-    async def list_resources() -> List[Resource]:
-        """List available datasets as MCP resources.
+    async def on_list_resources(ctx, params) -> "ListResourcesResult":
+        """Serve ``resources/list`` with the built-in datasets.
+
+        Parameters
+        ----------
+        ctx : mcp.server.context.ServerRequestContext
+            Per-request context (unused here).
+        params : mcp.types.PaginatedRequestParams or None
+            Pagination params; the dataset list is sent whole.
 
         Returns
         -------
-        list of mcp.types.Resource
+        mcp.types.ListResourcesResult
             One Resource per built-in dataset, with a
             ``tuiml://dataset/{name}`` URI and JSON mime type.
         """
@@ -425,79 +549,103 @@ def create_server() -> "Server":
                     uri=f"tuiml://dataset/{name}",
                     name=name,
                     description=info.get("description", f"{name} dataset"),
-                    mimeType="application/json"
+                    mime_type="application/json"
                 ))
         except ImportError:
             pass
 
-        return resources
+        return ListResourcesResult(resources=resources)
 
     # =========================================================================
     # Read Resource Handler
     # =========================================================================
-    @server.read_resource()
-    async def read_resource(uri: str) -> str:
-        """Read a dataset resource.
+    async def on_read_resource(ctx, params) -> "ReadResourceResult":
+        """Serve ``resources/read`` for a dataset URI.
 
         Parameters
         ----------
-        uri : str
-            Resource URI of the form ``tuiml://dataset/{name}``.
+        ctx : mcp.server.context.ServerRequestContext
+            Per-request context (unused here).
+        params : mcp.types.ReadResourceRequestParams
+            Carries the ``tuiml://dataset/{name}`` URI to read.
 
         Returns
         -------
-        str
-            JSON string with dataset name, info, shape, feature names,
-            and a 5-row preview; or a JSON error object for unknown URIs.
+        mcp.types.ReadResourceResult
+            One JSON text block with dataset name, info, shape, feature
+            names, and a 5-row preview; or a JSON error object for unknown
+            URIs.
         """
-        uri = str(uri)
+        uri = str(params.uri)
+        payload = None
+
         if uri.startswith("tuiml://dataset/"):
             dataset_name = uri.replace("tuiml://dataset/", "")
 
             try:
-                from tuiml.datasets.builtin import DATASET_REGISTRY, get_dataset_info
                 from tuiml.datasets import load_dataset
+                from tuiml.datasets.builtin import get_dataset_info
 
                 info = get_dataset_info(dataset_name)
                 dataset = load_dataset(dataset_name)
 
-                result = {
+                payload = json.dumps({
                     "name": dataset_name,
                     "info": info,
                     "shape": list(dataset.X.shape) if hasattr(dataset, 'X') else None,
                     "feature_names": dataset.feature_names if hasattr(dataset, 'feature_names') else None,
                     "preview": dataset.X[:5].tolist() if hasattr(dataset, 'X') else None
-                }
-
-                return json.dumps(result, indent=2, default=str)
+                }, indent=2, default=str)
             except Exception as e:
-                return json.dumps({"error": str(e)})
+                payload = json.dumps({"error": str(e)})
+        else:
+            payload = json.dumps({"error": f"Unknown resource: {uri}"})
 
-        return json.dumps({"error": f"Unknown resource: {uri}"})
+        return ReadResourceResult(contents=[
+            TextResourceContents(uri=uri, mime_type="application/json", text=payload)
+        ])
 
     # =========================================================================
     # Resource Templates Handler
     # =========================================================================
-    @server.list_resource_templates()
-    async def list_resource_templates() -> List[ResourceTemplate]:
-        """List resource templates.
+    async def on_list_resource_templates(ctx, params) -> "ListResourceTemplatesResult":
+        """Serve ``resources/templates/list``.
+
+        Parameters
+        ----------
+        ctx : mcp.server.context.ServerRequestContext
+            Per-request context (unused here).
+        params : mcp.types.PaginatedRequestParams or None
+            Pagination params; a single template is sent.
 
         Returns
         -------
-        list of mcp.types.ResourceTemplate
+        mcp.types.ListResourceTemplatesResult
             A single template describing the ``tuiml://dataset/{name}``
             URI scheme for built-in datasets.
         """
-        return [
+        return ListResourceTemplatesResult(resource_templates=[
             ResourceTemplate(
-                uriTemplate="tuiml://dataset/{name}",
+                uri_template="tuiml://dataset/{name}",
                 name="TuiML Dataset",
                 description="Load a built-in TuiML dataset",
-                mimeType="application/json"
+                mime_type="application/json"
             )
-        ]
+        ])
 
-    return server
+    # 2.x registers handlers on the constructor instead of by decorator, and
+    # derives advertised capabilities from which ones are passed.
+    from tuiml import __version__
+
+    return Server(
+        "tuiml",
+        version=__version__,
+        on_list_tools=on_list_tools,
+        on_call_tool=on_call_tool,
+        on_list_resources=on_list_resources,
+        on_read_resource=on_read_resource,
+        on_list_resource_templates=on_list_resource_templates,
+    )
 
 async def run_server():
     """Run the MCP server using stdio transport.
@@ -509,12 +657,7 @@ async def run_server():
         ``mcp`` package is not installed.
     """
     if not MCP_AVAILABLE:
-        print(
-            "Error: MCP package not installed.\n"
-            "Install with: pip install mcp\n"
-            "Or: uv add mcp",
-            file=sys.stderr
-        )
+        print(f"Error: {_MCP_UNAVAILABLE_REASON}", file=sys.stderr)
         sys.exit(1)
 
     # Pre-load the component registry in the background so the MCP
@@ -618,9 +761,14 @@ def get_server_info() -> Dict[str, Any]:
     workflow_count = len(get_workflow_tools())
     component_counts = get_tool_count()
 
+    # The package version, not a version for the server itself: it is what
+    # create_server() advertises in the initialize handshake, so `--info` and
+    # the client's view of the server have to agree.
+    from tuiml import __version__
+
     return {
         "name": "tuiml",
-        "version": "1.0.0",
+        "version": __version__,
         "description": "TuiML Machine Learning MCP Server",
         "mcp_available": MCP_AVAILABLE,
         "tools": {
