@@ -708,6 +708,7 @@
        Flat hairline profile rows (about page): photo + name/role/bio. */
     .person-list { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
     .person {
+        position: relative;
         display: flex;
         gap: 16px;
         background: var(--canvas);
@@ -716,6 +717,22 @@
         padding: 16px;
     }
     .person:hover { border-color: var(--hairline-strong); }
+    /* Profile links pinned to the card's top-right corner. */
+    .person-social {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        display: flex;
+        gap: 12px;
+    }
+    .person-social a {
+        display: inline-flex;
+        color: #000;
+        opacity: .55;
+        transition: opacity .15s ease;
+    }
+    .person-social a:hover { opacity: 1; }
+    .person-social svg { width: 18px; height: 18px; fill: currentColor; display: block; }
     .person img {
         width: 112px;
         height: 112px;
@@ -724,8 +741,8 @@
         border: 1px solid var(--hairline);
         flex-shrink: 0;
     }
-    .person-name { font-size: 16px; font-weight: 700; color: var(--ink); line-height: 1.4; }
-    .person-role { font-size: 13px; color: var(--accent-deep); }
+    .person-name { font-size: 16px; font-weight: 700; color: var(--ink); line-height: 1.4; padding-right: 64px; }
+    .person-role { font-size: 13px; color: var(--accent-deep); padding-right: 64px; }
     .person-org { font-size: 12px; color: var(--mute); margin-bottom: 8px; }
     .person-bio { font-size: 13px; line-height: 1.6; color: var(--body); margin: 0; }
     @media (max-width: 640px) {
