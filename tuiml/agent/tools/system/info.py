@@ -79,9 +79,10 @@ def execute_system_info(**kwargs) -> Dict[str, Any]:
         On success: ``status`` (``'success'``), ``version``,
         ``install_method``, ``upgrade_hint``, ``package_path``,
         ``site_packages``, ``python_executable``, ``python_version``,
-        ``platform``, and -- when ``check_latest`` -- ``latest_version``
-        and ``update_available`` (or ``latest_version_error``). On
-        failure: ``status`` (``'error'``), ``error`` and ``error_type``.
+        ``platform``, ``session_seed``, and -- when ``check_latest`` --
+        ``latest_version`` and ``update_available`` (or
+        ``latest_version_error``). On failure: ``status`` (``'error'``),
+        ``error`` and ``error_type``.
     """
     import sys
     import platform as _plat
@@ -93,10 +94,18 @@ def execute_system_info(**kwargs) -> Dict[str, Any]:
         return {"status": "error", "error": f"cannot import tuiml: {e}",
                 "error_type": type(e).__name__}
 
+    # The seed every unseeded call in this session runs under. Reporting it is
+    # what makes a session reproducible from the outside: quote it back as
+    # `random_seed` (or export TUIML_SEED before starting the server) and the
+    # numbers repeat. Note this is the *default*, not necessarily the seed of
+    # the last call, which may have passed its own.
+    from .._state import get_session_seed
+
     install = _detect_install_method()
     result: Dict[str, Any] = {
         "status": "success",
         "version": version,
+        "session_seed": get_session_seed(),
         "install_method": install["method"],
         "upgrade_hint": install["upgrade_hint"],
         "package_path": str(pkg_dir),

@@ -24,6 +24,7 @@ Layout
 from typing import Any, Dict, List
 
 from ._session import record_session_call
+from ._state import get_session_seed, set_session_seed
 from ._shared import _load_data, _load_model_from_disk, _save_model_to_disk
 from ._spec import ToolSpec
 from .analysis import statistics as _statistics
@@ -230,8 +231,8 @@ def get_workflow_tools() -> Dict[str, Dict]:
 def execute_tool(tool_name: str, **kwargs) -> Dict[str, Any]:
     """Execute a tool by name, resolving the random seed first.
 
-    Sets a process-wide seed (explicit ``random_seed`` kwarg, or a fresh
-    random one) before dispatching to the workflow executor or, failing
+    Sets a process-wide seed (explicit ``random_seed`` kwarg, else the
+    session seed) before dispatching to the workflow executor or, failing
     that, a registered component tool.
 
     Parameters
@@ -239,8 +240,10 @@ def execute_tool(tool_name: str, **kwargs) -> Dict[str, Any]:
     tool_name : str
         Name of the tool to execute.
     random_seed : int, default=None
-        Random seed for the call; a random seed is generated when
-        omitted (arrives via ``**kwargs``, like the tool arguments).
+        Random seed for the call. When omitted the call runs under the
+        session seed from :func:`~tuiml.agent.tools._state.get_session_seed`,
+        so repeating a call within one session reproduces its numbers
+        (arrives via ``**kwargs``, like the tool arguments).
     **kwargs
         Remaining arguments are forwarded to the tool executor.
 
@@ -254,9 +257,11 @@ def execute_tool(tool_name: str, **kwargs) -> Dict[str, Any]:
     """
     random_seed = kwargs.pop('random_seed', None)
 
+    # Falling back to the session seed rather than a fresh draw is what makes a
+    # conversation reproducible: two identical calls return identical numbers,
+    # and comparing two runs measures the change rather than the seed.
     if random_seed is None:
-        import random
-        random_seed = random.randint(0, 2**31 - 1)
+        random_seed = get_session_seed()
 
     from tuiml.utils.seed import set_global_seed
     set_global_seed(random_seed)

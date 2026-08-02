@@ -7,8 +7,9 @@ still resolves its ``model_id``.
 """
 
 import os
+import random
 import threading
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 # Persistent TuiML state directory (survives MCP server restarts, unlike /tmp).
 _TUIML_HOME = os.path.join(os.path.expanduser('~'), '.tuiml')
@@ -56,3 +57,61 @@ _SESSION_CALLS: List[Dict] = []          # [{tool, args}, ...]
 _SESSION_LOCK = threading.Lock()
 _MODEL_ID_TO_VAR: Dict[str, str] = {}    # model_id -> "result_N"
 _TRAIN_CALL_SEQ: List[int] = []          # indices into _SESSION_CALLS for train calls
+
+# The seed every tool call falls back to when it is given no explicit
+# ``random_seed``. Fixed for the life of the process, which is what makes a
+# conversation reproducible: re-running the same benchmark must return the same
+# table, or comparing two runs measures the seed rather than the change. It used
+# to be redrawn per call, so back-to-back identical calls disagreed and the only
+# way to reproduce anything was to copy a seed out of an earlier response.
+_SESSION_SEED: Optional[int] = None
+_SEED_LOCK = threading.Lock()
+
+
+def get_session_seed() -> int:
+    """Return this session's default seed, drawing one on first use.
+
+    Drawn lazily rather than at import so merely importing the package does
+    not consume entropy, and so ``TUIML_SEED`` still applies when it is set
+    after import. An unparseable ``TUIML_SEED`` is ignored in favour of a
+    random draw: a typo in an environment variable should not stop the server.
+
+    Returns
+    -------
+    seed : int
+        The session seed, stable for the lifetime of the process unless
+        :func:`set_session_seed` replaces it.
+    """
+    global _SESSION_SEED
+    with _SEED_LOCK:
+        if _SESSION_SEED is None:
+            env = os.environ.get('TUIML_SEED', '').strip()
+            if env:
+                try:
+                    _SESSION_SEED = int(env)
+                except ValueError:
+                    _SESSION_SEED = None
+            if _SESSION_SEED is None:
+                _SESSION_SEED = random.randint(0, 2 ** 31 - 1)
+        return _SESSION_SEED
+
+
+def set_session_seed(seed: Optional[int] = None) -> int:
+    """Replace the session seed, or draw a fresh one.
+
+    Parameters
+    ----------
+    seed : int or None, default=None
+        The seed to pin the session to. ``None`` draws a new random one,
+        which is how a caller asks for a clean slate without restarting the
+        server.
+
+    Returns
+    -------
+    seed : int
+        The seed now in effect.
+    """
+    global _SESSION_SEED
+    with _SEED_LOCK:
+        _SESSION_SEED = random.randint(0, 2 ** 31 - 1) if seed is None else int(seed)
+        return _SESSION_SEED

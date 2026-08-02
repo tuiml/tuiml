@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Repeating a tool call in one session gave different numbers.**
+  `execute_tool` drew a fresh `random.randint()` for every call that omitted
+  `random_seed`, so two identical `tuiml_benchmark` runs disagreed and
+  comparing two runs measured the seed rather than the change. The only way to
+  reproduce anything was to copy a seed out of an earlier response and pass it
+  back. Calls without an explicit seed now share one **session seed**, fixed
+  for the life of the server process, so a repeated call reproduces its
+  numbers. An explicit `random_seed` still wins per call. `tuiml_system_info`
+  reports the session seed, and `TUIML_SEED` pins it up front for CI and bug
+  reports. The seed was always genuinely applied — `set_global_seed` was
+  called with it — so this is a change of scope, not of whether seeding worked.
+
+### Changed
+- **Tutorial chapter 8 no longer claims tree algorithms crash on `NaN`.** The
+  benchmark's `SimpleImputer` was justified by a `RecursionError` that 0.1.7
+  fixed. The imputer is still not optional, but for a better reason:
+  `RandomForestClassifier` now handles missing values natively (`vote`, 10-fold
+  CV: 0.961 ± 0.025 raw vs 0.966 ± 0.027 imputed) while `LogisticRegression`
+  silently degrades to 0.614 ± 0.004 from 0.963 ± 0.023 without complaint.
+  Silent degradation is the sharper lesson, and the chapter now teaches that.
+
 ## [0.1.8] - 2026-08-02
 
 ### Changed (breaking)
