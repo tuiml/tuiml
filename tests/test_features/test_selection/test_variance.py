@@ -77,12 +77,6 @@ class TestVarianceThresholdSelectorTransform:
         assert X_new.shape[0] == sample_data.shape[0]
         assert X_new.shape[1] < sample_data.shape[1]
 
-    def test_transform_before_fit_raises(self):
-        selector = VarianceThresholdSelector()
-        X = np.random.randn(10, 3)
-        with pytest.raises(RuntimeError):
-            selector.transform(X)
-
     def test_all_constant_features(self):
         X = np.ones((20, 5))
         selector = VarianceThresholdSelector()

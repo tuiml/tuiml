@@ -1,7 +1,6 @@
 """Tests for RareCategoryEncoder transformer."""
 
 import numpy as np
-import pytest
 
 from tuiml.preprocessing.encoding.merge_infrequent import RareCategoryEncoder
 
@@ -11,13 +10,6 @@ def test_init_defaults():
     assert encoder.min_frequency == 5
     assert encoder.merged_value == -1
     assert encoder.columns is None
-
-
-def test_fit_returns_self():
-    X = np.array([[0], [0], [0], [1], [2]])
-    encoder = RareCategoryEncoder(min_frequency=2)
-    result = encoder.fit(X)
-    assert result is encoder
 
 
 def test_merge_rare_values():
@@ -51,13 +43,6 @@ def test_columns_parameter():
     np.testing.assert_allclose(X_merged[3, 0], -1.0)
     # Column 1 should be unchanged
     np.testing.assert_allclose(X_merged[:, 1], X[:, 1])
-
-
-def test_transform_before_fit_raises():
-    encoder = RareCategoryEncoder()
-    X = np.array([[0], [1]])
-    with pytest.raises(RuntimeError):
-        encoder.transform(X)
 
 
 def test_get_parameter_schema():

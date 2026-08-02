@@ -202,35 +202,6 @@ def clustering_data_high_dim() -> np.ndarray:
 # =============================================================================
 
 @pytest.fixture
-def transaction_data_binary() -> np.ndarray:
-    """Binary transaction matrix for association rule mining.
-    
-    Returns
-    -------
-    X : np.ndarray of shape (100, 20)
-        Binary matrix where X[i,j]=1 means item j is in transaction i.
-    """
-    np.random.seed(42)
-    n_transactions = 100
-    n_items = 20
-    
-    X = np.random.random((n_transactions, n_items)) < 0.1
-    X = X.astype(int)
-    
-    # Add some patterns
-    for i in range(0, 30):
-        X[i, [0, 1, 2]] = 1  # Pattern: 0,1,2 together
-    for i in range(30, 60):
-        X[i, [3, 4]] = 1  # Pattern: 3,4 together
-        
-    return X
-
-
-# =============================================================================
-# Anomaly Detection Fixtures
-# =============================================================================
-
-@pytest.fixture
 def anomaly_detection_data() -> np.ndarray:
     """Data with outliers for anomaly detection.
     
@@ -254,46 +225,3 @@ def anomaly_detection_data() -> np.ndarray:
 # =============================================================================
 # Time Series Fixtures
 # =============================================================================
-
-@pytest.fixture
-def timeseries_data() -> np.ndarray:
-    """Simple time series data.
-    
-    Returns
-    -------
-    y : np.ndarray of shape (100,)
-        Univariate time series with trend and seasonality.
-    """
-    np.random.seed(42)
-    t = np.arange(100)
-    trend = 0.1 * t
-    seasonal = 2 * np.sin(2 * np.pi * t / 12)
-    noise = np.random.randn(100) * 0.5
-    
-    y = trend + seasonal + noise
-    return y
-
-
-@pytest.fixture
-def timeseries_with_trend() -> Tuple[np.ndarray, np.ndarray]:
-    """Time series regression data.
-    
-    Returns
-    -------
-    X : np.ndarray of shape (90, 5)
-        Lagged features (5 lags).
-    y : np.ndarray of shape (90,)
-        Target values.
-    """
-    np.random.seed(42)
-    y = np.cumsum(np.random.randn(100))  # Random walk with trend
-    
-    # Create lagged features
-    n_lags = 5
-    X = np.zeros((len(y) - n_lags, n_lags))
-    for i in range(n_lags):
-        X[:, i] = y[i:len(y) - n_lags + i]
-    
-    y_target = y[n_lags:]
-
-    return X, y_target

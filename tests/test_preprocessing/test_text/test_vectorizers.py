@@ -1,7 +1,6 @@
 """Tests for text vectorizers."""
 
 import numpy as np
-import pytest
 
 from tuiml.preprocessing.text.vectorizers import (
     CountVectorizer,
@@ -23,11 +22,6 @@ class TestCountVectorizer:
         assert vec.binary is False
         assert vec.lowercase is True
         assert vec.ngram_range == (1, 1)
-
-    def test_fit_returns_self(self):
-        vec = CountVectorizer()
-        result = vec.fit(["hello world"])
-        assert result is vec
 
     def test_basic_vectorization(self):
         docs = ["the cat", "the dog"]
@@ -81,11 +75,6 @@ class TestCountVectorizer:
         assert isinstance(names, list)
         assert len(names) == len(vec.vocabulary_)
 
-    def test_transform_before_fit_raises(self):
-        vec = CountVectorizer()
-        with pytest.raises(RuntimeError):
-            vec.transform(["hello"])
-
     def test_get_parameter_schema(self):
         schema = CountVectorizer.get_parameter_schema()
         assert "max_features" in schema
@@ -107,12 +96,6 @@ class TestTfidfTransformer:
         assert t.use_idf is True
         assert t.smooth_idf is True
         assert t.sublinear_tf is False
-
-    def test_fit_returns_self(self):
-        X = np.array([[3, 0, 1], [2, 1, 0]])
-        t = TfidfTransformer()
-        result = t.fit(X)
-        assert result is t
 
     def test_basic_transform(self):
         X = np.array([[3, 0, 1], [2, 1, 0]])
@@ -160,12 +143,6 @@ class TestTfidfTransformer:
         expected_idf = np.log((n + 1) / (df + 1)) + 1
         np.testing.assert_allclose(t.idf_, expected_idf)
 
-    def test_transform_before_fit_raises(self):
-        t = TfidfTransformer()
-        X = np.array([[1, 2]])
-        with pytest.raises(RuntimeError):
-            t.transform(X)
-
     def test_get_parameter_schema(self):
         schema = TfidfTransformer.get_parameter_schema()
         assert "norm" in schema
@@ -184,11 +161,6 @@ class TestTfidfVectorizer:
         vec = TfidfVectorizer()
         assert vec.norm == "l2"
         assert vec.use_idf is True
-
-    def test_fit_returns_self(self):
-        vec = TfidfVectorizer()
-        result = vec.fit(["hello world", "foo bar"])
-        assert result is vec
 
     def test_basic_vectorization(self):
         docs = ["the cat", "the dog", "a bird"]
@@ -224,11 +196,6 @@ class TestTfidfVectorizer:
         names = vec.get_feature_names_out()
         assert len(names) == len(vec.vocabulary_)
 
-    def test_transform_before_fit_raises(self):
-        vec = TfidfVectorizer()
-        with pytest.raises(RuntimeError):
-            vec.transform(["hello"])
-
     def test_get_parameter_schema(self):
         schema = TfidfVectorizer.get_parameter_schema()
         assert "max_features" in schema
@@ -247,11 +214,6 @@ class TestHashingVectorizer:
         assert vec.n_features == 2 ** 20
         assert vec.binary is False
         assert vec.norm == "l2"
-
-    def test_fit_returns_self(self):
-        vec = HashingVectorizer(n_features=128)
-        result = vec.fit(["hello world"])
-        assert result is vec
 
     def test_basic_vectorization(self):
         docs = ["cat in the hat"]

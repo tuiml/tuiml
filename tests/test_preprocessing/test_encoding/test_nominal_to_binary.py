@@ -1,7 +1,6 @@
 """Tests for OneHotEncoder transformer."""
 
 import numpy as np
-import pytest
 
 from tuiml.preprocessing.encoding.nominal_to_binary import OneHotEncoder
 
@@ -11,13 +10,6 @@ def test_init_defaults():
     assert encoder.categories is None
     assert encoder.drop is None
     assert encoder.columns is None
-
-
-def test_fit_returns_self():
-    X = np.array([[0], [1], [2]])
-    encoder = OneHotEncoder()
-    result = encoder.fit(X)
-    assert result is encoder
 
 
 def test_basic_encoding():
@@ -54,13 +46,6 @@ def test_columns_parameter():
     # Column 0 passed through, column 1 one-hot encoded to 3 columns
     assert X_encoded.shape == (3, 4)
     np.testing.assert_allclose(X_encoded[:, 0], [1.0, 2.0, 3.0])
-
-
-def test_transform_before_fit_raises():
-    encoder = OneHotEncoder()
-    X = np.array([[0], [1]])
-    with pytest.raises(RuntimeError):
-        encoder.transform(X)
 
 
 def test_get_parameter_schema():

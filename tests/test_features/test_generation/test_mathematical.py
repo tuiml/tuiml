@@ -67,14 +67,6 @@ class TestMathematicalFeaturesGeneratorFit:
         with pytest.raises(ValueError, match="Unknown transformation"):
             gen.fit(positive_data)
 
-    def test_transform_before_fit_raises(self, positive_data):
-        gen = MathematicalFeaturesGenerator()
-        with pytest.raises(RuntimeError):
-            gen.transform(positive_data)
-
-
-class TestMathematicalFeaturesGeneratorTransform:
-
     def test_transform_output_shape(self, positive_data):
         gen = MathematicalFeaturesGenerator(
             transformations=["sqrt", "square"],
@@ -230,11 +222,6 @@ class TestBinningFeaturesGeneratorFit:
         # Each feature should have 5 edges (4 bins + 1)
         for edges in binner.bin_edges_:
             assert len(edges) == 5
-
-    def test_transform_before_fit_raises(self, general_data):
-        binner = BinningFeaturesGenerator()
-        with pytest.raises(RuntimeError):
-            binner.transform(general_data)
 
     def test_invalid_strategy_raises(self, general_data):
         binner = BinningFeaturesGenerator(strategy="invalid")

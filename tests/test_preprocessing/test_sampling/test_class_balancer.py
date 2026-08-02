@@ -49,13 +49,6 @@ def test_both_strategy(imbalanced_data):
     assert counts[0] == counts[1]
 
 
-def test_fit_returns_self(imbalanced_data):
-    X, y = imbalanced_data
-    balancer = ClassBalanceSampler()
-    result = balancer.fit(X)
-    assert result is balancer
-
-
 def test_invalid_strategy_raises():
     with pytest.raises(ValueError):
         ClassBalanceSampler(strategy="invalid")

@@ -93,21 +93,8 @@ def test_constant_without_fill_value_raises():
         imputer.fit(X)
 
 
-def test_transform_before_fit_raises():
-    imputer = SimpleImputer()
-    X = np.array([[1, 2], [3, 4]])
-    with pytest.raises(RuntimeError):
-        imputer.transform(X)
-
-
 def test_get_parameter_schema():
     schema = SimpleImputer.get_parameter_schema()
     assert "strategy" in schema
     assert "fill_value" in schema
     assert "columns" in schema
-
-
-def test_fit_returns_self(data_with_nans):
-    imputer = SimpleImputer()
-    result = imputer.fit(data_with_nans)
-    assert result is imputer

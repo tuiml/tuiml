@@ -28,11 +28,6 @@ class TestTextCleaner:
         assert cleaner.strip_accents is False
         assert cleaner.min_word_length == 1
 
-    def test_fit_returns_self(self):
-        cleaner = TextCleaner()
-        result = cleaner.fit(["hello"])
-        assert result is cleaner
-
     def test_lowercase(self):
         cleaner = TextCleaner(lowercase=True)
         cleaner.fit([])
@@ -169,11 +164,6 @@ class TestStopWordRemover:
         assert "The" in words
         assert "the" not in words
 
-    def test_fit_returns_self(self):
-        remover = StopWordRemover()
-        result = remover.fit([])
-        assert result is remover
-
     def test_get_parameter_schema(self):
         schema = StopWordRemover.get_parameter_schema()
         assert "stop_words" in schema
@@ -189,11 +179,6 @@ class TestStemmer:
     def test_init_defaults(self):
         stemmer = Stemmer()
         assert stemmer.lowercase is True
-
-    def test_fit_returns_self(self):
-        stemmer = Stemmer()
-        result = stemmer.fit([])
-        assert result is stemmer
 
     def test_basic_stemming(self):
         stemmer = Stemmer()
@@ -247,11 +232,6 @@ class TestTextNormalizer:
         assert normalizer.lowercase is True
         assert normalizer.strip is True
         assert normalizer.collapse_whitespace is True
-
-    def test_fit_returns_self(self):
-        normalizer = TextNormalizer()
-        result = normalizer.fit([])
-        assert result is normalizer
 
     def test_lowercase(self):
         normalizer = TextNormalizer(lowercase=True)

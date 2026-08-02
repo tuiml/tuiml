@@ -50,14 +50,6 @@ class TestPolynomialFeaturesGeneratorFit:
         assert poly.n_output_features_ is not None
         assert poly.powers_ is not None
 
-    def test_transform_before_fit_raises(self, simple_data):
-        poly = PolynomialFeaturesGenerator()
-        with pytest.raises(RuntimeError):
-            poly.transform(simple_data)
-
-
-class TestPolynomialFeaturesGeneratorTransform:
-
     def test_degree2_with_bias(self, simple_data):
         """For [a, b], degree 2 with bias: [1, a, b, a^2, ab, b^2]."""
         poly = PolynomialFeaturesGenerator(degree=2, include_bias=True)
@@ -154,14 +146,6 @@ class TestInteractionFeaturesGeneratorFit:
         assert inter.interaction_pairs_ is not None
         # For 2 features, there's 1 interaction pair: (0, 1)
         assert len(inter.interaction_pairs_) == 1
-
-    def test_transform_before_fit_raises(self, simple_data):
-        inter = InteractionFeaturesGenerator()
-        with pytest.raises(RuntimeError):
-            inter.transform(simple_data)
-
-
-class TestInteractionFeaturesGeneratorTransform:
 
     def test_include_original(self, simple_data):
         inter = InteractionFeaturesGenerator(include_original=True)

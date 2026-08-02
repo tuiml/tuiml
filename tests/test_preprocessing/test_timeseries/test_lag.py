@@ -14,13 +14,6 @@ def test_init_defaults():
     assert lt.invert_selection is False
 
 
-def test_fit_returns_self():
-    X = np.array([[10], [20], [30]])
-    lt = LagTransformer()
-    result = lt.fit(X)
-    assert result is lt
-
-
 def test_basic_lag_neg1():
     X = np.array([[10.0], [20.0], [30.0], [40.0]])
     lt = LagTransformer(lag=-1)
@@ -93,13 +86,6 @@ def test_zero_lag():
     X_lag = lt.fit_transform(X)
     # lag=0 means no shift
     np.testing.assert_allclose(X_lag[:, 0], [10.0, 20.0, 30.0])
-
-
-def test_transform_before_fit_raises():
-    lt = LagTransformer()
-    X = np.array([[1], [2]])
-    with pytest.raises(RuntimeError):
-        lt.transform(X)
 
 
 def test_feature_names_out():

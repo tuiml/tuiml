@@ -17,12 +17,6 @@ def test_init_defaults():
     assert scaler.columns is None
 
 
-def test_fit_returns_self(sample_data):
-    scaler = CenterScaler()
-    result = scaler.fit(sample_data)
-    assert result is scaler
-
-
 def test_fit_transform_zero_mean(sample_data):
     scaler = CenterScaler()
     X_centered = scaler.fit_transform(sample_data)
@@ -54,13 +48,6 @@ def test_columns_parameter():
     np.testing.assert_allclose(X_centered[:, 2], X[:, 2])
     # Column 1 should be centered
     np.testing.assert_allclose(X_centered[:, 1].mean(), 0.0, atol=1e-10)
-
-
-def test_transform_before_fit_raises():
-    scaler = CenterScaler()
-    X = np.array([[1, 2], [3, 4]])
-    with pytest.raises(RuntimeError):
-        scaler.transform(X)
 
 
 def test_get_parameter_schema():

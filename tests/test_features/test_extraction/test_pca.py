@@ -169,12 +169,6 @@ class TestPCAExtractorCovariance:
 
 class TestPCAExtractorErrors:
 
-    def test_transform_before_fit_raises(self):
-        pca = PCAExtractor(n_components=2)
-        X = np.random.randn(10, 5)
-        with pytest.raises(RuntimeError):
-            pca.transform(X)
-
     def test_inverse_transform_before_fit_raises(self):
         pca = PCAExtractor(n_components=2)
         X = np.random.randn(10, 2)

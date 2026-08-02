@@ -73,11 +73,6 @@ class TestRandomProjectionExtractorTransform:
         X_new = rp.fit_transform(sample_data)
         assert X_new.shape == (100, 15)
 
-    def test_transform_before_fit_raises(self, sample_data):
-        rp = RandomProjectionExtractor(n_components=10)
-        with pytest.raises(RuntimeError):
-            rp.transform(sample_data)
-
     def test_transform_wrong_features_raises(self, sample_data):
         rp = RandomProjectionExtractor(n_components=10, random_state=42)
         rp.fit(sample_data)

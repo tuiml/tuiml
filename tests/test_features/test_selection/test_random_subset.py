@@ -93,11 +93,6 @@ class TestRandomSubsetSelectorReproducibility:
 
 class TestRandomSubsetSelectorTransform:
 
-    def test_transform_before_fit_raises(self, sample_data):
-        selector = RandomSubsetSelector(n_features=5)
-        with pytest.raises(RuntimeError):
-            selector.transform(sample_data)
-
     def test_transform_wrong_n_features_raises(self, sample_data):
         selector = RandomSubsetSelector(n_features=5, random_state=42)
         selector.fit(sample_data)

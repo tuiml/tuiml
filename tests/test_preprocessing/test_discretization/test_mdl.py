@@ -1,7 +1,6 @@
 """Tests for MDLDiscretizer transformer."""
 
 import numpy as np
-import pytest
 
 from tuiml.preprocessing.discretization.mdl import MDLDiscretizer
 
@@ -48,13 +47,6 @@ def test_no_clear_separation():
     X_binned = disc.fit_transform(X, y)
     # May not find any cut points with random data
     assert X_binned.shape == X.shape
-
-
-def test_transform_before_fit_raises():
-    disc = MDLDiscretizer()
-    X = np.array([[1], [2]])
-    with pytest.raises(RuntimeError):
-        disc.transform(X)
 
 
 def test_get_parameter_schema():

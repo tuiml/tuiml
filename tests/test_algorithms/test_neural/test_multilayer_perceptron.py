@@ -4,7 +4,6 @@ Auto-generated test suite.
 """
 
 import numpy as np
-import pytest
 import pickle
 
 from tuiml.algorithms.neural import MultilayerPerceptronClassifier, MultilayerPerceptronRegressor

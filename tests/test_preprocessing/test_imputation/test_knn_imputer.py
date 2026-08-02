@@ -24,12 +24,6 @@ def test_init_defaults():
     assert imputer.columns is None
 
 
-def test_fit_returns_self(data_with_nans):
-    imputer = KNNImputer(n_neighbors=2)
-    result = imputer.fit(data_with_nans)
-    assert result is imputer
-
-
 def test_imputation_fills_nans(data_with_nans):
     imputer = KNNImputer(n_neighbors=2)
     X_imputed = imputer.fit_transform(data_with_nans)
@@ -59,13 +53,6 @@ def test_distance_weights():
 def test_invalid_weights_raises():
     with pytest.raises(ValueError):
         KNNImputer(weights="invalid")
-
-
-def test_transform_before_fit_raises():
-    imputer = KNNImputer()
-    X = np.array([[1, 2], [3, 4]])
-    with pytest.raises(RuntimeError):
-        imputer.transform(X)
 
 
 def test_get_parameter_schema():

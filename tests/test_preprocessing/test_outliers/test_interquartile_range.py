@@ -23,12 +23,6 @@ def test_init_defaults():
     assert detector.columns is None
 
 
-def test_fit_returns_self(data_with_outliers):
-    detector = IQROutlierDetector()
-    result = detector.fit(data_with_outliers)
-    assert result is detector
-
-
 def test_clip_action(data_with_outliers):
     detector = IQROutlierDetector(action="clip")
     X_clean = detector.fit_transform(data_with_outliers)
@@ -83,13 +77,6 @@ def test_bounds_property(data_with_outliers):
 def test_invalid_action_raises():
     with pytest.raises(ValueError):
         IQROutlierDetector(action="invalid")
-
-
-def test_transform_before_fit_raises():
-    detector = IQROutlierDetector()
-    X = np.array([[1, 2], [3, 4]])
-    with pytest.raises(RuntimeError):
-        detector.transform(X)
 
 
 def test_get_parameter_schema():

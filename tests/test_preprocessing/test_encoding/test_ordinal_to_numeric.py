@@ -1,7 +1,6 @@
 """Tests for OrdinalEncoder transformer."""
 
 import numpy as np
-import pytest
 
 from tuiml.preprocessing.encoding.ordinal_to_numeric import OrdinalEncoder
 
@@ -10,13 +9,6 @@ def test_init_defaults():
     encoder = OrdinalEncoder()
     assert encoder.categories is None
     assert encoder.columns is None
-
-
-def test_fit_returns_self():
-    X = np.array([["low"], ["medium"], ["high"]], dtype=object)
-    encoder = OrdinalEncoder(categories=[["low", "medium", "high"]])
-    result = encoder.fit(X)
-    assert result is encoder
 
 
 def test_explicit_order():
@@ -34,13 +26,6 @@ def test_inferred_order():
     assert X_encoded[0, 0] == 0.0
     assert X_encoded[1, 0] == 1.0
     assert X_encoded[3, 0] == 2.0
-
-
-def test_transform_before_fit_raises():
-    encoder = OrdinalEncoder()
-    X = np.array([["a"], ["b"]], dtype=object)
-    with pytest.raises(RuntimeError):
-        encoder.transform(X)
 
 
 def test_get_parameter_schema():

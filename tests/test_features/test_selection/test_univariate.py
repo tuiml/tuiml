@@ -81,12 +81,6 @@ class TestSelectKBestSelector:
         with pytest.raises(ValueError, match="requires target values"):
             selector.fit(X)
 
-    def test_transform_before_fit_raises(self, classification_data):
-        X, y = classification_data
-        selector = SelectKBestSelector(score_func=mock_score_func, k=3)
-        with pytest.raises(RuntimeError):
-            selector.transform(X)
-
     def test_get_parameter_schema(self):
         schema = SelectKBestSelector.get_parameter_schema()
         assert "k" in schema

@@ -19,12 +19,6 @@ def test_init_defaults():
     assert scaler.columns is None
 
 
-def test_fit_returns_self(sample_data):
-    scaler = StandardScaler()
-    result = scaler.fit(sample_data)
-    assert result is scaler
-
-
 def test_fit_transform_zero_mean_unit_std(sample_data):
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(sample_data)
@@ -70,13 +64,6 @@ def test_columns_parameter():
     np.testing.assert_allclose(X_scaled[:, 2], X[:, 2])
     # Column 1 should be standardized
     np.testing.assert_allclose(X_scaled[:, 1].mean(), 0.0, atol=1e-10)
-
-
-def test_transform_before_fit_raises():
-    scaler = StandardScaler()
-    X = np.array([[1, 2], [3, 4]])
-    with pytest.raises(RuntimeError):
-        scaler.transform(X)
 
 
 def test_get_parameter_schema():

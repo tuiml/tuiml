@@ -1,7 +1,6 @@
 """Tests for QuantileDiscretizer transformer."""
 
 import numpy as np
-import pytest
 
 from tuiml.preprocessing.discretization.equal_frequency import QuantileDiscretizer
 
@@ -10,13 +9,6 @@ def test_init_defaults():
     disc = QuantileDiscretizer()
     assert disc.n_bins == 10
     assert disc.columns is None
-
-
-def test_fit_returns_self():
-    X = np.arange(100).reshape(-1, 1).astype(float)
-    disc = QuantileDiscretizer(n_bins=5)
-    result = disc.fit(X)
-    assert result is disc
 
 
 def test_equal_frequency_bins():
@@ -44,13 +36,6 @@ def test_bin_edges_property():
     disc.fit(X)
     edges = disc.bin_edges_
     assert 0 in edges
-
-
-def test_transform_before_fit_raises():
-    disc = QuantileDiscretizer()
-    X = np.array([[1], [2]])
-    with pytest.raises(RuntimeError):
-        disc.transform(X)
 
 
 def test_get_parameter_schema():

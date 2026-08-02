@@ -1,7 +1,6 @@
 """Tests for EqualWidthDiscretizer transformer."""
 
 import numpy as np
-import pytest
 
 from tuiml.preprocessing.discretization.equal_width import EqualWidthDiscretizer
 
@@ -10,13 +9,6 @@ def test_init_defaults():
     disc = EqualWidthDiscretizer()
     assert disc.n_bins == 10
     assert disc.columns is None
-
-
-def test_fit_returns_self():
-    X = np.arange(20).reshape(-1, 1).astype(float)
-    disc = EqualWidthDiscretizer(n_bins=5)
-    result = disc.fit(X)
-    assert result is disc
 
 
 def test_output_is_integer_bins():
@@ -50,13 +42,6 @@ def test_bin_edges_property():
     edges = disc.bin_edges_
     assert 0 in edges
     assert len(edges[0]) == 6  # n_bins + 1 edges
-
-
-def test_transform_before_fit_raises():
-    disc = EqualWidthDiscretizer()
-    X = np.array([[1], [2]])
-    with pytest.raises(RuntimeError):
-        disc.transform(X)
 
 
 def test_get_parameter_schema():

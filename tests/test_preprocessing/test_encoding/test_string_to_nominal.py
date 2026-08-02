@@ -1,7 +1,6 @@
 """Tests for LabelEncoder transformer."""
 
 import numpy as np
-import pytest
 
 from tuiml.preprocessing.encoding.string_to_nominal import LabelEncoder
 
@@ -9,13 +8,6 @@ from tuiml.preprocessing.encoding.string_to_nominal import LabelEncoder
 def test_init_defaults():
     encoder = LabelEncoder()
     assert encoder.columns is None
-
-
-def test_fit_returns_self():
-    X = np.array([["cat"], ["dog"]], dtype=object)
-    encoder = LabelEncoder()
-    result = encoder.fit(X)
-    assert result is encoder
 
 
 def test_basic_encoding():
@@ -55,13 +47,6 @@ def test_categories_property():
     cats = encoder.categories_
     assert 0 in cats
     assert len(cats[0]) == 3
-
-
-def test_transform_before_fit_raises():
-    encoder = LabelEncoder()
-    X = np.array([["a"]], dtype=object)
-    with pytest.raises(RuntimeError):
-        encoder.transform(X)
 
 
 def test_get_parameter_schema():

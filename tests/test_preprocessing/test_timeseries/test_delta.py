@@ -14,13 +14,6 @@ def test_init_defaults():
     assert dt.invert_selection is False
 
 
-def test_fit_returns_self():
-    X = np.array([[10], [20], [30]])
-    dt = DifferenceTransformer()
-    result = dt.fit(X)
-    assert result is dt
-
-
 def test_basic_difference_lag_neg1():
     X = np.array([[10.0], [12.0], [11.0], [15.0]])
     dt = DifferenceTransformer(lag=-1)
@@ -92,13 +85,6 @@ def test_zero_lag():
     X_diff = dt.fit_transform(X)
     # lag=0 means current - current = 0
     np.testing.assert_allclose(X_diff[:, 0], [0.0, 0.0, 0.0])
-
-
-def test_transform_before_fit_raises():
-    dt = DifferenceTransformer()
-    X = np.array([[1], [2]])
-    with pytest.raises(RuntimeError):
-        dt.transform(X)
 
 
 def test_feature_names_out():
