@@ -42,17 +42,17 @@ def predict_proba_batch(flat_tree: FlattenedTree, X: np.ndarray) -> np.ndarray:
 
 
 def predict_single_numpy(node: TreeNode, x: np.ndarray) -> np.ndarray:
-    """Traverse a recursive tree for one sample (NumPy)."""
+    """Traverse a recursive tree for one sample (NumPy).
+
+    Missing values follow ``NaN <= threshold`` being False and go right, which
+    is how the tree was partitioned during fitting and how the flattened
+    batch predictor above routes them. This used to send them to whichever
+    child held more training samples, which disagreed with both — so a batch
+    call and a single-sample call could return different classes for the same
+    row. The three now share one rule.
+    """
     while not node.is_leaf:
-        feat_val = x[node.feature_index]
-        if np.isnan(feat_val):
-            if node.left is not None and (
-                node.right is None or node.left.n_samples >= node.right.n_samples
-            ):
-                node = node.left
-            else:
-                node = node.right
-        elif feat_val <= node.threshold:
+        if x[node.feature_index] <= node.threshold:
             node = node.left
         else:
             node = node.right
