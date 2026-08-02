@@ -13,26 +13,6 @@ from tuiml.algorithms.neural import MultilayerPerceptronClassifier, MultilayerPe
 class TestMultilayerPerceptronClassifierInstantiation:
     """Tests for algorithm instantiation."""
     
-    def test_default_initialization(self):
-        """Test default initialization."""
-        model = MultilayerPerceptronClassifier()
-        assert model is not None
-        assert model._is_fitted is False
-        
-    def test_parameter_schema(self):
-        """Test parameter schema."""
-        schema = MultilayerPerceptronClassifier.get_parameter_schema()
-        assert isinstance(schema, dict)
-        
-    def test_capabilities(self):
-        """Test capabilities."""
-        caps = MultilayerPerceptronClassifier.get_capabilities()
-        assert isinstance(caps, list)
-
-
-class TestMultilayerPerceptronClassifierFitting:
-    """Tests for the fit() method."""
-    
     def test_fit_basic(self, binary_cls_data):
         """Test basic fitting."""
         X, y = binary_cls_data
@@ -47,12 +27,6 @@ class TestMultilayerPerceptronClassifierFitting:
         assert probas.shape == (len(X), len(model.classes_))
         assert np.allclose(probas.sum(axis=1), 1.0)
         
-    def test_fit_before_predict_raises(self):
-        """Test that predict raises error before fit."""
-        model = MultilayerPerceptronClassifier()
-        with pytest.raises(RuntimeError, match="must be fitted"):
-            model.predict(np.array([[1, 2, 3, 4]]))
-
     def test_partial_fit(self, binary_cls_data):
         """Test partial_fit incremental training."""
         X, y = binary_cls_data

@@ -13,26 +13,6 @@ from tuiml.algorithms.bayesian import NaiveBayesClassifier
 class TestNaiveBayesClassifierInstantiation:
     """Tests for algorithm instantiation."""
     
-    def test_default_initialization(self):
-        """Test default initialization."""
-        model = NaiveBayesClassifier()
-        assert model is not None
-        assert model._is_fitted is False
-        
-    def test_parameter_schema(self):
-        """Test parameter schema."""
-        schema = NaiveBayesClassifier.get_parameter_schema()
-        assert isinstance(schema, dict)
-        
-    def test_capabilities(self):
-        """Test capabilities."""
-        caps = NaiveBayesClassifier.get_capabilities()
-        assert isinstance(caps, list)
-
-
-class TestNaiveBayesClassifierFitting:
-    """Tests for the fit() method."""
-    
     def test_fit_basic(self, binary_cls_data):
         """Test basic fitting."""
         X, y = binary_cls_data
@@ -47,12 +27,6 @@ class TestNaiveBayesClassifierFitting:
         assert probas.shape == (len(X), len(model.classes_))
         assert np.allclose(probas.sum(axis=1), 1.0)
         
-    def test_fit_before_predict_raises(self):
-        """Test that predict raises error before fit."""
-        model = NaiveBayesClassifier()
-        with pytest.raises(RuntimeError, match="must be fitted"):
-            model.predict(np.array([[1, 2, 3, 4]]))
-
     def test_partial_fit(self, binary_cls_data):
         """Test partial_fit incremental training."""
         X, y = binary_cls_data

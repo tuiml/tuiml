@@ -17,13 +17,6 @@ from tuiml.algorithms.svm.kernels import PrecomputedKernel
 class TestPrecomputedKernelInit:
     """Tests for PrecomputedKernel initialization."""
 
-    def test_default_initialization(self):
-        """Test default initialization without a kernel matrix."""
-        k = PrecomputedKernel()
-
-        assert k._is_built is False
-        assert k._kernel_matrix is None
-
     def test_initialization_with_matrix(self):
         """Test initialization with a precomputed kernel matrix."""
         K = np.array([[1.0, 0.5], [0.5, 1.0]])

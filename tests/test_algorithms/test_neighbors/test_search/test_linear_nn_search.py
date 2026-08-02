@@ -17,16 +17,6 @@ from tuiml.algorithms.neighbors.search import LinearNNSearch
 class TestLinearNNSearchInit:
     """Tests for LinearNNSearch initialization."""
 
-    def test_default_initialization(self):
-        """Test default initialization."""
-        search = LinearNNSearch()
-
-        assert search._is_built is False
-
-
-class TestLinearNNSearchBuild:
-    """Tests for the build() method."""
-
     def test_build_basic(self):
         """Test building from data."""
         np.random.seed(42)

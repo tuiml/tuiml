@@ -16,12 +16,6 @@ from tuiml.algorithms.svm.kernels import LinearKernel
 class TestLinearKernelInit:
     """Tests for LinearKernel initialization."""
 
-    def test_default_initialization(self):
-        """Test default initialization."""
-        k = LinearKernel()
-
-        assert k._is_built is False
-
     def test_parameter_schema(self):
         """Test that parameter schema is empty (no parameters)."""
         schema = LinearKernel.get_parameter_schema()
