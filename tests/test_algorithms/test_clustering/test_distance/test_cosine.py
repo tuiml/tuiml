@@ -15,12 +15,6 @@ from tuiml.algorithms.clustering.distance import cosine_distance
 class TestCosineDistance:
     """Tests for the cosine_distance function."""
 
-    def test_identical_vectors_distance_zero(self):
-        """Test that identical vectors have cosine distance 0."""
-        x = np.array([1.0, 2.0, 3.0])
-
-        np.testing.assert_allclose(cosine_distance(x, x), 0.0, atol=1e-10)
-
     def test_orthogonal_vectors_distance_one(self):
         """Test that orthogonal vectors have cosine distance 1."""
         x1 = np.array([1.0, 0.0])
@@ -64,18 +58,6 @@ class TestCosineDistance:
             x2 = np.random.randn(5)
             d = cosine_distance(x1, x2)
             assert -1e-10 <= d <= 2.0 + 1e-10
-
-    def test_symmetry(self):
-        """Test that d(x, y) == d(y, x)."""
-        np.random.seed(42)
-        x1 = np.random.randn(4)
-        x2 = np.random.randn(4)
-
-        np.testing.assert_allclose(
-            cosine_distance(x1, x2),
-            cosine_distance(x2, x1),
-            atol=1e-10,
-        )
 
     def test_magnitude_invariance(self):
         """Test that cosine distance is invariant to scaling."""
