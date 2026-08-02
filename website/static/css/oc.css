@@ -256,18 +256,21 @@
         overflow: hidden;
     }
     /* Right-hand side of the session chrome: which agent is on the other end.
-       inline-flex so the mark sits on the text's optical centre rather than
-       its baseline, which a bare inline <img> would do. */
+       The mark sits *inside* the brackets — [<mark> claude] — so the badge
+       reads as one token. inline-flex puts it on the text's optical centre
+       rather than its baseline, which a bare inline <img> would do; the
+       brackets and label are anonymous flex items either side of it, so
+       spacing is set by the mark's own margin rather than a container gap. */
     .tui-head-client {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
     }
     .tui-head-logo {
         width: 14px;
         height: 14px;
         flex-shrink: 0;
         display: block;
+        margin: 0 5px 0 4px;
     }
     .tui-chat {
         padding: 20px 16px 16px;
