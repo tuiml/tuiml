@@ -58,8 +58,17 @@
     .landing-page [id] { scroll-margin-top: 96px; }
 
     /* Layout: one 960px column framed by hairline side rails, with a rule
-       above every section — each section reads as an outlined box. */
+       above every section — each section reads as an outlined box.
+
+       width:100% is load-bearing, not decoration. The column is a flex item of
+       the body (the sticky-footer rule above), and a column-flex item with an
+       auto cross size is floored at its min-content width — the longest heading,
+       the widest table cell. On a phone that floored the column at 550-960px
+       and body's overflow-x:hidden then simply cut the right side off. An
+       explicit 100% makes the column track the viewport; max-width still caps
+       it at 960px on desktop, so nothing changes there. */
     .oc-wrap {
+        width: 100%;
         max-width: 960px;
         margin: 0 auto;
         border-left: 1px solid var(--hairline);
@@ -117,8 +126,16 @@
         outline-offset: 2px;
     }
 
+    /* Long unbreakable tokens — file paths, dotted identifiers, URLs — are what
+       push a page sideways on a narrow phone once the column itself behaves.
+       Prose is untouched: the rule only fires on a word that cannot fit.
+       Preformatted blocks opt out on their own, they scroll instead (white-space
+       is pre, so there is nothing here to wrap). */
+    body.landing-page { overflow-wrap: break-word; }
+
     /* Inline code on the light canvas */
     body.landing-page code:not(pre code) {
+        overflow-wrap: anywhere;
         font-family: inherit;
         font-size: 0.875em;
         background: var(--soft);
@@ -190,11 +207,20 @@
         padding: 12px 16px;
         border-radius: 4px;
         margin-top: 16px;
-        overflow-x: auto;
-        white-space: nowrap;
     }
     .snippet .dollar { color: var(--mute); flex-shrink: 0; }
-    .snippet .cmd { flex: 1; }
+    /* The command scrolls, the pill does not. Scrolling the whole pill pushed
+       [copy] off the right edge of a phone — the one control the pill exists
+       for, unreachable. min-width:0 lets the flex item shrink below the
+       command's own width so there is something to scroll. */
+    .snippet .cmd {
+        flex: 1;
+        min-width: 0;
+        overflow-x: auto;
+        white-space: nowrap;
+        scrollbar-width: none;
+    }
+    .snippet .cmd::-webkit-scrollbar { display: none; }
     .copy-btn {
         font-family: inherit;
         font-size: 13px;
@@ -358,12 +384,23 @@
         font-family: inherit;
         font-size: 12px;
         color: var(--mute);
-        background: transparent;
+        /* The button holds still while the code scrolls under it, so on a
+           narrow screen a long first line used to read straight through the
+           label. Carrying the card colour makes it a mask, not an overlay. */
+        background: var(--card);
         border: none;
         cursor: pointer;
-        padding: 0;
+        padding: 0 0 0 8px;
     }
     .code-copy:hover { color: var(--ink); }
+    /* On a phone almost every line is long enough to reach the button, and a
+       64px gutter on a 348px block is a fifth of the width spent on nothing.
+       Give the button its own band above the code instead: the first line stops
+       colliding with it and the gutter goes back to the code. */
+    @media (max-width: 640px) {
+        .code-block { padding: 34px 12px 12px; }
+        .code-copy { top: 9px; right: 12px; }
+    }
     .code-block .kw { color: var(--accent-deep); font-weight: 700; }
     .code-block .fn { color: var(--accent); }
     .code-block .str { color: var(--green); }
@@ -702,6 +739,30 @@
     .oc-table .best { color: var(--green); font-weight: 700; background: rgba(13, 148, 136, 0.08); }
     .oc-table .na { color: var(--mute); }
     .oc-table .tmo { color: var(--orange); font-size: 12px; }
+    /* On a phone the wrap scrolls sideways, and a nowrap label column
+       (HR_Analytics_Job_Change_of_Data_Scientists) was wider than the screen on
+       its own — you scrolled past the names to reach the scores and then had
+       numbers with nothing to name them. Let the label wrap inside a capped
+       column, tighten the type, and pin the column so it stays beside whatever
+       score you scroll to. */
+    @media (max-width: 640px) {
+        .oc-table { font-size: 11px; }
+        .oc-table th { padding: 8px; }
+        .oc-table td { padding: 6px 8px; }
+        .oc-table th:first-child,
+        .oc-table td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 1;
+            min-width: 104px;
+            max-width: 132px;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            background: var(--canvas);
+            border-right: 1px solid var(--hairline);
+        }
+        .oc-table tbody tr:hover td:first-child { background: var(--soft); }
+    }
 
     /* TOC variant that also styles buttons (interactive selectors, e.g. the
        benchmarks algorithm rail) and, with .oc-toc-flow, falls back to an

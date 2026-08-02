@@ -633,7 +633,22 @@ body[data-jp-theme-light="true"] {
     background: var(--card);
 }
 .nb-doc .highlight { background: transparent; }
-.nb-doc .highlight pre { margin: 0; padding: 16px 64px 16px 16px; overflow-x: auto; }
+/* nbconvert ships .cm-editor.cm-s-jupyter .highlight pre with its own padding,
+   which outranks a plain .nb-doc .highlight pre — the cell padding below has to
+   match that weight or the gutter silently never applies. */
+.nb-doc .jp-Cell .jp-InputArea-editor .highlight pre {
+    margin: 0;
+    padding: 16px 64px 16px 16px;
+    overflow-x: auto;
+}
+/* Phone: the 64px gutter is a fifth of the cell width and the first line runs
+   under [copy] anyway. Give the button its own band, hand the gutter back to
+   the code. Mirrors the .code-block rule in oc.css, which also moves the
+   button for us — the two share the .code-copy class. */
+@media (max-width: 640px) {
+    .nb-doc .jp-Cell .jp-InputArea-editor .highlight pre { padding: 34px 12px 12px; }
+    .nb-doc .jp-OutputArea-output pre { padding: 10px 12px; }
+}
 .nb-doc .jp-Cell-outputWrapper { margin: 8px 0 0; }
 .nb-doc .jp-OutputArea-child { margin: 8px 0 0; }
 .nb-doc .jp-OutputArea-output {

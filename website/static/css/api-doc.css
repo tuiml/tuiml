@@ -253,6 +253,29 @@
 .oc-toc.api-rail a.sub::before,
 .oc-toc.api-tree a.sub::before { left: 26px; }
 
+/* ---------------- Narrow viewports ---------------- */
+/* The generator emits identifiers, not prose: a dotted import path
+   (algorithms.trees.random_forest.RandomForestClassifier) or a CamelCase class
+   name is ONE word with no break opportunity, and at 30px mono it is wider than
+   a phone. Nothing here wraps it, so it used to push out of the column. Let
+   those words break wherever they have to — normal prose is unaffected, since
+   the rule only takes effect on a word that would otherwise overflow. */
+.api-doc { overflow-wrap: anywhere; }
+
+/* Display sizes are tuned for the 960px column. On a phone the class-name
+   heading alone fills two lines mid-word; step the scale down so the common
+   names land on one. */
+@media (max-width: 640px) {
+    .api-doc .text-3xl { font-size: 22px !important; line-height: 1.35 !important; }
+    .api-doc .text-2xl { font-size: 19px !important; line-height: 1.35 !important; }
+    .api-doc .text-xl { font-size: 17px !important; line-height: 1.4 !important; }
+    /* Signature and example blocks scroll rather than shrink; trim the padding
+       so the code itself gets the width instead of the gutter. */
+    .api-doc .code-block-wrapper pre { padding: 12px; }
+    .api-doc .p-6 { padding: 16px !important; }
+    .api-doc .p-4 { padding: 12px !important; }
+}
+
 /* ---------------- Docstring prose ---------------- */
 .api-doc .doc-section { margin-top: 48px; }
 .api-doc .doc-section h2 { font-size: 20px; font-weight: 700; color: var(--ink); margin-bottom: 16px; }
