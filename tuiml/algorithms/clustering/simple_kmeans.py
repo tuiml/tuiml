@@ -207,7 +207,12 @@ class KMeansClusterer(Clusterer):
                 "default": "euclidean",
                 "enum": ["euclidean", "manhattan"],
                 "description": "Distance metric"
-            }
+            },
+            "random_state": {
+                "type": ["integer", "null"],
+                "default": None,
+                "description": "Random seed for reproducibility",
+            },
         }
 
     @classmethod

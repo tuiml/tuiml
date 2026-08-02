@@ -218,6 +218,21 @@ class CatBoostClassifier(Classifier):
             'border_count': {'type': int, 'default': 128, 'range': (1, 255)},
             'bagging_temperature': {'type': float, 'default': 1.0, 'range': (0.0, 10.0)},
             'random_strength': {'type': float, 'default': 1.0, 'range': (0.0, 10.0)},
+            "cat_features": {
+                "type": ["array", "null"],
+                "default": None,
+                "description": "Indices of categorical features",
+            },
+            "verbose": {
+                "type": "boolean",
+                "default": False,
+                "description": "Verbosity level passed to the backing library",
+            },
+            "random_state": {
+                "type": ["integer", "null"],
+                "default": None,
+                "description": "Random seed for reproducibility",
+            },
         }
 
     @classmethod
@@ -517,6 +532,21 @@ class CatBoostRegressor(Regressor):
             'border_count': {'type': int, 'default': 128, 'range': (1, 255)},
             'bagging_temperature': {'type': float, 'default': 1.0, 'range': (0.0, 10.0)},
             'random_strength': {'type': float, 'default': 1.0, 'range': (0.0, 10.0)},
+            "cat_features": {
+                "type": ["array", "null"],
+                "default": None,
+                "description": "Indices of categorical features",
+            },
+            "verbose": {
+                "type": "boolean",
+                "default": False,
+                "description": "Verbosity level passed to the backing library",
+            },
+            "random_state": {
+                "type": ["integer", "null"],
+                "default": None,
+                "description": "Random seed for reproducibility",
+            },
         }
 
     @classmethod

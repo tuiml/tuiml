@@ -200,7 +200,12 @@ class GaussianMixtureClusterer(DensityBasedClusterer):
                 "default": 10,
                 "minimum": 1,
                 "description": "Number of initializations"
-            }
+            },
+            "random_state": {
+                "type": ["integer", "null"],
+                "default": None,
+                "description": "Random seed for reproducibility",
+            },
         }
 
     @classmethod

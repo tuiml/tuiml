@@ -80,7 +80,12 @@ class RegressionByDiscretization(Regressor):
                 "type": "boolean",
                 "default": True,
                 "description": "Use equal-frequency (vs equal-width) binning"
-            }
+            },
+            "base_classifier": {
+                "type": ["string", "null"],
+                "default": None,
+                "description": "Name of the registered classifier used as the base learner",
+            },
         }
 
     @classmethod

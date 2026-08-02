@@ -235,6 +235,16 @@ class XGBoostClassifier(Classifier):
             'gamma': {'type': float, 'default': 0.0, 'range': (0.0, 10.0)},
             'reg_alpha': {'type': float, 'default': 0.0, 'range': (0.0, 10.0)},
             'reg_lambda': {'type': float, 'default': 1.0, 'range': (0.0, 10.0)},
+            "objective": {
+                "type": "string",
+                "default": 'binary:logistic',
+                "description": "Learning objective passed to the backing library",
+            },
+            "random_state": {
+                "type": ["integer", "null"],
+                "default": None,
+                "description": "Random seed for reproducibility",
+            },
         }
 
     @classmethod
@@ -581,6 +591,16 @@ class XGBoostRegressor(Regressor):
             'gamma': {'type': float, 'default': 0.0, 'range': (0.0, 10.0)},
             'reg_alpha': {'type': float, 'default': 0.0, 'range': (0.0, 10.0)},
             'reg_lambda': {'type': float, 'default': 1.0, 'range': (0.0, 10.0)},
+            "objective": {
+                "type": "string",
+                "default": 'reg:squarederror',
+                "description": "Learning objective passed to the backing library",
+            },
+            "random_state": {
+                "type": ["integer", "null"],
+                "default": None,
+                "description": "Random seed for reproducibility",
+            },
         }
 
     @classmethod

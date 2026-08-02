@@ -177,7 +177,12 @@ class PARTClassifier(Classifier):
                                  "minimum": 0, "maximum": 1,
                                  "description": "Confidence for pruning"},
             "unpruned": {"type": "boolean", "default": False,
-                        "description": "Skip pruning if True"}
+                        "description": "Skip pruning if True"},
+            "random_state": {
+                "type": ["integer", "null"],
+                "default": None,
+                "description": "Random seed for reproducibility",
+            },
         }
 
     @classmethod

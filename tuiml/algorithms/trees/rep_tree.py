@@ -201,7 +201,12 @@ class ReducedErrorPruningTreeClassifier(Classifier):
                 "type": "boolean",
                 "default": False,
                 "description": "Skip pruning if True"
-            }
+            },
+            "random_state": {
+                "type": ["integer", "null"],
+                "default": None,
+                "description": "Random seed for reproducibility",
+            },
         }
 
     @classmethod
@@ -503,7 +508,12 @@ class ReducedErrorPruningTreeRegressor(Regressor):
                 "type": "boolean",
                 "default": False,
                 "description": "Skip pruning if True"
-            }
+            },
+            "random_state": {
+                "type": ["integer", "null"],
+                "default": None,
+                "description": "Random seed for reproducibility",
+            },
         }
 
     @classmethod

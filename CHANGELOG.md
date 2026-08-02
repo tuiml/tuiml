@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **30 components omitted constructor parameters from `get_parameter_schema`**,
+  18 of them `random_state`. The schema is not documentation: it is what
+  `tuiml_describe` shows an agent, so an omitted parameter is one no agent can
+  discover — meaning reproducibility was unreachable through the agent path for
+  every algorithm that hid its seed. All 25 affected algorithms and 5
+  transformers now declare their full signature, and a contract check fails the
+  build if they drift apart again.
 - **Repeating a tool call in one session gave different numbers.**
   `execute_tool` drew a fresh `random.randint()` for every call that omitted
   `random_seed`, so two identical `tuiml_benchmark` runs disagreed and

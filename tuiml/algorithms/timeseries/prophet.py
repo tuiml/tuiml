@@ -294,7 +294,32 @@ class Prophet(Regressor):
                 "default": 0.05,
                 "minimum": 0.0,
                 "description": "Trend flexibility"
-            }
+            },
+            "changepoints": {
+                "type": ["array", "null"],
+                "default": None,
+                "description": "Explicit changepoint dates; inferred when omitted",
+            },
+            "holidays_prior_scale": {
+                "type": "number",
+                "default": 10.0,
+                "description": "Strength of the holiday-effect regularisation",
+            },
+            "mcmc_samples": {
+                "type": "integer",
+                "default": 0,
+                "description": "Number of MCMC samples; 0 uses MAP estimation",
+            },
+            "interval_width": {
+                "type": "number",
+                "default": 0.8,
+                "description": "Width of the uncertainty interval on forecasts",
+            },
+            "uncertainty_samples": {
+                "type": "integer",
+                "default": 1000,
+                "description": "Number of simulated draws used for uncertainty intervals",
+            },
         }
 
     @classmethod

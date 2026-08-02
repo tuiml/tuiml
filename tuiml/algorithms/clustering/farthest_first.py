@@ -124,7 +124,12 @@ class FarthestFirstClusterer(Clusterer):
                 "default": 2,
                 "minimum": 1,
                 "description": "Number of clusters"
-            }
+            },
+            "random_state": {
+                "type": ["integer", "null"],
+                "default": None,
+                "description": "Random seed for reproducibility",
+            },
         }
 
     @classmethod

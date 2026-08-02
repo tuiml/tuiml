@@ -187,7 +187,12 @@ class RIPPERClassifier(Classifier):
             "num_optimizations": {"type": "integer", "default": 2, "minimum": 0,
                                  "description": "Optimization runs"},
             "use_pruning": {"type": "boolean", "default": True,
-                          "description": "Use pruning"}
+                          "description": "Use pruning"},
+            "random_state": {
+                "type": ["integer", "null"],
+                "default": None,
+                "description": "Random seed for reproducibility",
+            },
         }
 
     @classmethod

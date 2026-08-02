@@ -207,7 +207,12 @@ class NaiveBayesClassifier(Classifier):
                 "type": "boolean",
                 "default": True,
                 "description": "Use Laplace smoothing for class priors"
-            }
+            },
+            "var_smoothing": {
+                "type": "number",
+                "default": 1e-09,
+                "description": "Variance added to each feature's variance for numerical stability",
+            },
         }
 
     @classmethod

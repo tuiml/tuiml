@@ -555,7 +555,12 @@ class SVMSMOTESampler(SMOTESampler):
                 "type": ["integer", "null"],
                 "default": None,
                 "description": "Random seed for reproducibility"
-            }
+            },
+            "svm_estimator": {
+                "type": ["string", "null"],
+                "default": None,
+                "description": "Name of the registered SVM used to locate borderline samples",
+            },
         }
 
     def _resample(self, X: np.ndarray, y: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:

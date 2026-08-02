@@ -171,7 +171,12 @@ class PerceptronClassifier(Classifier):
                 "type": "boolean",
                 "default": True,
                 "description": "Stop if no mistakes in an epoch"
-            }
+            },
+            "random_state": {
+                "type": ["integer", "null"],
+                "default": None,
+                "description": "Random seed for reproducibility",
+            },
         }
 
     @classmethod
@@ -544,7 +549,12 @@ class VotedPerceptronClassifier(Classifier):
                 "default": 1.0,
                 "minimum": 0,
                 "description": "Exponent for polynomial kernel"
-            }
+            },
+            "random_state": {
+                "type": ["integer", "null"],
+                "default": None,
+                "description": "Random seed for reproducibility",
+            },
         }
 
     @classmethod
@@ -893,7 +903,12 @@ class AveragedPerceptronClassifier(Classifier):
                 "type": "boolean",
                 "default": True,
                 "description": "Whether to shuffle data each epoch"
-            }
+            },
+            "random_state": {
+                "type": ["integer", "null"],
+                "default": None,
+                "description": "Random seed for reproducibility",
+            },
         }
 
     @classmethod

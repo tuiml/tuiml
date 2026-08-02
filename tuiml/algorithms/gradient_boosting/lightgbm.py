@@ -241,6 +241,16 @@ class LightGBMClassifier(Classifier):
             'reg_lambda': {'type': float, 'default': 0.0, 'range': (0.0, 10.0)},
             'min_child_samples': {'type': int, 'default': 20, 'range': (1, 1000)},
             'min_split_gain': {'type': float, 'default': 0.0, 'range': (0.0, 10.0)},
+            "verbose": {
+                "type": "integer",
+                "default": -1,
+                "description": "Verbosity level passed to the backing library",
+            },
+            "random_state": {
+                "type": ["integer", "null"],
+                "default": None,
+                "description": "Random seed for reproducibility",
+            },
         }
 
     @classmethod
@@ -592,6 +602,16 @@ class LightGBMRegressor(Regressor):
             'reg_lambda': {'type': float, 'default': 0.0, 'range': (0.0, 10.0)},
             'min_child_samples': {'type': int, 'default': 20, 'range': (1, 1000)},
             'min_split_gain': {'type': float, 'default': 0.0, 'range': (0.0, 10.0)},
+            "verbose": {
+                "type": "integer",
+                "default": -1,
+                "description": "Verbosity level passed to the backing library",
+            },
+            "random_state": {
+                "type": ["integer", "null"],
+                "default": None,
+                "description": "Random seed for reproducibility",
+            },
         }
 
     @classmethod

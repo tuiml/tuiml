@@ -162,7 +162,17 @@ class CountVectorizer(Transformer):
                 "type": "array",
                 "default": [1, 1],
                 "description": "Range of n-grams to extract [min_n, max_n]"
-            }
+            },
+            "tokenizer": {
+                "type": ["string", "null"],
+                "default": None,
+                "description": "Callable that splits a document into tokens; the default splitter is used when omitted",
+            },
+            "vocabulary": {
+                "type": ["string", "null"],
+                "default": None,
+                "description": "Fixed term-to-index mapping; learned from the corpus when omitted",
+            },
         }
 
     def fit(self, documents: List[str], y=None) -> "CountVectorizer":
@@ -638,7 +648,12 @@ class TfidfVectorizer(Transformer):
                 "type": "boolean",
                 "default": False,
                 "description": "Use sublinear TF"
-            }
+            },
+            "tokenizer": {
+                "type": ["string", "null"],
+                "default": None,
+                "description": "Callable that splits a document into tokens; the default splitter is used when omitted",
+            },
         }
 
     def fit(self, documents: List[str], y=None) -> "TfidfVectorizer":
@@ -816,7 +831,12 @@ class HashingVectorizer(Transformer):
                 "default": "l2",
                 "enum": ["l1", "l2"],
                 "description": "Normalization method"
-            }
+            },
+            "tokenizer": {
+                "type": ["string", "null"],
+                "default": None,
+                "description": "Callable that splits a document into tokens; the default splitter is used when omitted",
+            },
         }
 
     def fit(self, documents: List[str], y=None) -> "HashingVectorizer":

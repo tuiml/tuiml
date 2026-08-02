@@ -629,7 +629,12 @@ class HardnessThresholdSampler(Transformer):
                 "type": ["integer", "null"],
                 "default": None,
                 "description": "Random seed for reproducibility"
-            }
+            },
+            "estimator": {
+                "type": ["string", "null"],
+                "default": None,
+                "description": "Name of the registered classifier used to score instance hardness",
+            },
         }
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> "HardnessThresholdSampler":

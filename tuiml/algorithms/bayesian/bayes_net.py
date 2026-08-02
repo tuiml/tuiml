@@ -183,7 +183,12 @@ class BayesianNetworkClassifier(Classifier):
             "max_parents": {"type": "integer", "default": 3, "minimum": 1,
                            "description": "Maximum parents per node (K2)"},
             "use_laplace": {"type": "boolean", "default": True,
-                         "description": "Use Laplace smoothing in estimators"}
+                         "description": "Use Laplace smoothing in estimators"},
+            "random_state": {
+                "type": ["integer", "null"],
+                "default": None,
+                "description": "Random seed for reproducibility",
+            },
         }
 
     @classmethod

@@ -144,6 +144,11 @@ class DecisionTableClassifier(Classifier):
                             "enum": ["best_first", "greedy"]},
             "cross_val_folds": {"type": "integer", "default": 1, "minimum": 1},
             "use_ibk": {"type": "boolean", "default": False},
+            "random_state": {
+                "type": ["integer", "null"],
+                "default": None,
+                "description": "Random seed for reproducibility",
+            },
         }
 
     @classmethod

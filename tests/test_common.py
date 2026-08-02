@@ -18,7 +18,7 @@ import pytest
 import tuiml
 from tuiml.registry import registry
 
-from ._contract import ALL_CHECKS
+from .contract.algorithms import ALL_CHECKS
 
 # Algorithms excluded from the sweep entirely, with the reason. Prefer
 # XFAIL_CHECKS below: skipping an algorithm drops it from every check, whereas
@@ -36,37 +36,15 @@ SKIP_ALGORITHMS = {
 # Generated from an actual run; regenerate rather than hand-editing after
 # fixing an algorithm.
 XFAIL_CHECKS = {
-    'AdditiveRegression': {
-        'check_schema_matches_signature':
-            "get_parameter_schema omits ['base_regressor']",
-    },
     'AgglomerativeClusterer': {
         **{c: 'predict() after fit() requires store_data=True' for c in (
             'check_pickle_roundtrip',
             'check_predict_output_shape',
         )},
     },
-    'AveragedPerceptronClassifier': {
-        'check_schema_matches_signature':
-            "get_parameter_schema omits ['random_state']",
-    },
-    'BayesianNetworkClassifier': {
-        'check_schema_matches_signature':
-            "get_parameter_schema omits ['random_state']",
-    },
-    'CanopyClusterer': {
-        'check_schema_matches_signature':
-            "get_parameter_schema omits ['random_state']",
-    },
-    'CatBoostClassifier': {
-        'check_schema_matches_signature':
-            "get_parameter_schema omits ['cat_features', 'random_state', 'verbose']",
-    },
     'CatBoostRegressor': {
         'check_missing_value_support_is_honest':
             'declares missing_values but raises on NaN',
-        'check_schema_matches_signature':
-            "get_parameter_schema omits ['cat_features', 'random_state', 'verbose']",
     },
     'DBSCANClusterer': {
         **{c: 'IndexError when no core samples are found (empty float index array)' for c in (
@@ -76,18 +54,6 @@ XFAIL_CHECKS = {
             'check_predict_output_shape',
         )},
     },
-    'DecisionTableClassifier': {
-        'check_schema_matches_signature':
-            "get_parameter_schema omits ['random_state']",
-    },
-    'FarthestFirstClusterer': {
-        'check_schema_matches_signature':
-            "get_parameter_schema omits ['random_state']",
-    },
-    'GaussianMixtureClusterer': {
-        'check_schema_matches_signature':
-            "get_parameter_schema omits ['random_state']",
-    },
     'HoeffdingTreeClassifier': {
         'check_pickle_roundtrip':
             'fitted model is not picklable, so it cannot be saved or served',
@@ -95,16 +61,6 @@ XFAIL_CHECKS = {
     'KMeansClusterer': {
         'check_missing_value_support_is_honest':
             'declares missing_values but raises on NaN',
-        'check_schema_matches_signature':
-            "get_parameter_schema omits ['random_state']",
-    },
-    'LightGBMClassifier': {
-        'check_schema_matches_signature':
-            "get_parameter_schema omits ['random_state', 'verbose']",
-    },
-    'LightGBMRegressor': {
-        'check_schema_matches_signature':
-            "get_parameter_schema omits ['random_state', 'verbose']",
     },
     'MultiClassClassifier': {
         **{c: "references unregistered component 'SMO'" for c in (
@@ -117,18 +73,6 @@ XFAIL_CHECKS = {
             'check_seeded_fit_is_reproducible',
         )},
     },
-    'MultilayerPerceptronClassifier': {
-        'check_schema_matches_signature':
-            "get_parameter_schema omits ['random_state']",
-    },
-    'MultilayerPerceptronRegressor': {
-        'check_schema_matches_signature':
-            "get_parameter_schema omits ['random_state']",
-    },
-    'NaiveBayesClassifier': {
-        'check_schema_matches_signature':
-            "get_parameter_schema omits ['var_smoothing']",
-    },
     'NaiveBayesMultinomialClassifier': {
         **{c: "declares 'numeric' but rejects negative features" for c in (
             'check_fit_does_not_mutate_input',
@@ -137,34 +81,6 @@ XFAIL_CHECKS = {
             'check_predict_output_shape',
             'check_predict_proba_is_a_distribution',
         )},
-    },
-    'PARTClassifier': {
-        'check_schema_matches_signature':
-            "get_parameter_schema omits ['random_state']",
-    },
-    'PerceptronClassifier': {
-        'check_schema_matches_signature':
-            "get_parameter_schema omits ['random_state']",
-    },
-    'Prophet': {
-        'check_schema_matches_signature':
-            "get_parameter_schema omits ['changepoints', 'holidays_prior_scale', 'interval_width', 'mcmc_samples', 'uncertainty_samples']",
-    },
-    'RIPPERClassifier': {
-        'check_schema_matches_signature':
-            "get_parameter_schema omits ['random_state']",
-    },
-    'ReducedErrorPruningTreeClassifier': {
-        'check_schema_matches_signature':
-            "get_parameter_schema omits ['random_state']",
-    },
-    'ReducedErrorPruningTreeRegressor': {
-        'check_schema_matches_signature':
-            "get_parameter_schema omits ['random_state']",
-    },
-    'RegressionByDiscretization': {
-        'check_schema_matches_signature':
-            "get_parameter_schema omits ['base_classifier']",
     },
     'SVR': {
         'check_pickle_roundtrip':
@@ -180,19 +96,9 @@ XFAIL_CHECKS = {
             'check_seeded_fit_is_reproducible',
         )},
     },
-    'VotedPerceptronClassifier': {
-        'check_schema_matches_signature':
-            "get_parameter_schema omits ['random_state']",
-    },
-    'XGBoostClassifier': {
-        'check_schema_matches_signature':
-            "get_parameter_schema omits ['objective', 'random_state']",
-    },
     'XGBoostRegressor': {
         'check_missing_value_support_is_honest':
             'declares missing_values but raises on NaN',
-        'check_schema_matches_signature':
-            "get_parameter_schema omits ['objective', 'random_state']",
     },
 }
 

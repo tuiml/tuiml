@@ -164,7 +164,12 @@ class CanopyClusterer(UpdateableClusterer):
                 "type": "integer",
                 "default": -1,
                 "description": "Maximum canopies (-1 for unlimited)"
-            }
+            },
+            "random_state": {
+                "type": ["integer", "null"],
+                "default": None,
+                "description": "Random seed for reproducibility",
+            },
         }
 
     @classmethod

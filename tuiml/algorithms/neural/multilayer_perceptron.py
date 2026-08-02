@@ -183,7 +183,12 @@ class MultilayerPerceptronClassifier(Classifier):
                      "description": "Decay learning rate"},
             "activation": {"type": "string", "default": "relu",
                           "enum": ["sigmoid", "relu"],
-                          "description": "Activation function"}
+                          "description": "Activation function"},
+            "random_state": {
+                "type": ["integer", "null"],
+                "default": None,
+                "description": "Random seed for reproducibility",
+            },
         }
 
     @classmethod
@@ -838,7 +843,12 @@ class MultilayerPerceptronRegressor(Regressor):
                      "description": "Decay learning rate"},
             "activation": {"type": "string", "default": "relu",
                           "enum": ["sigmoid", "relu"],
-                          "description": "Activation function"}
+                          "description": "Activation function"},
+            "random_state": {
+                "type": ["integer", "null"],
+                "default": None,
+                "description": "Random seed for reproducibility",
+            },
         }
 
     @classmethod

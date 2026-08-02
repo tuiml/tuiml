@@ -84,7 +84,12 @@ class AdditiveRegression(Regressor):
                 "type": "boolean",
                 "default": False,
                 "description": "Use L1 loss instead of L2"
-            }
+            },
+            "base_regressor": {
+                "type": ["string", "null"],
+                "default": None,
+                "description": "Name of the registered regressor used as the base learner",
+            },
         }
 
     @classmethod
