@@ -4,19 +4,19 @@ import numpy as np
 import pytest
 from pathlib import Path
 
+import tuiml
+
 from tuiml.datasets.loaders.arff import load_arff, save_arff, Dataset, _parse_arff
 
 
 # ---------------------------------------------------------------------------
 # Path to builtin ARFF datasets used for integration-style tests
 # ---------------------------------------------------------------------------
+# Anchored on the installed package rather than counting parents from
+# __file__, so moving this test does not silently break the lookup.
 _BUILTIN_DIR = (
-    Path(__file__).resolve().parents[3]
-    / "tuiml"
-    / "datasets"
-    / "builtin"
-    / "data"
-    / "classification"
+    Path(tuiml.__file__).resolve().parent
+    / "datasets" / "builtin" / "data" / "classification"
 )
 
 

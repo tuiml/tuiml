@@ -4,14 +4,14 @@ import importlib
 import numpy as np
 from pathlib import Path
 
+import tuiml
+
 # The _core/__init__.py has a broken import (ArffParser does not exist).
 # We import the arff_parser module directly to bypass the __init__.py.
+# Anchored on the installed package rather than counting parents from
+# __file__, so moving this test does not silently break the lookup.
 _arff_parser_path = (
-    Path(__file__).resolve().parents[2]
-    / "tuiml"
-    / "datasets"
-    / "_core"
-    / "arff_parser.py"
+    Path(tuiml.__file__).resolve().parent / "datasets" / "_core" / "arff_parser.py"
 )
 _spec = importlib.util.spec_from_file_location(
     "arff_parser", str(_arff_parser_path)

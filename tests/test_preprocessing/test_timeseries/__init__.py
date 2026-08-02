@@ -1,1 +1,0 @@
-# Timeseries tests package

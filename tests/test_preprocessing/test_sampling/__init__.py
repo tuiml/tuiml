@@ -1,1 +1,0 @@
-# Sampling tests package

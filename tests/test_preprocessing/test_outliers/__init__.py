@@ -1,1 +1,0 @@
-# Outliers tests package
