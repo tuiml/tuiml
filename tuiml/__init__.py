@@ -9,49 +9,73 @@ Three levels of API:
     3. Low-Level (OOP): Direct class imports - fit/predict/score/save/load
 """
 
-from tuiml.registry import registry, ComponentType
+import importlib
+import importlib.util
 
-# Importing the package is what registers every native algorithm in the hub —
-# the @classifier / @regressor decorators only fire on module import. Without
-# this line a bare ``import tuiml`` leaves ``list_algorithms()`` and
-# ``search_algorithms()`` seeing only the optional sklearn/capymoa wrappers,
-# so RandomForestClassifier and friends are missing from the catalog until
-# something else happens to import them.
-import tuiml.algorithms  # noqa: F401,E402
+# Every public name is resolved on first use rather than imported here.
+# Importing them eagerly cost ~2.3s and pulled in the plotting stack, which
+# `import tuiml` paid even to read `__version__` -- and the console script
+# behind `tuiml --version` cannot avoid importing this package.
+#
+# Components still register themselves by being imported; that is now driven
+# by Registry._ensure_populated() on first read, so the catalogue is complete
+# whenever anything actually looks at it. See :mod:`tuiml.registry`.
+_LAZY_ATTRS = {
+    # Core registry
+    "registry": "tuiml.registry:registry",
+    "ComponentType": "tuiml.registry:ComponentType",
 
-# High-level API, one root module per concern
-from tuiml.training import train, PRESETS
-from tuiml.benchmarking import Benchmark
-from tuiml.discovery import (
-    list_algorithms,
-    describe_algorithm,
-    search_algorithms,
-)
-from tuiml.serving import serve, stop_server, server_status
+    # High-level API, one root module per concern
+    "train": "tuiml.training:train",
+    "PRESETS": "tuiml.training:PRESETS",
+    "Benchmark": "tuiml.benchmarking:Benchmark",
+    "list_algorithms": "tuiml.discovery:list_algorithms",
+    "describe_algorithm": "tuiml.discovery:describe_algorithm",
+    "search_algorithms": "tuiml.discovery:search_algorithms",
+    "serve": "tuiml.serving:serve",
+    "stop_server": "tuiml.serving:stop_server",
+    "server_status": "tuiml.serving:server_status",
 
-# Mid-level API
-from tuiml.workflow import Workflow, On
-
-# Agent entry points (tools for every major framework + one-liner agent).
-# Imported as a module, not as a name: binding the agent() function here would
-# shadow the tuiml.agent package, so `import tuiml.agent as x` would hand back
-# the function. Use `from tuiml.agent import agent` or `tuiml.agent.agent()`.
-import tuiml.agent  # noqa: F401
-
-# Optional third-party bridges. Each registers its wrappers into the hub under a
-# namespaced key (``sklearn.*`` / ``capymoa.*``) when its backing library is
-# installed. They are best-effort: a missing backing library must never break
-# ``import tuiml`` or the native algorithms.
-try:
-    import tuiml.sklearn  # noqa: F401
-except Exception:  # pragma: no cover - defensive; native must still import
-    pass
-try:
-    import tuiml.capymoa  # noqa: F401
-except Exception:  # pragma: no cover
-    pass
+    # Mid-level API
+    "Workflow": "tuiml.workflow:Workflow",
+    "On": "tuiml.workflow:On",
+}
 
 __version__ = "0.1.9"
+
+
+def __getattr__(name: str):
+    """Resolve a public name, or a submodule, on first access (PEP 562).
+
+    Submodules are handled too because ``__init__`` used to import several of
+    them (``tuiml.algorithms``, ``tuiml.agent``), which left them reachable as
+    attributes; ``import tuiml; tuiml.agent.agent()`` must keep working.
+    """
+    target = _LAZY_ATTRS.get(name)
+    if target is not None:
+        module_name, _, attr = target.partition(":")
+        value = getattr(importlib.import_module(module_name), attr)
+        globals()[name] = value          # cache: __getattr__ runs once per name
+        return value
+
+    # `tuiml.<submodule>` — resolve only real submodules, so a typo still
+    # raises AttributeError rather than ImportError from somewhere deeper.
+    if not name.startswith("_"):
+        try:
+            found = importlib.util.find_spec(f"tuiml.{name}") is not None
+        except (ImportError, ValueError):
+            found = False
+        if found:
+            module = importlib.import_module(f"tuiml.{name}")
+            globals()[name] = module
+            return module
+
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def __dir__():
+    """List the lazily-resolved names alongside whatever is already bound."""
+    return sorted(set(globals()) | set(_LAZY_ATTRS))
 
 __all__ = [
     # Core registry

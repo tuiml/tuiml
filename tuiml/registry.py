@@ -167,6 +167,46 @@ class Registry:
         "on_unregister": [],
     }
 
+    _populated = False
+
+    def _ensure_populated(self) -> None:
+        """Import the component packages so a read sees the whole library.
+
+        Components register themselves as a side effect of being imported, so
+        a registry that nothing has imported into is simply empty. This used
+        to be arranged by ``tuiml/__init__`` importing the world, which made
+        every ``import tuiml`` -- including the one behind ``tuiml --version``
+        -- pay for the entire library. Doing it on first read instead keeps
+        that cost on the code paths that actually need components.
+
+        Write methods deliberately do not call this: the imports below are
+        what invoke :meth:`register`, so populating from there would recurse.
+        """
+        if Registry._populated:
+            return
+        # Set before importing, not after: the imports below register
+        # components, and any read they perform must not re-enter here.
+        Registry._populated = True
+
+        import importlib
+        for module in (
+            "tuiml.algorithms",
+            "tuiml.training",
+            "tuiml.benchmarking",
+            "tuiml.serving",
+            "tuiml.workflow",
+            "tuiml.agent",
+            # Optional bridges: absent unless the extra is installed.
+            "tuiml.sklearn",
+            "tuiml.capymoa",
+        ):
+            try:
+                importlib.import_module(module)
+            except Exception:
+                # A missing optional bridge, or one broken component, must
+                # never make the registry itself unusable.
+                pass
+
     def __new__(cls):
         """Singleton pattern - only one hub instance."""
         if cls._instance is None:
@@ -362,6 +402,7 @@ class Registry:
         KeyError
             If the component name is not found in the registry.
         """
+        self._ensure_populated()
         if name not in self._components:
             available = ", ".join(self._components.keys())
             raise KeyError(
@@ -382,6 +423,7 @@ class Registry:
         info : dict
             A dictionary containing component metadata.
         """
+        self._ensure_populated()
         if name not in self._components:
             raise KeyError(f"Component '{name}' not found")
         return self._components[name]["info"]
@@ -401,6 +443,7 @@ class Registry:
         instance : Any
             An instance of the requested component.
         """
+        self._ensure_populated()
         cls = self.get(name)
         return cls(**kwargs)
 
@@ -423,6 +466,7 @@ class Registry:
         results : List[dict]
             A list of component metadata dictionaries.
         """
+        self._ensure_populated()
         results = []
 
         for name, component in self._components.items():
@@ -456,6 +500,7 @@ class Registry:
         names : List[str]
             A list of registered component names.
         """
+        self._ensure_populated()
         if component_type:
             return list(self._type_index[component_type])
         return list(self._components.keys())
@@ -492,6 +537,7 @@ class Registry:
         >>> [c["name"] for c in registry.search("random forest", limit=3)]
         ['RandomForestClassifier', 'RandomForestRegressor', 'capymoa.AdaptiveRandomForest']
         """
+        self._ensure_populated()
         query_tokens = _tokenize(query)
         if not query_tokens:
             return []
@@ -562,10 +608,12 @@ class Registry:
 
     def __contains__(self, name: str) -> bool:
         """Check if a component is registered."""
+        self._ensure_populated()
         return name in self._components
 
     def __len__(self) -> int:
         """Return number of registered components."""
+        self._ensure_populated()
         return len(self._components)
 
 # Singleton instance
