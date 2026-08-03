@@ -75,5 +75,21 @@ def update(target_version: str, dry_run: bool, as_json: bool) -> None:
     before = result.get("version_before") or "?"
     after  = result.get("version_after") or "?"
     click.echo(f"✓ TuiML upgraded: {before} → {after}")
+
+    # A git install tracks a branch, so successive commits share a version
+    # string and the line above would read "0.1.9 → 0.1.9" on a real upgrade.
+    # The commits are what actually moved.
+    c_before = result.get("commit_before")
+    c_after = result.get("commit_after")
+    if c_before or c_after:
+        short = lambda c: (c or "?")[:12]
+        if c_before and c_after and c_before == c_after:
+            click.echo(f"  commit: {short(c_after)} (already current)")
+        else:
+            click.echo(f"  commit: {short(c_before)} → {short(c_after)}")
+
     if result.get("install_method"):
-        click.echo(f"  via: {result['install_method']}")
+        via = result["install_method"]
+        if result.get("install_source") == "git":
+            via += " (git channel)"
+        click.echo(f"  via: {via}")

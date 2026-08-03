@@ -3,7 +3,11 @@
 from typing import Any, Dict
 
 from .._spec import ToolSpec
-from .info import _detect_install_method, execute_system_info
+from .info import (
+    _detect_install_method,
+    _detect_install_source,
+    execute_system_info,
+)
 
 
 def execute_self_update(**kwargs) -> Dict[str, Any]:
@@ -58,8 +62,32 @@ def execute_self_update(**kwargs) -> Dict[str, Any]:
             "install_method": method,
         }
 
+    # Update along whichever channel this install came from. Always naming the
+    # PyPI package would quietly move a git install onto the released channel:
+    # the upgrade "succeeds", reports the same version on both sides because
+    # main and the last release share a version string, and the user is left
+    # on a different channel than the one they chose.
+    source = _detect_install_source()
     target = kwargs.get("target_version")
-    spec = f"tuiml=={target}" if target else "tuiml"
+
+    if source["kind"] == "git" and source.get("url") and not target:
+        spec = f"tuiml @ {source['url']}"
+    else:
+        spec = f"tuiml=={target}" if target else "tuiml"
+
+    if source["kind"] == "git" and target:
+        return {
+            "status": "error",
+            "error": (
+                "this is a git install tracking "
+                f"{source.get('requested_revision') or 'main'}; it has no PyPI "
+                f"version to pin to. Re-install from PyPI to use target_version, "
+                f"or drop it to pull the latest commit."
+            ),
+            "error_type": "ChannelMismatchError",
+            "install_method": method,
+            "install_source": source["kind"],
+        }
 
     if method == "uv-tool":
         cmd = ["uv", "tool", "install", "--reinstall", "--force", spec]
@@ -87,24 +115,34 @@ def execute_self_update(**kwargs) -> Dict[str, Any]:
                 "error_type": "FileNotFoundError", "command": cmd}
 
     # After upgrade the on-disk package has changed, but the running process is
-    # still holding the old module objects. Re-reading the installed version
-    # requires a subprocess.
+    # still holding the old module objects. Re-reading what landed requires a
+    # subprocess. The commit is read alongside the version because on the git
+    # channel the version alone cannot show that anything moved.
+    probe_src = (
+        "import importlib, json, importlib.metadata as m; "
+        "importlib.invalidate_caches(); "
+        "d = m.distribution('tuiml'); "
+        "raw = d.read_text('direct_url.json') or ''; "
+        "vcs = (json.loads(raw).get('vcs_info') or {}) if raw else {}; "
+        "print(m.version('tuiml')); print(vcs.get('commit_id') or '')"
+    )
+    after = after_commit = None
     try:
         probe = subprocess.run(
-            [sys.executable, "-c",
-             "import importlib, importlib.metadata as m; "
-             "importlib.invalidate_caches(); "
-             "print(m.version('tuiml'))"],
+            [sys.executable, "-c", probe_src],
             capture_output=True, text=True, timeout=15,
         )
-        after = probe.stdout.strip() or None
+        lines = probe.stdout.strip().splitlines()
+        after = lines[0].strip() if lines else None
+        after_commit = lines[1].strip() if len(lines) > 1 and lines[1].strip() else None
     except Exception:
-        after = None
+        pass
 
     ok = (proc.returncode == 0)
-    return {
+    result: Dict[str, Any] = {
         "status": "success" if ok else "error",
         "install_method": method,
+        "install_source": source["kind"],
         "command": cmd,
         "returncode": proc.returncode,
         "stdout": proc.stdout[-4000:],
@@ -114,6 +152,14 @@ def execute_self_update(**kwargs) -> Dict[str, Any]:
         "restart_required": ok,
         "note": "Call tuiml_restart to reload the MCP servers (or restart the client manually).",
     }
+
+    # Only meaningful on the git channel, where two different commits routinely
+    # carry the same version string.
+    if source.get("commit") or after_commit:
+        result["commit_before"] = source.get("commit")
+        result["commit_after"] = after_commit
+
+    return result
 
 
 SPEC = ToolSpec(

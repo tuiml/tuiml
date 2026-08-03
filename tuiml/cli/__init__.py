@@ -40,14 +40,92 @@ See Also
 :mod:`tuiml.agent.mcp` : The same operations, for an AI agent.
 """
 
+import importlib
+import importlib.metadata
 import inspect
 import re
 from typing import List
 
 import click
-from tuiml import __version__
 
-@click.group()
+# Read the version from installed metadata rather than importing the package.
+# `from tuiml import __version__` costs ~1.8s, since tuiml/__init__ pulls in
+# tuiml.algorithms and, through it, the plotting stack -- a price `tuiml
+# --version` should not pay. The installer runs exactly that command right
+# after installing, where the pause reads as a hang.
+try:
+    __version__ = importlib.metadata.version("tuiml")
+except importlib.metadata.PackageNotFoundError:  # running from a source tree
+    from tuiml import __version__
+
+
+# Subcommand name -> "module:attribute". Names are not always derivable from
+# the function (``list`` is ``list_cmd:list_algorithms``), so they are spelled
+# out. A command added here is picked up by ``tuiml --help`` automatically.
+_COMMANDS = {
+    "benchmark": "tuiml.cli.benchmark:benchmark",
+    "create-algorithm": "tuiml.cli.create_algorithm:create_algorithm",
+    "delete-algorithm": "tuiml.cli.delete_algorithm:delete_algorithm",
+    "describe": "tuiml.cli.describe:describe",
+    "edit-algorithm": "tuiml.cli.edit_algorithm:edit_algorithm",
+    "evaluate": "tuiml.cli.evaluate:evaluate",
+    "generate": "tuiml.cli.generate:generate",
+    "get-skeleton": "tuiml.cli.get_skeleton:get_skeleton",
+    "info": "tuiml.cli.info:info",
+    "list": "tuiml.cli.list_cmd:list_algorithms",
+    "list-files": "tuiml.cli.list_files:list_files",
+    "mcp": "tuiml.cli.mcp:mcp",
+    "plot": "tuiml.cli.plot:plot",
+    "predict": "tuiml.cli.predict:predict",
+    "preprocess": "tuiml.cli.preprocess:preprocess",
+    "profile": "tuiml.cli.profile:profile",
+    "read-algorithm": "tuiml.cli.read_algorithm:read_algorithm",
+    "read-data": "tuiml.cli.read_data:read_data",
+    "restart": "tuiml.cli.restart:restart",
+    "save": "tuiml.cli.save:save",
+    "search-source": "tuiml.cli.search_source:search_source",
+    "select-features": "tuiml.cli.select_features:select_features",
+    "serve": "tuiml.cli.serve:serve",
+    "setup": "tuiml.cli.setup:setup",
+    "status": "tuiml.cli.status:status",
+    "stop-server": "tuiml.cli.stop_server:stop_server",
+    "test-statistics": "tuiml.cli.test_statistics:test_statistics",
+    "trace": "tuiml.cli.trace:trace",
+    "train": "tuiml.cli.train:train",
+    "tune": "tuiml.cli.tune:tune",
+    "uninstall": "tuiml.cli.uninstall:uninstall",
+    "update": "tuiml.cli.update:update",
+    "upload": "tuiml.cli.upload:upload",
+}
+
+
+class _LazyGroup(click.Group):
+    """Import a subcommand's module only when that subcommand is reached.
+
+    Registering the commands eagerly meant importing all 33 modules, and each
+    of them imports the tuiml package, so every invocation paid for the whole
+    library however little it needed. Resolving them on demand keeps
+    ``--version`` and an unknown-command error free of that cost. ``--help``
+    still loads every command, because it prints their summaries.
+    """
+
+    def list_commands(self, ctx) -> List[str]:
+        return sorted(_COMMANDS)
+
+    def get_command(self, ctx, name):
+        target = _COMMANDS.get(name)
+        if target is None:
+            return None
+        module_name, _, attr = target.partition(":")
+        command = getattr(importlib.import_module(module_name), attr)
+        # Reformat once: click keeps the same object across lookups.
+        if not getattr(command, "_tuiml_help_formatted", False):
+            command.help = _help_for_terminal(command.help)
+            command._tuiml_help_formatted = True
+        return command
+
+
+@click.group(cls=_LazyGroup)
 @click.option('--random-seed', type=int,
               help='Seed every random number generator TuiML uses, so the whole '
                    'command runs reproducibly.')
@@ -145,57 +223,9 @@ def _help_for_terminal(text: str) -> str:
     return '\n'.join(out)
 
 
-# Import commands
-from tuiml.cli import (
-    train, predict, evaluate, benchmark, list_cmd,
-    serve, setup, uninstall, info, update, mcp,
-    status, trace, restart,
-    upload, save, stop_server, plot, profile, generate,
-    preprocess, select_features, test_statistics, tune,
-    read_data, get_skeleton, create_algorithm, delete_algorithm,
-    describe, read_algorithm, list_files, search_source, edit_algorithm
-)
-
-# Register commands
-cli.add_command(train.train)
-cli.add_command(predict.predict)
-cli.add_command(evaluate.evaluate)
-cli.add_command(benchmark.benchmark)
-cli.add_command(list_cmd.list_algorithms)
-cli.add_command(serve.serve)
-cli.add_command(setup.setup)
-cli.add_command(uninstall.uninstall)
-cli.add_command(info.info)
-cli.add_command(update.update)
-cli.add_command(mcp.mcp)
-cli.add_command(status.status)
-cli.add_command(trace.trace)
-cli.add_command(restart.restart)
-cli.add_command(upload.upload)
-cli.add_command(save.save)
-cli.add_command(stop_server.stop_server)
-cli.add_command(plot.plot)
-cli.add_command(profile.profile)
-cli.add_command(generate.generate)
-cli.add_command(preprocess.preprocess)
-cli.add_command(select_features.select_features)
-cli.add_command(test_statistics.test_statistics)
-cli.add_command(tune.tune)
-cli.add_command(read_data.read_data)
-cli.add_command(get_skeleton.get_skeleton)
-cli.add_command(create_algorithm.create_algorithm)
-cli.add_command(delete_algorithm.delete_algorithm)
-cli.add_command(describe.describe)
-cli.add_command(read_algorithm.read_algorithm)
-cli.add_command(list_files.list_files)
-cli.add_command(search_source.search_source)
-cli.add_command(edit_algorithm.edit_algorithm)
-
-# Docstrings are authored in NumPy style for the HTML docs; reformat them for
-# the terminal so section headers and shell examples survive click's wrapping.
+# The subcommands are resolved lazily by _LazyGroup; only the group's own
+# help is reformatted here, since each command's is done as it is loaded.
 cli.help = _help_for_terminal(cli.help)
-for _command in cli.commands.values():
-    _command.help = _help_for_terminal(_command.help)
 
 
 def main():

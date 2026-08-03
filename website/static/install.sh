@@ -323,12 +323,17 @@ install_tuiml() {
         info "This builds C++ extensions and may take a minute the first time."
     fi
 
+    # --compile-bytecode writes the .pyc files during install, where uv shows
+    # progress. Without it the first `tuiml` command pays that cost instead,
+    # compiling bytecode for the whole dependency tree — numpy, pandas,
+    # xgboost, matplotlib and the rest — while printing nothing, which reads
+    # as a hang right after "Installed 2 executables".
     if command -v tuiml >/dev/null 2>&1; then
         # Reinstall rather than upgrade: `uv tool upgrade` only ever checks
         # PyPI, so it would not move a git install onto newer commits.
-        uv tool install --reinstall --force "$spec"
+        uv tool install --compile-bytecode --reinstall --force "$spec"
     else
-        uv tool install "$spec"
+        uv tool install --compile-bytecode "$spec"
     fi
 
     if ! command -v tuiml >/dev/null 2>&1; then
@@ -337,6 +342,9 @@ install_tuiml() {
         echo "  Then restart your shell and re-run this installer."
         exit 1
     fi
+    # Say so before running it: this first invocation loads the package and
+    # can take a few seconds, and a silent pause here looks like a stall.
+    info "Verifying install..."
     success "tuiml installed: $(tuiml --version)"
 }
 
