@@ -89,7 +89,8 @@ def plot_ranking_table(
         row = []
         for j in range(n_algorithms):
             if show_ranks:
-                row.append(f'{scores[i, j]:.{precision}f} ({int(ranks[i, j])})')
+                rank = f'{ranks[i, j]:g}'
+                row.append(f'{scores[i, j]:.{precision}f} ({rank})')
             else:
                 row.append(f'{scores[i, j]:.{precision}f}')
         cell_text.append(row)

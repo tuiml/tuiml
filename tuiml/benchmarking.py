@@ -1026,7 +1026,14 @@ class Benchmark:
         """
         from tuiml.evaluation.visualization import plot_ranking_table
 
-        return plot_ranking_table(self._per_dataset_means(metric), **kwargs)
+        metric = self._metric(metric)
+        means = self.table(metric, formatted=False)
+        kwargs.setdefault("dataset_names", list(means.index))
+        kwargs.setdefault(
+            "lower_better", not _higher_is_better(metric)
+        )
+        scores = {model: means[model].values for model in means.columns}
+        return plot_ranking_table(scores, **kwargs)
 
     def __repr__(self) -> str:
         if not hasattr(self, "scores_"):

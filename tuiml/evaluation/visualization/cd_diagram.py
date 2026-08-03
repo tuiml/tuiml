@@ -467,9 +467,10 @@ def plot_critical_difference(
     title : str, optional
         Figure title. Title-cased before rendering. No title is drawn if None.
     figsize : tuple of (float, float), optional
-        Figure size in inches. When None, it scales with the number of
-        algorithms — width ``max(8, k)``, height ``max(3, 0.4 * k)`` — which is
-        usually the right thing, since the diagram grows vertically with ``k``.
+        Figure size in inches. When None, the width scales with both the number
+        of algorithms and the longest labels on each side; the height scales
+        with the number of algorithms. This leaves enough room for long model
+        names without compressing the rank axis.
     save_path : str, optional
         If given, the figure is also written to this path as a 300-dpi PNG with
         a white background and tight bounding box, before being shown.
@@ -501,8 +502,9 @@ def plot_critical_difference(
     you need to post-process it.
 
     Bars are computed from the pairwise rank gaps directly, so with many
-    algorithms the bars can overlap; each one is drawn on its own row below the
-    labels to keep them legible.
+    algorithms the bars can overlap; each one is drawn on its own row between
+    the rank axis and the labels. The method connector lines pass through the
+    bars, making group membership explicit.
 
     See Also
     --------
@@ -609,13 +611,30 @@ def plot_critical_difference(
     p_value = 1 - _chi2_cdf(chi2, n_algorithms - 1)
 
     # === PLOTTING (aeon style) ===
-    # Calculate figure size based on number of algorithms
+    # Calculate figure size from both the rank axis and the model labels. Long
+    # names need real horizontal space; expanding only the data-coordinate
+    # limits compresses the rank axis and produces awkward connector lines.
     if figsize is None:
-        width = max(8, n_algorithms * 1.0)
+        half = (n_algorithms + 1) // 2
+        left_label_width = max(len(name) for name in sorted_names[:half])
+        right_names_for_width = sorted_names[half:]
+        right_label_width = (
+            max(len(name) for name in right_names_for_width)
+            if right_names_for_width else 0
+        )
+        width = max(
+            8,
+            n_algorithms * 1.0
+            + (left_label_width + right_label_width) * 0.12,
+        )
         height = max(3, n_algorithms * 0.4)
         figsize = (width, height)
 
     fig, ax = setup_figure(figsize=figsize)
+    # Inline notebook output is commonly displayed on high-density screens.
+    # A higher raster DPI keeps labels and connector lines crisp there, while
+    # explicit save_path output continues to use 300 DPI below.
+    fig.set_dpi(160)
     fig.patch.set_facecolor('white')
     ax.set_facecolor('white')
 
@@ -640,6 +659,7 @@ def plot_critical_difference(
 
     # Vertical layout parameters (in data coordinates)
     line_height = 0.3
+    bar_gap = 0.12
     n_left = len(left_names)
     n_right = len(right_names)
     max_lines = max(n_left, n_right)
@@ -648,7 +668,7 @@ def plot_critical_difference(
     cd_space = 0.5  # Space for CD indicator at top
     axis_space = 0.3  # Space for axis labels
     algo_space = max_lines * line_height + 0.2
-    clique_space = max(0.3, n_cliques * 0.12 + 0.1)
+    clique_space = max(0.22, n_cliques * bar_gap + 0.12)
 
     total_height = cd_space + axis_space + algo_space + clique_space
 
@@ -695,9 +715,10 @@ def plot_critical_difference(
     left_text_x = lowv - 0.15
     line_color = connector_color
     line_width = 1.5
+    label_offset = clique_space + 0.1
 
     for i, (name, rank) in enumerate(zip(left_names, left_ranks)):
-        y_pos = axis_y - 0.2 - (i * line_height)
+        y_pos = axis_y - label_offset - (i * line_height)
 
         # Algorithm name on the left
         ax.text(left_text_x, y_pos, name, ha='right', va='center',
@@ -716,7 +737,7 @@ def plot_critical_difference(
     right_text_x = highv + 0.15
 
     for i, (name, rank) in enumerate(zip(right_names, right_ranks)):
-        y_pos = axis_y - 0.2 - (i * line_height)
+        y_pos = axis_y - label_offset - (i * line_height)
 
         # Algorithm name on the right
         ax.text(right_text_x, y_pos, name, ha='left', va='center',
@@ -732,10 +753,10 @@ def plot_critical_difference(
         ax.plot(rank, axis_y, 'o', color=axis_color, markersize=8, zorder=5)
 
     # === Draw clique bars (algorithms not significantly different) ===
-    # Position clique bars below all algorithm labels
-    lowest_label_y = axis_y - 0.2 - (max_lines - 1) * line_height
-    bar_start_y = lowest_label_y - 0.25
-    bar_gap = 0.12
+    # Put clique bars immediately below the rank axis. Because each method's
+    # vertical connector continues down to its label, the bar visibly crosses
+    # every connector belonging to that non-significant group.
+    bar_start_y = axis_y - 0.1
 
     for i, clique in enumerate(clique_indices):
         if len(clique) < 2:
@@ -749,7 +770,7 @@ def plot_critical_difference(
 
         # Draw thick horizontal bar
         ax.plot([left_rank, right_rank], [y_bar, y_bar], color=axis_color,
-                linewidth=10, solid_capstyle='butt')
+                linewidth=6, solid_capstyle='round', zorder=6)
 
     # Title
     if title:
