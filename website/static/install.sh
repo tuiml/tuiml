@@ -9,12 +9,20 @@
 #   4. Asks whether to include the optional integrations
 #      (scikit-learn wrappers, CapyMOA streaming wrappers), and warns if
 #      CapyMOA was picked without a Java runtime on PATH
-#   5. Installs tuiml from the latest source on GitHub
-#      (always the freshest fixes, not just the last PyPI release)
+#   5. Installs tuiml — the latest PyPI release by default
 #   6. Verifies the install
 #   7. Prompts you to run `tuiml setup` to wire up your AI agent
 #
 # This script is idempotent and safe to re-run.
+#
+# Which version you get:
+#   Stable (default) — the latest release from PyPI. Ships prebuilt wheels,
+#   so it installs in seconds and needs no compiler:
+#     curl -fsSL https://tuiml.ai/install.sh | bash
+#
+#   Latest development code from GitHub main — unreleased, built from source,
+#   so it needs git and a C++ compiler:
+#     curl -fsSL https://tuiml.ai/install.sh | TUIML_CHANNEL=git bash
 #
 # Non-interactive / automation:
 #   Set TUIML_EXTRAS to skip the prompts, e.g.
@@ -24,8 +32,9 @@
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
-# Configurable: where the latest source lives
+# Configurable: which channel to install from, and where the source lives
 # ---------------------------------------------------------------------------
+TUIML_CHANNEL="${TUIML_CHANNEL:-stable}"   # "stable" (PyPI) or "git" (GitHub main)
 TUIML_GIT_URL="${TUIML_GIT_URL:-git+https://github.com/tuiml/tuiml.git}"
 
 # ---------------------------------------------------------------------------
@@ -80,11 +89,24 @@ detect_os() {
 }
 
 # ---------------------------------------------------------------------------
-# Prerequisite: C/C++ compiler (TuiML builds C++ extensions from source)
+# Prerequisite: C/C++ compiler.
+#
+# Only a hard requirement on the git channel, which always builds the C++
+# extensions from source. The PyPI channel ships prebuilt wheels, so a missing
+# compiler matters there only if no wheel matches this platform and Python and
+# uv has to fall back to the sdist — worth a warning, not a refusal.
 # ---------------------------------------------------------------------------
 ensure_compiler() {
+    local requirement="${1:-required}"
+
     if command -v c++ >/dev/null 2>&1 || command -v g++ >/dev/null 2>&1 || command -v clang++ >/dev/null 2>&1; then
         success "C++ compiler found"
+        return 0
+    fi
+
+    if [[ "$requirement" == "optional" ]]; then
+        warn "No C++ compiler found. Installing a prebuilt wheel, so this is"
+        echo "  ${DIM}usually fine — it only matters if no wheel matches your platform.${NC}"
         return 0
     fi
 
@@ -223,21 +245,50 @@ check_capymoa_java() {
 }
 
 # ---------------------------------------------------------------------------
-# Install tuiml from GitHub source (latest main branch)
+# Decide which channel to install from, setting the global CHANNEL.
+# ---------------------------------------------------------------------------
+select_channel() {
+    case "$TUIML_CHANNEL" in
+        stable|pypi|release)
+            CHANNEL="stable"
+            info "Channel: ${BOLD}stable${NC} ${DIM}(latest PyPI release)${NC}"
+            ;;
+        git|main|source|dev)
+            CHANNEL="git"
+            info "Channel: ${BOLD}git${NC} ${DIM}(GitHub main — unreleased, built from source)${NC}"
+            ;;
+        *)
+            err "Unknown TUIML_CHANNEL: '${TUIML_CHANNEL}' (use 'stable' or 'git')."
+            exit 1
+            ;;
+    esac
+}
+
+# ---------------------------------------------------------------------------
+# Install tuiml from the selected channel
 # ---------------------------------------------------------------------------
 install_tuiml() {
-    # Build the install spec, folding in any selected extras (PEP 508 form:
-    # "tuiml[sklearn,capymoa] @ git+https://...").
-    local spec="$TUIML_GIT_URL"
-    if [[ -n "${EXTRAS:-}" ]]; then
-        spec="tuiml[${EXTRAS}] @ ${TUIML_GIT_URL}"
+    # Fold any selected extras into the spec. PyPI takes "tuiml[a,b]"; a git
+    # install needs PEP 508 form, "tuiml[a,b] @ git+https://...".
+    local suffix="" spec
+    [[ -n "${EXTRAS:-}" ]] && suffix="[${EXTRAS}]"
+
+    if [[ "$CHANNEL" == "stable" ]]; then
+        spec="tuiml${suffix}"
+        info "Installing TuiML: ${DIM}${spec}${NC}"
+    else
+        if [[ -n "$suffix" ]]; then
+            spec="tuiml${suffix} @ ${TUIML_GIT_URL}"
+        else
+            spec="$TUIML_GIT_URL"
+        fi
+        info "Installing TuiML from source: ${DIM}${spec}${NC}"
+        info "This builds C++ extensions and may take a minute the first time."
     fi
 
-    info "Installing TuiML from latest source: ${DIM}${spec}${NC}"
-    info "This builds C++ extensions and may take a minute the first time."
-
     if command -v tuiml >/dev/null 2>&1; then
-        # Reinstall to pull the latest commits (uv tool upgrade only checks PyPI)
+        # Reinstall rather than upgrade: `uv tool upgrade` only ever checks
+        # PyPI, so it would not move a git install onto newer commits.
         uv tool install --reinstall --force "$spec"
     else
         uv tool install "$spec"
@@ -284,8 +335,15 @@ print_next_steps() {
 # ---------------------------------------------------------------------------
 banner
 detect_os
-ensure_compiler
-ensure_git
+select_channel
+# git builds from source and so needs both toolchains; the PyPI channel
+# installs a wheel and needs neither.
+if [[ "$CHANNEL" == "git" ]]; then
+    ensure_compiler required
+    ensure_git
+else
+    ensure_compiler optional
+fi
 ensure_uv
 select_extras
 check_capymoa_java
