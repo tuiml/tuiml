@@ -64,11 +64,19 @@ def info(no_check: bool, as_json: bool) -> None:
         ("Python",          f"{result.get('python_version')}  ({result.get('python_executable')})"),
         ("Platform",        result.get("platform")),
     ]
+    is_git = result.get("install_source") == "git"
     flag = "  ← update available" if result.get("update_available") else ""
 
-    # A git install tracks a branch, so it is compared by commit rather than
-    # by version — the two channels report different things.
-    if result.get("install_source") == "git":
+    # The latest release is shown on every channel. The arrow goes on
+    # whichever comparison actually decides update_available: the commit for
+    # a git install, the version otherwise.
+    if "latest_version" in result:
+        rows.append(("Latest on PyPI",
+                     result["latest_version"] + ("" if is_git else flag)))
+    elif "latest_version_error" in result:
+        rows.append(("Latest on PyPI", f"(check failed: {result['latest_version_error']})"))
+
+    if is_git:
         ref = result.get("tracking_ref", "main")
         rows.append(("Tracking", f"{ref} (git)"))
         if "installed_commit" in result:
@@ -77,10 +85,6 @@ def info(no_check: bool, as_json: bool) -> None:
             rows.append((f"Latest on {ref}", f"{result['latest_commit'][:12]}{flag}"))
         elif "latest_commit_error" in result:
             rows.append((f"Latest on {ref}", f"(check failed: {result['latest_commit_error']})"))
-    elif "latest_version" in result:
-        rows.append(("Latest on PyPI", f"{result['latest_version']}{flag}"))
-    elif "latest_version_error" in result:
-        rows.append(("Latest on PyPI", f"(check failed: {result['latest_version_error']})"))
 
     if result.get("update_available"):
         rows.append(("Upgrade hint", result.get("upgrade_hint")))

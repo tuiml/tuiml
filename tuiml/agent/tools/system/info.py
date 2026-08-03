@@ -181,15 +181,16 @@ def execute_system_info(**kwargs) -> Dict[str, Any]:
         ``python_version``, ``platform``, ``session_seed``, plus
         ``installed_commit`` for a VCS install.
 
-        When ``check_latest``, the comparison follows ``install_source``:
+        When ``check_latest``, ``latest_version`` and ``latest_released`` (or
+        ``latest_version_error``) are reported on every channel. What
+        ``update_available`` is measured against follows ``install_source``:
 
-        - ``pypi`` — ``latest_version``, ``update_available`` and
-          ``latest_released`` (or ``latest_version_error``).
-        - ``git`` — ``tracking_ref``, ``latest_commit`` and
-          ``update_available`` (or ``latest_commit_error``), since a branch
+        - ``pypi`` — the released version.
+        - ``git`` — the tracked branch head, adding ``tracking_ref`` and
+          ``latest_commit`` (or ``latest_commit_error``), since a branch
           install moves without the version string changing.
-        - ``editable`` — ``update_available`` is False; a dev checkout is
-          updated with ``git pull``.
+        - ``editable`` — nothing; ``update_available`` is False, because a dev
+          checkout is updated with ``git pull``.
 
         On failure: ``status`` (``'error'``), ``error`` and ``error_type``.
     """
@@ -244,6 +245,17 @@ def execute_system_info(**kwargs) -> Dict[str, Any]:
             )
 
     if kwargs.get("check_latest", True):
+        # The latest release is reported on every channel, so a caller can
+        # always see it and no consumer loses the field by installing from
+        # git. It only *decides* update_available on the PyPI channel.
+        pypi = _query_latest_pypi_version()
+        if pypi["ok"]:
+            result["latest_version"] = pypi["version"]
+            if pypi.get("released"):
+                result["latest_released"] = pypi["released"]
+        else:
+            result["latest_version_error"] = pypi["error"]
+
         # A git install tracks a branch, not a version: main's pyproject and
         # the last PyPI release usually carry the same version string, so
         # comparing versions would report "up to date" however far behind the
@@ -261,19 +273,11 @@ def execute_system_info(**kwargs) -> Dict[str, Any]:
             else:
                 result["latest_commit_error"] = remote["error"]
         elif source["kind"] == "editable":
-            # A dev checkout is updated with git pull, not by us; claiming an
-            # update is available against PyPI would be noise.
+            # A dev checkout is updated with git pull, not by us; measuring it
+            # against PyPI would report an update we cannot perform.
             result["update_available"] = False
-        else:
-            pypi = _query_latest_pypi_version()
-            if pypi["ok"]:
-                latest = pypi["version"]
-                result["latest_version"] = latest
-                result["update_available"] = (latest != version)
-                if pypi.get("released"):
-                    result["latest_released"] = pypi["released"]
-            else:
-                result["latest_version_error"] = pypi["error"]
+        elif pypi["ok"]:
+            result["update_available"] = (pypi["version"] != version)
 
     return result
 
