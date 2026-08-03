@@ -666,6 +666,12 @@ async def run_server():
     # here for seconds makes tools miss the client's first index pass.
     def _preload_components():
         try:
+            # Re-register agent-authored algorithms first, so they survive a
+            # server restart and are counted among the discoverable
+            # components below rather than appearing only on first use.
+            from tuiml.agent.user_algorithms import ensure_loaded
+            ensure_loaded(verbose=True)
+
             from tuiml.agent.tools import get_workflow_tools
             from tuiml.agent.tools._components import get_all_tools
             exposed = len(get_workflow_tools())

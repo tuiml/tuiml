@@ -277,7 +277,11 @@ def execute_tool(tool_name: str, **kwargs) -> Dict[str, Any]:
             result['random_seed'] = random_seed
         return result
 
-    # For any component tool, ensure full registry is loaded
+    # For any component tool, ensure full registry is loaded — including the
+    # user's own algorithms, which a tool call may well be naming.
+    from tuiml.agent.user_algorithms import ensure_loaded
+    ensure_loaded()
+
     from ._components import get_tool
     tool = get_tool(tool_name)
     if tool:
@@ -294,22 +298,12 @@ def execute_tool(tool_name: str, **kwargs) -> Dict[str, Any]:
     return {'status': 'error', 'error': f"Unknown tool: {tool_name}"}
 
 
-# Bootstrap: re-register agent-authored algorithms from disk so they survive
-# MCP server restarts.
-try:
-    from tuiml.agent import user_algorithms as _user_algorithms
-    _bootstrap_result = _user_algorithms.load_all()
-    if _bootstrap_result.get("loaded"):
-        import sys as _sys
-        print(f"[tuiml] loaded {_bootstrap_result['loaded']} user algorithm(s)",
-              file=_sys.stderr)
-    if _bootstrap_result.get("errors"):
-        import sys as _sys
-        for err in _bootstrap_result["errors"]:
-            print(f"[tuiml] user algorithm load error: {err}", file=_sys.stderr)
-except Exception as _e:  # never block the server on bootstrap failures
-    import sys as _sys
-    print(f"[tuiml] user-algorithm bootstrap failed: {_e}", file=_sys.stderr)
+# Agent-authored algorithms are re-registered from disk by
+# ``user_algorithms.ensure_loaded()``, which the MCP server, the CLI and
+# ``execute_tool`` each call before touching the registry. It deliberately does
+# not run here: importing this module is not a reason to execute user code, and
+# every CLI command imports it transitively — which is how ``tuiml --version``
+# used to load user algorithms and print about it.
 
 
 # Re-exported for callers that reach past the tool layer (the `tuiml update`

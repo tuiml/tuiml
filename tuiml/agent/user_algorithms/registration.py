@@ -146,3 +146,51 @@ def load_all() -> Dict[str, Any]:
 
     return {"status": "success", "loaded": len(loaded),
             "algorithms": loaded, "errors": errors}
+
+
+_LOAD_RESULT: Dict[str, Any] | None = None
+
+
+def ensure_loaded(verbose: bool = False) -> Dict[str, Any]:
+    """Run :func:`load_all` once per process, returning the cached result after.
+
+    Registering user algorithms means executing Python from
+    ``USER_ALGS_DIR``, so it must happen before anything reads the registry
+    but never merely because a module was imported. Callers that are about to
+    touch the registry — the MCP server, a CLI subcommand, ``execute_tool`` —
+    call this; ``tuiml --version`` and ``tuiml --help`` never do, and so never
+    run user code.
+
+    Parameters
+    ----------
+    verbose : bool, default=False
+        Report the load on stderr. The MCP server passes True, where the
+        counts are startup logging; the CLI leaves it False so ordinary
+        commands stay quiet.
+
+    Returns
+    -------
+    result : Dict[str, Any]
+        Whatever :func:`load_all` returned on the first call.
+    """
+    global _LOAD_RESULT
+    if _LOAD_RESULT is not None:
+        return _LOAD_RESULT
+
+    try:
+        _LOAD_RESULT = load_all()
+    except Exception as e:  # never block the caller on bootstrap failures
+        _LOAD_RESULT = {"status": "error", "loaded": 0, "algorithms": [],
+                        "errors": [{"path": str(USER_ALGS_DIR), "error": str(e)}]}
+        print(f"[tuiml] user-algorithm bootstrap failed: {e}", file=sys.stderr)
+        return _LOAD_RESULT
+
+    if verbose and _LOAD_RESULT.get("loaded"):
+        print(f"[tuiml] loaded {_LOAD_RESULT['loaded']} user algorithm(s)",
+              file=sys.stderr)
+    # Errors surface regardless of verbosity: a user algorithm that failed to
+    # register is silently missing from the registry otherwise.
+    for err in _LOAD_RESULT.get("errors", []):
+        print(f"[tuiml] user algorithm load error: {err}", file=sys.stderr)
+
+    return _LOAD_RESULT

@@ -39,7 +39,7 @@ that reaches here still runs in your interpreter with your permissions.
 """
 
 from ._paths import USER_ALGS_DIR
-from .registration import load_all
+from .registration import ensure_loaded, load_all
 from .research_log import record_experiment_runs, research_log
 from .sources import (
     edit_algorithm,
@@ -55,6 +55,7 @@ __all__ = [
     "create",
     "delete",
     "list_all",
+    "ensure_loaded",
     "load_all",
     "skeleton",
     "read_source",

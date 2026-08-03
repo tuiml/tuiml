@@ -76,6 +76,13 @@ def cli(ctx, random_seed):
 
     $ tuiml train --help
     """
+    # Register the user's own algorithms before any subcommand reads the
+    # registry. This runs here rather than at import so that --version and
+    # --help, which click handles eagerly and exits before this callback, do
+    # not execute user code or report on it.
+    from tuiml.agent.user_algorithms import ensure_loaded
+    ensure_loaded()
+
     if random_seed is not None:
         from tuiml.utils.seed import set_global_seed
         set_global_seed(random_seed)
