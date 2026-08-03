@@ -16,12 +16,12 @@
 # This script is idempotent and safe to re-run.
 #
 # Which version you get:
-#   Stable (default) — the latest release from PyPI. Ships prebuilt wheels,
-#   so it installs in seconds and needs no compiler:
-#     curl -fsSL https://tuiml.ai/install.sh | bash
+#   The installer asks, offering the stable PyPI release (prebuilt, no
+#   compiler needed) or the newest code from GitHub main (unreleased, built
+#   from source). Stable is the default and what a non-interactive run takes.
 #
-#   Latest development code from GitHub main — unreleased, built from source,
-#   so it needs git and a C++ compiler:
+#   Skip the question with TUIML_CHANNEL:
+#     curl -fsSL https://tuiml.ai/install.sh | TUIML_CHANNEL=stable bash
 #     curl -fsSL https://tuiml.ai/install.sh | TUIML_CHANNEL=git bash
 #
 # Non-interactive / automation:
@@ -34,7 +34,8 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 # Configurable: which channel to install from, and where the source lives
 # ---------------------------------------------------------------------------
-TUIML_CHANNEL="${TUIML_CHANNEL:-stable}"   # "stable" (PyPI) or "git" (GitHub main)
+TUIML_CHANNEL="${TUIML_CHANNEL:-}"   # "stable" (PyPI) or "git" (GitHub main);
+                                     # empty means ask, or stable if no terminal
 TUIML_GIT_URL="${TUIML_GIT_URL:-git+https://github.com/tuiml/tuiml.git}"
 
 # ---------------------------------------------------------------------------
@@ -246,22 +247,58 @@ check_capymoa_java() {
 
 # ---------------------------------------------------------------------------
 # Decide which channel to install from, setting the global CHANNEL.
+#
+# Asks when there is a terminal to ask on. TUIML_CHANNEL skips the question,
+# and a non-interactive run (CI, Docker, `| bash` with no tty) takes stable,
+# so an unattended install is never left waiting on input.
 # ---------------------------------------------------------------------------
 select_channel() {
-    case "$TUIML_CHANNEL" in
-        stable|pypi|release)
-            CHANNEL="stable"
-            info "Channel: ${BOLD}stable${NC} ${DIM}(latest PyPI release)${NC}"
-            ;;
-        git|main|source|dev)
-            CHANNEL="git"
-            info "Channel: ${BOLD}git${NC} ${DIM}(GitHub main — unreleased, built from source)${NC}"
-            ;;
-        *)
-            err "Unknown TUIML_CHANNEL: '${TUIML_CHANNEL}' (use 'stable' or 'git')."
-            exit 1
-            ;;
+    # Explicit env var wins — non-interactive override for automation/CI.
+    if [[ -n "$TUIML_CHANNEL" ]]; then
+        case "$TUIML_CHANNEL" in
+            stable|pypi|release) CHANNEL="stable" ;;
+            git|main|source|dev) CHANNEL="git" ;;
+            *)
+                err "Unknown TUIML_CHANNEL: '${TUIML_CHANNEL}' (use 'stable' or 'git')."
+                exit 1
+                ;;
+        esac
+        _announce_channel
+        return 0
+    fi
+
+    # Under `curl | bash` stdin is the script itself, so prompt via /dev/tty.
+    if [[ ! -t 1 ]] || [[ ! -r /dev/tty ]]; then
+        CHANNEL="stable"
+        _announce_channel
+        info "Non-interactive — set ${DIM}TUIML_CHANNEL=git${NC} for the development build."
+        return 0
+    fi
+
+    local ans
+    echo
+    echo "  ${BOLD}Which version?${NC}"
+    echo
+    echo "    ${BOLD}1${NC}) Stable    ${DIM}latest release from PyPI, prebuilt — recommended${NC}"
+    echo "    ${BOLD}2${NC}) Developer ${DIM}newest code from GitHub main, unreleased,${NC}"
+    echo "                 ${DIM}built from source (needs git + a C++ compiler)${NC}"
+    echo
+    printf "  Choice [1]: "
+    read -r ans < /dev/tty || ans=""
+
+    case "$ans" in
+        2|g|git|dev|d) CHANNEL="git" ;;
+        *)             CHANNEL="stable" ;;
     esac
+    _announce_channel
+}
+
+_announce_channel() {
+    if [[ "$CHANNEL" == "stable" ]]; then
+        info "Channel: ${BOLD}stable${NC} ${DIM}(latest PyPI release)${NC}"
+    else
+        info "Channel: ${BOLD}git${NC} ${DIM}(GitHub main — unreleased, built from source)${NC}"
+    fi
 }
 
 # ---------------------------------------------------------------------------
