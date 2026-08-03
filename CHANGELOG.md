@@ -7,6 +7,97 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **`curl … | install.sh | bash` now installs a release, and asks first.** The
+  installer only ever installed from `git+https://github.com/tuiml/tuiml.git`,
+  so the documented one-liner handed out whatever happened to be on `main` —
+  unreleased code between releases — and compiled the C++ extensions locally,
+  bypassing the published wheels and requiring a compiler. It also disagreed
+  with `tuiml update`, which resolves against PyPI, so installing with the
+  script and then updating silently switched channels. It now offers the
+  choice:
+
+  ```
+    1) Stable    latest release from PyPI, prebuilt — recommended
+    2) Developer newest code from GitHub main, unreleased, built from source
+  ```
+
+  `TUIML_CHANNEL=stable|git` skips the question, and a run with no terminal
+  takes stable rather than blocking, so CI and Docker are unaffected. `git`
+  and a C++ compiler are now required only on the developer channel.
+- **`import tuiml` no longer imports the library.** It imported the registry,
+  every algorithm, training, benchmarking, serving, workflow, the agent
+  package and both optional bridges at module scope — about 2.3s, pulling in
+  matplotlib and seaborn, paid by every import including the one behind
+  `tuiml --version`. Public names now resolve on first use (PEP 562), so
+  nothing is imported until something is actually used:
+
+  | | before | after |
+  |---|---|---|
+  | `import tuiml` | 2.25s | 0.03s |
+  | `tuiml --version` | 2.0s | 0.05s |
+  | `tuiml --help` | 2.0s | 0.49s |
+
+  Those imports were also what populated the component registry, which now
+  fills itself on first read instead (`Registry._ensure_populated`). This is
+  stricter than before, not looser: `from tuiml.registry import registry`
+  previously saw a populated registry only because importing the parent
+  package had imported everything, and now populates however it is reached.
+  The catalogue is unchanged at 252 components with the same per-type
+  breakdown. `tuiml.agent`, `tuiml.algorithms` and the other submodules
+  remain reachable as attributes, and `import tuiml.agent as x` still yields
+  the module rather than the `agent()` function.
+- **User algorithms are no longer registered by importing
+  `tuiml.agent.tools`.** The CLI, the MCP server and `execute_tool` all load
+  them at the point they read the registry, so nothing changes for those
+  paths. Code that imported the module directly and then expected the
+  registry to contain agent-authored algorithms should call
+  `tuiml.agent.user_algorithms.ensure_loaded()`.
+- **`tuiml_system_info` reports `install_source`**, and on a VCS install
+  `installed_commit`, `tracking_ref` and `latest_commit`. `latest_version` is
+  still reported on every channel.
+
+### Fixed
+- **Every `tuiml` command loaded your user algorithms and announced it.**
+
+  ```
+  $ tuiml --version
+  [tuiml] loaded 2 user algorithm(s)
+  tuiml, version 0.1.9
+  ```
+
+  `tuiml/agent/tools/__init__.py` called `load_all()` at module scope, and 27
+  of the 30 CLI subcommand modules import it — so asking for the version
+  scanned `~/.tuiml/user_algorithms` and executed whatever Python it found
+  there. `load_all()`'s own docstring says "Called once at MCP server
+  startup", which was the intent; module scope made it universal. Loading is
+  now on demand, and `--version` and `--help` never trigger it.
+- **`tuiml update` reported `✓ TuiML upgraded: ? → ?`** on every successful
+  upgrade. The summary read `previous_version` and `version`, but the tool
+  returns `version_before` and `version_after`, so both lookups missed and
+  fell to a placeholder. The upgrade itself always worked; only the report
+  was wrong, which made a working command look broken.
+- **`tuiml update` moved a git install onto PyPI.** It always ran
+  `uv tool install --reinstall --force tuiml`, naming the released package
+  whatever the install actually was, so a developer-channel install was
+  quietly switched to the release — and because `main` and the last release
+  share a version string, the report read as a no-op (`0.1.9 → 0.1.9`) while
+  the channel changed underneath. It now updates along the channel it finds,
+  and prints the commit, which is the only thing that visibly moves on a
+  branch install. `--target` on a git install is a clear error rather than a
+  silent switch.
+- **Update checks only ever consulted PyPI**, so a git install always looked
+  current: `main`'s version string normally equals the last release, however
+  far behind the checkout was. The channel is detected from PEP 610
+  `direct_url.json` and compared appropriately — released version for PyPI,
+  tracked branch head via `git ls-remote` for git (no API token, no rate
+  limit), nothing for an editable checkout, which `git pull` updates.
+- **The installer appeared to hang after "Installed 2 executables".** The next
+  thing it runs is `tuiml --version`, which on a fresh install compiles
+  bytecode for the whole dependency tree while printing nothing. Installs now
+  pass `--compile-bytecode`, so that work happens during installation where
+  uv shows progress, and the verification step announces itself.
+
 ## [0.1.9] - 2026-08-03
 
 ### Fixed
