@@ -1,8 +1,10 @@
-"""Tests for tuiml.workflow (Workflow and On)."""
+"""High-level workflow API.
+
+Merged from: test_workflow.py, test_workflow_seed.py
+"""
 
 import numpy as np
 import pytest
-
 from tuiml.workflow import Workflow, On
 from tuiml.algorithms.bayesian import NaiveBayesClassifier
 from tuiml.algorithms.trees import RandomForestClassifier
@@ -13,11 +15,17 @@ from tuiml.features.selection import SelectKBestSelector
 from tuiml.preprocessing import (
     MinMaxScaler, OneHotEncoder, OrdinalEncoder, SimpleImputer, StandardScaler,
 )
+import random
+import pandas as pd
+from tuiml.utils.seed import set_global_seed, get_global_seed
+from tuiml.training import train
+from tuiml.agent.tools import execute_tool
 
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
+# --------------------------------------------------------------------------
+# Tests for tuiml.workflow (Workflow and On).
+# --------------------------------------------------------------------------
+
 class _TrackingScaler:
     """Transformer that records how many rows each fit saw."""
 
@@ -81,9 +89,6 @@ def _make_classification_data(n_samples=100, n_features=4, seed=42):
     return X, y
 
 
-# ===========================================================================
-# Construction — the three step notations
-# ===========================================================================
 class TestWorkflowConstruction:
     def test_empty(self):
         wf = Workflow()
@@ -135,9 +140,6 @@ class TestWorkflowConstruction:
         assert [name for name, _ in wf.transformers] == ["simpleimputer", "standardscaler"]
 
 
-# ===========================================================================
-# Parameters — nested step__param addressing
-# ===========================================================================
 class TestWorkflowParams:
     def test_get_params_deep(self):
         wf = Workflow([PCAExtractor(), NaiveBayesClassifier()])
@@ -170,9 +172,6 @@ class TestWorkflowParams:
         assert list(wf.named_steps)[0] == "minmaxscaler"
 
 
-# ===========================================================================
-# fit() — sklearn semantics plus optional evaluation
-# ===========================================================================
 class TestWorkflowFit:
     def test_fit_arrays_returns_self(self):
         X, y = _make_classification_data()
@@ -255,9 +254,6 @@ class TestWorkflowFit:
             Workflow([NaiveBayesClassifier()]).fit("iris", features=["nope"])
 
 
-# ===========================================================================
-# Inference — the pipeline travels with the model
-# ===========================================================================
 class TestWorkflowInference:
     def test_predict_applies_fitted_steps(self):
         X, y = _make_classification_data(n_samples=20, n_features=4, seed=2)
@@ -306,9 +302,6 @@ class TestWorkflowInference:
         np.testing.assert_array_equal(loaded.predict(X), wf.predict(X))
 
 
-# ===========================================================================
-# On — column routing
-# ===========================================================================
 class TestOn:
     def _mixed(self):
         """Two numeric columns and one categorical, as an object array."""
@@ -391,9 +384,6 @@ class TestOn:
         assert params["remainder"] == "drop"
 
 
-# ===========================================================================
-# to_config — export back to a train() spec
-# ===========================================================================
 class TestWorkflowConfig:
     def test_to_config(self):
         config = Workflow([
@@ -439,9 +429,6 @@ class TestWorkflowConfig:
         assert "estimators_" not in config["model"].get("params", {})
 
 
-# ===========================================================================
-# Display
-# ===========================================================================
 class TestWorkflowDisplay:
     def test_repr_lists_steps(self):
         text = repr(Workflow([StandardScaler(), NaiveBayesClassifier()]))
@@ -471,9 +458,6 @@ class TestWorkflowDisplay:
         assert first != second  # different container ids
 
 
-# ===========================================================================
-# Task detection — each model family takes a different path through fit()
-# ===========================================================================
 class TestWorkflowTaskTypes:
     def test_classifier_metrics(self):
         wf = Workflow([StandardScaler(), NaiveBayesClassifier()]).fit(
@@ -513,9 +497,6 @@ class TestWorkflowTaskTypes:
         assert len(wf.model_.predict(3)) == 3
 
 
-# ===========================================================================
-# to_config / experiment — regressions found while porting the tutorials
-# ===========================================================================
 class TestConfigRoundTripRegressions:
     def test_to_config_is_json_writable(self):
         """The spec must survive a JSON round trip to be worth exporting."""
@@ -542,9 +523,7 @@ class TestConfigRoundTripRegressions:
         spec["data"] = {"source": "iris"}
         tuiml.train(spec)  # replaying the spec must not raise
 
-# ===========================================================================
-# Review fixes — fold leakage, task inference, metric averaging, exports
-# ===========================================================================
+
 class _CountingScaler:
     """Records the size of every dataset it is fitted on."""
 
@@ -652,9 +631,6 @@ class TestReviewFixes:
         assert Workflow()._estimator_type is None
 
 
-# ===========================================================================
-# Second review round — override forwarding, tuple labels, class union
-# ===========================================================================
 class TestSecondReviewFixes:
     def test_call_metric_counts_predicted_classes_too(self):
         """Two true classes + a third predicted class is still multiclass."""
@@ -668,9 +644,6 @@ class TestSecondReviewFixes:
         assert result == pytest.approx(f1_score(y_true, y_pred, average="macro"))
 
 
-# ===========================================================================
-# String columns must survive the whole path: loader -> On -> encoder
-# ===========================================================================
 class TestCategoricalCsvPath:
     @pytest.fixture
     def mixed_csv(self, tmp_path):
@@ -726,12 +699,6 @@ class TestCategoricalCsvPath:
         assert wf.predict(row).shape == (1,)
 
 
-
-
-
-# ===========================================================================
-# benchmark() — the comparison framework
-# ===========================================================================
 class TestBenchmark:
     def _quick(self, **overrides):
         import tuiml
@@ -949,3 +916,91 @@ class TestBenchmarkValidation:
             random_seed=1,
         ).run()
         assert len(result.scores_) > 0
+
+
+# --------------------------------------------------------------------------
+# test_workflow_seed.py
+# --------------------------------------------------------------------------
+
+class TestWorkflowSeed:
+    """test_workflow_seed.py."""
+
+    def test_global_seed_utility(self):
+        set_global_seed(42)
+        assert get_global_seed() == 42
+
+        val1 = random.random()
+        np_val1 = np.random.rand()
+
+        set_global_seed(42)
+        val2 = random.random()
+        np_val2 = np.random.rand()
+
+        assert val1 == val2
+        assert np_val1 == np_val2
+
+        # Clean up
+        set_global_seed(None)
+        assert get_global_seed() is None
+
+    def test_api_train_seed_determinism(self):
+        # Create a simple synthetic classification dataset
+        from tuiml.datasets.generators import Blobs
+        data = Blobs(n_samples=50, n_features=3, n_clusters=2, random_state=42).generate()
+        df = pd.DataFrame(data.X, columns=['x1', 'x2', 'x3'])
+        df['target'] = data.y
+
+        # Run train with explicit random_seed
+        res1 = train({"model": {"name": "RandomForestClassifier"}, "data": df,
+                      "target": "target", "random_seed": 42})
+        res2 = train({"model": {"name": "RandomForestClassifier"}, "data": df,
+                      "target": "target", "random_seed": 42})
+        assert res1.metrics_ == res2.metrics_
+
+        # Set global seed and run train with no explicit seed (should fallback to global seed)
+        set_global_seed(123)
+        res3 = train({"model": {"name": "RandomForestClassifier"}, "data": df, "target": "target"})
+
+        set_global_seed(123)
+        res4 = train({"model": {"name": "RandomForestClassifier"}, "data": df, "target": "target"})
+        assert res3.metrics_ == res4.metrics_
+
+        set_global_seed(None)
+
+    def test_mcp_tool_execute_seed(self):
+        # Create simple dataframe and save it temporarily
+        import tempfile
+        import os
+        with tempfile.TemporaryDirectory() as tmpdir:
+            csv_path = os.path.join(tmpdir, "test.csv")
+            from tuiml.datasets.generators import Blobs
+            data = Blobs(n_samples=50, n_features=3, n_clusters=2, random_state=42).generate()
+            df = pd.DataFrame(data.X, columns=['x1', 'x2', 'x3'])
+            df['target'] = data.y
+            df.to_csv(csv_path, index=False)
+
+            # Test tuiml_train via MCP
+            res1 = execute_tool("tuiml_train", algorithm="RandomForestClassifier", data=csv_path, target="target", random_seed=777)
+            assert res1['status'] == 'success'
+            assert res1['random_seed'] == 777
+
+            res2 = execute_tool("tuiml_train", algorithm="RandomForestClassifier", data=csv_path, target="target", random_seed=777)
+            assert res2['status'] == 'success'
+            assert res2['random_seed'] == 777
+
+            # Verify determinism
+            assert res1['metrics'] == res2['metrics']
+
+            # Test tuiml_benchmark via MCP
+            exp_res1 = execute_tool(
+                "tuiml_benchmark",
+                algorithms=["RandomForestClassifier"],
+                data=csv_path,
+                target="target",
+                random_seed=888
+            )
+            assert exp_res1['status'] == 'success'
+            assert exp_res1['random_seed'] == 888
+
+            # Clean up global seed
+            set_global_seed(None)
