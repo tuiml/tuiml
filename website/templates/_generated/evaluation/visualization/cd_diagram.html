@@ -846,7 +846,7 @@ Here SVM is significantly better than everything to the right of Forest, Forest 
                     
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
-                    Figure size in inches. When None, it scales with the number of algorithms — width <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">max(8, k)</code>, height <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">max(3, 0.4 * k)</code> — which is usually the right thing, since the diagram grows vertically with <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">k</code>.
+                    Figure size in inches. When None, the width scales with both the number of algorithms and the longest labels on each side; the height scales with the number of algorithms. This leaves enough room for long model names without compressing the rank axis.
                 </div>
             </div>
             
@@ -938,7 +938,7 @@ Side effects: this function mutates the global matplotlib style (see <code class
 </p>
 
 <p class="mb-4">
-Bars are computed from the pairwise rank gaps directly, so with many algorithms the bars can overlap; each one is drawn on its own row below the labels to keep them legible.
+Bars are computed from the pairwise rank gaps directly, so with many algorithms the bars can overlap; each one is drawn on its own row between the rank axis and the labels. The method connector lines pass through the bars, making group membership explicit.
 </p>
 </div>
         </div>

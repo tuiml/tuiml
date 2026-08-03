@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-08-03
+
 ### Fixed
 - **30 components omitted constructor parameters from `get_parameter_schema`**,
   18 of them `random_state`. The schema is not documentation: it is what
@@ -26,6 +28,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   reports the session seed, and `TUIML_SEED` pins it up front for CI and bug
   reports. The seed was always genuinely applied — `set_global_seed` was
   called with it — so this is a change of scope, not of whether seeding worked.
+- **Benchmark ranking tables ranked backwards for lower-is-better metrics.**
+  `Benchmark.plot_ranking` handed per-dataset means to `plot_ranking_table`
+  without saying which direction was better, and the default is
+  higher-is-better — so an RMSE or log-loss table ranked the worst model
+  first. The same call dropped the dataset names, leaving rows identified only
+  by position. Direction now comes from `_higher_is_better` and the row labels
+  from the score table's index. Tied ranks were separately truncated by
+  `int()`, so a two-way tie at rank 1.5 printed as `1` for both models; ties
+  now render as the fraction they are.
+- **Critical-difference diagrams crowded long model names.** Figure width was
+  derived from the number of algorithms alone, so long names ran into the rank
+  axis, and widening only the data limits compressed the axis instead of the
+  figure. Width now also accounts for the longest label on each side. The
+  clique bars additionally sat below every label, where they crossed none of
+  the connectors whose grouping they encode; they now sit directly under the
+  rank axis so each bar passes through the connector of every method in its
+  group.
 
 ### Changed
 - **Tutorial chapter 8 no longer claims tree algorithms crash on `NaN`.** The
@@ -559,6 +578,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Model serialization via joblib with save/load utilities.
 - Cross-validation, grid search, and hyperparameter tuning support.
 
+[0.1.9]: https://github.com/tuiml/tuiml/releases/tag/v0.1.9
 [0.1.8]: https://github.com/tuiml/tuiml/releases/tag/v0.1.8
 [0.1.7]: https://github.com/tuiml/tuiml/releases/tag/v0.1.7
 [0.1.6]: https://github.com/tuiml/tuiml/releases/tag/v0.1.6

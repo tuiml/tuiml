@@ -45,7 +45,7 @@ DOMAIN = "https://tuiml.ai"
 # rewritten by scripts/bump_version.py — don't change its assignment form.
 # ---------------------------------------------------------------------------
 APP_NAME = "TuiML"
-APP_VERSION = "0.1.8"
+APP_VERSION = "0.1.9"
 APP_STATUS = "Alpha"
 PROJECT_NAME = "TuiML"
 GITHUB_URL = "https://github.com/tuiml/tuiml"
