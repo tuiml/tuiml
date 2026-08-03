@@ -69,8 +69,11 @@ def update(target_version: str, dry_run: bool, as_json: bool) -> None:
         click.echo(f"install method: {result['install_method']}")
         return
 
-    before = result.get("previous_version", "?")
-    after  = result.get("version", "?")
+    # execute_self_update reports these as version_before/version_after, and
+    # either can be None when the probe that reads them fails — so fall back
+    # on a falsy value, not just a missing key.
+    before = result.get("version_before") or "?"
+    after  = result.get("version_after") or "?"
     click.echo(f"✓ TuiML upgraded: {before} → {after}")
     if result.get("install_method"):
         click.echo(f"  via: {result['install_method']}")
