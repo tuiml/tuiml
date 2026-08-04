@@ -77,4 +77,7 @@ SPEC = ToolSpec(
     group='workflow',
     read_only=True, destructive=False,
     idempotent=True, open_world=False,
+    # Scaffolding only: the filled-in source arrives via tuiml_create_algorithm,
+    # which is what the notebook exports. An empty template is not a workflow step.
+    reproducible=False,
 )

@@ -58,6 +58,91 @@ def _data_load_lines(data: str) -> List[str]:
     return [f"_dataset = load_dataset({repr(data)})"]
 
 
+def _algorithm_source_cell(source: str, header: List[str]) -> List[str]:
+    """Return code-cell lines: a comment header followed by algorithm source.
+
+    Parameters
+    ----------
+    source : str
+        Full Python source of a user-authored algorithm.
+    header : list of str
+        Comment lines (each newline-terminated) to place above the source.
+
+    Returns
+    -------
+    lines : list of str
+        Source lines for a notebook code cell, with no trailing blank line.
+    """
+    body = source.splitlines(keepends=True)
+    while body and not body[-1].strip():
+        body.pop()
+    if not body:
+        return list(header) + ["# (source unavailable)"]
+    if body[-1].endswith('\n'):
+        body[-1] = body[-1][:-1]
+    return list(header) + body
+
+
+def _read_user_algorithm_source(name: str, version: Optional[str] = None) -> tuple:
+    """Read a user algorithm's current on-disk source.
+
+    The import is local: notebook translation must not drag the
+    user-algorithm storage layer into every import of this module.
+
+    Parameters
+    ----------
+    name : str
+        User algorithm name (directory / class name).
+    version : str, default=None
+        Pin a specific version; None reads the newest on disk.
+
+    Returns
+    -------
+    source : str or None
+        The full source, or None when it could not be read.
+    error : str or None
+        Reason the read failed, or None on success.
+    """
+    try:
+        from tuiml.agent.user_algorithms import read_source
+        res = read_source(name, version=version)
+    except Exception as e:
+        return None, str(e)
+    if not isinstance(res, dict) or res.get('status') != 'success':
+        return None, (res or {}).get('error', 'unknown error')
+    return res.get('source'), None
+
+
+def _already_emitted(emitted: Optional[Dict], name: str, source: str) -> bool:
+    """Whether this exact source was already emitted for `name`.
+
+    A session that edits an algorithm several times records one call per
+    edit, but every edit cell re-reads the same final on-disk source;
+    emitting them all would put N identical class definitions in the
+    notebook.
+
+    Parameters
+    ----------
+    emitted : dict or None
+        Mutable ``name -> last emitted source`` map. None disables dedup.
+    name : str
+        Algorithm name the source belongs to.
+    source : str
+        Source about to be emitted.
+
+    Returns
+    -------
+    duplicate : bool
+        True when the caller should skip this cell.
+    """
+    if emitted is None:
+        return False
+    if emitted.get(name) == source:
+        return True
+    emitted[name] = source
+    return False
+
+
 def _resolve_model_var(model_id: Optional[str], fallback: str = "model_1") -> str:
     """Map a model_id back to the Python variable name used in the notebook.
 
@@ -78,7 +163,8 @@ def _resolve_model_var(model_id: Optional[str], fallback: str = "model_1") -> st
     return fallback
 
 
-def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
+def _translate_call(call: Dict, train_counter: List[int],
+                    emitted_sources: Optional[Dict] = None) -> tuple:
     """Translate one recorded session call into notebook cells.
 
     Parameters
@@ -88,6 +174,10 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
     train_counter : list of int
         Single-element mutable counter of train calls seen so far, used
         to number ``result_N`` / ``model_N`` variables.
+    emitted_sources : dict, default=None
+        Mutable ``algorithm name -> last emitted source`` map used to skip
+        repeated identical definitions of a user-authored algorithm. None
+        disables that dedup.
 
     Returns
     -------
@@ -121,6 +211,68 @@ def _translate_call(call: Dict, train_counter: List[int]) -> tuple:
         if target:
             code.append(f"print('Class distribution:\\n', _df_profile[{repr(target)}].value_counts())\n")
         code.append("_df_profile.describe()")
+        return md, code
+
+    # ── tuiml_create_algorithm ───────────────────────────────────────────────
+    if tool == 'tuiml_create_algorithm':
+        name = args.get('name', 'UserAlgorithm')
+        kind = args.get('kind', '')
+        version = args.get('version', '1.0.0')
+        description = args.get('description')
+        source = args.get('code', '')
+        if _already_emitted(emitted_sources, name, source):
+            return None, None
+        md = [
+            f"## Define Algorithm `{name}` (v{version})\n",
+            f"> `tuiml_create_algorithm(name={name!r}, kind={kind!r}, version={version!r})`\n",
+        ]
+        if description:
+            md.append(f"\n{description}\n")
+        # A user-authored algorithm lives in ~/.tuiml/user_algorithms/, not in
+        # the installed package, so `pip install tuiml` alone would leave the
+        # later tuiml.train(...) cells unable to resolve the name. Inlining the
+        # source keeps the notebook self-contained.
+        md.append(
+            "\nThis algorithm was authored during the session, so it is not part of the "
+            "installed package. Its source is inlined here: running the cell fires the "
+            "`@classifier`/`@regressor` decorator, which registers the class under "
+            f"`{name}` for the training cells below."
+        )
+        code = _algorithm_source_cell(source, [
+            f"# User-authored algorithm `{name}` v{version}, registered on execution.\n",
+        ])
+        return md, code
+
+    # ── tuiml_edit_algorithm ─────────────────────────────────────────────────
+    if tool == 'tuiml_edit_algorithm':
+        name = args.get('name', '')
+        # The recorded args hold only the old->new fragment, which is not
+        # runnable on its own, so re-read the full post-edit source from disk.
+        # After a version bump the edit landed in a *new* version, so read the
+        # latest rather than the version the edit targeted.
+        version = None if args.get('bump_version') else args.get('version')
+        source, read_err = _read_user_algorithm_source(name, version)
+        if source is not None and _already_emitted(emitted_sources, name, source):
+            return None, None
+        md = [
+            f"## Redefine Algorithm `{name}` (edited)\n",
+            f"> `tuiml_edit_algorithm(name={name!r}, ...)`\n",
+            "\nThe session edited this algorithm. The full post-edit source is inlined "
+            "below so the notebook reproduces the edited version; re-running it "
+            "re-registers the class over any earlier definition.",
+        ]
+        if source is None:
+            code = [
+                f"# Could not recover the post-edit source of `{name}`: {read_err}\n",
+                "# It was edited during the session but is no longer readable on disk,\n",
+                "# so this step cannot be reproduced automatically.\n",
+                f"# The edit replaced {args.get('old_string', '')!r}\n",
+                f"#            with   {args.get('new_string', '')!r}",
+            ]
+            return md, code
+        code = _algorithm_source_cell(source, [
+            f"# User-authored algorithm `{name}`, source after the session's edit.\n",
+        ])
         return md, code
 
     # ── tuiml_train ──────────────────────────────────────────────────────────

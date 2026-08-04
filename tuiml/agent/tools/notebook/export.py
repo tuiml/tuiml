@@ -113,9 +113,12 @@ def execute_export_notebook(**kwargs) -> Dict[str, Any]:
 
     train_counter = [0]
     skipped = 0
+    # Tracks the last source emitted per user-authored algorithm so a session
+    # with several edits doesn't repeat the same class definition.
+    emitted_sources: Dict[str, str] = {}
 
     for call in calls_snapshot:
-        md_lines, code_lines = _translate_call(call, train_counter)
+        md_lines, code_lines = _translate_call(call, train_counter, emitted_sources)
         if md_lines is None:
             skipped += 1
             continue

@@ -217,6 +217,14 @@ def _strip_none(obj):
         return [_strip_none(item) for item in obj]
     return obj
 
+# Tools that benefit from real-time progress notifications. tuiml_self_update
+# earns its place not by iterating but by blocking: it waits on a pip / uv
+# subprocess whose output it captures, so without these the client sees nothing
+# at all for up to five minutes. Module-level, alongside the formatter it pairs
+# with, so the wiring can be asserted on without building a server.
+_PROGRESS_TOOLS = {"tuiml_tune", "tuiml_benchmark", "tuiml_self_update"}
+
+
 def _format_progress(info: Dict[str, Any]) -> str:
     """Format a progress callback dict into a human-readable log message.
 
@@ -224,8 +232,9 @@ def _format_progress(info: Dict[str, Any]) -> str:
     ----------
     info : dict
         Progress payload from a workflow tool. The ``"type"`` key selects
-        the format: ``"tune_progress"``, ``"benchmark_progress"``, or
-        ``"experiment_progress"``; anything else is JSON-dumped as-is.
+        the format: ``"tune_progress"``, ``"benchmark_progress"``,
+        ``"experiment_progress"`` or ``"update_progress"``; anything else
+        is JSON-dumped as-is.
 
     Returns
     -------
@@ -262,6 +271,10 @@ def _format_progress(info: Dict[str, Any]) -> str:
             f"[Experiment dataset {di}/{dt} model {mi}/{mt}] "
             f"{model} on {ds}: {scores_str}"
         )
+    elif ptype == 'update_progress':
+        # Phase transitions rather than iterations: the message already reads
+        # as a sentence ("Installing tuiml via uv-tool, ..."), so pass it through.
+        return f"[Update] {info.get('message') or info.get('phase', '?')}"
     else:
         return json.dumps(info, default=str)
 
@@ -293,9 +306,6 @@ def create_server() -> "Server":
     # (MCP validates structured output against the schema, but image
     # responses use [TextContent, ImageContent] which is unstructured)
     IMAGE_TOOLS = {"tuiml_plot"}
-
-    # Tools that benefit from real-time progress notifications
-    _PROGRESS_TOOLS = {"tuiml_tune", "tuiml_benchmark"}
 
     def _build_tools() -> Dict[str, Tool]:
         """Build the exposed tool set, keyed by name.

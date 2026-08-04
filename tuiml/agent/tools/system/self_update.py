@@ -23,6 +23,12 @@ def execute_self_update(**kwargs) -> Dict[str, Any]:
         (arrives via ``**kwargs``, like all parameters below).
     dry_run : bool, default=False
         Only report the command that would run; make no changes.
+    _progress_callback : callable, default=None
+        Internal phase progress hook; stripped from recorded args. Called
+        with ``{"type": "update_progress", "phase": ..., "message": ...}``
+        as the upgrade moves between phases. The installer subprocess can
+        run for minutes with its output captured, so callers that front a
+        UI need these to show the command is alive.
 
     Returns
     -------
@@ -40,6 +46,18 @@ def execute_self_update(**kwargs) -> Dict[str, Any]:
     import subprocess
     import sys
 
+    progress_callback = kwargs.pop('_progress_callback', None)
+
+    def _emit(phase: str, message: str) -> None:
+        """Forward one phase transition to the caller's progress hook."""
+        if progress_callback:
+            progress_callback({
+                "type": "update_progress",
+                "phase": phase,
+                "message": message,
+            })
+
+    _emit("detect", "Checking how TuiML is installed")
     install = _detect_install_method()
     method = install["method"]
 
@@ -104,7 +122,11 @@ def execute_self_update(**kwargs) -> Dict[str, Any]:
         }
 
     try:
+        _emit("read_version", "Reading the currently installed version")
         before = execute_system_info(check_latest=False).get("version")
+        # The long pole: output is captured, so nothing reaches the terminal
+        # until this returns. Announce it before blocking, not after.
+        _emit("install", f"Installing {spec} via {method}, this can take a minute")
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
     except subprocess.TimeoutExpired:
         return {"status": "error", "error": "upgrade timed out after 300s",
@@ -127,6 +149,7 @@ def execute_self_update(**kwargs) -> Dict[str, Any]:
         "print(m.version('tuiml')); print(vcs.get('commit_id') or '')"
     )
     after = after_commit = None
+    _emit("verify", "Verifying the installed version")
     try:
         probe = subprocess.run(
             [sys.executable, "-c", probe_src],

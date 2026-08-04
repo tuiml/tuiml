@@ -56,4 +56,8 @@ SPEC = ToolSpec(
     group='workflow',
     read_only=False, destructive=True,
     idempotent=False, open_world=False,
+    # Removing an algorithm has no notebook equivalent: the class simply isn't
+    # defined there. Exporting it would also make the notebook delete real files
+    # from ~/.tuiml/ when re-run.
+    reproducible=False,
 )

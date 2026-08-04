@@ -377,6 +377,32 @@ plt.show = lambda *a, **k: None  # no-op so plot cells return cleanly
 MODEL_ID = "smoke_model_1"
 
 
+# Source of a user-authored algorithm, as tuiml_create_algorithm would record it.
+# The exported notebook must inline this: the class lives in
+# ~/.tuiml/user_algorithms/, so a notebook that only does `pip install tuiml`
+# cannot resolve the name in the tuiml.train(...) cell below it.
+# Distinct from USER_ALGO_SOURCE above, which the MCP dispatch test edits by
+# exact string match — the two must not share a name or a docstring.
+EXPORT_USER_ALGO_SOURCE = '''\
+import numpy as np
+from tuiml.base.algorithms import Classifier, classifier
+
+
+@classifier(tags=["custom"], version="1.0.0")
+class SmokeUserAlgo(Classifier):
+    """Predicts the majority class seen during fit."""
+
+    def fit(self, X, y):
+        vals, counts = np.unique(y, return_counts=True)
+        self.majority_ = vals[np.argmax(counts)]
+        self.classes_ = vals
+        return self
+
+    def predict(self, X):
+        return np.full(len(X), self.majority_)
+'''
+
+
 SESSION = [
     ("tuiml_profile_data",
      {"data": "iris", "target": "class"},
@@ -447,6 +473,16 @@ SESSION = [
     ("tuiml_upload_data",
      {"file_path": "", "name": "my_inline_dataset"},
      {"status": "success"}),
+    ("tuiml_get_skeleton",
+     {"kind": "classifier", "class_name": "SmokeUserAlgo"},
+     {"status": "success"}),
+    ("tuiml_create_algorithm",
+     {"name": "SmokeUserAlgo", "kind": "classifier", "version": "1.0.0",
+      "code": EXPORT_USER_ALGO_SOURCE, "description": "Majority-class baseline."},
+     {"status": "success"}),
+    ("tuiml_train",
+     {"algorithm": "SmokeUserAlgo", "data": "iris", "target": "class", "cv": 3},
+     {"status": "success", "model_id": "smoke_user_model", "random_seed": 42}),
 ]
 
 
@@ -527,3 +563,50 @@ class TestIntegrationNotebookExportSmoke:
         assert not fails, "generated notebook cells failed: " + "; ".join(
             f"{h} -> {d}" for h, d in fails
         )
+
+    def test_user_algorithm_source_is_inlined(self):
+        """A user-authored algorithm must be defined before it is trained.
+
+        Regression test: tuiml_create_algorithm was recorded but had no branch
+        in _translate_call, so it was silently dropped from the notebook and the
+        following tuiml.train(...) cell referenced a name the registry could not
+        resolve on a fresh machine.
+        """
+        nb = build_notebook()
+        code = [
+            "".join(c["source"]) for c in nb["cells"] if c["cell_type"] == "code"
+        ]
+        define_at = next(
+            (i for i, s in enumerate(code) if "class SmokeUserAlgo" in s), None
+        )
+        train_at = next(
+            (i for i, s in enumerate(code) if "'SmokeUserAlgo'" in s and "tuiml.train" in s),
+            None,
+        )
+        assert define_at is not None, "user algorithm source was not inlined"
+        assert train_at is not None, "user algorithm training cell is missing"
+        assert define_at < train_at, "algorithm is trained before it is defined"
+
+    def test_scaffolding_tools_are_not_recorded(self):
+        """Skeleton and delete produce no reproducible notebook Python."""
+        assert not agent_tools.is_reproducible("tuiml_get_skeleton")
+        assert not agent_tools.is_reproducible("tuiml_delete_algorithm")
+        nb = build_notebook()
+        source = json.dumps(nb)
+        assert "tuiml_get_skeleton" not in source
+
+    def test_repeated_edits_emit_one_definition(self):
+        """Identical post-edit sources collapse to a single redefinition cell."""
+        from tuiml.agent.tools.notebook.translate import _translate_call
+
+        emitted = {}
+        call = {
+            "tool": "tuiml_create_algorithm",
+            "args": {"name": "DedupAlgo", "kind": "classifier",
+                     "code": EXPORT_USER_ALGO_SOURCE, "version": "1.0.0"},
+        }
+        first_md, first_code = _translate_call(call, [0], emitted)
+        assert first_md is not None and "class SmokeUserAlgo" in "".join(first_code)
+        # Same source again -> skipped rather than duplicated.
+        again_md, _ = _translate_call(call, [0], emitted)
+        assert again_md is None

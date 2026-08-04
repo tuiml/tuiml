@@ -97,6 +97,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   bytecode for the whole dependency tree while printing nothing. Installs now
   pass `--compile-bytecode`, so that work happens during installation where
   uv shows progress, and the verification step announces itself.
+- **`tuiml update` printed nothing at all until it finished.** The upgrade
+  blocks inside a `pip` / `uv` subprocess whose output it captures, so the
+  terminal stayed blank for as long as the install took — up to the 300s
+  timeout — with no way to tell a slow download from a hung command. It now
+  reports each phase as it starts, on a live status line that shows elapsed
+  seconds:
+
+  ```
+  | Installing tuiml via uv-tool, this can take a minute (12s)
+  ```
+
+  Progress goes to stderr, so `tuiml update --json` still pipes cleanly; it
+  animates only on a TTY and prints one plain line per phase when redirected.
+  MCP clients get the same phases as progress notifications — `tuiml_self_update`
+  was silent there for the same reason.
+- **`tuiml update --dry-run` crashed in a development checkout** with
+  `TypeError: can only join an iterable`. The tool deliberately returns
+  `command: None` there — an editable install has no upgrade command to
+  predict, and it reports the refusal in `note` instead — but the CLI joined
+  the command unconditionally. It now prints the refusal, as the dry run
+  intended.
+- **`tuiml_export_notebook` dropped agent-authored algorithms.** A session that
+  created an algorithm and trained it exported a notebook whose
+  `tuiml.train({"model": {"name": "MyAlgo"}})` cell referenced a name nothing
+  defined: `tuiml_create_algorithm` was recorded, but the translator had no
+  branch for it, so it was skipped without a warning and the count of exported
+  steps was quietly reduced to match. Since a user algorithm lives in
+  `~/.tuiml/user_algorithms/` rather than the installed package, the exported
+  notebook could not run anywhere else — which is the one thing an exported
+  notebook is for. Its source is now inlined ahead of the cells that use it, so
+  the `@classifier` / `@regressor` decorator registers the class on execution.
+  `tuiml_edit_algorithm` exports the full post-edit source, repeated edits
+  collapse to one definition, and `tuiml_get_skeleton` / `tuiml_delete_algorithm`
+  are no longer recorded — a template is superseded by the create call, and an
+  exported delete would remove real files from `~/.tuiml/` on re-run.
 
 ## [0.1.9] - 2026-08-03
 
