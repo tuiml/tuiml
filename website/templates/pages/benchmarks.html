@@ -72,7 +72,8 @@
                 <span class="head">Visualizations</span>
                 <button type="button" class="sub" id="nav-charts">Charts</button>
                 <span class="head">Export</span>
-                <a href="/static/benchmarks/tabarena_results.json" class="sub" style="padding-left: 26px;">Download JSON</a>
+                <a href="/static/benchmarks/tabarena_results.json" class="sub" style="padding-left: 26px;">Download JSON (matched)</a>
+                <a href="/static/benchmarks/tabarena_results_defaults.json" class="sub" style="padding-left: 26px;">Download JSON (defaults)</a>
             </nav>
 
             <!-- ===== Per-algorithm table view ===== -->
@@ -174,9 +175,9 @@
                     <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Datasets</span><span class="txt">: 51 tabular datasets from <a href="https://github.com/autogluon/tabarena" target="_blank" rel="noopener" style="color: var(--ink); text-decoration: underline;">TabArena&nbsp;v0.1</a> (38 classification, 13 regression)</span></span></div>
                     <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Frameworks</span><span class="txt">: TuiML, scikit-learn, Weka (python-weka-wrapper3)</span></span></div>
                     <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Algorithms</span><span class="txt">: only those available in all three libraries</span></span></div>
-                    <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Validation</span><span class="txt">: stratified 10-fold cross-validation (shuffled, fixed seed), folds identical across frameworks; scores are mean ± std over the 10 folds</span></span></div>
-                    <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Preprocessing</span><span class="txt">: shared impute + scale + one-hot; Naive Bayes uses ordinal-encoded / quantile-binned features with each library's native categorical NB</span></span></div>
-                    <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Hyperparameters</span><span class="txt">: library defaults (Weka runs its native variants)</span></span></div>
+                    <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Validation</span><span class="txt">: stratified 80/20 holdout (shuffled, fixed seed 42); split identical across all three frameworks</span></span></div>
+                    <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Preprocessing</span><span class="txt">: attribute types from OpenML schema; numeric → median impute + standardize; nominal kept as discrete codes for Weka, one-hot for scikit-learn / TuiML; all fit on train only</span></span></div>
+                    <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Hyperparameters</span><span class="txt">: matched across libraries where the underlying model is the same; see <a href="https://github.com/tuiml/tuiml/blob/main/benchmarks/harness/algorithms.py" target="_blank" rel="noopener" style="color: var(--ink); text-decoration: underline;">algorithms.py</a> for the full mapping. Defaults view also <a href="/static/benchmarks/tabarena_results_defaults.json" style="color: var(--ink); text-decoration: underline;">available</a>.</span></span></div>
                     <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Metrics</span><span class="txt">: Accuracy / R², training time, peak memory</span></span></div>
                 </div>
                 <div>
