@@ -67,12 +67,14 @@ def _algorithm_source_cell(source: str, header: List[str]) -> List[str]:
         Full Python source of a user-authored algorithm.
     header : list of str
         Comment lines (each newline-terminated) to place above the source.
+        Empty entries are dropped, so callers can build them conditionally.
 
     Returns
     -------
     lines : list of str
         Source lines for a notebook code cell, with no trailing blank line.
     """
+    header = [line for line in header if line]
     body = source.splitlines(keepends=True)
     while body and not body[-1].strip():
         body.pop()
@@ -81,6 +83,186 @@ def _algorithm_source_cell(source: str, header: List[str]) -> List[str]:
     if body[-1].endswith('\n'):
         body[-1] = body[-1][:-1]
     return list(header) + body
+
+
+def _versioned_alias(name: str, version: str) -> str:
+    """Return the versioned alias the registry uses, e.g. ``MyGBM_v1_0_0``.
+
+    Mirrors ``user_algorithms.registration._versioned_alias_name``.
+
+    Parameters
+    ----------
+    name : str
+        Bare class name.
+    version : str
+        Semver version string.
+
+    Returns
+    -------
+    alias : str
+        Identifier of the form ``<name>_v<major>_<minor>_<patch>``.
+    """
+    return f"{name}_v{version.replace('.', '_')}"
+
+
+def _display_path(path: str) -> str:
+    """Shorten a home-relative path for display, e.g. ``~/.tuiml/...``.
+
+    Parameters
+    ----------
+    path : str
+        Absolute filesystem path.
+
+    Returns
+    -------
+    shown : str
+        The path with ``$HOME`` replaced by ``~`` when it is under home.
+    """
+    if not path:
+        return ''
+    home = os.path.expanduser('~')
+    if path.startswith(home + os.sep):
+        return '~' + path[len(home):]
+    return path
+
+
+def _user_algorithm_path(name: str, version: str) -> str:
+    """Return where a user algorithm's source is stored on disk.
+
+    Built from the storage layout rather than read back, so it is still
+    correct for a notebook exported after the file moved or was deleted.
+
+    Parameters
+    ----------
+    name : str
+        Storage name (the directory under ``USER_ALGS_DIR``), which is not
+        necessarily the class name.
+    version : str
+        Semver version directory.
+
+    Returns
+    -------
+    path : str
+        Display path of ``algorithm.py``, or '' if the store is unavailable.
+    """
+    try:
+        from tuiml.agent.user_algorithms import USER_ALGS_DIR
+    except Exception:
+        return ''
+    return _display_path(str(USER_ALGS_DIR / name / version / 'algorithm.py'))
+
+
+def _source_provenance(path: str, line_count: Optional[int] = None) -> List[str]:
+    """Markdown lines telling the reader where the inlined source came from.
+
+    The notebook carries a copy; this points at the original so the reader can
+    tell the two apart and go edit the one the MCP server actually loads.
+
+    Parameters
+    ----------
+    path : str
+        Display path of the stored ``algorithm.py``.
+    line_count : int, default=None
+        Number of lines inlined, when known.
+
+    Returns
+    -------
+    lines : list of str
+        Markdown lines, empty when there is no path to show.
+    """
+    if not path:
+        return []
+    counted = f" ({line_count} lines)" if line_count else ""
+    return [
+        f"\n\n**Source{counted}:** `{path}`  \n",
+        "The full definition is inlined in the next cell, so this notebook runs "
+        "on a machine that has never seen it. Edit the file above, not the cell, "
+        "if you want the change to reach your MCP session.",
+    ]
+
+
+def _class_name_from_source(source: str, fallback: str) -> str:
+    """Return the algorithm class defined by `source`.
+
+    The name a user algorithm is *stored* under and the class name inside its
+    source need not match — ``create`` records ``class_name`` separately — and
+    it is the class name the decorator registers, so the alias must be built
+    from what the source actually defines.
+
+    Parameters
+    ----------
+    source : str
+        Python source of a user-authored algorithm.
+    fallback : str
+        Returned when the source has no class definition or does not parse.
+
+    Returns
+    -------
+    class_name : str
+        Name of the ``Classifier``/``Regressor`` subclass, preferring one with
+        a recognised base, else the first class defined.
+    """
+    import ast
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return fallback
+    first = None
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.ClassDef):
+            continue
+        if first is None:
+            first = node.name
+        for base in node.bases:
+            base_name = getattr(base, 'id', None) or getattr(base, 'attr', None)
+            if base_name in ('Classifier', 'Regressor'):
+                return node.name
+    return first or fallback
+
+
+def _alias_registration_lines(class_name: str, version: str) -> List[str]:
+    """Return code lines that register the versioned alias of a user algorithm.
+
+    Executing a user algorithm's source fires its ``@classifier`` /
+    ``@regressor`` decorator, which registers the bare class name and nothing
+    else. The MCP server additionally registers a versioned alias
+    (``MyGBM_v1_0_0``) when it loads the file, and that alias is the name the
+    session's tool calls carry — so a notebook that only ran the source would
+    raise "not found in hub" on every cell that names a version. These lines
+    reproduce the alias the same way the loader does.
+
+    Parameters
+    ----------
+    class_name : str
+        Bare class name defined by the inlined source.
+    version : str
+        Semver version the alias pins.
+
+    Returns
+    -------
+    lines : list of str
+        Source lines for a notebook code cell, newline-terminated except
+        the last. Empty when the alias would equal the class name.
+    """
+    alias = _versioned_alias(class_name, version)
+    if alias == class_name:
+        return []
+    return [
+        "\n",
+        "\n",
+        f"# The session referred to this algorithm as `{alias}`. Running the source\n",
+        f"# above only registers `{class_name}`, so register the versioned alias too,\n",
+        "# exactly as the MCP server does when it loads a user algorithm.\n",
+        "from tuiml.base.algorithms import Classifier, classifier, regressor\n",
+        "from tuiml.registry import registry\n",
+        "\n",
+        f"_base = {class_name}\n",
+        "_decorator = classifier if issubclass(_base, Classifier) else regressor\n",
+        "with registry.suppress_overwrite_warnings():\n",
+        f"    {alias} = _decorator(\n",
+        f"        tags=['custom', 'version={version}'], version={version!r},\n",
+        f"    )(type({alias!r}, (_base,), {{'__doc__': _base.__doc__}}))",
+    ]
 
 
 def _read_user_algorithm_source(name: str, version: Optional[str] = None) -> tuple:
@@ -98,8 +280,10 @@ def _read_user_algorithm_source(name: str, version: Optional[str] = None) -> tup
 
     Returns
     -------
-    source : str or None
-        The full source, or None when it could not be read.
+    info : dict or None
+        The ``read_source`` payload (``source``, ``version``, ``class_name``,
+        ...), or None when it could not be read. ``name`` may be a bare name
+        or a versioned alias; the resolver accepts both.
     error : str or None
         Reason the read failed, or None on success.
     """
@@ -110,7 +294,146 @@ def _read_user_algorithm_source(name: str, version: Optional[str] = None) -> tup
         return None, str(e)
     if not isinstance(res, dict) or res.get('status') != 'success':
         return None, (res or {}).get('error', 'unknown error')
-    return res.get('source'), None
+    return res, None
+
+
+def _referenced_algorithm_names(call: Dict) -> List[str]:
+    """Return every algorithm name a recorded call trains or evaluates.
+
+    Parameters
+    ----------
+    call : dict
+        One recorded session call (``tool``, ``args``).
+
+    Returns
+    -------
+    names : list of str
+        Algorithm names as the session referred to them, which for a user
+        algorithm is usually the versioned alias (``MyGBM_v1_0_0``).
+    """
+    tool = call.get('tool', '')
+    args = call.get('args', {}) or {}
+    names: List[str] = []
+    if tool in ('tuiml_train', 'tuiml_tune'):
+        algo = args.get('algorithm')
+        if isinstance(algo, str) and algo:
+            names.append(algo)
+    elif tool == 'tuiml_benchmark':
+        for entry in args.get('algorithms') or []:
+            if isinstance(entry, dict):
+                entry = entry.get('name')
+            if isinstance(entry, str) and entry:
+                names.append(entry)
+    return names
+
+
+def _aliases_defined_in_session(calls: List[Dict]) -> set:
+    """Names the authoring cells of this export will already define.
+
+    A ``tuiml_create_algorithm`` / ``tuiml_edit_algorithm`` call becomes a
+    cell that inlines the source and registers both the bare class name and
+    its versioned alias. Anything in this set therefore needs no prelude.
+
+    Parameters
+    ----------
+    calls : list of dict
+        The session's recorded calls.
+
+    Returns
+    -------
+    defined : set of str
+        Bare names and versioned aliases the authoring cells register.
+    """
+    defined = set()
+    for call in calls:
+        tool = call.get('tool', '')
+        args = call.get('args', {}) or {}
+        name = args.get('name')
+        if not name:
+            continue
+        if tool == 'tuiml_create_algorithm':
+            version = args.get('version', '1.0.0')
+            defined.add(name)  # the storage name, which may differ from the class
+            name = _class_name_from_source(args.get('code', ''), name)
+        elif tool == 'tuiml_edit_algorithm':
+            # Same read the edit branch does, so the two agree on the version.
+            pinned = None if args.get('bump_version') else args.get('version')
+            info, _ = _read_user_algorithm_source(name, pinned)
+            if info is None:
+                continue
+            name = info.get('class_name') or name
+            version = info.get('version')
+        else:
+            continue
+        defined.add(name)
+        if version:
+            defined.add(_versioned_alias(name, version))
+    return defined
+
+
+def user_algorithm_prelude(calls: List[Dict]) -> List[tuple]:
+    """Build definition cells for user algorithms the session only *used*.
+
+    ``_SESSION_CALLS`` holds one MCP session, but a user algorithm outlives
+    it: authored in an earlier conversation, it lives in
+    ``~/.tuiml/user_algorithms/`` and is re-registered at server startup, so a
+    later session can train on it without ever calling
+    ``tuiml_create_algorithm``. Nothing in that session's calls carries the
+    source, so the exported notebook would name an algorithm it never defines
+    and fail with "not found in hub". Reading the source off disk at export
+    time closes that gap.
+
+    Parameters
+    ----------
+    calls : list of dict
+        The session's recorded calls.
+
+    Returns
+    -------
+    cells : list of tuple
+        ``(markdown_lines, code_lines)`` pairs, one per algorithm, in first
+        use order. Empty when every referenced algorithm is built in or is
+        already defined by an authoring cell.
+    """
+    defined = _aliases_defined_in_session(calls)
+    prelude, seen = [], set()
+
+    for call in calls:
+        for ref in _referenced_algorithm_names(call):
+            if ref in seen or ref in defined:
+                continue
+            seen.add(ref)
+            # A built-in name simply does not resolve to the user store, which
+            # is how built-ins are told apart from user algorithms here.
+            info, _ = _read_user_algorithm_source(ref)
+            if info is None:
+                continue
+            class_name = info.get('class_name') or info['name']
+            version = info.get('version') or ''
+            source = info.get('source') or ''
+            if not source:
+                continue
+            defined.add(ref)
+
+            path = _display_path(info.get('path') or '')
+            md = [
+                f"## Define Algorithm `{class_name}` (v{version})\n",
+                f"\nThe session trained `{ref}`, an algorithm authored in an earlier "
+                "session. It lives in your user-algorithm store, not in the installed "
+                "package, so `pip install tuiml` alone would leave the cells below unable "
+                "to resolve the name. Running the next cell registers it.",
+            ]
+            md += _source_provenance(path, info.get('line_count'))
+            code = _algorithm_source_cell(source, [
+                f"# User-authored algorithm `{class_name}` v{version}, "
+                "inlined so this notebook runs anywhere.\n",
+                f"# Stored at: {path}\n" if path else "",
+            ])
+            if version:
+                code += _alias_registration_lines(class_name, version)
+            prelude.append((md, code))
+
+    return prelude
 
 
 def _already_emitted(emitted: Optional[Dict], name: str, source: str) -> bool:
@@ -232,15 +555,23 @@ def _translate_call(call: Dict, train_counter: List[int],
         # the installed package, so `pip install tuiml` alone would leave the
         # later tuiml.train(...) cells unable to resolve the name. Inlining the
         # source keeps the notebook self-contained.
+        # The registry keys off the class the source defines, which is not
+        # necessarily the name the algorithm is stored under.
+        class_name = _class_name_from_source(source, name)
         md.append(
             "\nThis algorithm was authored during the session, so it is not part of the "
-            "installed package. Its source is inlined here: running the cell fires the "
+            "installed package. Running the next cell fires the "
             "`@classifier`/`@regressor` decorator, which registers the class under "
-            f"`{name}` for the training cells below."
+            f"`{class_name}`, and the lines after it register the versioned alias "
+            f"`{_versioned_alias(class_name, version)}` that the cells below use."
         )
+        path = _user_algorithm_path(name, version)
+        md += _source_provenance(path, len(source.splitlines()) if source else None)
         code = _algorithm_source_cell(source, [
-            f"# User-authored algorithm `{name}` v{version}, registered on execution.\n",
+            f"# User-authored algorithm `{class_name}` v{version}, registered on execution.\n",
+            f"# Stored at: {path}\n" if path else "",
         ])
+        code += _alias_registration_lines(class_name, version)
         return md, code
 
     # ── tuiml_edit_algorithm ─────────────────────────────────────────────────
@@ -251,7 +582,8 @@ def _translate_call(call: Dict, train_counter: List[int],
         # After a version bump the edit landed in a *new* version, so read the
         # latest rather than the version the edit targeted.
         version = None if args.get('bump_version') else args.get('version')
-        source, read_err = _read_user_algorithm_source(name, version)
+        info, read_err = _read_user_algorithm_source(name, version)
+        source = info.get('source') if info else None
         if source is not None and _already_emitted(emitted_sources, name, source):
             return None, None
         md = [
@@ -270,9 +602,17 @@ def _translate_call(call: Dict, train_counter: List[int],
                 f"#            with   {args.get('new_string', '')!r}",
             ]
             return md, code
+        class_name = info.get('class_name') or name
+        edited_version = info.get('version')
+        path = _display_path(info.get('path') or '')
+        md += _source_provenance(path, info.get('line_count'))
         code = _algorithm_source_cell(source, [
-            f"# User-authored algorithm `{name}`, source after the session's edit.\n",
+            f"# User-authored algorithm `{class_name}` v{edited_version}, "
+            "source after the session's edit.\n",
+            f"# Stored at: {path}\n" if path else "",
         ])
+        if edited_version:
+            code += _alias_registration_lines(class_name, edited_version)
         return md, code
 
     # ── tuiml_train ──────────────────────────────────────────────────────────

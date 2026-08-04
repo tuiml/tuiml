@@ -58,6 +58,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   still reported on every channel.
 
 ### Fixed
+- **Exported notebooks failed on user algorithms authored in an earlier
+  session.** `tuiml_export_notebook` inlines a user algorithm's source only
+  when the session recorded the `tuiml_create_algorithm` call that wrote it.
+  But an algorithm outlives the session that authored it — it is stored in
+  `~/.tuiml/user_algorithms/` and re-registered at server startup — so a later
+  session that merely trained on it exported a notebook naming an algorithm
+  nothing defined:
+
+  ```
+  ValueError: Algorithm 'WeightedSoftVoteEnsemble_v1_1_0' not found in hub.
+  ```
+
+  The source is now read off disk at export time for any user algorithm the
+  session referenced, and inlined ahead of the cells that use it. Every
+  definition cell also names where the algorithm is stored
+  (`~/.tuiml/user_algorithms/<Name>/<version>/algorithm.py`), so a reader can
+  tell the notebook's copy from the original the MCP server loads, and knows
+  which one to edit.
+- **Inlined user algorithms registered the wrong name.** Executing the source
+  fires its `@classifier`/`@regressor` decorator, which registers the bare
+  class name and nothing else — but the MCP server also registers a versioned
+  alias (`MyGBM_v1_0_0`), and that alias is the name every recorded call
+  carries. So even a notebook that *did* inline the source raised "not found
+  in hub" on the training cell. The definition cell now registers the alias
+  the same way the loader does, keyed off the class the source actually
+  defines rather than the name it is stored under (`create` records those
+  separately, and they can differ).
 - **Every `tuiml` command loaded your user algorithms and announced it.**
 
   ```

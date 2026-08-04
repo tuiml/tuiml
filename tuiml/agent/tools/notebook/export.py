@@ -5,7 +5,7 @@ import uuid
 from typing import Any, Dict, List
 
 from .._spec import ToolSpec
-from .translate import _translate_call
+from .translate import _translate_call, user_algorithm_prelude
 from .._state import _SESSION_CALLS, _SESSION_LOCK
 
 
@@ -110,6 +110,14 @@ def execute_export_notebook(**kwargs) -> Dict[str, Any]:
             "from tuiml.utils.seed import set_global_seed\n",
             f"set_global_seed({repr(_session_seed)})",
         ]))
+
+    # ── User-algorithm prelude ───────────────────────────────────────────────
+    # Algorithms authored in an *earlier* session leave no create/edit call in
+    # this one, so nothing below would define them. Inline their source here,
+    # ahead of every cell that trains on them.
+    for md_lines, code_lines in user_algorithm_prelude(calls_snapshot):
+        cells.append(_nb_markdown(md_lines))
+        cells.append(_nb_code(code_lines))
 
     train_counter = [0]
     skipped = 0
