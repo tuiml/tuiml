@@ -29,6 +29,14 @@ def main():
         print(f"No result JSON files found in {args.results}/")
         return
     df = pd.DataFrame(rows).sort_values(["bucket", "dataset", "algorithm", "framework"])
+
+    # Flag numerically diverged runs so a single blown-up model cannot poison an
+    # aggregate. This is not "a bad model" (an R^2 of -10 is a bad model and
+    # stays in): it marks predictions that overflowed, where the metric carries
+    # no information. Reports should exclude these and say how many there were.
+    df["diverged"] = False
+    if "metric_r2" in df:
+        df.loc[df["metric_r2"] < -1e6, "diverged"] = True
     df.to_csv(args.out, index=False)
 
     n_ok = int((df["status"] == "ok").sum())

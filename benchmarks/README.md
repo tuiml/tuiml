@@ -35,16 +35,77 @@ every cell is apples-to-apples.
 The exact per-framework class/option mapping lives in
 [`harness/algorithms.py`](harness/algorithms.py).
 
+### Two configurations
+
+Every experiment runs under one of two configurations, selected with `--config`
+and recorded in each result row:
+
+| Config | Meaning | Use it for |
+|--------|---------|-----------|
+| `matched` | Hyperparameters aligned across the three libraries so the same model is being fitted wherever that is possible | **runtime and accuracy claims** |
+| `defaults` | Each library exactly as it ships | "what you get out of the box" |
+
+This split exists because the libraries disagree about defaults in ways that
+change both cost and quality, so comparing defaults is not a like-for-like
+comparison. Concrete examples the `matched` config removes:
+
+- Weka's `LinearRegression` runs **M5 attribute selection and collinearity
+  elimination** by default; scikit-learn's solves one least-squares problem.
+- Weka's `RandomForest` samples `log2(p)+1` attributes per split, scikit-learn
+  `sqrt(p)` for classification and **all `p`** for regression.
+- `SMO` defaults to a linear PolyKernel and normalizes internally; `SVC`
+  defaults to RBF. Matched mode puts both on RBF with the *same* explicit gamma.
+- `Logistic` defaults to ridge `1e-8` (effectively unregularized) while
+  scikit-learn defaults to `C=1.0`, i.e. ridge `0.5`.
+- `IBk` min-max normalizes inside its distance function on top of the
+  standardization the harness already applied.
+- Weka's `MultilayerPerceptron` normalizes the numeric class internally and the
+  others do not — the documented reason scikit-learn's `MLPRegressor` scored
+  negative R² in the previous run.
+
+Where the underlying algorithms are simply not the same (C4.5 vs CART, online
+backprop vs mini-batch SGD), `matched` aligns what it can and the residual
+mismatch is recorded in the `note` field of every result row rather than left
+implicit. The full mapping, with rationale, is in
+[`harness/algorithms.py`](harness/algorithms.py).
+
 ### Protocol
 
 - **Split:** stratified 80/20 holdout, fixed seed (42) — *identical* across all
   three frameworks.
-- **Preprocessing:** shared pipeline (median/most-frequent impute → standardize →
-  one-hot) applied once in [`harness/common.py`](harness/common.py), so the
-  *algorithm* is what's measured, not each library's data handling.
+- **Attribute types** come from `schema.json` (written by
+  [`fetch_schema.py`](fetch_schema.py) from the OpenML attribute declarations),
+  **not** from pandas dtypes. Inferring from dtype silently treats
+  integer-coded nominal attributes as continuous — on this suite that
+  misclassified whole datasets (`hiva_agnostic` is 1617/1617 nominal, `splice`
+  60/60, `MIC` 94/111). Rows prepared without a schema are flagged
+  `schema_source="dtype-fallback"`.
+- **Preprocessing:** numeric → median impute + standardize; nominal →
+  most-frequent impute + integer coding, all fit on the **training split only**.
+  High-cardinality attributes are folded to the 100 most frequent training
+  levels plus one "other" level (`BENCH_MAX_LEVELS`); without a cap, one-hot
+  encoding a 7,500-level attribute materializes a ~2 GB dense matrix. The fold
+  is applied to the codes, so all three frameworks see the same information.
+- **Representation:** each library is then given the encoding it is designed
+  for — one-hot for scikit-learn and TuiML, **genuinely nominal attributes** for
+  Weka, so its tree and instance-based learners use their native nominal
+  handling. Weka's function-based learners (SMO, Logistic, MLP) apply their own
+  internal `NominalToBinary`, which reproduces the one-hot the others receive.
+  Materialization happens outside the timed region.
+- **Regression targets** are standardized on the training split in `matched`
+  mode and the predictions inverted before scoring, so Weka's internal class
+  normalization is neither a hidden advantage nor something the others have to
+  do without. Metrics stay in the original units.
+- **Inference** is measured as a **single batch call** for all three frameworks:
+  `distributionsForInstances` for Weka, `predict` for the others. The previous
+  per-instance `classifyInstance` loop crossed the Python/JVM boundary once per
+  test row and overstated Weka's inference time by ~4.5× on cheap models
+  (identical predictions; k-NN was unaffected, since real compute dominates
+  there).
 - **Metrics:** classification → accuracy, F1-macro, balanced accuracy, precision,
   recall; regression → RMSE, MAE, R²; plus `fit_s`, `predict_s`, `wall_total_s`,
-  `cpu_total_s`, `peak_rss_mb` for every run.
+  `cpu_total_s`, `peak_rss_mb`, and the resolved `options` and `lib_version` for
+  every run.
 - **Isolation:** each experiment runs in its **own OS process** (no Python
   multiprocessing/threadpool), parallelized with `xargs -P`. Each process is
   pinned to a **single thread** (`OMP_NUM_THREADS=1`, and `-XX:ActiveProcessorCount=1`
@@ -58,6 +119,7 @@ The exact per-framework class/option mapping lives in
 ```
 benchmarks/
 ├── tabarena_download.py     # step 1 — download the 51 datasets from OpenML
+├── fetch_schema.py          # step 1b — write schema.json (OpenML attribute types)
 ├── harness/                 # step 2 — run the benchmark
 │   ├── run_all.sh               entry point (generates jobs, runs them in parallel)
 │   ├── gen_jobs.py              builds the framework × algo × dataset job list
@@ -133,6 +195,19 @@ Result tree (default root `~/TuiML/datasets`):
 > them if you keep data elsewhere, and pass the same root to the harness via the
 > `DATASETS` env var below.
 
+### Step 1b — Fetch the attribute schemas
+
+The CSV export loses the ARFF/OpenML attribute-type declarations, so recover
+them before running the harness (one small metadata call per dataset, no data
+download):
+
+```bash
+python3 fetch_schema.py            # writes schema.json next to each CSV
+```
+
+Without this the harness falls back to pandas dtype inference and flags every
+affected row `schema_source="dtype-fallback"`.
+
 ### Step 2 — Run the benchmark
 
 ```bash
@@ -152,8 +227,10 @@ Environment knobs (all optional):
 | `MAX_JOBS` | `nproc - 2` | parallel processes |
 | `PER_JOB_TIMEOUT` | `1800` | seconds before a single experiment is killed |
 | `FRAMEWORKS` | `sklearn tuiml weka` | subset to run |
+| `CONFIGS` | `matched` | `matched`, `defaults`, or both |
 | `DATASETS` | `~/TuiML/datasets` | dataset root |
 | `OUT` | `results` | output dir for per-experiment JSON |
+| `BENCH_MAX_LEVELS` | `100` | levels kept per high-cardinality nominal attribute |
 
 Examples:
 

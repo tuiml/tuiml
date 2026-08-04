@@ -28,13 +28,17 @@ MAX_JOBS="${MAX_JOBS:-$(( $(nproc) - 2 ))}"
 [ "$MAX_JOBS" -lt 1 ] && MAX_JOBS=1
 PER_JOB_TIMEOUT="${PER_JOB_TIMEOUT:-1800}"   # seconds per experiment
 FRAMEWORKS="${FRAMEWORKS:-sklearn tuiml weka}"
+# "matched" = hyperparameters aligned across libraries (the comparable numbers);
+# "defaults" = each library out of the box. See harness/algorithms.py.
+CONFIGS="${CONFIGS:-matched}"
 PYTHON="${PYTHON:-python3}"
 
 mkdir -p "$OUT" logs
 
 # 1. Generate the job list (one self-contained command per line).
 $PYTHON gen_jobs.py --datasets "$DATASETS" --out "$OUT" \
-    --frameworks $FRAMEWORKS --jobs-file "$JOBS_FILE" --python "$PYTHON" "$@"
+    --frameworks $FRAMEWORKS --configs $CONFIGS \
+    --jobs-file "$JOBS_FILE" --python "$PYTHON" "$@"
 
 echo "Launching with MAX_JOBS=$MAX_JOBS, per-job timeout=${PER_JOB_TIMEOUT}s"
 echo "Logs -> logs/  |  Results -> $OUT/"
@@ -42,7 +46,7 @@ echo "Logs -> logs/  |  Results -> $OUT/"
 # 2. Fan out: each line runs in its own process; xargs maintains MAX_JOBS in flight.
 #    A per-line log captures stdout/stderr; `timeout` caps runaway experiments.
 < "$JOBS_FILE" xargs -P "$MAX_JOBS" -I {} \
-    bash -c 'cmd="{}"; tag=$(echo "$cmd" | grep -oE -- "--algo [^ ]+|--dataset [^ ]+|--seed [^ ]+|--fold [^ ]+" | tr -d "\n" | tr "/ " "__"); \
+    bash -c 'cmd="{}"; tag=$(echo "$cmd" | grep -oE -- "--algo [^ ]+|--dataset [^ ]+|--config [^ ]+|--seed [^ ]+|--fold [^ ]+" | tr -d "\n" | tr "/ " "__"); \
              timeout '"$PER_JOB_TIMEOUT"' $cmd > "logs/${tag}.log" 2>&1; \
              echo "done: $cmd (exit $?)"'
 
