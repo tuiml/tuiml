@@ -184,7 +184,8 @@
         <!-- Install (tabbed: Terminal / Agent) -->
         <div style="margin-top: 32px;" data-tab-group>
             <div class="oc-tabs" role="tablist">
-                <button type="button" class="oc-tab active" data-tab="terminal" role="tab">terminal</button>
+                <button type="button" class="oc-tab active" data-tab="terminal" role="tab">macos / linux</button>
+                <button type="button" class="oc-tab" data-tab="windows" role="tab">windows</button>
                 <button type="button" class="oc-tab" data-tab="agent" role="tab">agent</button>
             </div>
 
@@ -194,6 +195,15 @@
                     <span class="cmd">curl -fsSL https://tuiml.ai/install.sh | bash</span>
                     <button type="button" class="copy-btn" aria-label="Copy install command"
                         onclick="navigator.clipboard.writeText('curl -fsSL https://tuiml.ai/install.sh | bash'); this.textContent='[ok]'; setTimeout(() => this.textContent='[copy]', 1500)">[copy]</button>
+                </div>
+            </div>
+
+            <div class="oc-panel" data-panel="windows">
+                <div class="snippet">
+                    <span class="dollar">&gt;</span>
+                    <span class="cmd">irm https://tuiml.ai/install.ps1 | iex</span>
+                    <button type="button" class="copy-btn" aria-label="Copy Windows install command"
+                        onclick="navigator.clipboard.writeText('irm https://tuiml.ai/install.ps1 | iex'); this.textContent='[ok]'; setTimeout(() => this.textContent='[copy]', 1500)">[copy]</button>
                 </div>
             </div>
 

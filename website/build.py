@@ -315,9 +315,13 @@ INSTALL_GUIDE = (
     "200+ discoverable algorithms, preprocessors, datasets, and features.\n"
     "\n"
     "## Prerequisites (check before running)\n"
-    "- A POSIX shell (bash/zsh). macOS or Linux; Windows users should run in WSL.\n"
-    "- `git` and `curl`.\n"
-    "- A C++ compiler (macOS: `xcode-select --install`; Debian/Ubuntu: `build-essential`).\n"
+    "- A shell: bash/zsh on macOS or Linux, or PowerShell 5.1+ on Windows\n"
+    "  (WSL counts as Linux — use the bash instructions there).\n"
+    "- `git` and `curl` (on Windows: `git`, and PowerShell's built-in `irm`).\n"
+    "- A C++ compiler, but only when building from source — the PyPI release\n"
+    "  ships prebuilt wheels for macOS, Linux, and 64-bit Windows.\n"
+    "  (macOS: `xcode-select --install`; Debian/Ubuntu: `build-essential`;\n"
+    "  Windows: Visual Studio Build Tools with the C++ workload.)\n"
     "- Network access to github.com and pypi.org; astral.sh is also needed if `uv` is absent.\n"
     "\n"
     "## NemoClaw sandbox note\n"
@@ -338,15 +342,21 @@ INSTALL_GUIDE = (
     "\n"
     "## Step 1 — Install the package\n"
     "Run this single command in a shell tool. It installs `uv` if missing,\n"
-    "then builds the latest TuiML source from GitHub and installs it as an\n"
-    "isolated uv tool (no global Python pollution). The script is idempotent\n"
+    "then installs the latest TuiML release from PyPI as an isolated uv tool\n"
+    "(no global Python pollution). Set `TUIML_CHANNEL=git` to build the\n"
+    "unreleased GitHub `main` instead. The script is idempotent\n"
     "and safe to re-run. In an interactive terminal it also offers the optional\n"
     "scikit-learn and CapyMOA integrations.\n"
     "\n"
     "    curl -fsSL https://tuiml.ai/install.sh | bash\n"
     "\n"
+    "On Windows, run the PowerShell installer instead (same steps, same\n"
+    "environment variables; `iex` takes no arguments so options are env vars):\n"
+    "\n"
+    "    irm https://tuiml.ai/install.ps1 | iex\n"
+    "\n"
     "After it finishes the commands `tuiml` and `tuiml-mcp` are available on\n"
-    "the PATH (usually `~/.local/bin`).\n"
+    "the PATH (`~/.local/bin`, or `%USERPROFILE%\\.local\\bin` on Windows).\n"
     "\n"
     "## Step 2 — Wire TuiML into the current AI client\n"
     "Run the setup CLI. It detects OpenClaw, Claude Desktop, Claude Code,\n"
@@ -1039,8 +1049,9 @@ def freeze() -> None:
         "</urlset>\n",
     )
     write("/install.sh", (STATIC_SRC / "install.sh").read_text())
+    write("/install.ps1", (STATIC_SRC / "install.ps1").read_text())
     write("/install.md", INSTALL_GUIDE)
-    count += 4
+    count += 5
 
     # Redirect stubs (dest prefixed with BASE so subpath hosting still lands right).
     # These are written after the pages, so a stub that maps onto a page's file

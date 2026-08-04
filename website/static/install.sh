@@ -75,9 +75,10 @@ detect_os() {
         linux-gnu*)     OS="linux" ;;
         linux*)         OS="linux" ;;
         msys*|cygwin*|win32*)
-            err "Windows is not supported by this installer."
-            echo "  Use WSL (Windows Subsystem for Linux), or install via pip:"
-            echo "    pip install git+https://github.com/tuiml/tuiml.git"
+            err "This is the macOS/Linux installer; you are on Windows."
+            echo "  Use the PowerShell installer instead — open PowerShell and run:"
+            echo "    irm https://tuiml.ai/install.ps1 | iex"
+            echo "  ${DIM}Or run this script from inside WSL (Windows Subsystem for Linux).${NC}"
             exit 1
             ;;
         *)
