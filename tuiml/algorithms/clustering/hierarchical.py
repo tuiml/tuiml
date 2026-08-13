@@ -106,7 +106,6 @@ class AgglomerativeClusterer(Clusterer):
 
     See Also
     --------
-    :class:`~tuiml.algorithms.clustering.CobwebClusterer` : Incremental hierarchical conceptual clustering.
     :class:`~tuiml.algorithms.clustering.DBSCANClusterer` : Density-based clustering with noise detection.
 
     Examples

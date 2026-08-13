@@ -1,6 +1,6 @@
 """Contract checks for nearest-neighbour search structures.
 
-The three backends -- BallTree, KDTree and LinearNNSearch -- had one test
+The three backends -- BallTree, KDTree and BruteForceSearch -- had one test
 module each, all asserting the same eight properties against their own
 implementation in isolation. That is the wrong shape twice over: the
 properties are shared, and the invariant that actually matters is that the

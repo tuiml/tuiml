@@ -1,7 +1,7 @@
 """
 ARFF (Attribute-Relation File Format) reader and writer.
 
-ARFF is WEKA's native text format: a header naming each attribute and its type,
+ARFF is a self-documenting text format: a header naming each attribute and its type,
 followed by comma-separated rows. It is the format every dataset bundled with
 TuiML ships in, and this module also defines :class:`Dataset`, the container
 that every loader in this package returns.
@@ -94,8 +94,8 @@ def load_arff(
 ) -> Dataset:
     """Load data from ARFF (Attribute-Relation File Format) files.
 
-    ARFF is the native format for WEKA, supporting rich metadata, dense 
-    and sparse data, and explicit type declarations.
+    ARFF supports rich metadata, dense and sparse data, and explicit
+    type declarations.
 
     Parameters
     ----------

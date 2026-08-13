@@ -212,7 +212,7 @@ bench = Benchmark(
     models=[                                   # strict {"name","params"} specs
         {"name": "NaiveBayesClassifier"},
         {"name": "RandomForestClassifier", "params": {"n_estimators": 100}},
-        {"name": "C45TreeClassifier",          # optional per-model tuning (nested,
+        {"name": "DecisionTreeClassifier",          # optional per-model tuning (nested,
          "tune": {"method": "grid",            #  runs on training folds only;
                   "space": {"max_depth": [3, 5, 8]}}},   # also "random" + "iterations")
         {"name": "SVC",                        # optional per-model pipeline
@@ -407,48 +407,41 @@ anywhere.
 ```python
 from tuiml.algorithms import (
     # Bayesian
-    NaiveBayesClassifier, NaiveBayesMultinomialClassifier,
-    BayesianNetworkClassifier, GaussianProcessesRegressor,
+    BayesianLinearRegressor, CategoricalNBClassifier,
+    GaussianProcessesRegressor, NaiveBayesClassifier,
+    NaiveBayesMultinomialClassifier,
     # Trees
-    C45TreeClassifier, RandomForestClassifier, RandomForestRegressor,
-    RandomTreeClassifier, DecisionStumpClassifier,
-    ReducedErrorPruningTreeClassifier, HoeffdingTreeClassifier,
-    M5ModelTreeRegressor, LogisticModelTreeClassifier,
+    DecisionStumpClassifier, DecisionTreeClassifier, DecisionTreeRegressor,
+    RandomForestClassifier, RandomForestRegressor,
     # Neighbors
     KNearestNeighborsClassifier, KNearestNeighborsRegressor,
-    KStarClassifier, LocallyWeightedLearningRegressor,
     # Linear
-    LogisticRegression, LinearRegression, SGDClassifier, SGDRegressor,
-    SimpleLinearRegression, SimpleLogisticRegression,
+    LinearRegression, LogisticRegression, SGDClassifier, SGDRegressor,
     # SVM
     SVC, SVR,
     # Neural
-    MultilayerPerceptronClassifier, VotedPerceptronClassifier,
+    MultilayerPerceptronClassifier, MultilayerPerceptronRegressor,
+    PerceptronClassifier,
     # Rules
-    ZeroRuleClassifier, OneRuleClassifier, RIPPERClassifier,
-    PARTClassifier, DecisionTableClassifier, M5ModelRulesRegressor,
+    ZeroRuleClassifier,
     # Ensemble
-    BaggingClassifier, AdaBoostClassifier, StackingClassifier,
-    VotingClassifier, RandomCommitteeClassifier,
-    RandomSubspaceClassifier, LogitBoostClassifier,
-    FilteredClassifier, MultiClassClassifier,
-    AdditiveRegression, RegressionByDiscretization,
+    AdaBoostClassifier, AdaBoostRegressor, BaggingClassifier,
+    BaggingRegressor, GradientBoostingRegressor, OneVsRestClassifier,
+    StackingClassifier, StackingRegressor, VotingClassifier,
+    VotingRegressor,
     # Gradient Boosting
-    XGBoostClassifier, XGBoostRegressor,
-    CatBoostClassifier, CatBoostRegressor,
-    LightGBMClassifier, LightGBMRegressor,
+    CatBoostClassifier, CatBoostRegressor, LightGBMClassifier,
+    LightGBMRegressor, XGBoostClassifier, XGBoostRegressor,
     # Clustering
-    KMeansClusterer, DBSCANClusterer, AgglomerativeClusterer,
-    GaussianMixtureClusterer, CanopyClusterer, CobwebClusterer,
-    FarthestFirstClusterer, FilteredClusterer,
+    AgglomerativeClusterer, DBSCANClusterer, GaussianMixtureClusterer,
+    KMeansClusterer,
     # Associations
-    AprioriAssociator, FPGrowthAssociator,
+    AprioriAssociator, ECLATAssociator, FPGrowthAssociator,
     # Anomaly
-    IsolationForestDetector, LocalOutlierFactorDetector,
-    EllipticEnvelopeDetector, OneClassSVMDetector, ABODDetector,
+    EllipticEnvelopeDetector, IsolationForestDetector,
+    LocalOutlierFactorDetector, OneClassSVMDetector,
     # Time Series
-    ARIMA, ExponentialSmoothing, STLDecomposition,
-    AR, MA, ARMA, Prophet,
+    AR, ARIMA, ARMA, ExponentialSmoothing, MA, Prophet, STLDecomposition,
 )
 ```
 
@@ -505,13 +498,10 @@ forecast = model.predict(n_steps=10)
 
 ```python
 from tuiml.datasets import (
-    load_iris, load_iris_2d, load_diabetes, load_breast_cancer,
+    load_iris, load_diabetes, load_breast_cancer,
     load_glass, load_ionosphere, load_vote, load_credit,
-    load_weather, load_weather_nominal, load_soybean, load_labor,
-    load_hypothyroid, load_segment, load_segment_test, load_unbalanced,
-    load_contact_lenses,
-    load_cpu, load_cpu_with_vendor, load_airline,
-    load_supermarket, load_reuters_corn, load_reuters_grain,
+    load_soybean, load_labor, load_hypothyroid, load_contact_lenses,
+    load_cpu,
     list_datasets, load_dataset, get_dataset_info, get_datasets_by_task,
     DATASET_REGISTRY,
 )
@@ -854,13 +844,10 @@ plot_critical_difference(results_matrix, filename="cd.png")
 
 ### Reporting
 
-```python
-from tuiml.evaluation import (
-    ResultMatrix, format_results,
-    to_latex_table, to_html_table, to_markdown_table,
-)
+Result tables come straight off a finished ``Benchmark``:
 
-table = to_latex_table(result_matrix)
+```python
+b.to_markdown()   # also: b.to_latex(), b.to_html()
 ```
 
 ---
@@ -982,8 +969,7 @@ class MyMetric(Metric):
 | Feature Constructor | `FeatureConstructor` | `@feature_constructor` | `fit()`, `transform()` |
 | Preprocessor | `Preprocessor` | `@preprocessor` | `fit()`, `transform()` |
 | Transformer | `Transformer` | `@transformer` | `fit()`, `transform()` |
-| Filter | `Filter` | `@filter_method` | `fit()`, `transform()` |
-| Instance Transformer | `InstanceTransformer` | `@transformer` | `fit()`, `transform()` |
+| Resampling Transformer | `ResamplingTransformer` | `@transformer` | `fit()`, `transform()` |
 | Metric | `Metric` | (none) | `compute()` |
 
 ---
@@ -1087,16 +1073,17 @@ names = registry.list_names(ComponentType.CLASSIFIER)
 
 The remote community hub is currently decommissioned, use agent-authored algorithms (section 12 + 14) to add algorithms to the registry at runtime instead.
 
-### Optional algorithm backends (scikit-learn, CapyMOA)
+### Optional algorithm backends (scikit-learn, CapyMOA, Weka)
 
-Native TuiML algorithms always work with no extra dependencies. Two **optional**
-backends add the external ecosystems, each as a separate package that registers
-into the same hub under a **namespaced key** (so they never collide with native
-names):
+Native TuiML algorithms always work with no extra dependencies. Three
+**optional** backends add the external ecosystems, each as a separate package
+that registers into the same hub under a **namespaced key** (so they never
+collide with native names):
 
 ```bash
 pip install tuiml[sklearn]    # scikit-learn estimators
 pip install tuiml[capymoa]    # CapyMOA streaming learners (needs Java)
+pip install tuiml[weka]       # Weka learners via python-weka-wrapper3 (needs Java)
 ```
 
 ```python
@@ -1114,6 +1101,19 @@ train({
     "model": {"name": "capymoa.HoeffdingTree"},
     "data": {"source": "electricity", "target": "class"},
 })
+train({
+    "model": {"name": "weka.J48"},                     # Weka's C4.5
+    "data": {"source": "iris", "target": "class"},
+})
+```
+
+Weka learners distinguish **nominal** from numeric attributes, so declare which
+columns hold category codes — otherwise Weka treats them as a continuous scale:
+
+```python
+from tuiml.weka import J48
+clf = J48(nominal_features=[0, 3]).fit(X, y)
+print(clf.to_weka_string())     # Weka's own model dump (the tree, rules, ...)
 ```
 
 Raw third-party estimator **instances** are rejected in specs, with an error
@@ -1130,7 +1130,7 @@ train({"model": {"name": "sklearn.SVC", "params": {"C": 2.0}},  # ✓
 
 A missing backend only errors at instantiation (with a `pip install tuiml[...]`
 hint), never at `import tuiml`. Hub keys are namespaced `sklearn.<Name>` /
-`capymoa.<Name>`; native algorithms keep their bare names.
+`capymoa.<Name>` / `weka.<Name>`; native algorithms keep their bare names.
 
 ---
 

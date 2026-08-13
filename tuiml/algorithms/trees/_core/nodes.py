@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import numpy as np
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 from dataclasses import dataclass, field
 
 
@@ -29,22 +29,10 @@ class TreeNode:
         Impurity at this node before splitting.
     value : np.ndarray or None
         Leaf value: class distribution (classifier) or ``[mean]`` (regressor).
-    linear_model : np.ndarray or None
-        M5P: regression coefficients at leaf.
-    intercept : float
-        M5P: intercept term.
-    weights : np.ndarray or None
-        LMT: logistic regression weights.
-    bias : Any
-        LMT: logistic regression bias.
-    class_distribution : dict or None
-        Class distribution dict for backward compat.
     predicted_class : Any
         Predicted class index for backward compat.
     predicted_value : float or None
         Predicted regression value for backward compat.
-    is_numeric : bool
-        Whether the split feature is numeric (for C4.5 nominal support).
     """
 
     is_leaf: bool = False
@@ -56,21 +44,9 @@ class TreeNode:
     impurity: float = 0.0
     value: Optional[np.ndarray] = None
 
-    # M5P fields
-    linear_model: Optional[np.ndarray] = None
-    intercept: float = 0.0
-
-    # LMT fields
-    weights: Optional[np.ndarray] = None
-    bias: Any = 0.0
-
     # Backward compat fields
-    class_distribution: Optional[Dict] = None
     predicted_class: Any = None
     predicted_value: Optional[float] = None
-
-    # C4.5 nominal support
-    is_numeric: bool = True
 
 
 @dataclass

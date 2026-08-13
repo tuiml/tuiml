@@ -40,18 +40,6 @@ def load_iris() -> Dataset:
     return load_arff(_get_path("classification", "iris.arff"))
 
 
-def load_iris_2d() -> Dataset:
-    """Load the Iris 2D dataset (reduced features).
-
-    150 samples, 2 features, 3 classes.
-
-    Returns
-    -------
-    dataset : Dataset
-        Iris dataset with only petal length and petal width features.
-    """
-    return load_arff(_get_path("classification", "iris.2D.arff"))
-
 
 def load_diabetes() -> Dataset:
     """Load the Pima Indians Diabetes dataset.
@@ -131,30 +119,6 @@ def load_credit() -> Dataset:
     return load_arff(_get_path("classification", "credit-g.arff"))
 
 
-def load_weather() -> Dataset:
-    """Load the Weather dataset (numeric version).
-
-    14 samples, 4 features, 2 classes.
-
-    Returns
-    -------
-    dataset : Dataset
-        Weather classification dataset with numeric features.
-    """
-    return load_arff(_get_path("classification", "weather.numeric.arff"))
-
-
-def load_weather_nominal() -> Dataset:
-    """Load the Weather dataset (nominal version).
-
-    14 samples, 4 features, 2 classes.
-
-    Returns
-    -------
-    dataset : Dataset
-        Weather classification dataset with nominal features.
-    """
-    return load_arff(_get_path("classification", "weather.nominal.arff"))
 
 
 def load_soybean() -> Dataset:
@@ -209,61 +173,5 @@ def load_hypothyroid() -> Dataset:
     return load_arff(_get_path("classification", "hypothyroid.arff"))
 
 
-def load_segment() -> Dataset:
-    """Load the Image Segmentation dataset (challenge set).
-
-    1500 samples, 19 features, 7 classes.
-
-    Returns
-    -------
-    dataset : Dataset
-        Image segmentation challenge dataset.
-    """
-    return load_arff(_get_path("classification", "segment-challenge.arff"))
 
 
-def load_segment_test() -> Dataset:
-    """Load the Image Segmentation test dataset.
-
-    810 samples, 19 features, 7 classes.
-
-    Returns
-    -------
-    dataset : Dataset
-        Image segmentation test dataset.
-    """
-    return load_arff(_get_path("classification", "segment-test.arff"))
-
-
-def load_unbalanced() -> Dataset:
-    """Load the Unbalanced dataset.
-
-    Dataset with imbalanced class distribution.
-
-    Returns
-    -------
-    dataset : Dataset
-        Classification dataset with imbalanced classes.
-    """
-    return load_arff(_get_path("classification", "unbalanced.arff"))
-
-
-__all__ = [
-    "load_iris",
-    "load_iris_2d",
-    "load_diabetes",
-    "load_breast_cancer",
-    "load_glass",
-    "load_ionosphere",
-    "load_vote",
-    "load_credit",
-    "load_weather",
-    "load_weather_nominal",
-    "load_soybean",
-    "load_labor",
-    "load_contact_lenses",
-    "load_hypothyroid",
-    "load_segment",
-    "load_segment_test",
-    "load_unbalanced",
-]

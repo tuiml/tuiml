@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 from typing import Optional, Union, List
 
-class Estimator(ABC):
+class ProbabilityEstimator(ABC):
     """Abstract base class for all probability estimators.
 
     Estimators are used to model the probability distribution of a variable.
@@ -71,7 +71,7 @@ class Estimator(ABC):
         for v, w in zip(values, weights):
             self.add_value(v, w)
 
-    def fit(self, values: np.ndarray, weights: Optional[np.ndarray] = None) -> "Estimator":
+    def fit(self, values: np.ndarray, weights: Optional[np.ndarray] = None) -> "ProbabilityEstimator":
         """Fit the estimator to data (batch mode).
 
         Parameters
@@ -83,7 +83,7 @@ class Estimator(ABC):
 
         Returns
         -------
-        self : Estimator
+        self : ProbabilityEstimator
             The fitted estimator, for method chaining.
         """
         self.add_values(values, weights)

@@ -2,10 +2,10 @@
 
 import numpy as np
 from typing import List, Optional
-from tuiml.base.estimators import Estimator
+from tuiml.base.estimators import ProbabilityEstimator
 
-class KernelEstimator(Estimator):
-    """Gaussian **Kernel Density Estimator** (KDE) for non-parametric density estimation.
+class KernelEstimator(ProbabilityEstimator):
+    """Gaussian **Kernel Density ProbabilityEstimator** (KDE) for non-parametric density estimation.
 
     Provides a **non-parametric** estimation of the probability density function
     using a sum of **Gaussian kernels** centred at each data point. This is
@@ -89,7 +89,7 @@ class KernelEstimator(Estimator):
     See Also
     --------
     :class:`~tuiml.algorithms.bayesian.estimators.NormalEstimator` : Parametric Gaussian estimator (faster, less flexible).
-    :class:`~tuiml.algorithms.bayesian.estimators.DiscreteEstimator` : Estimator for categorical data.
+    :class:`~tuiml.algorithms.bayesian.estimators.DiscreteEstimator` : ProbabilityEstimator for categorical data.
 
     Examples
     --------
@@ -123,10 +123,9 @@ class KernelEstimator(Estimator):
         self.standard_deviation = -1.0 # Calculated on demand
         self.all_weights_one = True
         
-        # Max number of points to keep (Weka optimization default is usually 50?? No, Weka keeps all unless merging)
-        # Weka's KernelEstimator actually does a smart merge to keep size manageable.
-        # For simplicity here, we keep all points (exact KDE) but this may be slow for large datasets.
-        # Improvement: Add simple merging strategy if list grows too large.
+        # Every observation is retained, so the density estimate is exact.
+        # Cost grows linearly with the number of points; for very large inputs a
+        # merging strategy would trade a little accuracy for bounded memory.
         
     def add_value(self, value: float, weight: float = 1.0) -> None:
         """Add a new value observation to the distribution.
@@ -167,9 +166,8 @@ class KernelEstimator(Estimator):
         # Calculate weighted variance
         variance = sum(w * (v - mean)**2 for v, w in zip(self.values, self.weights)) / self.total_weight
         
-        # Heuristic for bandwidth: ~ n^(-1/5) * sigma
-        # Weka uses: 1.06 * min(sigma, IQR/1.34) * n^(-1/5) 
-        # Simplified here:
+        # Bandwidth heuristic: ~ n^(-1/5) * sigma. Silverman's full rule is
+        # 1.06 * min(sigma, IQR/1.34) * n^(-1/5); this uses the simplified form.
         population_std = np.sqrt(variance)
         if population_std < self.precision:
             self.standard_deviation = self.precision

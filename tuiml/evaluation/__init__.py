@@ -1,5 +1,5 @@
 """
-Model evaluation: metrics, resampling, significance tests, and reporting.
+Model evaluation: metrics, resampling, significance tests, and visualization.
 
 Everything needed to measure how well a model performs and to decide whether a
 difference between two models is real. The subpackages are:
@@ -12,7 +12,6 @@ difference between two models is real. The subpackages are:
   multiple-comparison corrections.
 - ``tuning``: hyperparameter search (grid, random, and Bayesian).
 - ``visualization``: plots and critical-difference diagrams.
-- ``reporting``: result tables exported as Markdown, LaTeX, or HTML.
 
 The most common metrics and splitters are re-exported here, so
 ``from tuiml.evaluation import accuracy_score`` works without naming the
@@ -128,14 +127,6 @@ from .statistics import (
     PairedStats,
 )
 
-# Import reporting (formatters)
-from .reporting import (
-    ResultMatrix,
-    format_results,
-    to_latex_table,
-    to_html_table,
-    to_markdown_table,
-)
 
 # Import visualization (plots)
 from .visualization import (
@@ -168,7 +159,6 @@ __all__ = [
     "splitting",
     "statistics",
     "visualization",
-    "reporting",
     "tuning",
     # Common metrics
     "Metric",
@@ -229,11 +219,6 @@ __all__ = [
     "SignificanceLevel",
     "PairedStats",
     # Reporting
-    "ResultMatrix",
-    "format_results",
-    "to_latex_table",
-    "to_html_table",
-    "to_markdown_table",
     # Visualization
     "plot_critical_difference",
     "plot_ranking_table",

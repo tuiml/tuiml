@@ -83,15 +83,15 @@ class TestLoadArff:
         assert ds.target_names is not None
         assert len(ds.target_names) == 3
 
-    def test_load_weather_numeric(self):
-        """Load weather.numeric.arff and verify shape."""
-        path = _BUILTIN_DIR / "weather.numeric.arff"
+    def test_load_glass_arff(self):
+        """Load glass.arff and verify shape."""
+        path = _BUILTIN_DIR / "glass.arff"
         if not path.exists():
-            pytest.skip("weather.numeric.arff not found")
+            pytest.skip("glass.arff not found")
 
         ds = load_arff(path)
-        assert ds.n_samples == 14
-        assert ds.n_features == 4
+        assert ds.n_samples == 214
+        assert ds.n_features == 9
         assert ds.y is not None
 
     def test_load_no_target(self):

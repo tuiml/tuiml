@@ -2,9 +2,9 @@
 
 import numpy as np
 from typing import Optional
-from tuiml.base.estimators import Estimator
+from tuiml.base.estimators import ProbabilityEstimator
 
-class NormalEstimator(Estimator):
+class NormalEstimator(ProbabilityEstimator):
     """Gaussian (Normal) distribution **probability density** estimator.
 
     Estimates a **normal distribution** for numeric data by maintaining running
@@ -77,7 +77,7 @@ class NormalEstimator(Estimator):
     See Also
     --------
     :class:`~tuiml.algorithms.bayesian.estimators.KernelEstimator` : Non-parametric kernel density estimator.
-    :class:`~tuiml.algorithms.bayesian.estimators.DiscreteEstimator` : Estimator for categorical data.
+    :class:`~tuiml.algorithms.bayesian.estimators.DiscreteEstimator` : ProbabilityEstimator for categorical data.
 
     Examples
     --------
@@ -147,7 +147,7 @@ class NormalEstimator(Estimator):
             self._mean = self.sum / self.count
             # Var = E[X^2] - (E[X])^2
             # Using basic formula, might be numerically unstable for large numbers 
-            # but matches Weka's basic implementation
+            # but keeps the estimator well-defined for a single observation
             mean_sq = self._mean * self._mean
             avg_sum_sq = self.sum_sq / self.count
             

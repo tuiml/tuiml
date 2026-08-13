@@ -10,7 +10,6 @@ Algorithms
 - **NaiveBayesClassifier:** Gaussian and kernel-indexed probabilistic classifier.
 - **NaiveBayesMultinomialClassifier:** Specialized for discrete/text classification.
 - **CategoricalNBClassifier:** Naive Bayes for nominal / integer-coded categorical features.
-- **BayesianNetworkClassifier:** Graphical models with structure learning (TAN, K2).
 - **GaussianProcessesRegressor:** Bayesian non-parametric regression with
   uncertainty estimation.
 
@@ -23,13 +22,12 @@ above models for modeling continuous and discrete feature distributions.
 from tuiml.algorithms.bayesian.naive_bayes import NaiveBayesClassifier
 from tuiml.algorithms.bayesian.naive_bayes_multinomial import NaiveBayesMultinomialClassifier
 from tuiml.algorithms.bayesian.categorical_nb import CategoricalNBClassifier
-from tuiml.algorithms.bayesian.bayes_net import BayesianNetworkClassifier
 from tuiml.algorithms.bayesian.gaussian_processes import GaussianProcessesRegressor
 from tuiml.algorithms.bayesian.bayesian_linear_regression import BayesianLinearRegressor
 
 from tuiml.algorithms.bayesian import estimators
 from tuiml.algorithms.bayesian.estimators import (
-    Estimator,
+    ProbabilityEstimator,
     NormalEstimator,
     DiscreteEstimator,
     KernelEstimator
@@ -39,11 +37,10 @@ __all__ = [
     "NaiveBayesClassifier",
     "NaiveBayesMultinomialClassifier",
     "CategoricalNBClassifier",
-    "BayesianNetworkClassifier",
     "GaussianProcessesRegressor",
     "BayesianLinearRegressor",
     "estimators",
-    "Estimator",
+    "ProbabilityEstimator",
     "NormalEstimator",
     "DiscreteEstimator",
     "KernelEstimator",

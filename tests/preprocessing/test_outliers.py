@@ -1,12 +1,12 @@
 """Outlier handling filters.
 
-Merged from: test_outliers_clip.py, test_outliers_interquartile_range.py
+Covers value clipping and IQR outlier detection.
 """
 
 import numpy as np
 from tuiml.preprocessing.outliers.clip import ValueClipper
 import pytest
-from tuiml.preprocessing.outliers.interquartile_range import IQROutlierDetector
+from tuiml.preprocessing.outliers.iqr import IQROutlierDetector
 
 
 # --------------------------------------------------------------------------

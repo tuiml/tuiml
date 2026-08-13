@@ -54,24 +54,9 @@ XFAIL_CHECKS = {
             'check_predict_output_shape',
         )},
     },
-    'HoeffdingTreeClassifier': {
-        'check_pickle_roundtrip':
-            'fitted model is not picklable, so it cannot be saved or served',
-    },
     'KMeansClusterer': {
         'check_missing_value_support_is_honest':
             'declares missing_values but raises on NaN',
-    },
-    'MultiClassClassifier': {
-        **{c: "references unregistered component 'SMO'" for c in (
-            'check_fit_does_not_mutate_input',
-            'check_fit_returns_self',
-            'check_missing_value_support_is_honest',
-            'check_pickle_roundtrip',
-            'check_predict_output_shape',
-            'check_predict_proba_is_a_distribution',
-            'check_seeded_fit_is_reproducible',
-        )},
     },
     'NaiveBayesMultinomialClassifier': {
         **{c: "declares 'numeric' but rejects negative features" for c in (
@@ -106,7 +91,7 @@ XFAIL_CHECKS = {
 def _registered_algorithms():
     """Yield ``(name, cls)`` for every native algorithm in the registry.
 
-    Third-party wrappers (``sklearn.*``, ``capymoa.*``) are excluded: they obey
+    Third-party wrappers (``sklearn.*``, ``capymoa.*``, ``weka.*``) are excluded: they obey
     their upstream library's contract, not TuiML's. Versioned aliases are
     excluded so each algorithm is checked once, and anything defined outside
     the ``tuiml`` package is excluded so the suite does not depend on which

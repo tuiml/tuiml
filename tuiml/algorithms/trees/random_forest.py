@@ -279,8 +279,8 @@ class RandomForestClassifier(Classifier):
 
     1. For each of the :math:`T` trees, draw a **bootstrap sample**
        (sampling with replacement) of size :math:`n` from the training data
-    2. Build a fully-grown :class:`~tuiml.algorithms.trees.RandomTreeClassifier`
-       on each bootstrap sample, selecting :math:`k` random features at each split
+    2. Build a fully-grown randomized tree on each bootstrap sample,
+       selecting :math:`k` random features at each split
     3. For prediction, aggregate results via **majority voting** (classification)
        or **averaging** (probability estimation)
     4. Optionally compute the **out-of-bag (OOB) score** using samples not
@@ -374,9 +374,6 @@ class RandomForestClassifier(Classifier):
 
     See Also
     --------
-    :class:`~tuiml.algorithms.trees.RandomTreeClassifier` : Single randomized tree (base learner).
-    :class:`~tuiml.algorithms.trees.C45TreeClassifier` : Deterministic C4.5 decision tree.
-    :class:`~tuiml.algorithms.trees.LogisticModelTreeClassifier` : Tree with logistic regression at leaves.
 
     Examples
     --------
@@ -740,8 +737,8 @@ class RandomForestRegressor(Regressor):
 
     1. For each of the :math:`T` trees, draw a **bootstrap sample**
        (sampling with replacement) of size :math:`n` from the training data
-    2. Build a fully-grown :class:`~tuiml.algorithms.trees.RandomTreeRegressor`
-       on each bootstrap sample, selecting :math:`k` random features at each split
+    2. Build a fully-grown randomized tree on each bootstrap sample,
+       selecting :math:`k` random features at each split
     3. For prediction, **average** the outputs of all trees
     4. Optionally compute the **out-of-bag (OOB) R-squared** using samples not
        included in each tree's bootstrap
@@ -819,9 +816,7 @@ class RandomForestRegressor(Regressor):
 
     See Also
     --------
-    :class:`~tuiml.algorithms.trees.RandomTreeRegressor` : Single randomized regression tree (base learner).
     :class:`~tuiml.algorithms.trees.RandomForestClassifier` : Classifier counterpart.
-    :class:`~tuiml.algorithms.trees.C45TreeRegressor` : Deterministic regression tree.
 
     Examples
     --------

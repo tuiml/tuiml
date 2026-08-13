@@ -13,13 +13,12 @@ Kernels
 - **PolynomialKernel:** Polynomial kernel.
 - **RBFKernel:** Radial Basis Function (Gaussian) kernel.
 - **SigmoidKernel:** Sigmoid (tanh) kernel.
-- **PearsonUniversalKernel:** Pearson VII Universal Kernel.
 - **StringKernel:** Kernel for string data.
 - **PrecomputedKernel:** Precomputed kernel matrix.
 """
 
-from tuiml.algorithms.svm.smo import SVC
-from tuiml.algorithms.svm.smoreg import SVR
+from tuiml.algorithms.svm.svc import SVC
+from tuiml.algorithms.svm.svr import SVR
 
 # Import all kernels for convenience
 from tuiml.algorithms.svm.kernels import (
@@ -31,7 +30,6 @@ from tuiml.algorithms.svm.kernels import (
     NormalizedPolynomialKernel,
     RBFKernel,
     SigmoidKernel,
-    PearsonUniversalKernel,
     StringKernel,
     PrecomputedKernel,
 )
@@ -47,7 +45,6 @@ __all__ = [
     "NormalizedPolynomialKernel",
     "RBFKernel",
     "SigmoidKernel",
-    "PearsonUniversalKernel",
     "StringKernel",
     "PrecomputedKernel",
 ]

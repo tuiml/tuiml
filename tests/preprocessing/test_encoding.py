@@ -1,13 +1,13 @@
 """Categorical encoding filters.
 
-Merged from: test_encoding_nominal_to_binary.py, test_encoding_ordinal_to_numeric.py, test_encoding_string_to_nominal.py, test_encoding_merge_infrequent.py
+Covers one-hot, ordinal, label, and rare-category encoders.
 """
 
 import numpy as np
-from tuiml.preprocessing.encoding.nominal_to_binary import OneHotEncoder
-from tuiml.preprocessing.encoding.ordinal_to_numeric import OrdinalEncoder
-from tuiml.preprocessing.encoding.string_to_nominal import LabelEncoder
-from tuiml.preprocessing.encoding.merge_infrequent import RareCategoryEncoder
+from tuiml.preprocessing.encoding.one_hot import OneHotEncoder
+from tuiml.preprocessing.encoding.ordinal import OrdinalEncoder
+from tuiml.preprocessing.encoding.label import LabelEncoder
+from tuiml.preprocessing.encoding.rare_category import RareCategoryEncoder
 
 
 # --------------------------------------------------------------------------

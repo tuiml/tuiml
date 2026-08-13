@@ -652,7 +652,7 @@ class Workflow(Algorithm):
     A ``Workflow`` *is* a model: it exposes the same ``fit``/``predict``/
     ``score``/``save`` interface as any single algorithm, so it can be used
     anywhere one can, including as a step inside another ``Workflow``, or as
-    an entry in :func:`tuiml.benchmark`.
+    an entry in :class:`~tuiml.Benchmark`.
 
     Every step except the last transforms the data; the last one is the model.
 

@@ -91,7 +91,6 @@ class RBFKernel(CachedKernel):
     --------
     :class:`~tuiml.algorithms.svm.kernels.LinearKernel` : Linear kernel for linearly separable data.
     :class:`~tuiml.algorithms.svm.kernels.PolynomialKernel` : Polynomial kernel for finite-order feature maps.
-    :class:`~tuiml.algorithms.svm.kernels.PearsonUniversalKernel` : Universal kernel that can approximate RBF.
 
     Examples
     --------

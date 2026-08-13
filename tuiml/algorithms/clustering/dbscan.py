@@ -94,7 +94,6 @@ class DBSCANClusterer(Clusterer):
 
     See Also
     --------
-    :class:`~tuiml.algorithms.clustering.CanopyClusterer` : Fast approximate clustering using distance thresholds.
     :class:`~tuiml.algorithms.clustering.AgglomerativeClusterer` : Hierarchical clustering without noise detection.
 
     Examples

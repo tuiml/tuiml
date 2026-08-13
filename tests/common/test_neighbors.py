@@ -1,6 +1,6 @@
 """Contract tests over every nearest-neighbour search backend.
 
-Replaces three near-identical modules -- BallTree, KDTree and LinearNNSearch
+Replaces three near-identical modules -- BallTree, KDTree and BruteForceSearch
 each had its own copy of the same eight tests -- and adds the property none of
 them could state alone: that all three agree with an exact brute-force search.
 """

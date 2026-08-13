@@ -127,8 +127,6 @@ class MultilayerPerceptronClassifier(Classifier):
     See Also
     --------
     :class:`~tuiml.algorithms.neural.PerceptronClassifier` : Single-layer perceptron for linearly separable problems.
-    :class:`~tuiml.algorithms.neural.VotedPerceptronClassifier` : Voted perceptron with weighted voting.
-    :class:`~tuiml.algorithms.neural.AveragedPerceptronClassifier` : Averaged perceptron for better generalization.
 
     Examples
     --------

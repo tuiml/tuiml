@@ -14,10 +14,10 @@ covers two families:
   trivial baseline (predicting the mean), which makes them comparable across
   datasets with different target scales.
 
-The relative errors are reported as percentages and the naming mirrors Weka's
-``Evaluation`` class, so the numbers line up with a Weka experiment report.
-Every function takes ``(y_true, y_pred)`` as 1-D arrays of equal length and
-returns a plain Python ``float``.
+The relative errors are reported as percentages, which makes them comparable
+across targets measured on different scales. Every function takes
+``(y_true, y_pred)`` as 1-D arrays of equal length and returns a plain Python
+``float``.
 
 Examples
 --------
@@ -44,8 +44,6 @@ def mean_absolute_error(y_true: np.ndarray, y_pred: np.ndarray) -> float:
 
     .. math::
         \\text{MAE} = \\frac{1}{n} \\sum_{i=1}^{n} |y_i - \\hat{y}_i|
-
-    Equivalent to Weka's ``Evaluation.meanAbsoluteError()``.
 
     Parameters
     ----------
@@ -153,8 +151,6 @@ def root_mean_squared_error(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     .. math::
         \\text{RMSE} = \\sqrt{\\frac{1}{n} \\sum_{i=1}^{n} (y_i - \\hat{y}_i)^2}
 
-    Equivalent to Weka's ``Evaluation.rootMeanSquaredError()``.
-
     Parameters
     ----------
     y_true : np.ndarray of shape (n_samples,)
@@ -257,8 +253,6 @@ def relative_absolute_error(y_true: np.ndarray, y_pred: np.ndarray) -> float:
         \\text{RAE} = 100 \\cdot
         \\frac{\\sum_i |y_i - \\hat{y}_i|}{\\sum_i |y_i - \\bar{y}|}
 
-    Equivalent to Weka's ``Evaluation.relativeAbsoluteError()``.
-
     Parameters
     ----------
     y_true : np.ndarray of shape (n_samples,)
@@ -311,8 +305,6 @@ def root_relative_squared_error(y_true: np.ndarray, y_pred: np.ndarray) -> float
         \\text{RRSE} = 100 \\cdot \\sqrt{
         \\frac{\\sum_i (y_i - \\hat{y}_i)^2}{\\sum_i (y_i - \\bar{y})^2}}
 
-    Equivalent to Weka's ``Evaluation.rootRelativeSquaredError()``.
-
     Parameters
     ----------
     y_true : np.ndarray of shape (n_samples,)
@@ -330,8 +322,8 @@ def root_relative_squared_error(y_true: np.ndarray, y_pred: np.ndarray) -> float
     -----
     Complexity: :math:`O(n)` time, :math:`O(n)` memory.
 
-    When to use: the scale-free companion to RMSE, and the number Weka prints
-    alongside it in an experiment summary.
+    When to use: the scale-free companion to RMSE, for comparing error across
+    targets whose units or magnitudes differ.
 
     See Also
     --------
@@ -364,8 +356,6 @@ def correlation_coefficient(y_true: np.ndarray, y_pred: np.ndarray) -> float:
         r = \\frac{\\sum_i (y_i - \\bar{y})(\\hat{y}_i - \\bar{\\hat{y}})}
         {\\sqrt{\\sum_i (y_i - \\bar{y})^2}\\;
          \\sqrt{\\sum_i (\\hat{y}_i - \\bar{\\hat{y}})^2}}
-
-    Equivalent to Weka's ``Evaluation.correlationCoefficient()``.
 
     Parameters
     ----------

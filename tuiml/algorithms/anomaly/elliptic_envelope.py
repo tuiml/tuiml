@@ -117,8 +117,8 @@ class EllipticEnvelopeDetector(Classifier):
 
     See Also
     --------
-    :class:`~tuiml.algorithms.anomaly.OneClassSVM` : Support vector based novelty/anomaly detection.
-    :class:`~tuiml.algorithms.anomaly.IsolationForest` : Tree-based ensemble anomaly detection.
+    :class:`~tuiml.algorithms.anomaly.OneClassSVMDetector` : Support vector based novelty/anomaly detection.
+    :class:`~tuiml.algorithms.anomaly.IsolationForestDetector` : Tree-based ensemble anomaly detection.
 
     Examples
     --------

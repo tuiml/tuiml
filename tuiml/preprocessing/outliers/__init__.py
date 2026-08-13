@@ -27,7 +27,7 @@ See Also
 :mod:`tuiml.algorithms.anomaly` : When anomalies are the thing to predict.
 """
 
-from tuiml.preprocessing.outliers.interquartile_range import IQROutlierDetector
+from tuiml.preprocessing.outliers.iqr import IQROutlierDetector
 from tuiml.preprocessing.outliers.clip import ValueClipper
 
 __all__ = [

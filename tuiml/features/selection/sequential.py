@@ -3,8 +3,9 @@ Sequential feature selection methods.
 
 This module provides sequential/greedy feature selection methods that
 iteratively add or remove features based on model performance.
-- SequentialFeatureSelector: GreedyStepwise.java
-- BestFirstSelector: BestFirst.java
+
+- SequentialFeatureSelector: greedy forward/backward stepwise search.
+- BestFirstSelector: best-first search with backtracking.
 """
 
 import numpy as np
@@ -497,11 +498,11 @@ class BestFirstSelector(FeatureSelector, SelectorMixin):
     Perform best-first search for 10 nodes:
 
     >>> from tuiml.features.selection import BestFirstSelector
-    >>> from tuiml.algorithms.trees import C45TreeClassifier
+    >>> from tuiml.algorithms.trees import DecisionTreeClassifier
     >>> import numpy as np
     >>> X, y = np.random.randn(20, 8), np.random.randint(0, 2, 20)
     >>> selector = BestFirstSelector(
-    ...     estimator=C45TreeClassifier(),
+    ...     estimator=DecisionTreeClassifier(),
     ...     direction='forward',
     ...     search_termination=3
     ... )

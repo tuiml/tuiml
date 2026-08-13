@@ -142,8 +142,8 @@ class OneClassSVMDetector(Classifier):
 
     See Also
     --------
-    :class:`~tuiml.algorithms.anomaly.EllipticEnvelope` : Gaussian-based anomaly detection.
-    :class:`~tuiml.algorithms.anomaly.IsolationForest` : Tree-based ensemble anomaly detection.
+    :class:`~tuiml.algorithms.anomaly.EllipticEnvelopeDetector` : Gaussian-based anomaly detection.
+    :class:`~tuiml.algorithms.anomaly.IsolationForestDetector` : Tree-based ensemble anomaly detection.
 
     Examples
     --------

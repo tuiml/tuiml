@@ -40,14 +40,6 @@ DATASET_REGISTRY = {
         "description": "Classic flower classification: setosa, versicolor, virginica",
         "loader": "load_iris"
     },
-    "iris_2d": {
-        "task": "classification",
-        "samples": 150,
-        "features": 2,
-        "classes": 3,
-        "description": "Iris with reduced features (2D version)",
-        "loader": "load_iris_2d"
-    },
     "diabetes": {
         "task": "classification",
         "samples": 768,
@@ -96,22 +88,6 @@ DATASET_REGISTRY = {
         "description": "German credit risk assessment",
         "loader": "load_credit"
     },
-    "weather": {
-        "task": "classification",
-        "samples": 14,
-        "features": 4,
-        "classes": 2,
-        "description": "Weather conditions for playing tennis (numeric)",
-        "loader": "load_weather"
-    },
-    "weather_nominal": {
-        "task": "classification",
-        "samples": 14,
-        "features": 4,
-        "classes": 2,
-        "description": "Weather conditions for playing tennis (nominal)",
-        "loader": "load_weather_nominal"
-    },
     "soybean": {
         "task": "classification",
         "samples": 683,
@@ -144,30 +120,6 @@ DATASET_REGISTRY = {
         "description": "Hypothyroid disease diagnosis",
         "loader": "load_hypothyroid"
     },
-    "segment": {
-        "task": "classification",
-        "samples": 1500,
-        "features": 19,
-        "classes": 7,
-        "description": "Image segmentation (challenge set)",
-        "loader": "load_segment"
-    },
-    "segment_test": {
-        "task": "classification",
-        "samples": 810,
-        "features": 19,
-        "classes": 7,
-        "description": "Image segmentation (test set)",
-        "loader": "load_segment_test"
-    },
-    "unbalanced": {
-        "task": "classification",
-        "samples": None,
-        "features": None,
-        "classes": 2,
-        "description": "Dataset with imbalanced class distribution",
-        "loader": "load_unbalanced"
-    },
     # Regression datasets
     "cpu": {
         "task": "regression",
@@ -177,47 +129,7 @@ DATASET_REGISTRY = {
         "description": "CPU performance prediction",
         "loader": "load_cpu"
     },
-    "cpu_with_vendor": {
-        "task": "regression",
-        "samples": 209,
-        "features": 7,
-        "classes": None,
-        "description": "CPU performance with vendor information",
-        "loader": "load_cpu_with_vendor"
-    },
-    "airline": {
-        "task": "regression",
-        "samples": None,
-        "features": None,
-        "classes": None,
-        "description": "Airline scheduling/time series data",
-        "loader": "load_airline"
-    },
     # Other datasets
-    "supermarket": {
-        "task": "association",
-        "samples": 4627,
-        "features": 217,
-        "classes": None,
-        "description": "Supermarket transactions for association rule mining",
-        "loader": "load_supermarket"
-    },
-    "reuters_corn": {
-        "task": "text_classification",
-        "samples": None,
-        "features": None,
-        "classes": 2,
-        "description": "Reuters news about corn (train/test splits available)",
-        "loader": "load_reuters_corn"
-    },
-    "reuters_grain": {
-        "task": "text_classification",
-        "samples": None,
-        "features": None,
-        "classes": 2,
-        "description": "Reuters news about grain (train/test splits available)",
-        "loader": "load_reuters_grain"
-    },
 }
 
 

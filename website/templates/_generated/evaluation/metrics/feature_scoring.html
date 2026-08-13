@@ -13,7 +13,7 @@
 <a href="#func-f_classif">f_classif</a>
 <a href="#func-f_regression">f_regression</a>
 <a href="#func-correlation">correlation</a>
-<a href="#func-oner_score">oner_score</a>
+<a href="#func-single_rule_score">single_rule_score</a>
 <a href="#func-relief_f">relief_f</a>
 </nav>
 <main>
@@ -50,7 +50,7 @@ Continuous columns are binned first.
 </li>
 
 <li class="text-gray-700">
-<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">oner_score</code> -- accuracy of a one-rule classifier built on the feature
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">single_rule_score</code> -- accuracy of a one-rule classifier built on the feature
 </li>
 
 </ul>
@@ -552,7 +552,7 @@ The statistical tests return a <code class="bg-gray-100 px-1 py-0.5 rounded text
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
                 <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
             </div>
-            <div class="p-4">Measures LINEAR association only: a feature related to the target through a curve can score near zero. <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">relief_f</code> and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">oner_score</code> pick up relationships this misses.</div>
+            <div class="p-4">Measures LINEAR association only: a feature related to the target through a curve can score near zero. <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">relief_f</code> and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">single_rule_score</code> pick up relationships this misses.</div>
         </div>
         
 <div class="mb-8 last:mb-0">
@@ -581,21 +581,21 @@ The statistical tests return a <code class="bg-gray-100 px-1 py-0.5 rounded text
         </div>
         </div></div>
 </div></div>
-<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-oner_score">
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-single_rule_score">
 
         <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
             
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
-                <h3 class="text-lg font-bold text-gray-900 font-mono">oner_score</h3>
-                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/feature_scoring.py#L378" target="_blank" rel="noopener noreferrer" title="View oner_score source on GitHub" aria-label="View oner_score source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">single_rule_score</h3>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/feature_scoring.py#L378" target="_blank" rel="noopener noreferrer" title="View single_rule_score source on GitHub" aria-label="View single_rule_score source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
             </div>
             <div class="text-xs text-gray-400 mt-1 font-mono">Line 378</div>
         </div>
         
 <div class="p-6">
-<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">oner_score(X: np.ndarray, y: np.ndarray, n_bins: int=10) -&gt; np.ndarray</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Evaluate features using OneR classifier accuracy.</p>
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">single_rule_score(X: np.ndarray, y: np.ndarray, n_bins: int=10) -&gt; np.ndarray</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Evaluate features by the accuracy of a one-rule classifier built on each.</p>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -663,7 +663,7 @@ The statistical tests return a <code class="bg-gray-100 px-1 py-0.5 rounded text
                     
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
-                    OneR accuracy for each feature, between 0 and 1.
+                    One-rule accuracy for each feature, between 0 and 1.
                 </div>
             </div>
             
@@ -695,9 +695,9 @@ The statistical tests return a <code class="bg-gray-100 px-1 py-0.5 rounded text
             </div>
             <div class="!p-4 overflow-x-auto">
                 <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.datasets import load_iris
-&gt;&gt;&gt; from tuiml.evaluation.metrics import oner_score
+&gt;&gt;&gt; from tuiml.evaluation.metrics import single_rule_score
 &gt;&gt;&gt; X, y = load_iris()
-&gt;&gt;&gt; scores = oner_score(X, y)
+&gt;&gt;&gt; scores = single_rule_score(X, y)
 &gt;&gt;&gt; [round(float(v), 2) for v in scores]
 [0.73, 0.59, 0.91, 0.9]</code></pre>
             </div>

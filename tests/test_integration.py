@@ -2,7 +2,7 @@
 
 import numpy as np
 import pytest
-from tuiml.algorithms.trees import C45TreeClassifier
+from tuiml.algorithms.trees import DecisionTreeClassifier
 from tuiml.algorithms.linear import LinearRegression
 from tuiml.algorithms.clustering import KMeansClusterer
 
@@ -20,7 +20,7 @@ class TestBasicWorkflows:
         y_train, y_test = y[:n_train], y[n_train:]
         
         # Train model
-        clf = C45TreeClassifier()
+        clf = DecisionTreeClassifier()
         clf.fit(X_train, y_train)
         
         # Make predictions
@@ -76,7 +76,7 @@ class TestModelPersistence:
         X, y = binary_cls_data
         
         # Train and save
-        clf = C45TreeClassifier().fit(X, y)
+        clf = DecisionTreeClassifier().fit(X, y)
         saved = pickle.dumps(clf)
         
         # Load and predict
@@ -114,7 +114,7 @@ class TestMultiAlgorithmComparison:
         X, y = binary_cls_data
         
         classifiers = [
-            ("C45", C45TreeClassifier()),
+            ("CART", DecisionTreeClassifier()),
             ("RandomForest", RandomForestClassifier()),
             ("NaiveBayes", NaiveBayesClassifier()),
             ("SVM", SMOClassifier()),

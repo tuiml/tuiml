@@ -79,7 +79,7 @@ def load(
     -----
     **Supported Formats:**
     
-    - ``.arff``: Attribute-Relation File Format (WEKA native)
+    - ``.arff``: Attribute-Relation File Format
     - ``.csv``, ``.tsv``: Delimited text files
     - ``.npy``, ``.npz``: NumPy binary formats
     - ``.xlsx``, ``.xls``: Microsoft Excel spreadsheets

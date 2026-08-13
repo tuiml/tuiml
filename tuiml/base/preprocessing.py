@@ -27,10 +27,9 @@ class Preprocessor(Registrable, ABC):
 
     See Also
     --------
-    :class:`~tuiml.base.preprocessing.Filter` : For value removal/replacement.
     :class:`~tuiml.base.preprocessing.Transformer` : For feature-space
         transformations.
-    :class:`~tuiml.base.preprocessing.InstanceTransformer` : For row-level
+    :class:`~tuiml.base.preprocessing.ResamplingTransformer` : For row-level
         resampling.
     """
 
@@ -145,21 +144,6 @@ class Preprocessor(Registrable, ABC):
                 f"{self.__class__.__name__} must be fitted before calling transform"
             )
 
-class Filter(Preprocessor):
-    """Base class for filter-type preprocessors.
-
-    Filters typically modify the data by removing or replacing values
-    without changing the underlying math of the feature space (e.g.,
-    handling missing values, removing outliers).
-
-    See Also
-    --------
-    :class:`~tuiml.base.preprocessing.Transformer` : For feature-space
-        transformations.
-    """
-
-    _component_type = ComponentType.FILTER
-
 class Transformer(Preprocessor):
     """Base class for feature transformers.
 
@@ -177,7 +161,6 @@ class Transformer(Preprocessor):
     --------
     :class:`~tuiml.base.preprocessing.SupervisedTransformer` : Transformers
         that use target labels during fitting.
-    :class:`~tuiml.base.preprocessing.Filter` : For value removal/replacement.
     """
 
     _component_type = ComponentType.TRANSFORMER
@@ -268,7 +251,7 @@ class SupervisedTransformer(Transformer):
         """
         pass
 
-class InstanceTransformer(Preprocessor):
+class ResamplingTransformer(Preprocessor):
     """Base class for instance-level transformations.
 
     Specialized preprocessors that can change the row count of a dataset,
@@ -276,10 +259,10 @@ class InstanceTransformer(Preprocessor):
 
     See Also
     --------
-    :class:`~tuiml.base.preprocessing.Filter` : Column-preserving filters.
+    :class:`~tuiml.base.preprocessing.Transformer` : Row-count-preserving transformations.
     """
 
-    _component_type = ComponentType.FILTER
+    _component_type = ComponentType.PREPROCESSOR
 
     def transform(
         self, X: np.ndarray, y: Optional[np.ndarray] = None
@@ -365,45 +348,6 @@ def preprocessor(
         author=author,
     )
 
-def filter_method(
-    name: Optional[str] = None,
-    tags: Optional[List[str]] = None,
-    version: str = "1.0.0",
-    author: Optional[str] = None,
-):
-    """Register a filter class with the component registry.
-
-    Parameters
-    ----------
-    name : str, optional
-        Registration name. Defaults to the class name.
-    tags : list of str, optional
-        Searchable tags describing the filter.
-    version : str, default="1.0.0"
-        Component version string.
-    author : str, optional
-        Component author.
-
-    Returns
-    -------
-    decorator : callable
-        Class decorator that registers the decorated class in the registry
-        as a :class:`~tuiml.base.preprocessing.Filter` component.
-
-    Examples
-    --------
-    >>> from tuiml.base.preprocessing import filter_method, Filter
-    >>> @filter_method(tags=["missing_values"])
-    ... class MissingValueHandler(Filter):
-    ...     pass
-    """
-    return registry.register(
-        ComponentType.FILTER,
-        name=name,
-        tags=tags,
-        version=version,
-        author=author,
-    )
 
 def transformer(
     name: Optional[str] = None,

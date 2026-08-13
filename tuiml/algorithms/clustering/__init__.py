@@ -12,11 +12,6 @@ Algorithms
   sparse points as noise, without being told how many clusters to expect.
 - **DensityBasedClusterer:** Density estimation wrapped around a clusterer.
 - **AgglomerativeClusterer:** Bottom-up hierarchy of merges.
-- **CobwebClusterer:** Incremental conceptual clustering.
-- **CanopyClusterer:** Cheap approximate pre-clustering, used to seed a
-  more expensive algorithm.
-- **FarthestFirstClusterer:** Fast farthest-point seeding.
-- **FilteredClusterer:** Applies preprocessing before a wrapped clusterer.
 
 Notes
 -----
@@ -55,14 +50,10 @@ from tuiml.algorithms.clustering.distance import (
 )
 
 # Clustering algorithms
-from tuiml.algorithms.clustering.simple_kmeans import KMeansClusterer
-from tuiml.algorithms.clustering.farthest_first import FarthestFirstClusterer
+from tuiml.algorithms.clustering.kmeans import KMeansClusterer
 from tuiml.algorithms.clustering.hierarchical import AgglomerativeClusterer
 from tuiml.algorithms.clustering.dbscan import DBSCANClusterer
-from tuiml.algorithms.clustering.em import GaussianMixtureClusterer
-from tuiml.algorithms.clustering.canopy import CanopyClusterer
-from tuiml.algorithms.clustering.cobweb import CobwebClusterer
-from tuiml.algorithms.clustering.filtered_clusterer import FilteredClusterer
+from tuiml.algorithms.clustering.gaussian_mixture import GaussianMixtureClusterer
 
 __all__ = [
     "Clusterer",
@@ -77,11 +68,7 @@ __all__ = [
     "pairwise_distances",
     "get_distance_function",
     "KMeansClusterer",
-    "FarthestFirstClusterer",
     "AgglomerativeClusterer",
     "DBSCANClusterer",
     "GaussianMixtureClusterer",
-    "CanopyClusterer",
-    "CobwebClusterer",
-    "FilteredClusterer",
 ]

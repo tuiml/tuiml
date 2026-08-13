@@ -230,8 +230,6 @@ class PolynomialKernel(CachedKernel):
         return (f"PolynomialKernel(degree={self.degree}, "
                f"gamma={self.gamma}, coef0={self.coef0})")
 
-# Alias for WEKA compatibility
-PolyKernel = PolynomialKernel
 
 @kernel(tags=["polynomial", "normalized"], version="1.0.0")
 class NormalizedPolynomialKernel(CachedKernel):
@@ -442,5 +440,3 @@ class NormalizedPolynomialKernel(CachedKernel):
         """String representation."""
         return f"NormalizedPolynomialKernel(degree={self.degree})"
 
-# Alias for WEKA compatibility
-NormalizedPolyKernel = NormalizedPolynomialKernel

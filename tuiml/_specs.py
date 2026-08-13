@@ -51,7 +51,7 @@ def _reject_foreign_estimator(model: Any) -> None:
         hint = (
             f"No wrapper is registered for {cls_name}. Use a native TuiML "
             f"algorithm (tuiml.list_algorithms()), or add a wrapper under "
-            f"tuiml/sklearn/ or tuiml/capymoa/."
+            f"tuiml/sklearn/, tuiml/capymoa/ or tuiml/weka/."
         )
     raise TypeError(
         f"{cls_name} is not a TuiML algorithm. TuiML addresses algorithms by "

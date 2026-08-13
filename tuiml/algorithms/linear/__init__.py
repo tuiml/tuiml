@@ -7,9 +7,7 @@ learned — which makes them the sensible baseline before anything heavier.
 Algorithms
 ----------
 - **LinearRegression:** Ordinary least squares over several features.
-- **SimpleLinearRegression:** Least squares on the single best feature.
 - **LogisticRegression:** Linear classification with a logistic link.
-- **SimpleLogisticRegression:** LogitBoost-fitted additive logistic model.
 - **SGDClassifier:** Linear classifier fitted by stochastic gradient descent.
 - **SGDRegressor:** Linear regressor fitted by stochastic gradient descent.
 
@@ -32,15 +30,11 @@ Examples
 
 from tuiml.algorithms.linear.logistic import LogisticRegression
 from tuiml.algorithms.linear.linear_regression import LinearRegression
-from tuiml.algorithms.linear.simple_linear_regression import SimpleLinearRegression
 from tuiml.algorithms.linear.sgd import SGDClassifier, SGDRegressor
-from tuiml.algorithms.linear.simple_logistic import SimpleLogisticRegression
 
 __all__ = [
     "LogisticRegression",
     "LinearRegression",
-    "SimpleLinearRegression",
     "SGDClassifier",
     "SGDRegressor",
-    "SimpleLogisticRegression",
 ]

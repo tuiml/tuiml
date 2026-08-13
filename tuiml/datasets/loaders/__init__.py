@@ -7,7 +7,7 @@ Each format also has a matching ``save_*``.
 Formats
 -------
 - **CSV / TSV:** :func:`load_csv`, :func:`save_csv`.
-- **ARFF:** :func:`load_arff`, :func:`save_arff`. Weka's format, which
+- **ARFF:** :func:`load_arff`, :func:`save_arff`. A typed text format that
   carries column types and nominal values in its header.
 - **Parquet:** :func:`load_parquet`, :func:`save_parquet`, plus
   :func:`load_parquet_partitioned` for directory-partitioned datasets.

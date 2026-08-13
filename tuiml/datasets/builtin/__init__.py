@@ -50,25 +50,12 @@ from tuiml.datasets.builtin.classification import (
     load_hypothyroid,
     load_ionosphere,
     load_iris,
-    load_iris_2d,
     load_labor,
-    load_segment,
-    load_segment_test,
     load_soybean,
-    load_unbalanced,
     load_vote,
-    load_weather,
-    load_weather_nominal,
 )
 from tuiml.datasets.builtin.regression import (
-    load_airline,
     load_cpu,
-    load_cpu_with_vendor,
-)
-from tuiml.datasets.builtin.other import (
-    load_reuters_corn,
-    load_reuters_grain,
-    load_supermarket,
 )
 
 __all__ = [
@@ -81,28 +68,17 @@ __all__ = [
     "load_dataset",
     # Classification
     "load_iris",
-    "load_iris_2d",
     "load_diabetes",
     "load_breast_cancer",
     "load_glass",
     "load_ionosphere",
     "load_vote",
     "load_credit",
-    "load_weather",
-    "load_weather_nominal",
     "load_soybean",
     "load_labor",
     "load_contact_lenses",
     "load_hypothyroid",
-    "load_segment",
-    "load_segment_test",
-    "load_unbalanced",
     # Regression
     "load_cpu",
-    "load_cpu_with_vendor",
-    "load_airline",
     # Other
-    "load_supermarket",
-    "load_reuters_corn",
-    "load_reuters_grain",
 ]

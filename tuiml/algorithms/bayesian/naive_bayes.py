@@ -110,7 +110,6 @@ class NaiveBayesClassifier(Classifier):
     See Also
     --------
     :class:`~tuiml.algorithms.bayesian.NaiveBayesMultinomialClassifier` : Multinomial variant for discrete/count data.
-    :class:`~tuiml.algorithms.bayesian.BayesianNetworkClassifier` : Bayesian network with learned structure.
     :class:`~tuiml.algorithms.bayesian.estimators.NormalEstimator` : Gaussian probability estimator used by default.
     :class:`~tuiml.algorithms.bayesian.estimators.KernelEstimator` : Kernel density estimator for flexible distributions.
 

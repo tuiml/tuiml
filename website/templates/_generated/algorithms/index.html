@@ -22,7 +22,7 @@
 </li>
 
 </ul>
-default on tabular data: <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">RandomForestClassifier</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">C45TreeClassifier</code>,   <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">M5ModelTreeRegressor</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">HoeffdingTreeClassifier</code>.
+default on tabular data: <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">RandomForestClassifier</code>,   <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">DecisionTreeClassifier</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">DecisionStumpClassifier</code>.
 <ul class="list-disc list-inside my-3 space-y-1 pl-4">
 
 <li class="text-gray-700">
@@ -54,7 +54,7 @@ algorithms: <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Bagg
 </li>
 
 </ul>
-kernels: <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">SMO</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">SMOreg</code>.
+kernels: <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">SVC</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">SVR</code>.
 <ul class="list-disc list-inside my-3 space-y-1 pl-4">
 
 <li class="text-gray-700">
@@ -62,7 +62,7 @@ kernels: <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">SMO</co
 </li>
 
 </ul>
-<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">NaiveBayesClassifier</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">BayesianNetworkClassifier</code>,   <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">GaussianProcessesRegressor</code>.
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">NaiveBayesClassifier</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">NaiveBayesMultinomialClassifier</code>,   <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">GaussianProcessesRegressor</code>.
 <ul class="list-disc list-inside my-3 space-y-1 pl-4">
 
 <li class="text-gray-700">
@@ -70,15 +70,15 @@ kernels: <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">SMO</co
 </li>
 
 </ul>
-the training data instead of building a model:   <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">KNearestNeighborsClassifier</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">KStarClassifier</code>.
+the training data instead of building a model:   <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">KNearestNeighborsClassifier</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">KNearestNeighborsRegressor</code>.
 <ul class="list-disc list-inside my-3 space-y-1 pl-4">
 
 <li class="text-gray-700">
-<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">rules</code> — human-readable rule sets:
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">rules</code> — <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ZeroRuleClassifier</code>, the majority-class
 </li>
 
 </ul>
-<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">OneRuleClassifier</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">RIPPERClassifier</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">PARTClassifier</code>. Reach for   these when the model has to be explainable to someone who did not build it.
+baseline every other model has to beat.
 <ul class="list-disc list-inside my-3 space-y-1 pl-4">
 
 <li class="text-gray-700">
@@ -196,6 +196,16 @@ ordinary cross-validation leaks the future into the past: <code class="bg-gray-1
                         <div>
                             <code class="font-bold text-indigo-600 group-hover:text-indigo-800">capymoa</code>
                             <p class="text-sm text-gray-600 mt-0.5">CapyMOA streaming learners, under <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">capymoa.*</code> names.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/weka/index.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">weka</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Weka learners, under <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">weka.*</code> names.</p>
                         </div>
                     </a>
                     </div></div>

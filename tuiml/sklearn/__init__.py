@@ -99,6 +99,7 @@ of the same name, e.g. scikit-learn's ``PCA`` is exported as ``PCAExtractor``.
 See Also
 --------
 :mod:`tuiml.capymoa` : The same bridge pattern for CapyMOA streaming learners.
+:mod:`tuiml.weka` : The same bridge pattern for Weka (JVM) learners.
 :mod:`tuiml.sklearn.specs` : The declarative table driving every wrapper.
 """
 

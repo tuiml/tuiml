@@ -18,7 +18,33 @@ from tuiml.algorithms.trees._core import (
     build_classifier_tree,
     build_regressor_tree,
     cost_complexity_prune,
+    populate_node_stats,
 )
+
+def _as_2d(X) -> np.ndarray:
+    """Return ``X`` as a 2-D float array, treating 1-D input as one column.
+
+    Parameters
+    ----------
+    X : array-like
+        Feature data, either 2-D or a single 1-D feature.
+
+    Returns
+    -------
+    X2d : np.ndarray of shape (n_samples, n_features)
+        Two-dimensional view of the input.
+
+    Notes
+    -----
+    ``np.atleast_2d`` reshapes a 1-D array of length ``n`` to ``(1, n)`` — one
+    sample with ``n`` features — which is the opposite of what a single-feature
+    dataset means. A 1-D input is reshaped to ``(n, 1)`` instead.
+    """
+    X = np.asarray(X, dtype=np.float64)
+    if X.ndim == 1:
+        return X.reshape(-1, 1)
+    return np.atleast_2d(X)
+
 
 # Backward compat aliases
 CARTNode = TreeNode
@@ -135,7 +161,6 @@ class DecisionTreeClassifier(Classifier):
     See Also
     --------
     :class:`~tuiml.algorithms.trees.DecisionTreeRegressor` : CART regression tree.
-    :class:`~tuiml.algorithms.trees.C45TreeClassifier` : C4.5 classifier with gain-ratio splitting.
     :class:`~tuiml.algorithms.trees.RandomForestClassifier` : Ensemble of random trees.
 
     Examples
@@ -292,7 +317,7 @@ class DecisionTreeClassifier(Classifier):
                 f"Supported criteria: {valid_criteria}"
             )
 
-        X = np.atleast_2d(np.asarray(X, dtype=np.float64))
+        X = _as_2d(X)
         y = np.asarray(y)
 
         self.classes_ = np.unique(y)
@@ -315,6 +340,9 @@ class DecisionTreeClassifier(Classifier):
         self.tree_ = build_classifier_tree(X, y_encoded, config, rng)
 
         if self.ccp_alpha > 0.0:
+            # The C++ builder leaves n_samples/impurity unset; pruning needs both.
+            populate_node_stats(self.tree_, X, y_encoded, self.criterion,
+                                n_classes=self.n_classes_)
             self.tree_ = cost_complexity_prune(self.tree_, self.ccp_alpha)
 
         self.flat_tree_ = flatten_tree(self.tree_, value_width=self.n_classes_)
@@ -355,7 +383,7 @@ class DecisionTreeClassifier(Classifier):
             Class probability estimates.
         """
         self._check_is_fitted()
-        X = np.atleast_2d(np.asarray(X, dtype=np.float64))
+        X = _as_2d(X)
         return predict_proba_batch(self.flat_tree_, X)
 
     def get_tree_description(self, node=None, depth: int = 0) -> str:
@@ -491,7 +519,6 @@ class DecisionTreeRegressor(Regressor):
     See Also
     --------
     :class:`~tuiml.algorithms.trees.DecisionTreeClassifier` : CART classifier.
-    :class:`~tuiml.algorithms.trees.C45TreeRegressor` : C4.5-style regression tree.
     :class:`~tuiml.algorithms.trees.RandomForestRegressor` : Ensemble of random regression trees.
 
     Examples
@@ -645,7 +672,7 @@ class DecisionTreeRegressor(Regressor):
                 f"Supported criteria: {valid_criteria}"
             )
 
-        X = np.atleast_2d(np.asarray(X, dtype=np.float64))
+        X = _as_2d(X)
         y = np.asarray(y, dtype=np.float64).ravel()
 
         self.n_features_ = X.shape[1]
@@ -662,6 +689,8 @@ class DecisionTreeRegressor(Regressor):
         self.tree_ = build_regressor_tree(X, y, config, rng)
 
         if self.ccp_alpha > 0.0:
+            # The C++ builder leaves n_samples/impurity unset; pruning needs both.
+            populate_node_stats(self.tree_, X, y, self.criterion)
             self.tree_ = cost_complexity_prune(self.tree_, self.ccp_alpha)
 
         self.flat_tree_ = flatten_tree(self.tree_, value_width=1)
@@ -684,7 +713,7 @@ class DecisionTreeRegressor(Regressor):
             Predicted values.
         """
         self._check_is_fitted()
-        X = np.atleast_2d(np.asarray(X, dtype=np.float64))
+        X = _as_2d(X)
         raw = predict_batch(self.flat_tree_, X)
         return raw.ravel()
 

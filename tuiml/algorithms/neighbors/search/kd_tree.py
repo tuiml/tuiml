@@ -97,7 +97,7 @@ class KDTree(NearestNeighborSearch):
     See Also
     --------
     :class:`~tuiml.algorithms.neighbors.search.BallTree` : Spherical partitions, better in higher dimensions.
-    :class:`~tuiml.algorithms.neighbors.search.LinearNNSearch` : Brute-force search as a baseline.
+    :class:`~tuiml.algorithms.neighbors.search.BruteForceSearch` : Brute-force search as a baseline.
 
     Examples
     --------

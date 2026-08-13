@@ -97,7 +97,6 @@ class NaiveBayesMultinomialClassifier(Classifier):
     See Also
     --------
     :class:`~tuiml.algorithms.bayesian.NaiveBayesClassifier` : Gaussian/KDE-based Naive Bayes for continuous features.
-    :class:`~tuiml.algorithms.bayesian.BayesianNetworkClassifier` : Bayesian network with learned structure.
 
     Examples
     --------

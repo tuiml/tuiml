@@ -53,7 +53,7 @@ comparison. Concrete examples the `matched` config removes:
   elimination** by default; scikit-learn's solves one least-squares problem.
 - Weka's `RandomForest` samples `log2(p)+1` attributes per split, scikit-learn
   `sqrt(p)` for classification and **all `p`** for regression.
-- `SMO` defaults to a linear PolyKernel and normalizes internally; `SVC`
+- `SVC` uses a linear kernel by default and normalizes internally; sklearn `SVC`
   defaults to RBF. Matched mode puts both on RBF with the *same* explicit gamma.
 - `Logistic` defaults to ridge `1e-8` (effectively unregularized) while
   scikit-learn defaults to `C=1.0`, i.e. ridge `0.5`.

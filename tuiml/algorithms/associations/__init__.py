@@ -1,8 +1,7 @@
 """Association rule mining algorithms.
 
 This module provides algorithms for discovering interesting relationships
-(rules) between variables in large transaction datasets. It follows the
-standard Weka approach for associators.
+(rules) between variables in large transaction datasets.
 
 Algorithms
 ----------

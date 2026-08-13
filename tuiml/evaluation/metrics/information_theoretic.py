@@ -1,8 +1,9 @@
 """
 Information-theoretic evaluation metrics.
 
-These metrics are used by Weka for measuring information gain, entropy, etc.
-Equivalent to Weka's information-theoretic evaluation methods.
+Entropy, information gain, and the information-score family used to measure how
+much a model's predictions reduce uncertainty about the target. Logarithms
+default to base 2, so results are expressed in bits.
 """
 
 from typing import Optional
@@ -13,8 +14,6 @@ def entropy(labels: np.ndarray, base: Optional[float] = None) -> float:
     """
     Calculate entropy of a label distribution, the average information
     content (uncertainty) of the labels.
-
-    Equivalent to Weka's information-theoretic calculations.
 
     .. math::
         H(X) = -\\sum_i p_i \\log p_i
@@ -150,8 +149,6 @@ def information_gain(
     """
     Calculate information gain, numerically identical to mutual information.
 
-    Equivalent to Weka's information gain calculation.
-
     Parameters
     ----------
     y_true : array-like of shape (n_samples,)
@@ -159,8 +156,7 @@ def information_gain(
     y_pred : array-like of shape (n_samples,)
         Split or predicted labels.
     base : int or None, default=2
-        Logarithm base. 2 gives bits (the default, matching Weka), None gives
-        natural log (nats).
+        Logarithm base. 2 gives bits (the default), None gives natural log (nats).
 
     Returns
     -------
@@ -184,7 +180,8 @@ def gain_ratio(
     """
     Calculate gain ratio, information gain normalized by split information.
 
-    Equivalent to Weka's gain ratio used in C4.5/J48, and defined as
+    Introduced by Quinlan for C4.5 to counteract information gain's bias
+    toward high-cardinality splits, and defined as
 
     .. math::
         \\text{GainRatio} = \\frac{IG(Y, X)}{H(X)}
@@ -230,8 +227,6 @@ def kullback_leibler_divergence(
     Calculate Kullback-Leibler divergence KL(P||Q), the expected extra
     information needed to encode samples from P using a code optimized
     for Q instead of P.
-
-    Equivalent to Weka's KB Information metric.
 
     .. math::
         KL(P \\| Q) = \\sum_i p_i \\log \\frac{p_i}{q_i}
@@ -377,8 +372,6 @@ def symmetrical_uncertainty(
     Calculate symmetrical uncertainty, a normalized, symmetric variant of
     mutual information.
 
-    Equivalent to Weka's ``SymmetricalUncertAttributeEval``.
-
     .. math::
         SU(X,Y) = \\frac{2 \\cdot IG(Y,X)}{H(X) + H(Y)}
 
@@ -428,16 +421,14 @@ def prior_entropy(
     Calculate prior entropy, the entropy of the class distribution before
     any model prediction is taken into account.
 
-    Equivalent to Weka's ``Evaluation.SFPriorEntropy()``. A thin wrapper
-    around :func:`entropy` that defaults to base 2.
+    A thin wrapper around :func:`entropy` that defaults to base 2.
 
     Parameters
     ----------
     y_true : array-like of shape (n_samples,)
         Class labels.
     base : int or None, default=2
-        Logarithm base. 2 gives bits (the default, matching Weka), None
-        gives natural log (nats).
+        Logarithm base. 2 gives bits (the default), None gives natural log (nats).
 
     Returns
     -------
@@ -453,17 +444,16 @@ def prior_entropy(
     """
     return entropy(y_true, base=base)
 
-def scheme_entropy(
+def prediction_entropy(
     y_pred_proba: np.ndarray,
     base: Optional[float] = 2
 ) -> float:
     """
-    Calculate scheme entropy, the average entropy of the model's predicted
+    Calculate prediction entropy, the average entropy of the model's predicted
     class distributions.
 
-    Equivalent to Weka's ``Evaluation.SFSchemeEntropy()``. Low scheme
-    entropy means the model makes confident (low-entropy), peaked
-    predictions; high scheme entropy means predictions are close to uniform.
+    Low prediction entropy means the model makes confident (low-entropy), peaked
+    predictions; high prediction entropy means predictions are close to uniform.
 
     Parameters
     ----------
@@ -472,8 +462,7 @@ def scheme_entropy(
         of shape (n_samples,) is treated as binary positive-class
         probabilities and expanded to two columns.
     base : int or None, default=2
-        Logarithm base. 2 gives bits (the default, matching Weka), None
-        gives natural log (nats).
+        Logarithm base. 2 gives bits (the default), None gives natural log (nats).
 
     Returns
     -------
@@ -483,8 +472,8 @@ def scheme_entropy(
 
     Examples
     --------
-    >>> from tuiml.evaluation.metrics import scheme_entropy
-    >>> round(scheme_entropy([[0.9, 0.1], [0.5, 0.5]]), 4)  # confident + maximally uncertain
+    >>> from tuiml.evaluation.metrics import prediction_entropy
+    >>> round(prediction_entropy([[0.9, 0.1], [0.5, 0.5]]), 4)  # confident + maximally uncertain
     0.7345
     """
     y_pred_proba = np.asarray(y_pred_proba)
@@ -515,8 +504,7 @@ def entropy_gain(
     Calculate entropy gain, the reduction in entropy from using the model's
     predictions instead of the prior class distribution.
 
-    Equivalent to Weka's ``Evaluation.SFEntropyGain()``, computed as
-    :func:`prior_entropy` minus :func:`scheme_entropy`.
+    Computed as :func:`prior_entropy` minus :func:`prediction_entropy`.
 
     Parameters
     ----------
@@ -526,9 +514,8 @@ def entropy_gain(
         Predicted probability distributions, one row per sample. A 1D input
         is treated as binary positive-class probabilities.
     base : int or None, default=2
-        Logarithm base used for both the prior and scheme entropy terms.
-        2 gives bits (the default, matching Weka), None gives natural log
-        (nats).
+        Logarithm base used for both the prior and prediction entropy terms.
+        2 gives bits (the default), None gives natural log (nats).
 
     Returns
     -------
@@ -546,9 +533,9 @@ def entropy_gain(
     0.531
     """
     prior_ent = prior_entropy(y_true, base=base)
-    scheme_ent = scheme_entropy(y_pred_proba, base=base)
+    pred_ent = prediction_entropy(y_pred_proba, base=base)
     
-    return float(prior_ent - scheme_ent)
+    return float(prior_ent - pred_ent)
 
 def kb_information(
     y_true: np.ndarray,
@@ -560,9 +547,15 @@ def kb_information(
     information gained by using the model's predicted probability for the
     true class instead of the prior probability of that class.
 
-    Equivalent to Weka's ``Evaluation.KBInformation()``. For each instance,
-    the log-ratio of the predicted probability of the true class to the
-    prior probability of the true class is accumulated and averaged.
+    For each instance, the log-ratio of the predicted probability of the true
+    class to the prior probability of that class is accumulated and averaged.
+
+    References
+    ----------
+    .. [Kononenko1991] Kononenko, I. and Bratko, I. (1991).
+           **Information-Based Evaluation Criterion for Classifier's
+           Performance.** *Machine Learning*, 6(1), 67-80.
+           DOI: `10.1007/BF00153760 <https://doi.org/10.1007/BF00153760>`_
 
     Parameters
     ----------
@@ -574,8 +567,7 @@ def kb_information(
         is treated as binary positive-class probabilities. Probabilities
         are clipped to a minimum of 1e-10 to avoid ``log(0)``.
     base : int or None, default=2
-        Logarithm base. 2 gives bits (the default, matching Weka), None
-        gives natural log (nats).
+        Logarithm base. 2 gives bits (the default), None gives natural log (nats).
 
     Returns
     -------
@@ -620,15 +612,3 @@ def kb_information(
             kb_sum += np.log(pred_prob / prior_prob) / np.log(base)
     
     return float(kb_sum / len(y_true))
-
-def mean_kb_information(
-    y_true: np.ndarray,
-    y_pred_proba: np.ndarray,
-    base: Optional[float] = 2
-) -> float:
-    """
-    Calculate mean KB information per instance.
-    
-    Equivalent to Weka's Evaluation.SFMeanKBInformation().
-    """
-    return kb_information(y_true, y_pred_proba, base=base)

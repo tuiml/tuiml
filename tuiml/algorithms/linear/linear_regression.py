@@ -101,7 +101,6 @@ class LinearRegression(Regressor):
 
     See Also
     --------
-    :class:`~tuiml.algorithms.linear.SimpleLinearRegression` : Univariate linear regression using the single best attribute.
     :class:`~tuiml.algorithms.linear.SGDRegressor` : SGD-trained linear regressor for large-scale datasets.
 
     Examples

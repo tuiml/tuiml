@@ -1,7 +1,7 @@
 """
 ARFF (Attribute-Relation File Format) parser.
 
-Parses WEKA's ARFF file format into numpy arrays and metadata.
+Parses the ARFF (Attribute-Relation File Format) into numpy arrays and metadata.
 """
 
 import re

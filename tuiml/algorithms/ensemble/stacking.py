@@ -51,7 +51,7 @@ class StackingClassifier(Classifier):
 
     Parameters
     ----------
-    classifiers : list, default=['NaiveBayesClassifier', 'C45TreeClassifier']
+    classifiers : list, default=['NaiveBayesClassifier', 'DecisionTreeClassifier']
         The base classifiers to use. Can be classifier names (strings),
         classes, or instances.
 
@@ -130,7 +130,7 @@ class StackingClassifier(Classifier):
     >>>
     >>> # Fit the Stacking classifier
     >>> clf = StackingClassifier(
-    ...     classifiers=['NaiveBayesClassifier', 'C45TreeClassifier'],
+    ...     classifiers=['NaiveBayesClassifier', 'DecisionTreeClassifier'],
     ...     meta_classifier='Logistic'
     ... )
     >>> clf.fit(X_train, y_train)
@@ -148,7 +148,7 @@ class StackingClassifier(Classifier):
         Parameters
         ----------
         classifiers : list or None, default=None
-            Base classifiers. Defaults to ``['NaiveBayesClassifier', 'C45TreeClassifier']``.
+            Base classifiers. Defaults to ``['NaiveBayesClassifier', 'DecisionTreeClassifier']``.
         meta_classifier : str or object, default='Logistic'
             The meta-classifier for combining base predictions.
         num_folds : int, default=10
@@ -159,7 +159,7 @@ class StackingClassifier(Classifier):
             Random seed for reproducibility.
         """
         super().__init__()
-        self.classifiers = classifiers or ['NaiveBayesClassifier', 'C45TreeClassifier']
+        self.classifiers = classifiers or ['NaiveBayesClassifier', 'DecisionTreeClassifier']
         self.meta_classifier = meta_classifier
         self.num_folds = num_folds
         self.use_probabilities = use_probabilities
@@ -172,7 +172,7 @@ class StackingClassifier(Classifier):
     @classmethod
     def get_parameter_schema(cls) -> Dict[str, Dict[str, Any]]:
         return {
-            "classifiers": {"type": "array", "default": ["NaiveBayesClassifier", "C45TreeClassifier"],
+            "classifiers": {"type": "array", "default": ["NaiveBayesClassifier", "DecisionTreeClassifier"],
                            "description": "List of base classifier names"},
             "meta_classifier": {"type": "string", "default": "Logistic",
                                "description": "Meta-classifier name"},
@@ -427,11 +427,11 @@ class StackingRegressor(Regressor):
 
     Parameters
     ----------
-    regressors : list, default=['AdditiveRegression']
+    regressors : list, default=['GradientBoostingRegressor']
         The base regressors to use. Can be regressor names (strings),
         classes, or instances.
 
-    meta_regressor : str or object, default='AdditiveRegression'
+    meta_regressor : str or object, default='GradientBoostingRegressor'
         The meta-regressor used to combine base regressor predictions.
 
     num_folds : int, default=10
@@ -495,8 +495,8 @@ class StackingRegressor(Regressor):
     >>>
     >>> # Fit the Stacking regressor
     >>> reg = StackingRegressor(
-    ...     regressors=['AdditiveRegression'],
-    ...     meta_regressor='AdditiveRegression'
+    ...     regressors=['GradientBoostingRegressor'],
+    ...     meta_regressor='GradientBoostingRegressor'
     ... )
     >>> reg.fit(X_train, y_train)
     StackingRegressor(...)
@@ -504,7 +504,7 @@ class StackingRegressor(Regressor):
     """
 
     def __init__(self, regressors: List[Any] = None,
-                 meta_regressor: Any = 'AdditiveRegression',
+                 meta_regressor: Any = 'GradientBoostingRegressor',
                  num_folds: int = 10,
                  random_state: Optional[int] = None):
         """Initialize StackingRegressor.
@@ -512,8 +512,8 @@ class StackingRegressor(Regressor):
         Parameters
         ----------
         regressors : list or None, default=None
-            Base regressors. Defaults to ``['AdditiveRegression']``.
-        meta_regressor : str or object, default='AdditiveRegression'
+            Base regressors. Defaults to ``['GradientBoostingRegressor']``.
+        meta_regressor : str or object, default='GradientBoostingRegressor'
             The meta-regressor for combining base predictions.
         num_folds : int, default=10
             Number of cross-validation folds for meta-feature generation.
@@ -521,7 +521,7 @@ class StackingRegressor(Regressor):
             Random seed for reproducibility.
         """
         super().__init__()
-        self.regressors = regressors or ['AdditiveRegression']
+        self.regressors = regressors or ['GradientBoostingRegressor']
         self.meta_regressor = meta_regressor
         self.num_folds = num_folds
         self.random_state = random_state
@@ -532,9 +532,9 @@ class StackingRegressor(Regressor):
     def get_parameter_schema(cls) -> Dict[str, Dict[str, Any]]:
         """Return JSON Schema for constructor parameters."""
         return {
-            "regressors": {"type": "array", "default": ["AdditiveRegression"],
+            "regressors": {"type": "array", "default": ["GradientBoostingRegressor"],
                            "description": "List of base regressor names"},
-            "meta_regressor": {"type": "string", "default": "AdditiveRegression",
+            "meta_regressor": {"type": "string", "default": "GradientBoostingRegressor",
                                "description": "Meta-regressor name"},
             "num_folds": {"type": "integer", "default": 10, "minimum": 2,
                          "description": "CV folds for meta-features"},

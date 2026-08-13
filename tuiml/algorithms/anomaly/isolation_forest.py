@@ -123,8 +123,9 @@ class IsolationForestDetector(Classifier):
 
     See Also
     --------
-    :class:`~tuiml.algorithms.anomaly.ABOD` : Angle-based outlier detection for high-dimensional data.
-    :class:`~tuiml.algorithms.anomaly.HalfSpaceTrees` : Streaming anomaly detection using half-space trees.
+    :class:`~tuiml.algorithms.anomaly.LocalOutlierFactorDetector` : Density-based local outlier detection.
+    :class:`~tuiml.algorithms.anomaly.OneClassSVMDetector` : Support vector based novelty/anomaly detection.
+    :class:`~tuiml.algorithms.anomaly.EllipticEnvelopeDetector` : Gaussian-based anomaly detection.
 
     Examples
     --------

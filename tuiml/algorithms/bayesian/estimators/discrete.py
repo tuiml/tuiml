@@ -2,9 +2,9 @@
 
 import numpy as np
 from typing import Dict, Optional, Union
-from tuiml.base.estimators import Estimator
+from tuiml.base.estimators import ProbabilityEstimator
 
-class DiscreteEstimator(Estimator):
+class DiscreteEstimator(ProbabilityEstimator):
     """Discrete probability estimator for **categorical** data.
 
     Estimates a **discrete probability distribution** (PMF) by counting the
@@ -85,7 +85,7 @@ class DiscreteEstimator(Estimator):
 
     >>> from tuiml.algorithms.bayesian.estimators import DiscreteEstimator
     >>>
-    >>> # Estimator for 3 possible symbols
+    >>> # ProbabilityEstimator for 3 possible symbols
     >>> est = DiscreteEstimator(num_symbols=3, laplace=True)
     >>> est.add_value(0)
     >>> est.add_value(0)

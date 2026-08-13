@@ -63,11 +63,11 @@ class RandomProjectionExtractor(FeatureExtractor):
         - ``float < 1``: percentage of original features.
         - ``"auto"``: Use the Johnson-Lindenstrauss formula to determine :math:`k`.
 
-    distribution : {"gaussian", "sparse1", "sparse2"}, default="gaussian"
+    distribution : {"gaussian", "sparse", "rademacher"}, default="gaussian"
         Distribution used for the random matrix:
         - ``"gaussian"``: Normal distribution :math:`N(0, 1/k)`.
-        - ``"sparse1"``: :math:`\\sqrt{3} \\times \\{-1, 0, 1\\}` with probabilities :math:`\\{1/6, 2/3, 1/6\\}`.
-        - ``"sparse2"``: :math:`\\{-1, 1\\}` with probabilities :math:`\\{1/2, 1/2\\}`.
+        - ``"sparse"``: Very-sparse projection (Achlioptas): :math:`\\sqrt{3} \\times \\{-1, 0, 1\\}` with probabilities :math:`\\{1/6, 2/3, 1/6\\}`.
+        - ``"rademacher"``: Rademacher :math:`\\{-1, 1\\}` with probabilities :math:`\\{1/2, 1/2\\}`.
 
     random_state : int, optional
         Random seed for reproducibility.
@@ -204,8 +204,8 @@ class RandomProjectionExtractor(FeatureExtractor):
             components = rng.randn(n_components, n_features)
             components /= np.sqrt(n_components)
 
-        elif self.distribution == "sparse1":
-            # WEKA sparse1: sqrt(3) * {-1 with prob 1/6, 0 with prob 2/3, +1 with prob 1/6}
+        elif self.distribution == "sparse":
+            # Achlioptas sparse: sqrt(3) * {-1 w.p. 1/6, 0 w.p. 2/3, +1 w.p. 1/6}
             sqrt3 = np.sqrt(3)
             components = np.zeros((n_components, n_features))
 
@@ -218,8 +218,8 @@ class RandomProjectionExtractor(FeatureExtractor):
                         components[i, j] = sqrt3
                     # else: 0 (with prob 2/3)
 
-        elif self.distribution == "sparse2":
-            # WEKA sparse2: {-1 with prob 1/2, +1 with prob 1/2}
+        elif self.distribution == "rademacher":
+            # Rademacher: {-1 with prob 1/2, +1 with prob 1/2}
             components = np.where(
                 rng.random((n_components, n_features)) < 0.5, -1.0, 1.0
             )
@@ -227,7 +227,7 @@ class RandomProjectionExtractor(FeatureExtractor):
         else:
             raise ValueError(
                 f"Unknown distribution '{self.distribution}'. "
-                f"Use 'gaussian', 'sparse1', or 'sparse2'."
+                f"Use 'gaussian', 'sparse', or 'rademacher'."
             )
 
         return components
@@ -309,7 +309,7 @@ class RandomProjectionExtractor(FeatureExtractor):
             },
             "distribution": {
                 "type": "string",
-                "enum": ["gaussian", "sparse1", "sparse2"],
+                "enum": ["gaussian", "sparse", "rademacher"],
                 "default": "gaussian",
                 "description": "Distribution for random matrix"
             },
@@ -332,7 +332,7 @@ class SparseRandomProjectionExtractor(RandomProjectionExtractor):
     transformation by using a matrix where most entries are zero. It still 
     preserves distances according to the Johnson-Lindenstrauss lemma.
 
-    This is equivalent to ``RandomProjectionExtractor`` with ``distribution="sparse1"``.
+    This is equivalent to ``RandomProjectionExtractor`` with ``distribution="sparse"``.
 
     Parameters
     ----------
@@ -341,7 +341,7 @@ class SparseRandomProjectionExtractor(RandomProjectionExtractor):
 
     density : float, default=1/3
         Ratio of non-zero elements in the random matrix. 
-        The default value 1/3 corresponds to the "sparse1" distribution.
+        The default value 1/3 corresponds to the "sparse" distribution.
 
     random_state : int, optional
         Random seed for reproducibility.
@@ -370,7 +370,7 @@ class SparseRandomProjectionExtractor(RandomProjectionExtractor):
     ):
         super().__init__(
             n_components=n_components,
-            distribution="sparse1",
+            distribution="sparse",
             random_state=random_state
         )
         self.density = density

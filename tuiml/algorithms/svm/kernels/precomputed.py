@@ -264,5 +264,3 @@ class PrecomputedKernel(Kernel):
             return f"PrecomputedKernel(n_samples={self.n_samples_})"
         return "PrecomputedKernel(not built)"
 
-# Alias for WEKA compatibility
-PrecomputedKernelMatrixKernel = PrecomputedKernel

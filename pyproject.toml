@@ -74,11 +74,13 @@ dev = [
     "twine",
 ]
 
-# Algorithm backends — `import tuiml.sklearn` / `tuiml.capymoa` use these lazily.
-# Native TuiML algorithms never require them; the wrappers raise a clear error
-# at instantiation if the backing library is missing.
+# Algorithm backends — `import tuiml.sklearn` / `tuiml.capymoa` / `tuiml.weka`
+# use these lazily. Native TuiML algorithms never require them; the wrappers
+# raise a clear error at instantiation if the backing library is missing.
+# `capymoa` and `weka` additionally need a Java runtime (11+) on PATH.
 sklearn = ["scikit-learn>=1.7.0"]
 capymoa = ["capymoa>=0.8.0"]
+weka = ["python-weka-wrapper3>=0.3.0"]
 
 # Framework adapters — `import tuiml.agent.<framework>` uses these lazily.
 openai        = ["openai>=1.0.0"]

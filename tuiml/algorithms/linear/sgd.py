@@ -547,7 +547,6 @@ class SGDRegressor(Regressor):
     See Also
     --------
     :class:`~tuiml.algorithms.linear.LinearRegression` : Closed-form OLS regression with ridge regularization.
-    :class:`~tuiml.algorithms.linear.SimpleLinearRegression` : Univariate regression using the single best attribute.
     :class:`~tuiml.algorithms.linear.SGDClassifier` : SGD-trained linear classifier for classification tasks.
 
     Examples

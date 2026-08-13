@@ -9,7 +9,7 @@ from tuiml.preprocessing.sampling.oversampling import RandomOverSampler
 from tuiml.preprocessing.sampling.undersampling import RandomUnderSampler
 from tuiml.preprocessing.sampling.smote import SMOTESampler
 from collections import Counter
-from tuiml.preprocessing.sampling.class_balancer import ClassBalanceSampler
+from tuiml.preprocessing.sampling.class_balance import ClassBalanceSampler
 
 
 # --------------------------------------------------------------------------

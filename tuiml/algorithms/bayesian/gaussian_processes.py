@@ -116,7 +116,6 @@ class GaussianProcessesRegressor(Regressor):
     See Also
     --------
     :class:`~tuiml.algorithms.bayesian.NaiveBayesClassifier` : Probabilistic classifier using Bayes' theorem.
-    :class:`~tuiml.algorithms.bayesian.BayesianNetworkClassifier` : Graphical model-based Bayesian classifier.
 
     Examples
     --------

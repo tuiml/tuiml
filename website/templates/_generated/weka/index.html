@@ -1,0 +1,224 @@
+{% extends 'layouts/docs_generated.html' %}
+
+{% set active_nav = 'api' %}
+{% set breadcrumb_html = '<a href="/api-reference.html" class="hover:text-gray-900">API Reference</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">weka</span>' %}
+
+{% block title %}weka - API Documentation{% endblock %}
+
+{% block content %}
+<div class="api-crumb-row" style="margin-bottom: 40px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="/api-reference.html">API Reference</a> / <h1 class="api-crumb-file">weka/</h1></div><a href="https://github.com/tuiml/tuiml/tree/main/tuiml/weka" target="_blank" rel="noopener noreferrer" title="View weka/ on GitHub" aria-label="View weka/ on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a></div>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Weka bridge for TuiML.</p>
+<div class="doc-extended mb-8">
+<p class="mb-4">
+Importing this package registers the wrapped Weka learners into the TuiML hub under <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">weka.<ClassName></code> keys, so they never collide with the native TuiML algorithms of the same name — <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&quot;J48&quot;</code> is not a native TuiML key, but <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&quot;RandomForest&quot;</code> would collide without the namespace.
+</p>
+
+<p class="mb-4">
+The wrapper modules mirror <strong>Weka&#x27;s</strong> own taxonomy rather than TuiML&#x27;s, so a learner sits where a Weka user expects to find it:
+</p>
+
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">trees</code> — J48, REPTree, RandomTree, RandomForest, LMT, M5P.
+</li>
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">rules</code> — ZeroR, OneR, JRip, PART, DecisionTable, M5Rules.
+</li>
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">lazy</code> — IBk, KStar, LWL.
+</li>
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">functions</code> — SMO, SMOreg, Logistic, LinearRegression, MLP.
+</li>
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">bayes</code> — NaiveBayes, NaiveBayesMultinomial, BayesNet.
+</li>
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">meta</code> — AdaBoostM1, Bagging, Vote, Stacking, and friends.
+</li>
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">clusterers</code> — SimpleKMeans, EM, Canopy, Cobweb.
+</li>
+
+</ul>
+</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Installation</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+Weka is an optional dependency, and it needs a <strong>Java runtime</strong> (11+) on <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">PATH</code> as well, because Weka runs on the JVM:
+</p>
+<div class="bg-slate-900 rounded-lg p-4 my-3 overflow-x-auto"><pre class="text-sm font-mono text-slate-100 leading-relaxed">java -version                   # must succeed first
+pip install &#x27;tuiml[weka]&#x27;       # or: uv pip install &#x27;tuiml[weka]&#x27;</pre></div>
+<p class="mb-4">
+If it is not installed, importing this package still succeeds (the wrapper classes are defined and registered), but calling <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">fit</code> raises a clear <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ImportError</code> pointing at the extra.
+</p>
+</div>
+        </div>
+        
+<div class="mb-8 last:mb-0"><p class="text-gray-600 my-2">The wrappers take and return numpy arrays like any other TuiML algorithm:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.weka import J48
+&gt;&gt;&gt; from tuiml.datasets import load_iris
+&gt;&gt;&gt; data = load_iris()
+&gt;&gt;&gt; clf = J48(confidence_factor=0.25).fit(data.X, data.y)
+&gt;&gt;&gt; clf.predict(data.X[:3]).shape
+(3,)</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">They are also addressable by hub key, as <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;weka.&lt;ClassName&gt;&quot;</code>, which is the</p>
+<p class="text-gray-600 my-2">form <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">train</code> and an agent over MCP both use:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; import tuiml
+&gt;&gt;&gt; import tuiml.weka                          # registers the weka.* keys
+&gt;&gt;&gt; model = tuiml.train({
+...     &quot;model&quot;: {&quot;name&quot;: &quot;weka.J48&quot;},
+...     &quot;data&quot;: {&quot;source&quot;: &quot;iris&quot;, &quot;target&quot;: &quot;class&quot;},
+...     &quot;evaluation&quot;: {&quot;test_size&quot;: 0.3},
+... })
+&gt;&gt;&gt; &quot;accuracy_score&quot; in model.metrics_
+True</code></pre>
+            </div>
+        </div>
+        </div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Categorical attributes</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+Weka distinguishes <strong>nominal</strong> from numeric attributes in its ARFF header, and its tree and rule learners use genuinely different logic for the two. TuiML passes plain numeric arrays, so declare which columns hold category codes:
+</p>
+
+<p class="mb-4">
+&gt;&gt;&gt; from tuiml.weka import J48 &gt;&gt;&gt; clf = J48(nominal_features=[0, 3])      # columns 0 and 3 are categorical
+</p>
+
+<p class="mb-4">
+Left undeclared, a categorical column is treated as a continuous scale, and Weka will split it with <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&lt;=</code> tests that imply an order the codes do not have.
+</p>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Reading the model</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+Every wrapper exposes Weka&#x27;s own model dump, which is often the reason to reach for Weka rather than a native implementation:
+</p>
+
+<p class="mb-4">
+&gt;&gt;&gt; print(clf.fit(data.X, data.y).to_weka_string())   # doctest: +SKIP
+</p>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>J48 pruned tree</h4>
+            </div>
+            <div class="p-4">x4 &lt;= 0.6: 0.0 (50.0) ...</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>The JVM</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+The JVM starts lazily on the first <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">fit</code> and is <strong>never stopped</strong>, because JPype cannot restart one inside the same process. To choose a heap size, call <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ensure_jvm</code> before the first fit:
+</p>
+
+<p class="mb-4">
+&gt;&gt;&gt; from tuiml.weka import ensure_jvm &gt;&gt;&gt; ensure_jvm(max_heap_size=&quot;4096m&quot;)     # doctest: +SKIP
+</p>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/sklearn/index.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">sklearn</code>
+                            <p class="text-sm text-gray-600 mt-0.5">The same bridge pattern for scikit-learn estimators.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/capymoa/index.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">capymoa</code>
+                            <p class="text-sm text-gray-600 mt-0.5">The same bridge pattern for CapyMOA streaming learners.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        </div>
+<h2 class="oc-h">Modules</h2>
+<hr class="oc-rule">
+<div class="why-grid" style="margin-top: 0;">
+<a href="bayes.html" class="why-card api-card"><div class="why-title">bayes</div><p class="why-text">Weka Bayesian classifier wrappers....</p><div class="oc-caption" style="margin-top: auto;">3 classes · 0 functions</div></a>
+<a href="clusterers.html" class="why-card api-card"><div class="why-title">clusterers</div><p class="why-text">Weka clusterer wrappers....</p><div class="oc-caption" style="margin-top: auto;">6 classes · 0 functions</div></a>
+<a href="functions.html" class="why-card api-card"><div class="why-title">functions</div><p class="why-text">Weka function-based learner wrappers....</p><div class="oc-caption" style="margin-top: auto;">8 classes · 0 functions</div></a>
+<a href="lazy.html" class="why-card api-card"><div class="why-title">lazy</div><p class="why-text">Weka instance-based (lazy) learner wrappers....</p><div class="oc-caption" style="margin-top: auto;">3 classes · 0 functions</div></a>
+<a href="meta.html" class="why-card api-card"><div class="why-title">meta</div><p class="why-text">Weka meta-learner wrappers....</p><div class="oc-caption" style="margin-top: auto;">11 classes · 0 functions</div></a>
+<a href="rules.html" class="why-card api-card"><div class="why-title">rules</div><p class="why-text">Weka rule-learner wrappers....</p><div class="oc-caption" style="margin-top: auto;">6 classes · 0 functions</div></a>
+<a href="trees.html" class="why-card api-card"><div class="why-title">trees</div><p class="why-text">Weka tree wrappers....</p><div class="oc-caption" style="margin-top: auto;">7 classes · 0 functions</div></a>
+</div>
+{% endblock %}

@@ -1039,6 +1039,12 @@ wheels = [
 ]
 
 [[package]]
+name = "configurable-objects"
+version = "0.0.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/f3/a2/dd44a746ad232d9536ad163ce901df1eefff714c2a1c88e66102011af442/configurable-objects-0.0.1.tar.gz", hash = "sha256:4b115c9f42984b7f774c341543d6dfc60c080af236c4463e542e46fdfbe69521", size = 4435, upload-time = "2023-01-10T03:58:11.896Z" }
+
+[[package]]
 name = "contourpy"
 version = "1.3.2"
 source = { registry = "https://pypi.org/simple" }
@@ -6164,6 +6170,21 @@ wheels = [
 ]
 
 [[package]]
+name = "python-weka-wrapper3"
+version = "0.3.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "configurable-objects" },
+    { name = "jpype1" },
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "packaging" },
+    { name = "simple-data-flow" },
+    { name = "simple-range" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e8/fc/7717761d4ab0d2a9d8d6ea58062db699a6f47b99152992b1ebd964b5ea28/python_weka_wrapper3-0.3.3.tar.gz", hash = "sha256:5b7208b99116cb882cf24f1d72e3e1380d29f0859bc419872b8a0e0b5e90883f", size = 16358295, upload-time = "2026-04-12T23:26:39.723Z" }
+
+[[package]]
 name = "pytokens"
 version = "0.4.1"
 source = { registry = "https://pypi.org/simple" }
@@ -7258,6 +7279,21 @@ wheels = [
 ]
 
 [[package]]
+name = "simple-data-flow"
+version = "0.0.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "configurable-objects" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1e/00/dc0f38c9a88da1396af7dc54840b96a97bb3c30240894780c0f925d6a506/simple-data-flow-0.0.1.tar.gz", hash = "sha256:6abf2fe0b60c6dedc8e8f764e751b424b122c5758615307a0b325362297c9dc4", size = 16478, upload-time = "2023-01-10T04:15:55.247Z" }
+
+[[package]]
+name = "simple-range"
+version = "0.0.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/0f/12/78385dae234acb73cf920330be094768b16fe85402648db08e52845a03ee/simple-range-0.0.3.tar.gz", hash = "sha256:aa9a8a937f35f23202b7b688679c290de8c244907b4613b7e07de661de583319", size = 5734, upload-time = "2023-10-18T23:02:34.957Z" }
+
+[[package]]
 name = "six"
 version = "1.17.0"
 source = { registry = "https://pypi.org/simple" }
@@ -7577,6 +7613,9 @@ sklearn = [
     { name = "scikit-learn", version = "1.7.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "scikit-learn", version = "1.9.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
 ]
+weka = [
+    { name = "python-weka-wrapper3" },
+]
 
 [package.dev-dependencies]
 dev = [
@@ -7618,6 +7657,7 @@ requires-dist = [
     { name = "pydantic-ai", marker = "extra == 'pydantic-ai'", specifier = ">=0.1.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=3.0.0" },
+    { name = "python-weka-wrapper3", marker = "extra == 'weka'", specifier = ">=0.3.0" },
     { name = "requests", specifier = ">=2.28.0" },
     { name = "scikit-learn", marker = "extra == 'backends'", specifier = ">=1.7.0" },
     { name = "scikit-learn", marker = "extra == 'sklearn'", specifier = ">=1.7.0" },
@@ -7627,7 +7667,7 @@ requires-dist = [
     { name = "uvicorn", specifier = ">=0.23.0" },
     { name = "xgboost", specifier = ">=2.0.0" },
 ]
-provides-extras = ["dev", "sklearn", "capymoa", "openai", "anthropic", "langchain", "pydantic-ai", "crewai", "frameworks", "backends"]
+provides-extras = ["dev", "sklearn", "capymoa", "weka", "openai", "anthropic", "langchain", "pydantic-ai", "crewai", "frameworks", "backends"]
 
 [package.metadata.requires-dev]
 dev = [

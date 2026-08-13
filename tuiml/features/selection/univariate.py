@@ -3,9 +3,10 @@ Univariate feature selection methods.
 
 This module provides univariate feature selectors that score each feature
 independently and select the best ones based on the scores.
-- SelectKBestSelector: Ranker.java with -N (numToSelect) option
-- SelectPercentileSelector: Ranker.java with percentage-based selection
-- SelectThresholdSelector: Ranker.java with -T (threshold) option
+
+- SelectKBestSelector: keep the ``k`` highest-scoring features.
+- SelectPercentileSelector: keep the top percentage of features.
+- SelectThresholdSelector: keep every feature scoring above a threshold.
 - SelectFprSelector: False positive rate threshold (p-value based)
 """
 
@@ -20,7 +21,7 @@ from tuiml.evaluation.metrics import f_classif
 class SelectKBestSelector(FeatureSelector, SelectorMixin):
     """Select features according to the k highest scores.
 
-    Ranker-based feature selection that computes a univariate score for each feature 
+    Univariate feature selection: computes a score for each feature 
     and selects the top :math:`k` performing features.
 
     Overview
@@ -509,7 +510,6 @@ class SelectThresholdSelector(FeatureSelector, SelectorMixin):
     """Select features based on score threshold.
 
     Keeps features with univariate scores above (or equal to) a specified threshold. 
-    This corresponds to the Ranker search with the `-T` option in WEKA.
 
     Overview
     --------
@@ -696,6 +696,6 @@ class SelectThresholdSelector(FeatureSelector, SelectorMixin):
                 "type": "array",
                 "items": {"type": "integer"},
                 "default": [],
-                "description": "Feature indices to ignore (WEKA -P option)"
+                "description": "Feature indices to ignore"
             }
         }

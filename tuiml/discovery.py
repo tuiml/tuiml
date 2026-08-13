@@ -30,7 +30,7 @@ def list_algorithms(type: Optional[str] = None) -> List[Dict]:
     >>> import tuiml
     >>> classifiers = tuiml.list_algorithms(type="classifier")   # doctest: +SKIP
     >>> [algo["name"] for algo in classifiers[:3]]               # doctest: +SKIP
-    ['NaiveBayesClassifier', 'C45TreeClassifier', 'RandomForestClassifier']
+    ['NaiveBayesClassifier', 'DecisionTreeClassifier', 'RandomForestClassifier']
 
     The names go straight into a :func:`tuiml.train` spec:
 

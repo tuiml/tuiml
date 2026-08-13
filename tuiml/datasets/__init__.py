@@ -85,30 +85,19 @@ from tuiml.datasets.builtin import (
     load_dataset,
     # Classification datasets
     load_iris,
-    load_iris_2d,
     load_diabetes,
     load_breast_cancer,
     load_glass,
     load_ionosphere,
     load_vote,
     load_credit,
-    load_weather,
-    load_weather_nominal,
     load_soybean,
     load_labor,
     load_contact_lenses,
     load_hypothyroid,
-    load_segment,
-    load_segment_test,
-    load_unbalanced,
     # Regression datasets
     load_cpu,
-    load_cpu_with_vendor,
-    load_airline,
     # Other datasets
-    load_supermarket,
-    load_reuters_corn,
-    load_reuters_grain,
 )
 
 # =============================================================================
@@ -176,30 +165,19 @@ __all__ = [
     "load_dataset",
     # Classification
     "load_iris",
-    "load_iris_2d",
     "load_diabetes",
     "load_breast_cancer",
     "load_glass",
     "load_ionosphere",
     "load_vote",
     "load_credit",
-    "load_weather",
-    "load_weather_nominal",
     "load_soybean",
     "load_labor",
     "load_contact_lenses",
     "load_hypothyroid",
-    "load_segment",
-    "load_segment_test",
-    "load_unbalanced",
     # Regression
     "load_cpu",
-    "load_cpu_with_vendor",
-    "load_airline",
     # Other
-    "load_supermarket",
-    "load_reuters_corn",
-    "load_reuters_grain",
     # ==========================================================================
     # Generators
     # ==========================================================================

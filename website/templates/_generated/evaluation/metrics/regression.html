@@ -29,7 +29,7 @@ Scoring functions for models that predict a continuous target. The module covers
 </p>
 
 <p class="mb-4">
-The relative errors are reported as percentages and the naming mirrors Weka&#x27;s <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Evaluation</code> class, so the numbers line up with a Weka experiment report. Every function takes <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">(y_true, y_pred)</code> as 1-D arrays of equal length and returns a plain Python <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">float</code>.
+The relative errors are reported as percentages, which makes them comparable across targets measured on different scales. Every function takes <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">(y_true, y_pred)</code> as 1-D arrays of equal length and returns a plain Python <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">float</code>.
 </p>
 </div>
 <div class="mb-8 last:mb-0">
@@ -84,10 +84,6 @@ MAE is the average magnitude of the residuals. Because the errors are not square
 <div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
 <span class="katex-display">\text{MAE} = \frac{1}{n} \sum_{i=1}^{n} |y_i - \hat{y}_i|</span>
 </div>
-
-<p class="mb-4">
-Equivalent to Weka&#x27;s <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Evaluation.meanAbsoluteError()</code>.
-</p>
 </div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -226,9 +222,9 @@ When to use: report MAE when the cost of an error grows linearly with its size, 
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">mean_squared_error</h3>
-                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/regression.py#L89" target="_blank" rel="noopener noreferrer" title="View mean_squared_error source on GitHub" aria-label="View mean_squared_error source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/regression.py#L87" target="_blank" rel="noopener noreferrer" title="View mean_squared_error source on GitHub" aria-label="View mean_squared_error source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 89</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 87</div>
         </div>
         
 <div class="p-6">
@@ -396,9 +392,9 @@ When to use: MSE is the right choice when large errors are disproportionately co
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">root_mean_squared_error</h3>
-                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/regression.py#L146" target="_blank" rel="noopener noreferrer" title="View root_mean_squared_error source on GitHub" aria-label="View root_mean_squared_error source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/regression.py#L144" target="_blank" rel="noopener noreferrer" title="View root_mean_squared_error source on GitHub" aria-label="View root_mean_squared_error source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 146</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 144</div>
         </div>
         
 <div class="p-6">
@@ -412,10 +408,6 @@ RMSE is the square root of <code class="bg-gray-100 px-1 py-0.5 rounded text-sm 
 <div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
 <span class="katex-display">\text{RMSE} = \sqrt{\frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2}</span>
 </div>
-
-<p class="mb-4">
-Equivalent to Weka&#x27;s <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Evaluation.rootMeanSquaredError()</code>.
-</p>
 </div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -554,9 +546,9 @@ When to use: the default headline number for a regression report — same rankin
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">r2_score</h3>
-                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/regression.py#L194" target="_blank" rel="noopener noreferrer" title="View r2_score source on GitHub" aria-label="View r2_score source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/regression.py#L190" target="_blank" rel="noopener noreferrer" title="View r2_score source on GitHub" aria-label="View r2_score source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 194</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 190</div>
         </div>
         
 <div class="p-6">
@@ -708,9 +700,9 @@ When to use: the standard scale-free summary of regression quality. Note that <s
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">relative_absolute_error</h3>
-                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/regression.py#L249" target="_blank" rel="noopener noreferrer" title="View relative_absolute_error source on GitHub" aria-label="View relative_absolute_error source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/regression.py#L245" target="_blank" rel="noopener noreferrer" title="View relative_absolute_error source on GitHub" aria-label="View relative_absolute_error source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 249</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 245</div>
         </div>
         
 <div class="p-6">
@@ -724,10 +716,6 @@ RAE divides the model&#x27;s total absolute error by the total absolute error of
 <div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
 <span class="katex-display">\text{RAE} = 100 \cdot     \frac{\sum_i |y_i - \hat{y}_i|}{\sum_i |y_i - \bar{y}|}</span>
 </div>
-
-<p class="mb-4">
-Equivalent to Weka&#x27;s <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Evaluation.relativeAbsoluteError()</code>.
-</p>
 </div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -866,9 +854,9 @@ When to use: comparing a model across datasets whose targets have different unit
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">root_relative_squared_error</h3>
-                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/regression.py#L301" target="_blank" rel="noopener noreferrer" title="View root_relative_squared_error source on GitHub" aria-label="View root_relative_squared_error source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/regression.py#L295" target="_blank" rel="noopener noreferrer" title="View root_relative_squared_error source on GitHub" aria-label="View root_relative_squared_error source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 301</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 295</div>
         </div>
         
 <div class="p-6">
@@ -882,10 +870,6 @@ RRSE is the model&#x27;s squared error divided by the squared error of the mean 
 <div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
 <span class="katex-display">\text{RRSE} = 100 \cdot \sqrt{     \frac{\sum_i (y_i - \hat{y}_i)^2}{\sum_i (y_i - \bar{y})^2}}</span>
 </div>
-
-<p class="mb-4">
-Equivalent to Weka&#x27;s <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Evaluation.rootRelativeSquaredError()</code>.
-</p>
 </div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -958,7 +942,7 @@ Complexity: <span class="katex-inline">O(n)</span> time, <span class="katex-inli
 </p>
 
 <p class="mb-4">
-When to use: the scale-free companion to RMSE, and the number Weka prints alongside it in an experiment summary.
+When to use: the scale-free companion to RMSE, for comparing error across targets whose units or magnitudes differ.
 </p>
 </div>
         </div>
@@ -1024,9 +1008,9 @@ When to use: the scale-free companion to RMSE, and the number Weka prints alongs
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">correlation_coefficient</h3>
-                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/regression.py#L355" target="_blank" rel="noopener noreferrer" title="View correlation_coefficient source on GitHub" aria-label="View correlation_coefficient source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/regression.py#L347" target="_blank" rel="noopener noreferrer" title="View correlation_coefficient source on GitHub" aria-label="View correlation_coefficient source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 355</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 347</div>
         </div>
         
 <div class="p-6">
@@ -1040,10 +1024,6 @@ Measures how well the predictions track the targets <em>up to an arbitrary linea
 <div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
 <span class="katex-display">r = \frac{\sum_i (y_i - \bar{y})(\hat{y}_i - \bar{\hat{y}})}     {\sqrt{\sum_i (y_i - \bar{y})^2}\;      \sqrt{\sum_i (\hat{y}_i - \bar{\hat{y}})^2}}</span>
 </div>
-
-<p class="mb-4">
-Equivalent to Weka&#x27;s <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Evaluation.correlationCoefficient()</code>.
-</p>
 </div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">

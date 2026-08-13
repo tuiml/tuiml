@@ -18,7 +18,7 @@ from ..contract.transformers import ALL_CHECKS
 
 # Base classes and abstract scaffolding, not transformers in their own right.
 SKIP = {
-    "Preprocessor", "Filter", "FeatureMethod", "FeatureSelector",
+    "Preprocessor", "FeatureMethod", "FeatureSelector",
     "FeatureExtractor", "FeatureConstructor", "BaseSplitter",
 }
 

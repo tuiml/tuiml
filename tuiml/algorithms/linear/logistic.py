@@ -110,7 +110,6 @@ class LogisticRegression(Classifier):
 
     See Also
     --------
-    :class:`~tuiml.algorithms.linear.SimpleLogisticRegression` : LogitBoost-based logistic regression with automatic iteration selection.
     :class:`~tuiml.algorithms.linear.SGDClassifier` : SGD-trained linear classifier supporting hinge, log, and modified Huber losses.
 
     Examples

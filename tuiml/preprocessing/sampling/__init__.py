@@ -49,8 +49,8 @@ distribution, with a metric that respects the minority class.
 """
 
 # Class balancing
-from tuiml.preprocessing.sampling.reservoir_sample import ReservoirSampler
-from tuiml.preprocessing.sampling.class_balancer import ClassBalanceSampler
+from tuiml.preprocessing.sampling.reservoir import ReservoirSampler
+from tuiml.preprocessing.sampling.class_balance import ClassBalanceSampler
 
 # SMOTE family
 from tuiml.preprocessing.sampling.smote import (

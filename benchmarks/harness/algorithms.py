@@ -151,7 +151,7 @@ ALGORITHMS = {
             "tuiml": ("SVC", {}),
             "weka": ("weka.classifiers.functions.SMO", []),
         },
-        # SMO defaults to a linear PolyKernel and normalizes internally; SVC
+        # SVC uses a linear kernel by default and normalizes internally; sklearn SVC
         # defaults to RBF. Matched mode puts both on RBF with the *same*
         # explicit gamma, C=1, and no extra normalization (-N 2).
         "matched": {

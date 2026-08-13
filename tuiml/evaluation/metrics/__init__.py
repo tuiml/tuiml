@@ -127,10 +127,9 @@ from .information_theoretic import (
     cross_entropy,
     symmetrical_uncertainty,
     prior_entropy,
-    scheme_entropy,
+    prediction_entropy,
     entropy_gain,
     kb_information,
-    mean_kb_information
 )
 
 # Feature scoring metrics
@@ -139,7 +138,7 @@ from .feature_scoring import (
     f_classif,
     f_regression,
     correlation,
-    oner_score,
+    single_rule_score,
     relief_f
 )
 
@@ -212,17 +211,16 @@ __all__ = [
     'cross_entropy',
     'symmetrical_uncertainty',
     'prior_entropy',
-    'scheme_entropy',
+    'prediction_entropy',
     'entropy_gain',
     'kb_information',
-    'mean_kb_information',
 
     # Feature scoring
     'chi2',
     'f_classif',
     'f_regression',
     'correlation',
-    'oner_score',
+    'single_rule_score',
     'relief_f'
 ]
 

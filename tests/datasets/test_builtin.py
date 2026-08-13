@@ -7,7 +7,6 @@ from tuiml.datasets.builtin import (
     load_iris,
     load_diabetes,
     load_cpu,
-    load_weather,
     load_glass,
     load_ionosphere,
     get_dataset_info,
@@ -36,11 +35,6 @@ class TestListDatasets:
         """Listing regression datasets should include cpu."""
         datasets = list_datasets("regression")
         assert "cpu" in datasets
-
-    def test_list_other_datasets(self):
-        """Listing 'other' datasets should include supermarket."""
-        datasets = list_datasets("other")
-        assert "supermarket" in datasets
 
     def test_invalid_category_raises(self):
         """Invalid category should raise ValueError."""
@@ -105,12 +99,6 @@ class TestSpecificLoaders:
         ds = load_ionosphere()
         assert ds.n_samples == 351
         assert ds.n_features == 34
-
-    def test_load_weather(self):
-        """load_weather should return 14 samples."""
-        ds = load_weather()
-        assert ds.n_samples == 14
-        assert ds.n_features == 4
 
     def test_load_cpu(self):
         """load_cpu should return 209 samples for regression."""

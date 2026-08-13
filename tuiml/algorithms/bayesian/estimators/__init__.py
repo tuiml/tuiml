@@ -13,20 +13,20 @@ Estimators
   particular distribution — use it for skewed or multi-modal features.
 - **DiscreteEstimator:** Smoothed counts, for categorical or already
   discretised features.
-- **Estimator:** The base class to subclass for a new one.
+- **ProbabilityEstimator:** The base class to subclass for a new one.
 
 See Also
 --------
 :mod:`tuiml.algorithms.bayesian` : The classifiers these plug into.
 """
 
-from tuiml.base.estimators import Estimator
+from tuiml.base.estimators import ProbabilityEstimator
 from .normal import NormalEstimator
 from .discrete import DiscreteEstimator
 from .kernel import KernelEstimator
 
 __all__ = [
-    "Estimator",
+    "ProbabilityEstimator",
     "NormalEstimator",
     "DiscreteEstimator",
     "KernelEstimator"

@@ -14,7 +14,7 @@ Which one to reach for:
 - :func:`f_classif` -- continuous features against a class label (ANOVA F).
 - :func:`f_regression` -- continuous features against a continuous target.
 - :func:`correlation` -- absolute Pearson correlation; linear relationships only.
-- :func:`oner_score` -- accuracy of a one-rule classifier built on the feature
+- :func:`single_rule_score` -- accuracy of a one-rule classifier built on the feature
   alone; captures non-linear but axis-aligned structure.
 - :func:`relief_f` -- nearest-neighbour based; the only one here that is
   sensitive to feature interactions.
@@ -327,7 +327,7 @@ def correlation(X: np.ndarray, y: np.ndarray) -> np.ndarray:
     Notes
     -----
     Measures LINEAR association only: a feature related to the target through a
-    curve can score near zero. :func:`relief_f` and :func:`oner_score` pick up
+    curve can score near zero. :func:`relief_f` and :func:`single_rule_score` pick up
     relationships this misses.
 
     Examples
@@ -375,9 +375,9 @@ def correlation(X: np.ndarray, y: np.ndarray) -> np.ndarray:
 
     return scores
 
-def oner_score(X: np.ndarray, y: np.ndarray, n_bins: int = 10) -> np.ndarray:
+def single_rule_score(X: np.ndarray, y: np.ndarray, n_bins: int = 10) -> np.ndarray:
     """
-    Evaluate features using OneR classifier accuracy.
+    Evaluate features by the accuracy of a one-rule classifier built on each.
 
     Parameters
     ----------
@@ -391,7 +391,7 @@ def oner_score(X: np.ndarray, y: np.ndarray, n_bins: int = 10) -> np.ndarray:
     Returns
     -------
     scores : ndarray of shape (n_features,)
-        OneR accuracy for each feature, between 0 and 1.
+        One-rule accuracy for each feature, between 0 and 1.
 
     Notes
     -----
@@ -405,9 +405,9 @@ def oner_score(X: np.ndarray, y: np.ndarray, n_bins: int = 10) -> np.ndarray:
     Examples
     --------
     >>> from tuiml.datasets import load_iris
-    >>> from tuiml.evaluation.metrics import oner_score
+    >>> from tuiml.evaluation.metrics import single_rule_score
     >>> X, y = load_iris()
-    >>> scores = oner_score(X, y)
+    >>> scores = single_rule_score(X, y)
     >>> [round(float(v), 2) for v in scores]
     [0.73, 0.59, 0.91, 0.9]
     """
@@ -437,7 +437,7 @@ def oner_score(X: np.ndarray, y: np.ndarray, n_bins: int = 10) -> np.ndarray:
         else:
             x_discrete = np.where(np.isnan(x_i.astype(float)), -999, x_i)
 
-        # Build OneR classifier
+        # Build the one-rule classifier
         x_values = np.unique(x_discrete)
         correct = 0
 

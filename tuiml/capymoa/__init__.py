@@ -2,7 +2,9 @@
 
 Importing this package registers the wrapped CapyMOA incremental learners into
 the TuiML hub under ``capymoa.<ClassName>`` keys, so they never collide with
-the native TuiML streaming algorithms in :mod:`tuiml.algorithms.streaming`.
+the native TuiML algorithms in :mod:`tuiml.algorithms` — ``"NaiveBayes"`` is a
+CapyMOA-only key, but ``"AdaptiveRandomForest"`` would collide without the
+namespace.
 
 The wrapper modules mirror TuiML's own taxonomy — ``bayesian``, ``trees``,
 ``ensemble`` — so a wrapped learner sits in the same place as its native
@@ -60,6 +62,7 @@ True
 See Also
 --------
 :mod:`tuiml.sklearn` : The same bridge pattern for scikit-learn estimators.
+:mod:`tuiml.weka` : The same bridge pattern for Weka (JVM) learners.
 """
 
 # Importing these modules triggers registration of every wrapper.

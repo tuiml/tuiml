@@ -120,14 +120,14 @@ where <span class="katex-inline">R</span> is a random matrix. The minimum dimens
                     <code class="font-bold text-indigo-600 text-sm">distribution</code>
                 </div>
                 <div class="md:col-span-3 flex flex-wrap items-center gap-1">
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">{&quot;gaussian&quot;, &quot;sparse1&quot;, &quot;sparse2&quot;}</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">{&quot;gaussian&quot;, &quot;sparse&quot;, &quot;rademacher&quot;}</span>
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= &quot;gaussian&quot;</span>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
                     <p class="mb-2">Distribution used for the random matrix:</p><ul class="mt-2 space-y-1">
 <li class="flex items-start gap-2"><span class="text-gray-400">•</span><span><code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;gaussian&quot;</code>: Normal distribution :math:`N(0, 1/k)`.</span></li>
-<li class="flex items-start gap-2"><span class="text-gray-400">•</span><span><code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;sparse1&quot;</code>: :math:`\sqrt{3} \times \{-1, 0, 1\}` with probabilities :math:`\{1/6, 2/3, 1/6\}`.</span></li>
-<li class="flex items-start gap-2"><span class="text-gray-400">•</span><span><code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;sparse2&quot;</code>: :math:`\{-1, 1\}` with probabilities :math:`\{1/2, 1/2\}`.</span></li>
+<li class="flex items-start gap-2"><span class="text-gray-400">•</span><span><code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;sparse&quot;</code>: Very-sparse projection (Achlioptas): :math:`\sqrt{3} \times \{-1, 0, 1\}` with probabilities :math:`\{1/6, 2/3, 1/6\}`.</span></li>
+<li class="flex items-start gap-2"><span class="text-gray-400">•</span><span><code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;rademacher&quot;</code>: Rademacher :math:`\{-1, 1\}` with probabilities :math:`\{1/2, 1/2\}`.</span></li>
 </ul>
                 </div>
             </div>
@@ -644,7 +644,7 @@ Sparse random projection reduces memory requirements and speeds up the  transfor
 </p>
 
 <p class="mb-4">
-This is equivalent to <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">RandomProjectionExtractor</code> with <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">distribution=&quot;sparse1&quot;</code>.
+This is equivalent to <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">RandomProjectionExtractor</code> with <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">distribution=&quot;sparse&quot;</code>.
 </p>
 </div>
         </div>
@@ -679,7 +679,7 @@ This is equivalent to <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 1/3</span>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
-                    Ratio of non-zero elements in the random matrix. The default value 1/3 corresponds to the &quot;sparse1&quot; distribution.
+                    Ratio of non-zero elements in the random matrix. The default value 1/3 corresponds to the &quot;sparse&quot; distribution.
                 </div>
             </div>
             

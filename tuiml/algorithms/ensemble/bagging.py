@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from tuiml.base.algorithms import Classifier, classifier, Regressor, regressor
 from tuiml.registry import registry
+from tuiml.algorithms.ensemble._utils import make_base_estimator
 
 @classifier(tags=["ensembles", "bagging", "meta"], version="1.0.0")
 class BaggingClassifier(Classifier):
@@ -51,7 +52,7 @@ class BaggingClassifier(Classifier):
 
     Parameters
     ----------
-    base_classifier : str or class, default='C45TreeClassifier'
+    base_classifier : str or class, default='DecisionTreeClassifier'
         The base classifier to use. Unstable learners (e.g., decision trees)
         benefit most from bagging.
 
@@ -107,8 +108,6 @@ class BaggingClassifier(Classifier):
     See Also
     --------
     :class:`~tuiml.algorithms.ensemble.AdaBoostClassifier` : Adaptive boosting ensemble method.
-    :class:`~tuiml.algorithms.ensemble.RandomSubspaceClassifier` : Feature subsampling ensemble method.
-    :class:`~tuiml.algorithms.ensemble.RandomCommitteeClassifier` : Ensemble using randomizable base classifiers.
 
     Examples
     --------
@@ -122,13 +121,13 @@ class BaggingClassifier(Classifier):
     >>> y_train = np.array([0, 0, 1, 1, 1])
     >>>
     >>> # Fit the Bagging classifier
-    >>> clf = BaggingClassifier(base_classifier='C45TreeClassifier', n_estimators=10)
+    >>> clf = BaggingClassifier(base_classifier='DecisionTreeClassifier', n_estimators=10)
     >>> clf.fit(X_train, y_train)
     BaggingClassifier(...)
     >>> predictions = clf.predict(X_train)
     """
 
-    def __init__(self, base_classifier: Any = 'C45TreeClassifier',
+    def __init__(self, base_classifier: Any = 'DecisionTreeClassifier',
                  n_estimators: int = 10,
                  bag_size_percent: int = 100,
                  random_state: Optional[int] = None,
@@ -137,7 +136,7 @@ class BaggingClassifier(Classifier):
 
         Parameters
         ----------
-        base_classifier : str or class, default='C45TreeClassifier'
+        base_classifier : str or class, default='DecisionTreeClassifier'
             The base classifier to use.
         n_estimators : int, default=10
             Number of base classifiers in the ensemble.
@@ -161,7 +160,7 @@ class BaggingClassifier(Classifier):
     @classmethod
     def get_parameter_schema(cls) -> Dict[str, Dict[str, Any]]:
         return {
-            "base_classifier": {"type": "string", "default": "C45TreeClassifier",
+            "base_classifier": {"type": "string", "default": "DecisionTreeClassifier",
                                "description": "Base classifier name or class"},
             "n_estimators": {"type": "integer", "default": 10, "minimum": 1,
                             "description": "Number of base classifiers"},
@@ -233,7 +232,7 @@ class BaggingClassifier(Classifier):
         X_bag = X[indices]
         y_bag = y[indices]
 
-        estimator = self._base_class()
+        estimator = make_base_estimator(self._base_class, seed)
         estimator.fit(X_bag, y_bag)
         return estimator
 
@@ -381,7 +380,7 @@ class BaggingRegressor(Regressor):
 
     Parameters
     ----------
-    base_regressor : str or class, default='AdditiveRegression'
+    base_regressor : str or class, default='GradientBoostingRegressor'
         The base regressor to use. Unstable learners (e.g., decision trees)
         benefit most from bagging.
 
@@ -430,8 +429,7 @@ class BaggingRegressor(Regressor):
     See Also
     --------
     :class:`~tuiml.algorithms.ensemble.BaggingClassifier` : Bootstrap aggregating for classification.
-    :class:`~tuiml.algorithms.ensemble.AdditiveRegression` : Gradient boosting for regression.
-    :class:`~tuiml.algorithms.ensemble.RandomSubspaceRegressor` : Feature subsampling ensemble for regression.
+    :class:`~tuiml.algorithms.ensemble.GradientBoostingRegressor` : Gradient boosting for regression.
 
     Examples
     --------
@@ -451,7 +449,7 @@ class BaggingRegressor(Regressor):
     >>> predictions = reg.predict(X_train)
     """
 
-    def __init__(self, base_regressor: Any = 'AdditiveRegression',
+    def __init__(self, base_regressor: Any = 'GradientBoostingRegressor',
                  n_estimators: int = 10,
                  bag_size_percent: int = 100,
                  random_state: Optional[int] = None,
@@ -460,7 +458,7 @@ class BaggingRegressor(Regressor):
 
         Parameters
         ----------
-        base_regressor : str or class, default='AdditiveRegression'
+        base_regressor : str or class, default='GradientBoostingRegressor'
             The base regressor to use.
         n_estimators : int, default=10
             Number of base regressors in the ensemble.
@@ -484,7 +482,7 @@ class BaggingRegressor(Regressor):
     def get_parameter_schema(cls) -> Dict[str, Dict[str, Any]]:
         """Return JSON Schema for constructor parameters."""
         return {
-            "base_regressor": {"type": "string", "default": "AdditiveRegression",
+            "base_regressor": {"type": "string", "default": "GradientBoostingRegressor",
                                "description": "Base regressor name or class"},
             "n_estimators": {"type": "integer", "default": 10, "minimum": 1,
                             "description": "Number of base regressors"},
@@ -549,7 +547,7 @@ class BaggingRegressor(Regressor):
         bag_size = int(n_samples * self.bag_size_percent / 100)
         indices = rng.choice(n_samples, size=bag_size, replace=True)
 
-        estimator = self._base_class()
+        estimator = make_base_estimator(self._base_class, seed)
         estimator.fit(X[indices], y[indices])
         return estimator
 

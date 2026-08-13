@@ -4,12 +4,6 @@ This module turns the *node objects* built by TuiML's tree learners into
 something a human can read. It accepts any fitted estimator from
 :mod:`tuiml.algorithms.trees` -- :class:`~tuiml.algorithms.trees.DecisionTreeClassifier`
 and :class:`~tuiml.algorithms.trees.DecisionTreeRegressor`,
-:class:`~tuiml.algorithms.trees.C45TreeClassifier`,
-:class:`~tuiml.algorithms.trees.RandomTreeClassifier`,
-:class:`~tuiml.algorithms.trees.ReducedErrorPruningTreeClassifier`,
-:class:`~tuiml.algorithms.trees.HoeffdingTreeClassifier`,
-:class:`~tuiml.algorithms.trees.M5ModelTreeRegressor`,
-:class:`~tuiml.algorithms.trees.LogisticModelTreeClassifier`, the
 :class:`~tuiml.algorithms.trees.RandomForestClassifier` /
 :class:`~tuiml.algorithms.trees.RandomForestRegressor` ensembles (one member
 tree at a time) and :class:`~tuiml.algorithms.trees.DecisionStumpClassifier` --
@@ -1005,7 +999,7 @@ def _check_is_fitted(model):
     ================================ ==========================================
     Marker attribute                 Estimator family
     ================================ ==========================================
-    ``tree_`` is not None            single trees (CART, C4.5, REP, M5, LMT)
+    ``tree_`` is not None            single decision and regression trees
     ``estimators_`` is non-empty     forests and other ensembles
     ``feature_index_`` is not None   decision stumps, which build no nodes
     ``n_features_in_`` present       scikit-learn-style fitted convention
@@ -1078,8 +1072,6 @@ def plot_tree(
         The fitted tree to plot. Accepts a single-tree estimator with a
         ``tree_`` attribute (for example
         :class:`~tuiml.algorithms.trees.DecisionTreeClassifier`,
-        :class:`~tuiml.algorithms.trees.C45TreeClassifier`,
-        :class:`~tuiml.algorithms.trees.M5ModelTreeRegressor`), an ensemble
         with ``estimators_`` such as
         :class:`~tuiml.algorithms.trees.RandomForestClassifier` (see
         ``tree_index``), a fitted

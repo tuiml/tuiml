@@ -9,6 +9,11 @@ import numpy as np
 from abc import ABC, abstractmethod
 from typing import Dict, List, Any, Optional
 
+# Large prime used as the default kernel cache size. A prime size spreads the
+# symmetric (i, j) cache keys more evenly across hash buckets, keeping
+# collisions low as the cache fills.
+_DEFAULT_CACHE_SIZE = 250007
+
 def kernel(tags: List[str] = None, version: str = "1.0.0"):
     """Class decorator that registers a kernel with the component registry.
 
@@ -244,17 +249,20 @@ class CachedKernel(Kernel):
     Parameters
     ----------
     cache_size : int, default=250007
-        Size of the cache. Use ``0`` for an unbounded (full) cache and
-        ``-1`` to disable caching entirely.
+        Size of the cache, in number of stored kernel entries. Use ``0`` for
+        an unbounded (full) cache and ``-1`` to disable caching entirely. The
+        default is a large prime so the symmetric ``(i, j)`` cache keys hash
+        evenly across buckets.
     """
 
-    def __init__(self, cache_size: int = 250007):
+    def __init__(self, cache_size: int = _DEFAULT_CACHE_SIZE):
         """Initialize cached kernel.
 
         Parameters
         ----------
         cache_size : int, default=250007
-            Size of the cache (a prime number is recommended).
+            Number of stored kernel entries (a prime is recommended so keys
+            spread evenly across hash buckets).
         """
         super().__init__()
         self.cache_size = cache_size

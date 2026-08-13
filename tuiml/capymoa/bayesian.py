@@ -36,7 +36,7 @@ class NaiveBayes(_CapyMOAStreamMixin, Classifier):
     See Also
     --------
     :class:`~tuiml.capymoa.trees.HoeffdingTree` : Incremental decision tree.
-    :class:`~tuiml.algorithms.bayesian.naive_bayes.NaiveBayes` : Native batch
+    :class:`~tuiml.algorithms.bayesian.NaiveBayesClassifier` : Native batch
         TuiML implementation.
 
     Examples

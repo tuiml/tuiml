@@ -201,7 +201,7 @@ class RandomSubsetSelector(FeatureSelector, SelectorMixin):
             "invert": {
                 "type": "boolean",
                 "default": False,
-                "description": "Randomly remove instead of select (WEKA -V option)"
+                "description": "Randomly remove instead of select"
             },
             "random_state": {
                 "type": "integer",

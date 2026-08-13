@@ -149,7 +149,7 @@ Cross-validation prevents overfitting by ensuring that meta-features for trainin
                     <code class="font-bold text-indigo-600 text-sm">classifiers</code>
                 </div>
                 <div class="md:col-span-3 flex flex-wrap items-center gap-1">
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">list, &#x27;C45TreeClassifier&#x27;]</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">list, &#x27;DecisionTreeClassifier&#x27;]</span>
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= [&#x27;</span>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
@@ -358,7 +358,7 @@ When you want the meta-learner to learn optimal combination weights automaticall
                 <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
             </div>
             <div class="p-4"><div class="space-y-2">
-                    <a href="/docs/algorithms/ensemble/vote.html#class-VotingClassifier" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                    <a href="/docs/algorithms/ensemble/voting.html#class-VotingClassifier" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
                         <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
                             <i class="fa-solid fa-link text-sm"></i>
                         </span>
@@ -368,7 +368,7 @@ When you want the meta-learner to learn optimal combination weights automaticall
                         </div>
                     </a>
                     
-                    <a href="/docs/algorithms/ensemble/adaboost_m1.html#class-AdaBoostClassifier" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                    <a href="/docs/algorithms/ensemble/adaboost.html#class-AdaBoostClassifier" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
                         <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
                             <i class="fa-solid fa-link text-sm"></i>
                         </span>
@@ -416,7 +416,7 @@ When you want the meta-learner to learn optimal combination weights automaticall
 &gt;&gt;&gt;
 &gt;&gt;&gt; # Fit the Stacking classifier
 &gt;&gt;&gt; clf = StackingClassifier(
-...     classifiers=[&#x27;NaiveBayesClassifier&#x27;, &#x27;C45TreeClassifier&#x27;],
+...     classifiers=[&#x27;NaiveBayesClassifier&#x27;, &#x27;DecisionTreeClassifier&#x27;],
 ...     meta_classifier=&#x27;Logistic&#x27;
 ... )
 &gt;&gt;&gt; clf.fit(X_train, y_train)
@@ -721,7 +721,7 @@ StackingClassifier(...)
                     <pre class="font-mono text-sm leading-relaxed"><span class="text-purple-400">__init__</span><span class="text-slate-300">(</span>
     <span class="text-red-400">self</span><span class="text-slate-400">,</span>
     <span class="text-orange-300">regressors</span><span class="text-slate-400">:</span> <span class="text-cyan-400">List[Any]</span> <span class="text-slate-400">=</span> <span class="text-green-400">None</span><span class="text-slate-400">,</span>
-    <span class="text-orange-300">meta_regressor</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Any</span> <span class="text-slate-400">=</span> <span class="text-green-400">&#x27;AdditiveRegression&#x27;</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">meta_regressor</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Any</span> <span class="text-slate-400">=</span> <span class="text-green-400">&#x27;GradientBoostingRegressor&#x27;</span><span class="text-slate-400">,</span>
     <span class="text-orange-300">num_folds</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">10</span><span class="text-slate-400">,</span>
     <span class="text-orange-300">random_state</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Optional[int]</span> <span class="text-slate-400">=</span> <span class="text-green-400">None</span><span class="text-slate-400">,</span>
 <span class="text-slate-300">)</span></pre>
@@ -820,7 +820,7 @@ Cross-validation prevents overfitting by ensuring that meta-features for trainin
                 </div>
                 <div class="md:col-span-3 flex flex-wrap items-center gap-1">
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">str or object</span>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= &#x27;AdditiveRegression&#x27;</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= &#x27;GradientBoostingRegressor&#x27;</span>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
                     The meta-regressor used to combine base regressor predictions.
@@ -987,7 +987,7 @@ When you want the meta-learner to learn optimal combination weights automaticall
                         </div>
                     </a>
                     
-                    <a href="/docs/algorithms/ensemble/vote.html#class-VotingRegressor" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                    <a href="/docs/algorithms/ensemble/voting.html#class-VotingRegressor" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
                         <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
                             <i class="fa-solid fa-link text-sm"></i>
                         </span>
@@ -1035,8 +1035,8 @@ When you want the meta-learner to learn optimal combination weights automaticall
 &gt;&gt;&gt;
 &gt;&gt;&gt; # Fit the Stacking regressor
 &gt;&gt;&gt; reg = StackingRegressor(
-...     regressors=[&#x27;AdditiveRegression&#x27;],
-...     meta_regressor=&#x27;AdditiveRegression&#x27;
+...     regressors=[&#x27;GradientBoostingRegressor&#x27;],
+...     meta_regressor=&#x27;GradientBoostingRegressor&#x27;
 ... )
 &gt;&gt;&gt; reg.fit(X_train, y_train)
 StackingRegressor(...)

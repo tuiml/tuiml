@@ -7,7 +7,7 @@ import numpy as np
 import pickle
 from tuiml.algorithms.neighbors import KNearestNeighborsClassifier, KNearestNeighborsRegressor
 import pytest
-from tuiml.algorithms.neighbors.search import LinearNNSearch
+from tuiml.algorithms.neighbors.search import BruteForceSearch
 from tuiml.algorithms.neighbors.search import KDTree
 from tuiml.algorithms.neighbors.search import BallTree
 
@@ -113,17 +113,17 @@ class TestKNearestNeighborsRegressorFitting:
 
 
 # --------------------------------------------------------------------------
-# Test suite for LinearNNSearch (brute force) nearest neighbor search.
+# Test suite for BruteForceSearch (brute force) nearest neighbor search.
 # --------------------------------------------------------------------------
 
 class TestLinearNNSearchInit:
-    """Tests for LinearNNSearch initialization."""
+    """Tests for BruteForceSearch initialization."""
 
     def test_build_basic(self):
         """Test building from data."""
         np.random.seed(42)
         X = np.random.randn(50, 3)
-        search = LinearNNSearch()
+        search = BruteForceSearch()
 
         result = search.build(X)
 
@@ -135,7 +135,7 @@ class TestLinearNNSearchInit:
     def test_build_small_data(self):
         """Test building with very small dataset."""
         X = np.array([[1.0, 2.0], [3.0, 4.0]])
-        search = LinearNNSearch()
+        search = BruteForceSearch()
         search.build(X)
 
         assert search._is_built is True
@@ -144,7 +144,7 @@ class TestLinearNNSearchInit:
     def test_build_single_point(self):
         """Test building with a single data point."""
         X = np.array([[1.0, 2.0, 3.0]])
-        search = LinearNNSearch()
+        search = BruteForceSearch()
         search.build(X)
 
         assert search._is_built is True
@@ -153,11 +153,11 @@ class TestLinearNNSearchInit:
     def test_repr_built(self):
         """Test string representation after building."""
         X = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])
-        search = LinearNNSearch()
+        search = BruteForceSearch()
         search.build(X)
 
         repr_str = repr(search)
-        assert "LinearNNSearch" in repr_str
+        assert "BruteForceSearch" in repr_str
         assert "n_samples=3" in repr_str
 
 
@@ -167,7 +167,7 @@ class TestLinearNNSearchQuery:
     def test_query_all_distances_correct(self):
         """Test that all returned distances match manual computation."""
         X = np.array([[0.0, 0.0], [3.0, 4.0], [1.0, 0.0]])
-        search = LinearNNSearch()
+        search = BruteForceSearch()
         search.build(X)
 
         query = np.array([0.0, 0.0])

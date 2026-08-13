@@ -15,7 +15,7 @@ This package is organized into several key abstraction layers:
    registration decorators and registry lookup helpers (``get_algorithm``,
    ``list_algorithms``, ``search_algorithms``).
 2. **Preprocessing**: Interfaces for data filters and feature transformers
-   (``Preprocessor``, ``Filter``, ``Transformer``).
+   (``Preprocessor``, ``Transformer``).
 3. **Features**: Base classes for feature selection, extraction, and
    construction.
 4. **Metrics**: The ``Metric`` base class and shared validation/aggregation
@@ -29,7 +29,7 @@ This package is organized into several key abstraction layers:
 8. **Kernels**: The ``Kernel`` base class and ``@kernel`` decorator for
    SVM-style kernel functions, including ``CachedKernel``.
 9. **Neighbors and Estimators**: ``NearestNeighborSearch`` and probability
-   ``Estimator`` primitives shared across algorithms.
+   ``ProbabilityEstimator`` primitives shared across algorithms.
 """
 
 # Algorithm base classes
@@ -57,12 +57,10 @@ from tuiml.base.algorithms import (
 # Preprocessing base classes
 from tuiml.base.preprocessing import (
     Preprocessor,
-    Filter,
     Transformer,
     SupervisedTransformer,
-    InstanceTransformer,
+    ResamplingTransformer,
     preprocessor,
-    filter_method,
     transformer,
 )
 
@@ -119,7 +117,7 @@ from tuiml.base.kernels import (
 
 from tuiml.base.neighbors import NearestNeighborSearch
 
-from tuiml.base.estimators import Estimator
+from tuiml.base.estimators import ProbabilityEstimator
 
 __all__ = [
     # Algorithms
@@ -143,12 +141,10 @@ __all__ = [
     "search_algorithms",
     # Preprocessing
     "Preprocessor",
-    "Filter",
     "Transformer",
     "SupervisedTransformer",
-    "InstanceTransformer",
+    "ResamplingTransformer",
     "preprocessor",
-    "filter_method",
     "transformer",
     # Features
     "FeatureMethod",
@@ -190,5 +186,5 @@ __all__ = [
     # Neighbors
     "NearestNeighborSearch",
     # Estimators
-    "Estimator",
+    "ProbabilityEstimator",
 ]

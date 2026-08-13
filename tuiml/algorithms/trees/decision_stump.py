@@ -94,9 +94,7 @@ class DecisionStumpClassifier(Classifier):
 
     See Also
     --------
-    :class:`~tuiml.algorithms.trees.C45TreeClassifier` : Full C4.5 decision tree with pruning.
     :class:`~tuiml.algorithms.trees.RandomForestClassifier` : Ensemble of randomized trees.
-    :class:`~tuiml.algorithms.trees.HoeffdingTreeClassifier` : Incremental tree for streaming data.
 
     Examples
     --------

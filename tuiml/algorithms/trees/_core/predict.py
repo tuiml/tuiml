@@ -59,11 +59,3 @@ def predict_single_numpy(node: TreeNode, x: np.ndarray) -> np.ndarray:
     return node.value
 
 
-def predict_proba_single_numpy(
-    node: TreeNode, x: np.ndarray, n_classes: int
-) -> np.ndarray:
-    """Predict class probabilities for one sample (NumPy)."""
-    val = predict_single_numpy(node, x)
-    if val is None:
-        return np.ones(n_classes) / n_classes
-    return val

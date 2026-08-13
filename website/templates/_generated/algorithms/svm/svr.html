@@ -1,0 +1,912 @@
+{% extends 'layouts/docs_generated.html' %}
+
+{% set active_nav = 'api' %}
+{% set breadcrumb_html = '<a href="/api-reference.html" class="hover:text-gray-900">API Reference</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="../index.html" class="hover:text-gray-900">algorithms</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="index.html" class="hover:text-gray-900">svm</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">svr.py</span>' %}
+
+{% block title %}svr - API Documentation{% endblock %}
+
+{% block content %}
+<div class="api-crumb-row" style="margin-bottom: 32px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="/api-reference.html">API Reference</a> / <a href="../index.html">algorithms</a> / <a href="index.html">svm</a> / <h1 class="api-crumb-file">svr.py</h1></div><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/algorithms/svm/svr.py" target="_blank" rel="noopener noreferrer" title="View algorithms/svm/svr.py source on GitHub" aria-label="View algorithms/svm/svr.py source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a></div>
+<nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
+<div class="oc-toc-label">On this page</div>
+<a href="#class-SVR">SVR</a>
+<a href="#init-SVR" class="sub">Constructor</a>
+<a href="#method-SVR-get_parameter_schema" class="sub">get_parameter_schema</a>
+<a href="#method-SVR-get_capabilities" class="sub">get_capabilities</a>
+<a href="#method-SVR-get_complexity" class="sub">get_complexity</a>
+<a href="#method-SVR-get_references" class="sub">get_references</a>
+<a href="#method-SVR-fit" class="sub">fit</a>
+<a href="#method-SVR-predict" class="sub">predict</a>
+<a href="#method-SVR-score" class="sub">score</a>
+<a href="#method-SVR-__repr__" class="sub">__repr__</a>
+</nav>
+<main>
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Support Vector Regressor (SVR) implementation.</p></div>
+<div class="mb-12">
+<h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-cubes text-indigo-500"></i> Classes</h2>
+<div class="mb-12 scroll-mt-24" id="class-SVR">
+
+        <div class="mb-6">
+            <div class="flex items-center gap-2">
+                <h2 class="text-3xl font-bold text-gray-900">SVR</h2>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/algorithms/svm/svr.py#L10" target="_blank" rel="noopener noreferrer" title="View SVR source on GitHub" aria-label="View SVR source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+            </div>
+            <p class="text-gray-500 font-mono text-sm mt-2">class <span class="text-indigo-600">algorithms.svm.svr.SVR</span>(<span class="text-cyan-400">Regressor</span>)</p>
+        </div>
+        
+<p class="text-gray-700 text-lg mb-6 leading-relaxed">Support Vector Regressor trained by <strong>Sequential Minimal Optimization</strong>.</p>
+<div class="text-gray-600 mb-8 leading-relaxed">Implements <strong>epsilon-insensitive</strong> Support Vector Regression (SVR) using the SMO algorithm. The model finds a function <span class="katex-inline">f(x) = w^T \phi(x) + b</span> that has at most <span class="katex-inline">\epsilon</span> deviation from the actual target values, while remaining as <strong>flat</strong> as possible.</div>
+
+        <div class="mb-8">
+            <div class="bg-slate-800 rounded-lg overflow-hidden shadow-lg">
+                <div class="flex items-center justify-between px-4 py-2 bg-slate-900/50 border-b border-slate-700">
+                    <span class="text-slate-400 text-xs font-mono">Constructor</span>
+                    <button onclick="copyCode('init-SVR')" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i>
+                        <span class="text-xs">Copy</span>
+                    </button>
+                </div>
+                <div class="p-4 overflow-x-auto" id="init-SVR">
+                    <pre class="font-mono text-sm leading-relaxed"><span class="text-purple-400">__init__</span><span class="text-slate-300">(</span>
+    <span class="text-red-400">self</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">C</span><span class="text-slate-400">:</span> <span class="text-cyan-400">float</span> <span class="text-slate-400">=</span> <span class="text-green-400">1.0</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">epsilon</span><span class="text-slate-400">:</span> <span class="text-cyan-400">float</span> <span class="text-slate-400">=</span> <span class="text-green-400">0.1</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">kernel</span><span class="text-slate-400">:</span> <span class="text-cyan-400">str</span> <span class="text-slate-400">=</span> <span class="text-green-400">&#x27;rbf&#x27;</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">gamma</span><span class="text-slate-400">:</span> <span class="text-cyan-400">Any</span> <span class="text-slate-400">=</span> <span class="text-green-400">&#x27;scale&#x27;</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">degree</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">3</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">coef0</span><span class="text-slate-400">:</span> <span class="text-cyan-400">float</span> <span class="text-slate-400">=</span> <span class="text-green-400">0.0</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">tol</span><span class="text-slate-400">:</span> <span class="text-cyan-400">float</span> <span class="text-slate-400">=</span> <span class="text-green-400">0.001</span><span class="text-slate-400">,</span>
+    <span class="text-orange-300">max_iter</span><span class="text-slate-400">:</span> <span class="text-cyan-400">int</span> <span class="text-slate-400">=</span> <span class="text-green-400">...</span><span class="text-slate-400">,</span>
+<span class="text-slate-300">)</span></pre>
+                </div>
+            </div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Overview</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+The SMO-based SVR training proceeds as follows:
+</p>
+
+<ol class="list-decimal list-inside my-3 space-y-1">
+
+<li class="text-gray-700">
+Map input features into a high-dimensional space via a <strong>kernel function</strong>
+</li>
+
+<li class="text-gray-700">
+Define an <span class="katex-inline">\epsilon</span>-insensitive tube around the training targets
+</li>
+
+<li class="text-gray-700">
+Select pairs of dual variables (<span class="katex-inline">\alpha_i, \alpha_i^*</span>) that violate KKT conditions
+</li>
+
+<li class="text-gray-700">
+Solve the two-variable sub-problem <strong>analytically</strong> to update the multipliers
+</li>
+
+<li class="text-gray-700">
+Update the bias term and check for convergence
+</li>
+
+<li class="text-gray-700">
+Repeat until all KKT conditions are satisfied or <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">max_iter</code> is reached
+</li>
+
+</ol>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Theory</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+The SVR solves the following <strong>primal</strong> optimization problem:
+</p>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">\min_{w, b, \xi, \xi^*} \frac{1}{2}\|w\|^2 + C \sum_{i=1}^{n} (\xi_i + \xi_i^*)</span>
+</div>
+
+<p class="mb-4">
+Subject to:
+</p>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">y_i - w^T \phi(x_i) - b \leq \epsilon + \xi_i</span>
+</div>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">w^T \phi(x_i) + b - y_i \leq \epsilon + \xi_i^*</span>
+</div>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">\xi_i, \xi_i^* \geq 0</span>
+</div>
+
+<p class="mb-4">
+The corresponding <strong>dual</strong> formulation is:
+</p>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">\max_{\alpha, \alpha^*} -\frac{1}{2} \sum_{i,j} (\alpha_i - \alpha_i^*)(\alpha_j - \alpha_j^*) K(x_i, x_j) - \epsilon \sum_{i} (\alpha_i + \alpha_i^*) + \sum_{i} y_i (\alpha_i - \alpha_i^*)</span>
+</div>
+
+<p class="mb-4">
+Subject to:
+</p>
+
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">0 \leq \alpha_i, \alpha_i^* \leq C</span>
+</div>
+
+<div class="mt-3 mb-2 font-medium text-gray-800">
+where:
+</div>
+
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<span class="katex-inline">C</span> --- Regularization parameter trading off flatness against training error
+</li>
+
+<li class="text-gray-700">
+<span class="katex-inline">\epsilon</span> --- Width of the insensitive tube (errors within the tube are ignored)
+</li>
+
+<li class="text-gray-700">
+<span class="katex-inline">K(x_i, x_j)</span> --- Kernel function implementing the <strong>kernel trick</strong>
+</li>
+
+<li class="text-gray-700">
+<span class="katex-inline">\alpha_i, \alpha_i^*</span> --- Dual variables (Lagrange multipliers)
+</li>
+
+<li class="text-gray-700">
+<span class="katex-inline">\xi_i, \xi_i^*</span> --- Slack variables for points outside the <span class="katex-inline">\epsilon</span>-tube
+</li>
+
+</ul>
+The prediction function is:
+<div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+<span class="katex-display">f(x) = \sum_{i \in SV} (\alpha_i - \alpha_i^*) K(x_i, x) + b</span>
+</div>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">C</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 1.0</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Regularization parameter. Larger values allow fewer points to lie outside the :math:`\epsilon`-tube but may cause overfitting.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">epsilon</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 0.1</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Width of the epsilon-insensitive loss tube. Predictions within :math:`\epsilon` of the true value incur zero loss.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">kernel</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">{&#x27;linear&#x27;, &#x27;poly&#x27;, &#x27;rbf&#x27;}</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= &#x27;rbf&#x27;</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Kernel type used for the non-linear mapping.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">gamma</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">Union[str, float]</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= &#x27;scale&#x27;</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    <p class="mb-2">Kernel coefficient for <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&#x27;rbf&#x27;</code> and <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&#x27;poly&#x27;</code> kernels:</p><ul class="mt-2 space-y-1">
+
+                    <li class="flex items-start gap-2">
+                        <code class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-xs font-mono flex-shrink-0">&#x27;scale&#x27;</code>
+                        <span class="text-gray-600">-- Uses ``1 / (n_features * X.var())``</span>
+                    </li>
+                
+
+                    <li class="flex items-start gap-2">
+                        <code class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-xs font-mono flex-shrink-0">&#x27;auto&#x27;</code>
+                        <span class="text-gray-600">-- Uses ``1 / n_features``</span>
+                    </li>
+                
+
+                    <li class="flex items-start gap-2">
+                        <code class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-xs font-mono flex-shrink-0">float</code>
+                        <span class="text-gray-600">-- User-defined positive coefficient</span>
+                    </li>
+                
+</ul>
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">degree</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 3</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Degree of the polynomial kernel. Ignored by other kernels.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">coef0</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 0.0</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Independent term in the polynomial kernel function.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">tol</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 1e-3</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Tolerance for the stopping criterion in the optimization loop.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">max_iter</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 10000</span>
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Maximum number of optimization iterations.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-list-check text-blue-500 mr-2"></i>Attributes</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">support_vectors_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Training samples that lie on or outside the :math:`\epsilon`-tube boundary.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">dual_coef_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Coefficients :math:`(\alpha_i - \alpha_i^*)` of the support vectors in the prediction function.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">intercept_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Intercept (bias) term :math:`b`.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">n_support_</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">int</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Total number of support vectors.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+<strong>Complexity:</strong>
+</p>
+
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+Training: <span class="katex-inline">O(n^2 \cdot p)</span> to <span class="katex-inline">O(n^3)</span> depending on the kernel cache, where <span class="katex-inline">n</span> = samples, <span class="katex-inline">p</span> = features
+</li>
+
+<li class="text-gray-700">
+Prediction: <span class="katex-inline">O(n_{sv} \cdot p)</span> per sample, where <span class="katex-inline">n_{sv}</span> is the number of support vectors
+</li>
+
+</ul>
+<strong>When to use SVR:</strong>
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+Regression tasks where a non-linear relationship is expected
+</li>
+
+<li class="text-gray-700">
+When robustness to outliers is important (errors within <span class="katex-inline">\epsilon</span> are ignored)
+</li>
+
+<li class="text-gray-700">
+Moderate-sized datasets (SVR scales quadratically with the number of samples)
+</li>
+
+<li class="text-gray-700">
+When a sparse solution (few support vectors) is preferred
+</li>
+
+</ul>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-book text-amber-500 mr-2"></i>References</h4>
+            </div>
+            <div class="p-4"><div class="reference-list space-y-2">
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">Smola2004</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Smola, A.J. and Schoelkopf, B. (2004).
+       <strong class="text-gray-900">A Tutorial on Support Vector Regression.</strong>
+       <em class="text-gray-700">Statistics and Computing</em>, 14(3), pp. 199-222.
+       DOI: <a href="https://doi.org/10.1023/B:STCO.0000035301.49549.88" target="_blank" class="text-indigo-600 hover:text-indigo-800 hover:underline">10.1023/B:STCO.0000035301.49549.88 </a></div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">Platt1999</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Platt, J.C. (1999).
+       <strong class="text-gray-900">Fast Training of Support Vector Machines Using Sequential Minimal Optimization.</strong>
+       <em class="text-gray-700">Advances in Kernel Methods --- Support Vector Learning</em>, MIT Press, pp. 185-208.</div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">Vapnik1995</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Vapnik, V.N. (1995).
+       <strong class="text-gray-900">The Nature of Statistical Learning Theory.</strong>
+       <em class="text-gray-700">Springer-Verlag, New York</em>.
+       DOI: <a href="https://doi.org/10.1007/978-1-4757-2440-0" target="_blank" class="text-indigo-600 hover:text-indigo-800 hover:underline">10.1007/978-1-4757-2440-0 </a></div>
+                    </div>
+                </div>
+                </div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/algorithms/svm/svc.html#class-SVC" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">SVC</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Support Vector Classifier using SMO optimization.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/algorithms/svm/kernels/rbf.html#class-RBFKernel" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">RBFKernel</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Radial Basis Function kernel.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/algorithms/svm/kernels/polynomial.html#class-PolynomialKernel" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">PolynomialKernel</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Polynomial kernel.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0"><p class="text-gray-600 my-2">Basic regression with an RBF kernel:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.algorithms.svm import SVR
+&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt;
+&gt;&gt;&gt; # Create sample data
+&gt;&gt;&gt; X_train = np.array([[1], [2], [3], [4], [5]], dtype=float)
+&gt;&gt;&gt; y_train = np.array([1.1, 2.0, 2.9, 4.1, 5.0])
+&gt;&gt;&gt;
+&gt;&gt;&gt; # Fit the regressor
+&gt;&gt;&gt; reg = SVR(C=1.0, epsilon=0.1, kernel=&#x27;rbf&#x27;)
+&gt;&gt;&gt; reg.fit(X_train, y_train)
+SVR(...)
+&gt;&gt;&gt; predictions = reg.predict(X_train)</code></pre>
+            </div>
+        </div>
+        </div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-gray-400"></i> Methods
+                </h3>
+                <div class="space-y-6">
+            
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-SVR-get_parameter_schema">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_parameter_schema</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; Dict[str, Dict[str, Any]]</span>
+                        </div>
+                    </div>
+                    <span class="flex items-center gap-1">
+                        <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/algorithms/svm/svr.py#L225" target="_blank" rel="noopener noreferrer" title="View SVR.get_parameter_schema source on GitHub" aria-label="View SVR.get_parameter_schema source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+                        <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    </span>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return parameter schema.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-SVR-get_capabilities">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_capabilities</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; List[str]</span>
+                        </div>
+                    </div>
+                    <span class="flex items-center gap-1">
+                        <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/algorithms/svm/svr.py#L277" target="_blank" rel="noopener noreferrer" title="View SVR.get_capabilities source on GitHub" aria-label="View SVR.get_capabilities source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+                        <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    </span>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return algorithm capabilities.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-SVR-get_complexity">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_complexity</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; str</span>
+                        </div>
+                    </div>
+                    <span class="flex items-center gap-1">
+                        <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/algorithms/svm/svr.py#L285" target="_blank" rel="noopener noreferrer" title="View SVR.get_complexity source on GitHub" aria-label="View SVR.get_complexity source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+                        <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    </span>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return time/space complexity.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-SVR-get_references">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">get_references</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(cls) -&gt; List[str]</span>
+                        </div>
+                    </div>
+                    <span class="flex items-center gap-1">
+                        <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/algorithms/svm/svr.py#L290" target="_blank" rel="noopener noreferrer" title="View SVR.get_references source on GitHub" aria-label="View SVR.get_references source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+                        <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    </span>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Return academic references.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-SVR-fit">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">fit</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray, y: np.ndarray) -&gt; &#x27;SVR&#x27;</span>
+                        </div>
+                    </div>
+                    <span class="flex items-center gap-1">
+                        <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/algorithms/svm/svr.py#L371" target="_blank" rel="noopener noreferrer" title="View SVR.fit source on GitHub" aria-label="View SVR.fit source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+                        <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    </span>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Fit the SVR model using SMO algorithm.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Training features.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Target values.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">self</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">SVR</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Returns the fitted instance.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-SVR-predict">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">predict</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray) -&gt; np.ndarray</span>
+                        </div>
+                    </div>
+                    <span class="flex items-center gap-1">
+                        <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/algorithms/svm/svr.py#L432" target="_blank" rel="noopener noreferrer" title="View SVR.predict source on GitHub" aria-label="View SVR.predict source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+                        <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    </span>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Predict target values for samples.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Test features.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y_pred</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Predicted values.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-SVR-score">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">score</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self, X: np.ndarray, y: np.ndarray) -&gt; float</span>
+                        </div>
+                    </div>
+                    <span class="flex items-center gap-1">
+                        <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/algorithms/svm/svr.py#L466" target="_blank" rel="noopener noreferrer" title="View SVR.score source on GitHub" aria-label="View SVR.score source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+                        <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    </span>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">Compute the :math:`R^2` (coefficient of determination) score.</p>
+                    
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-sliders text-gray-400"></i> Parameters
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">X</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples, n_features)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Test features.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">y</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">np.ndarray of shape (n_samples,)</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    True target values.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i> Returns
+                    </h5>
+                    <div class="text-sm"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">r2</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">float</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    :math:`R^2` score, where 1.0 is a perfect fit.
+                </div>
+            </div>
+            
+</div></div>
+                </div>
+                
+                </div>
+            </details>
+        </div>
+        
+
+        <div class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden hover:shadow-md transition-shadow" id="method-SVR-__repr__">
+            <details class="group">
+                <summary class="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600">
+                            <i class="fa-solid fa-code text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 text-base">__repr__</code>
+                            <span class="text-sm text-gray-400 font-mono ml-1">(self) -&gt; str</span>
+                        </div>
+                    </div>
+                    <span class="flex items-center gap-1">
+                        <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/algorithms/svm/svr.py#L493" target="_blank" rel="noopener noreferrer" title="View SVR.__repr__ source on GitHub" aria-label="View SVR.__repr__ source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+                        <i class="fa-solid fa-chevron-down text-gray-400 text-sm group-open:rotate-180 transition-transform"></i>
+                    </span>
+                </summary>
+                <div class="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
+                    <p class="text-sm text-gray-600 mt-3">String representation.</p>
+                    
+                </div>
+            </details>
+        </div>
+        
+</div></div>
+</div>
+</div>
+</main>
+{% endblock %}

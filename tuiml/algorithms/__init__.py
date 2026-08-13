@@ -9,8 +9,8 @@ algorithm, you do not import it.
 Supervised learning
 -------------------
 - :mod:`~tuiml.algorithms.trees` — decision trees and forests. The strongest
-  default on tabular data: ``RandomForestClassifier``, ``C45TreeClassifier``,
-  ``M5ModelTreeRegressor``, ``HoeffdingTreeClassifier``.
+  default on tabular data: ``RandomForestClassifier``,
+  ``DecisionTreeClassifier``, ``DecisionStumpClassifier``.
 - :mod:`~tuiml.algorithms.gradient_boosting` — boosted ensembles wrapping
   XGBoost, LightGBM and CatBoost. Usually the accuracy ceiling, at the cost
   of tuning.
@@ -20,16 +20,15 @@ Supervised learning
 - :mod:`~tuiml.algorithms.linear` — the interpretable baseline:
   ``LinearRegression``, ``LogisticRegression``, ``SGDClassifier``.
 - :mod:`~tuiml.algorithms.svm` — maximum-margin classifiers with pluggable
-  kernels: ``SMO``, ``SMOreg``.
+  kernels: ``SVC``, ``SVR``.
 - :mod:`~tuiml.algorithms.bayesian` — probabilistic models:
-  ``NaiveBayesClassifier``, ``BayesianNetworkClassifier``,
+  ``NaiveBayesClassifier``, ``NaiveBayesMultinomialClassifier``,
   ``GaussianProcessesRegressor``.
 - :mod:`~tuiml.algorithms.neighbors` — instance-based learning, which stores
   the training data instead of building a model:
-  ``KNearestNeighborsClassifier``, ``KStarClassifier``.
-- :mod:`~tuiml.algorithms.rules` — human-readable rule sets:
-  ``OneRuleClassifier``, ``RIPPERClassifier``, ``PARTClassifier``. Reach for
-  these when the model has to be explainable to someone who did not build it.
+  ``KNearestNeighborsClassifier``, ``KNearestNeighborsRegressor``.
+- :mod:`~tuiml.algorithms.rules` — ``ZeroRuleClassifier``, the majority-class
+  baseline every other model has to beat.
 - :mod:`~tuiml.algorithms.neural` — ``MultilayerPerceptronClassifier``.
 
 Unsupervised learning
@@ -71,6 +70,7 @@ See Also
 --------
 :mod:`tuiml.sklearn` : scikit-learn estimators, under ``sklearn.*`` names.
 :mod:`tuiml.capymoa` : CapyMOA streaming learners, under ``capymoa.*`` names.
+:mod:`tuiml.weka` : Weka learners, under ``weka.*`` names.
 """
 
 # Base classes (single source of truth)
@@ -96,40 +96,33 @@ from tuiml.base.algorithms import (
 # Bayesian algorithms
 from tuiml.algorithms.bayesian import (
     NaiveBayesClassifier,
+    CategoricalNBClassifier,
+    BayesianLinearRegressor,
     NaiveBayesMultinomialClassifier,
-    BayesianNetworkClassifier,
     GaussianProcessesRegressor,
 )
 
 # Tree-based algorithms
 from tuiml.algorithms.trees import (
     DecisionStumpClassifier,
-    C45TreeClassifier,
-    RandomTreeClassifier,
+    DecisionTreeClassifier,
+    DecisionTreeRegressor,
     RandomForestClassifier,
     RandomForestRegressor,
-    ReducedErrorPruningTreeClassifier,
-    HoeffdingTreeClassifier,
-    M5ModelTreeRegressor,
-    LogisticModelTreeClassifier,
 )
 
 # Neighbor-based algorithms
 from tuiml.algorithms.neighbors import (
     KNearestNeighborsClassifier,
     KNearestNeighborsRegressor,
-    KStarClassifier,
-    LocallyWeightedLearningRegressor,
 )
 
 # Linear algorithms
 from tuiml.algorithms.linear import (
     LogisticRegression,
     LinearRegression,
-    SimpleLinearRegression,
     SGDClassifier,
     SGDRegressor,
-    SimpleLogisticRegression,
 )
 
 # SVM algorithms
@@ -141,32 +134,27 @@ from tuiml.algorithms.svm import (
 # Neural networks
 from tuiml.algorithms.neural import (
     MultilayerPerceptronClassifier,
-    VotedPerceptronClassifier,
+    MultilayerPerceptronRegressor,
+    PerceptronClassifier,
 )
 
 # Rule-based algorithms
 from tuiml.algorithms.rules import (
     ZeroRuleClassifier,
-    OneRuleClassifier,
-    RIPPERClassifier,
-    PARTClassifier,
-    M5ModelRulesRegressor,
-    DecisionTableClassifier,
 )
 
-# Ensemble (WEKA-style meta-learners)
+# Ensemble (meta-learners)
 from tuiml.algorithms.ensemble import (
     BaggingClassifier,
+    BaggingRegressor,
     AdaBoostClassifier,
+    AdaBoostRegressor,
     VotingClassifier,
     StackingClassifier,
-    AdditiveRegression,
-    RegressionByDiscretization,
-    LogitBoostClassifier,
-    RandomCommitteeClassifier,
-    RandomSubspaceClassifier,
-    MultiClassClassifier,
-    FilteredClassifier,
+    StackingRegressor,
+    VotingRegressor,
+    GradientBoostingRegressor,
+    OneVsRestClassifier,
 )
 
 # Gradient Boosting (external frameworks)
@@ -182,13 +170,9 @@ from tuiml.algorithms.gradient_boosting import (
 # Clustering algorithms
 from tuiml.algorithms.clustering import (
     KMeansClusterer,
-    FarthestFirstClusterer,
     AgglomerativeClusterer,
     DBSCANClusterer,
     GaussianMixtureClusterer,
-    CanopyClusterer,
-    CobwebClusterer,
-    FilteredClusterer,
 )
 
 # Distance functions (from clustering/distance)
@@ -203,6 +187,7 @@ from tuiml.algorithms.clustering.distance import (
 from tuiml.algorithms.associations import (
     AprioriAssociator,
     FPGrowthAssociator,
+    ECLATAssociator,
 )
 
 # Anomaly detection
@@ -211,7 +196,6 @@ from tuiml.algorithms.anomaly import (
     LocalOutlierFactorDetector,
     EllipticEnvelopeDetector,
     OneClassSVMDetector,
-    ABODDetector,
 )
 
 # Time series analysis
@@ -244,56 +228,44 @@ __all__ = [
     "associator",
     # Bayesian
     "NaiveBayesClassifier",
+    "CategoricalNBClassifier",
+    "BayesianLinearRegressor",
     "NaiveBayesMultinomialClassifier",
-    "BayesianNetworkClassifier",
     "GaussianProcessesRegressor",
     # Trees
     "DecisionStumpClassifier",
-    "C45TreeClassifier",
-    "RandomTreeClassifier",
+    "DecisionTreeClassifier",
+    "DecisionTreeRegressor",
     "RandomForestClassifier",
     "RandomForestRegressor",
-    "ReducedErrorPruningTreeClassifier",
-    "HoeffdingTreeClassifier",
-    "M5ModelTreeRegressor",
-    "LogisticModelTreeClassifier",
     # Neighbors
     "KNearestNeighborsClassifier",
     "KNearestNeighborsRegressor",
-    "KStarClassifier",
-    "LocallyWeightedLearningRegressor",
     # Linear
     "LogisticRegression",
     "LinearRegression",
-    "SimpleLinearRegression",
     "SGDClassifier",
     "SGDRegressor",
-    "SimpleLogisticRegression",
     # SVM
     "SVC",
     "SVR",
     # Neural
     "MultilayerPerceptronClassifier",
-    "VotedPerceptronClassifier",
+    "MultilayerPerceptronRegressor",
+    "PerceptronClassifier",
     # Rules
     "ZeroRuleClassifier",
-    "OneRuleClassifier",
-    "RIPPERClassifier",
-    "PARTClassifier",
-    "M5ModelRulesRegressor",
-    "DecisionTableClassifier",
-    # Ensemble (WEKA-style meta-learners)
+    # Ensemble (meta-learners)
     "BaggingClassifier",
+    "BaggingRegressor",
     "AdaBoostClassifier",
+    "AdaBoostRegressor",
     "VotingClassifier",
     "StackingClassifier",
-    "AdditiveRegression",
-    "RegressionByDiscretization",
-    "LogitBoostClassifier",
-    "RandomCommitteeClassifier",
-    "RandomSubspaceClassifier",
-    "MultiClassClassifier",
-    "FilteredClassifier",
+    "StackingRegressor",
+    "VotingRegressor",
+    "GradientBoostingRegressor",
+    "OneVsRestClassifier",
     # Gradient Boosting (external frameworks)
     "XGBoostClassifier",
     "XGBoostRegressor",
@@ -303,13 +275,9 @@ __all__ = [
     "LightGBMRegressor",
     # Clustering
     "KMeansClusterer",
-    "FarthestFirstClusterer",
     "AgglomerativeClusterer",
     "DBSCANClusterer",
     "GaussianMixtureClusterer",
-    "CanopyClusterer",
-    "CobwebClusterer",
-    "FilteredClusterer",
     # Distance utilities
     "euclidean_distance",
     "manhattan_distance",
@@ -318,12 +286,12 @@ __all__ = [
     # Associations
     "AprioriAssociator",
     "FPGrowthAssociator",
+    "ECLATAssociator",
     # Anomaly detection
     "IsolationForestDetector",
     "LocalOutlierFactorDetector",
     "EllipticEnvelopeDetector",
     "OneClassSVMDetector",
-    "ABODDetector",
     # Time series
     "AR",
     "MA",

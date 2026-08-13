@@ -1,6 +1,5 @@
 """
 Text preprocessing utilities.
-                 weka.core.tokenizers.*
 
 This module provides:
 - Tokenizers: Word, N-gram, Regex, Sentence tokenization

@@ -222,10 +222,10 @@ class TestRandomProjectionExtractorInit:
 
     def test_custom_init(self):
         rp = RandomProjectionExtractor(
-            n_components=20, distribution="sparse1", random_state=42
+            n_components=20, distribution="sparse", random_state=42
         )
         assert rp.n_components == 20
-        assert rp.distribution == "sparse1"
+        assert rp.distribution == "sparse"
         assert rp.random_state == 42
 
 
@@ -237,15 +237,15 @@ class TestRandomProjectionExtractorFit:
         assert rp.n_components_ == 10
         assert rp.components_.shape == (10, 50)
 
-    def test_fit_sparse1(self, projection_sample_data):
-        rp = RandomProjectionExtractor(n_components=10, distribution="sparse1", random_state=42)
+    def test_fit_sparse(self, projection_sample_data):
+        rp = RandomProjectionExtractor(n_components=10, distribution="sparse", random_state=42)
         rp.fit(projection_sample_data)
         assert rp.n_components_ == 10
 
-    def test_fit_sparse2(self, projection_sample_data):
-        rp = RandomProjectionExtractor(n_components=10, distribution="sparse2", random_state=42)
+    def test_fit_rademacher(self, projection_sample_data):
+        rp = RandomProjectionExtractor(n_components=10, distribution="rademacher", random_state=42)
         rp.fit(projection_sample_data)
-        # sparse2 should only have -1 and 1 values
+        # rademacher should only have -1 and 1 values
         assert set(np.unique(rp.components_)).issubset({-1.0, 1.0})
 
     def test_fit_auto_components(self, projection_sample_data):
@@ -355,7 +355,7 @@ class TestSparseRandomProjectionExtractor:
     def test_default_init(self):
         srp = SparseRandomProjectionExtractor()
         assert srp.n_components == 10
-        assert srp.distribution == "sparse1"
+        assert srp.distribution == "sparse"
 
     def test_fit_transform(self, projection_sample_data):
         srp = SparseRandomProjectionExtractor(n_components=10, random_state=42)

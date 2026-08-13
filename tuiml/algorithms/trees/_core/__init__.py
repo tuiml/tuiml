@@ -6,12 +6,10 @@ from .criteria import (
     gini_impurity,
     entropy,
     entropy_from_counts,
-    gain_ratio_score,
     classifier_node_impurity,
     squared_error,
     friedman_mse,
     absolute_error,
-    sdr,
     regressor_node_impurity,
 )
 from .splitters import (
@@ -22,17 +20,14 @@ from .splitters import (
 )
 from .builders import TreeConfig, build_classifier_tree, build_regressor_tree
 from .pruning import (
+    populate_node_stats,
     cost_complexity_prune,
-    reduced_error_prune_classifier,
-    reduced_error_prune_regressor,
-    pessimistic_prune,
 )
 from .predict import (
     build_jit_functions,
     predict_batch,
     predict_proba_batch,
     predict_single_numpy,
-    predict_proba_single_numpy,
 )
 
 __all__ = [
@@ -48,12 +43,10 @@ __all__ = [
     "gini_impurity",
     "entropy",
     "entropy_from_counts",
-    "gain_ratio_score",
     "classifier_node_impurity",
     "squared_error",
     "friedman_mse",
     "absolute_error",
-    "sdr",
     "regressor_node_impurity",
     # Splitters
     "compute_max_features",
@@ -65,14 +58,11 @@ __all__ = [
     "build_classifier_tree",
     "build_regressor_tree",
     # Pruning
+    "populate_node_stats",
     "cost_complexity_prune",
-    "reduced_error_prune_classifier",
-    "reduced_error_prune_regressor",
-    "pessimistic_prune",
     # Predict
     "build_jit_functions",
     "predict_batch",
     "predict_proba_batch",
     "predict_single_numpy",
-    "predict_proba_single_numpy",
 ]

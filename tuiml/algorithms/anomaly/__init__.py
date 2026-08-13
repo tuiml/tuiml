@@ -15,7 +15,6 @@ Algorithms
 - **OneClassSVMDetector:** Learns a boundary enclosing the normal data.
 - **EllipticEnvelopeDetector:** Fits a Gaussian and flags low-probability
   points. Strong when the data really is roughly normal, poor when it is not.
-- **ABODDetector:** Angle-based; designed to stay meaningful in high
   dimensions, where distances concentrate and become uninformative.
 
 Notes
@@ -41,7 +40,6 @@ from tuiml.algorithms.anomaly.isolation_forest import IsolationForestDetector
 from tuiml.algorithms.anomaly.local_outlier_factor import LocalOutlierFactorDetector
 from tuiml.algorithms.anomaly.elliptic_envelope import EllipticEnvelopeDetector
 from tuiml.algorithms.anomaly.one_class_svm import OneClassSVMDetector
-from tuiml.algorithms.anomaly.abod import ABODDetector
 
 __all__ = [
     # Base classes
@@ -52,5 +50,4 @@ __all__ = [
     "LocalOutlierFactorDetector",
     "EllipticEnvelopeDetector",
     "OneClassSVMDetector",
-    "ABODDetector",
 ]

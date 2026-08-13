@@ -42,12 +42,10 @@ Use SMOTE to generate synthetic samples for a minority class:
 # Base classes
 from tuiml.base.preprocessing import (
     Preprocessor,
-    Filter,
     Transformer,
     SupervisedTransformer,
-    InstanceTransformer,
+    ResamplingTransformer,
     preprocessor,
-    filter_method,
     transformer,
 )
 
@@ -134,12 +132,10 @@ from tuiml.preprocessing.timeseries import (
 __all__ = [
     # Base
     "Preprocessor",
-    "Filter",
     "Transformer",
     "SupervisedTransformer",
-    "InstanceTransformer",
+    "ResamplingTransformer",
     "preprocessor",
-    "filter_method",
     "transformer",
     # Scaling
     "MinMaxScaler",

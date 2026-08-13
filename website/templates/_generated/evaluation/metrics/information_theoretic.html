@@ -19,14 +19,13 @@
 <a href="#func-cross_entropy">cross_entropy</a>
 <a href="#func-symmetrical_uncertainty">symmetrical_uncertainty</a>
 <a href="#func-prior_entropy">prior_entropy</a>
-<a href="#func-scheme_entropy">scheme_entropy</a>
+<a href="#func-prediction_entropy">prediction_entropy</a>
 <a href="#func-entropy_gain">entropy_gain</a>
 <a href="#func-kb_information">kb_information</a>
-<a href="#func-mean_kb_information">mean_kb_information</a>
 </nav>
 <main>
 <div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Information-theoretic evaluation metrics.</p>
-<div class="doc-extended mb-8">These metrics are used by Weka for measuring information gain, entropy, etc. Equivalent to Weka&#x27;s information-theoretic evaluation methods.</div></div>
+<div class="doc-extended mb-8">Entropy, information gain, and the information-score family used to measure how much a model&#x27;s predictions reduce uncertainty about the target. Logarithms default to base 2, so results are expressed in bits.</div></div>
 <div class="mb-12">
 <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-code text-indigo-500"></i> Functions</h2>
 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-entropy">
@@ -36,19 +35,15 @@
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">entropy</h3>
-                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py#L12" target="_blank" rel="noopener noreferrer" title="View entropy source on GitHub" aria-label="View entropy source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py#L13" target="_blank" rel="noopener noreferrer" title="View entropy source on GitHub" aria-label="View entropy source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 12</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 13</div>
         </div>
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">entropy(labels: np.ndarray, base: Optional[float]=None) -&gt; float</div>
 <div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Calculate entropy of a label distribution, the average information content (uncertainty) of the labels.</p>
 <div class="doc-extended mb-8">
-<p class="mb-4">
-Equivalent to Weka&#x27;s information-theoretic calculations.
-</p>
-
 <div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
 <span class="katex-display">H(X) = -\sum_i p_i \log p_i</span>
 </div>
@@ -145,9 +140,9 @@ Equivalent to Weka&#x27;s information-theoretic calculations.
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">conditional_entropy</h3>
-                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py#L59" target="_blank" rel="noopener noreferrer" title="View conditional_entropy source on GitHub" aria-label="View conditional_entropy source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py#L58" target="_blank" rel="noopener noreferrer" title="View conditional_entropy source on GitHub" aria-label="View conditional_entropy source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 59</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 58</div>
         </div>
         
 <div class="p-6">
@@ -264,9 +259,9 @@ Equivalent to Weka&#x27;s information-theoretic calculations.
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">mutual_information</h3>
-                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py#L108" target="_blank" rel="noopener noreferrer" title="View mutual_information source on GitHub" aria-label="View mutual_information source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py#L107" target="_blank" rel="noopener noreferrer" title="View mutual_information source on GitHub" aria-label="View mutual_information source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 108</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 107</div>
         </div>
         
 <div class="p-6">
@@ -378,15 +373,14 @@ Equivalent to Weka&#x27;s information-theoretic calculations.
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">information_gain</h3>
-                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py#L145" target="_blank" rel="noopener noreferrer" title="View information_gain source on GitHub" aria-label="View information_gain source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py#L144" target="_blank" rel="noopener noreferrer" title="View information_gain source on GitHub" aria-label="View information_gain source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 145</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 144</div>
         </div>
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">information_gain(y_true: np.ndarray, y_pred: np.ndarray, base: Optional[float]=2) -&gt; float</div>
 <div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Calculate information gain, numerically identical to mutual information.</p>
-<div class="doc-extended mb-8">Equivalent to Weka&#x27;s information gain calculation.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -431,7 +425,7 @@ Equivalent to Weka&#x27;s information-theoretic calculations.
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 2</span>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
-                    Logarithm base. 2 gives bits (the default, matching Weka), None gives natural log (nats).
+                    Logarithm base. 2 gives bits (the default), None gives natural log (nats).
                 </div>
             </div>
             
@@ -491,9 +485,9 @@ Equivalent to Weka&#x27;s information-theoretic calculations.
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">gain_ratio</h3>
-                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py#L179" target="_blank" rel="noopener noreferrer" title="View gain_ratio source on GitHub" aria-label="View gain_ratio source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py#L175" target="_blank" rel="noopener noreferrer" title="View gain_ratio source on GitHub" aria-label="View gain_ratio source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 179</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 175</div>
         </div>
         
 <div class="p-6">
@@ -501,7 +495,7 @@ Equivalent to Weka&#x27;s information-theoretic calculations.
 <div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Calculate gain ratio, information gain normalized by split information.</p>
 <div class="doc-extended mb-8">
 <p class="mb-4">
-Equivalent to Weka&#x27;s gain ratio used in C4.5/J48, and defined as
+Introduced by Quinlan for C4.5 to counteract information gain&#x27;s bias toward high-cardinality splits, and defined as
 </p>
 
 <div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
@@ -616,19 +610,15 @@ which corrects information gain&#x27;s bias toward splits with many values.
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">kullback_leibler_divergence</h3>
-                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py#L224" target="_blank" rel="noopener noreferrer" title="View kullback_leibler_divergence source on GitHub" aria-label="View kullback_leibler_divergence source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py#L221" target="_blank" rel="noopener noreferrer" title="View kullback_leibler_divergence source on GitHub" aria-label="View kullback_leibler_divergence source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 224</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 221</div>
         </div>
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">kullback_leibler_divergence(y_true_proba: np.ndarray, y_pred_proba: np.ndarray, base: Optional[float]=None) -&gt; float</div>
 <div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Calculate Kullback-Leibler divergence KL(P||Q), the expected extra information needed to encode samples from P using a code optimized for Q instead of P.</p>
 <div class="doc-extended mb-8">
-<p class="mb-4">
-Equivalent to Weka&#x27;s KB Information metric.
-</p>
-
 <div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
 <span class="katex-display">KL(P \| Q) = \sum_i p_i \log \frac{p_i}{q_i}</span>
 </div>
@@ -737,9 +727,9 @@ Equivalent to Weka&#x27;s KB Information metric.
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">jensen_shannon_divergence</h3>
-                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py#L275" target="_blank" rel="noopener noreferrer" title="View jensen_shannon_divergence source on GitHub" aria-label="View jensen_shannon_divergence source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py#L270" target="_blank" rel="noopener noreferrer" title="View jensen_shannon_divergence source on GitHub" aria-label="View jensen_shannon_divergence source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 275</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 270</div>
         </div>
         
 <div class="p-6">
@@ -860,9 +850,9 @@ Unlike KL divergence, JSD is symmetric in P and Q, always finite, and its square
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">cross_entropy</h3>
-                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py#L324" target="_blank" rel="noopener noreferrer" title="View cross_entropy source on GitHub" aria-label="View cross_entropy source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py#L319" target="_blank" rel="noopener noreferrer" title="View cross_entropy source on GitHub" aria-label="View cross_entropy source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 324</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 319</div>
         </div>
         
 <div class="p-6">
@@ -974,19 +964,15 @@ Unlike KL divergence, JSD is symmetric in P and Q, always finite, and its square
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">symmetrical_uncertainty</h3>
-                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py#L371" target="_blank" rel="noopener noreferrer" title="View symmetrical_uncertainty source on GitHub" aria-label="View symmetrical_uncertainty source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py#L366" target="_blank" rel="noopener noreferrer" title="View symmetrical_uncertainty source on GitHub" aria-label="View symmetrical_uncertainty source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 371</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 366</div>
         </div>
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">symmetrical_uncertainty(y_true: np.ndarray, y_pred: np.ndarray, base: Optional[float]=2) -&gt; float</div>
 <div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Calculate symmetrical uncertainty, a normalized, symmetric variant of mutual information.</p>
 <div class="doc-extended mb-8">
-<p class="mb-4">
-Equivalent to Weka&#x27;s <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">SymmetricalUncertAttributeEval</code>.
-</p>
-
 <div class="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
 <span class="katex-display">SU(X,Y) = \frac{2 \cdot IG(Y,X)}{H(X) + H(Y)}</span>
 </div>
@@ -1101,15 +1087,15 @@ Normalizing by H(X) + H(Y) compensates for mutual information&#x27;s bias toward
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">prior_entropy</h3>
-                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py#L423" target="_blank" rel="noopener noreferrer" title="View prior_entropy source on GitHub" aria-label="View prior_entropy source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py#L416" target="_blank" rel="noopener noreferrer" title="View prior_entropy source on GitHub" aria-label="View prior_entropy source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 423</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 416</div>
         </div>
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">prior_entropy(y_true: np.ndarray, base: Optional[float]=2) -&gt; float</div>
 <div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Calculate prior entropy, the entropy of the class distribution before any model prediction is taken into account.</p>
-<div class="doc-extended mb-8">Equivalent to Weka&#x27;s <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Evaluation.SFPriorEntropy()</code>. A thin wrapper around <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">entropy</code> that defaults to base 2.</div>
+<div class="doc-extended mb-8">A thin wrapper around <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">entropy</code> that defaults to base 2.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -1140,7 +1126,7 @@ Normalizing by H(X) + H(Y) compensates for mutual information&#x27;s bias toward
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 2</span>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
-                    Logarithm base. 2 gives bits (the default, matching Weka), None gives natural log (nats).
+                    Logarithm base. 2 gives bits (the default), None gives natural log (nats).
                 </div>
             </div>
             
@@ -1193,22 +1179,22 @@ Normalizing by H(X) + H(Y) compensates for mutual information&#x27;s bias toward
         </div>
         </div></div>
 </div></div>
-<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-scheme_entropy">
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-prediction_entropy">
 
         <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
             
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
-                <h3 class="text-lg font-bold text-gray-900 font-mono">scheme_entropy</h3>
-                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py#L456" target="_blank" rel="noopener noreferrer" title="View scheme_entropy source on GitHub" aria-label="View scheme_entropy source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">prediction_entropy</h3>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py#L447" target="_blank" rel="noopener noreferrer" title="View prediction_entropy source on GitHub" aria-label="View prediction_entropy source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 456</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 447</div>
         </div>
         
 <div class="p-6">
-<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">scheme_entropy(y_pred_proba: np.ndarray, base: Optional[float]=2) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Calculate scheme entropy, the average entropy of the model&#x27;s predicted class distributions.</p>
-<div class="doc-extended mb-8">Equivalent to Weka&#x27;s <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Evaluation.SFSchemeEntropy()</code>. Low scheme entropy means the model makes confident (low-entropy), peaked predictions; high scheme entropy means predictions are close to uniform.</div>
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">prediction_entropy(y_pred_proba: np.ndarray, base: Optional[float]=2) -&gt; float</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Calculate prediction entropy, the average entropy of the model&#x27;s predicted class distributions.</p>
+<div class="doc-extended mb-8">Low prediction entropy means the model makes confident (low-entropy), peaked predictions; high prediction entropy means predictions are close to uniform.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -1239,7 +1225,7 @@ Normalizing by H(X) + H(Y) compensates for mutual information&#x27;s bias toward
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 2</span>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
-                    Logarithm base. 2 gives bits (the default, matching Weka), None gives natural log (nats).
+                    Logarithm base. 2 gives bits (the default), None gives natural log (nats).
                 </div>
             </div>
             
@@ -1285,8 +1271,8 @@ Normalizing by H(X) + H(Y) compensates for mutual information&#x27;s bias toward
                 </div>
             </div>
             <div class="!p-4 overflow-x-auto">
-                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.evaluation.metrics import scheme_entropy
-&gt;&gt;&gt; round(scheme_entropy([[0.9, 0.1], [0.5, 0.5]]), 4)  # confident + maximally uncertain
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.evaluation.metrics import prediction_entropy
+&gt;&gt;&gt; round(prediction_entropy([[0.9, 0.1], [0.5, 0.5]]), 4)  # confident + maximally uncertain
 0.7345</code></pre>
             </div>
         </div>
@@ -1299,15 +1285,15 @@ Normalizing by H(X) + H(Y) compensates for mutual information&#x27;s bias toward
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">entropy_gain</h3>
-                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py#L509" target="_blank" rel="noopener noreferrer" title="View entropy_gain source on GitHub" aria-label="View entropy_gain source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py#L498" target="_blank" rel="noopener noreferrer" title="View entropy_gain source on GitHub" aria-label="View entropy_gain source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 509</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 498</div>
         </div>
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">entropy_gain(y_true: np.ndarray, y_pred_proba: np.ndarray, base: Optional[float]=2) -&gt; float</div>
 <div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Calculate entropy gain, the reduction in entropy from using the model&#x27;s predictions instead of the prior class distribution.</p>
-<div class="doc-extended mb-8">Equivalent to Weka&#x27;s <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Evaluation.SFEntropyGain()</code>, computed as <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">prior_entropy</code> minus <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">scheme_entropy</code>.</div>
+<div class="doc-extended mb-8">Computed as <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">prior_entropy</code> minus <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">prediction_entropy</code>.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -1352,7 +1338,7 @@ Normalizing by H(X) + H(Y) compensates for mutual information&#x27;s bias toward
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 2</span>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
-                    Logarithm base used for both the prior and scheme entropy terms. 2 gives bits (the default, matching Weka), None gives natural log (nats).
+                    Logarithm base used for both the prior and prediction entropy terms. 2 gives bits (the default), None gives natural log (nats).
                 </div>
             </div>
             
@@ -1414,15 +1400,33 @@ Normalizing by H(X) + H(Y) compensates for mutual information&#x27;s bias toward
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
                 <h3 class="text-lg font-bold text-gray-900 font-mono">kb_information</h3>
-                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py#L553" target="_blank" rel="noopener noreferrer" title="View kb_information source on GitHub" aria-label="View kb_information source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py#L540" target="_blank" rel="noopener noreferrer" title="View kb_information source on GitHub" aria-label="View kb_information source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
             </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 553</div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 540</div>
         </div>
         
 <div class="p-6">
 <div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">kb_information(y_true: np.ndarray, y_pred_proba: np.ndarray, base: Optional[float]=2) -&gt; float</div>
 <div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Calculate KB (Kononenko-Bratko) information, the average per-instance information gained by using the model&#x27;s predicted probability for the true class instead of the prior probability of that class.</p>
-<div class="doc-extended mb-8">Equivalent to Weka&#x27;s <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Evaluation.KBInformation()</code>. For each instance, the log-ratio of the predicted probability of the true class to the prior probability of the true class is accumulated and averaged.</div>
+<div class="doc-extended mb-8">For each instance, the log-ratio of the predicted probability of the true class to the prior probability of that class is accumulated and averaged.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-book text-amber-500 mr-2"></i>References</h4>
+            </div>
+            <div class="p-4"><div class="reference-list space-y-2">
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold font-mono flex-shrink-0">Kononenko1991</span>
+                        <div class="text-sm text-gray-600 leading-relaxed">Kononenko, I. and Bratko, I. (1991).
+       <strong class="text-gray-900">Information-Based Evaluation Criterion for Classifier&#x27;s
+       Performance.</strong> <em class="text-gray-700">Machine Learning</em>, 6(1), 67-80.
+       DOI: <a href="https://doi.org/10.1007/BF00153760" target="_blank" class="text-indigo-600 hover:text-indigo-800 hover:underline">10.1007/BF00153760 </a></div>
+                    </div>
+                </div>
+                </div></div>
+        </div>
+        
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -1467,7 +1471,7 @@ Normalizing by H(X) + H(Y) compensates for mutual information&#x27;s bias toward
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 ml-2">= 2</span>
                 </div>
                 <div class="md:col-span-6 text-sm text-gray-600">
-                    Logarithm base. 2 gives bits (the default, matching Weka), None gives natural log (nats).
+                    Logarithm base. 2 gives bits (the default), None gives natural log (nats).
                 </div>
             </div>
             
@@ -1521,23 +1525,6 @@ Normalizing by H(X) + H(Y) compensates for mutual information&#x27;s bias toward
             </div>
         </div>
         </div></div>
-</div></div>
-<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-mean_kb_information">
-
-        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
-            
-            <div class="flex items-center gap-2">
-                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
-                <h3 class="text-lg font-bold text-gray-900 font-mono">mean_kb_information</h3>
-                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/evaluation/metrics/information_theoretic.py#L624" target="_blank" rel="noopener noreferrer" title="View mean_kb_information source on GitHub" aria-label="View mean_kb_information source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
-            </div>
-            <div class="text-xs text-gray-400 mt-1 font-mono">Line 624</div>
-        </div>
-        
-<div class="p-6">
-<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">mean_kb_information(y_true: np.ndarray, y_pred_proba: np.ndarray, base: Optional[float]=2) -&gt; float</div>
-<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Calculate mean KB information per instance.</p>
-<div class="doc-extended mb-8">Equivalent to Weka&#x27;s Evaluation.SFMeanKBInformation().</div></div>
 </div></div>
 </div>
 </main>

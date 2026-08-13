@@ -471,8 +471,8 @@ SPEC = ToolSpec(
                     "type": "string",
                     "description": (
                         "Algorithm class name. Examples:\n"
-                        "- Classifiers: 'RandomForestClassifier', 'SVM', 'NaiveBayesClassifier', 'C45TreeClassifier'\n"
-                        "- Regressors: 'LinearRegression', 'M5ModelTreeRegressor'\n"
+                        "- Classifiers: 'RandomForestClassifier', 'SVM', 'NaiveBayesClassifier', 'DecisionTreeClassifier'\n"
+                        "- Regressors: 'LinearRegression', 'RandomForestRegressor'\n"
                         "- Clusterers: 'KMeansClusterer', 'GaussianMixtureClusterer', 'DBSCANClusterer'\n"
                         "- Optional sklearn backends (needs tuiml[sklearn]): 'sklearn.RandomForestClassifier', 'sklearn.SVC', 'sklearn.Lasso'"
                     )

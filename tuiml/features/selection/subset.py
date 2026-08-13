@@ -3,8 +3,9 @@ Subset-based feature selection methods.
 
 This module provides feature selectors that evaluate subsets of features
 rather than individual features.
-- CFSSelector: CfsSubsetEval.java
-- WrapperSelector: WrapperSubsetEval.java
+
+- CFSSelector: correlation-based subset evaluation (Hall, 1999).
+- WrapperSelector: subset scored by cross-validating the target estimator.
 """
 
 import numpy as np
@@ -592,11 +593,11 @@ class WrapperSelector(FeatureSelector, SelectorMixin):
     Using a Decision Tree with forward selection:
 
     >>> from tuiml.features.selection import WrapperSelector
-    >>> from tuiml.algorithms.trees import C45TreeClassifier
+    >>> from tuiml.algorithms.trees import DecisionTreeClassifier
     >>> import numpy as np
     >>> X, y = np.random.randn(20, 6), np.random.randint(0, 2, 20)
     >>> selector = WrapperSelector(
-    ...     estimator=C45TreeClassifier(),
+    ...     estimator=DecisionTreeClassifier(),
     ...     cv=3,
     ...     search_method="greedy_forward"
     ... )

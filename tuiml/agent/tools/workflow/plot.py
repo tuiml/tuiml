@@ -346,7 +346,7 @@ def execute_plot(**kwargs) -> Dict[str, Any]:
                 return {
                     'status': 'error',
                     'error': 'Cannot compute feature importances from this model.',
-                    'suggestion': 'Use a tree-based model (e.g., RandomForestClassifier, XGBoostClassifier, C45TreeClassifier).'
+                    'suggestion': 'Use a tree-based model (e.g., RandomForestClassifier, XGBoostClassifier, DecisionTreeClassifier).'
                 }
 
             importances = np.array(importances)

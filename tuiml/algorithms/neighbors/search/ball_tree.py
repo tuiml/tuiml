@@ -95,7 +95,7 @@ class BallTree(NearestNeighborSearch):
     See Also
     --------
     :class:`~tuiml.algorithms.neighbors.search.KDTree` : Axis-aligned tree, faster in low dimensions.
-    :class:`~tuiml.algorithms.neighbors.search.LinearNNSearch` : Brute-force search as a baseline.
+    :class:`~tuiml.algorithms.neighbors.search.BruteForceSearch` : Brute-force search as a baseline.
 
     Examples
     --------

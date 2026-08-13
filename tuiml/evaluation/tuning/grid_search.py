@@ -14,8 +14,6 @@ in higher dimensions: swap to :class:`~tuiml.evaluation.tuning.RandomSearchCV`
 when parameters are continuous or unequally important, and to
 :class:`~tuiml.evaluation.tuning.BayesianSearchCV` when each fit is expensive
 enough that the choice of the next candidate is worth modelling.
-
-Ported from WEKA's ``CVParameterSelection.java`` and ``GridSearch.java``.
 """
 
 import numpy as np

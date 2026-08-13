@@ -311,8 +311,8 @@ def execute_preprocess(**kwargs) -> Dict[str, Any]:
                 if hasattr(preprocessor, 'fit_resample') and y is not None:
                     X, y = preprocessor.fit_resample(X, y)
                 else:
-                    from tuiml.base.preprocessing import InstanceTransformer
-                    if isinstance(preprocessor, InstanceTransformer):
+                    from tuiml.base.preprocessing import ResamplingTransformer
+                    if isinstance(preprocessor, ResamplingTransformer):
                         result = preprocessor.fit_transform(X, y)
                         X, y = result[0], result[1]
                     else:
@@ -396,8 +396,8 @@ def execute_preprocess(**kwargs) -> Dict[str, Any]:
                 if hasattr(preprocessor, 'fit_resample') and y is not None:
                     X, y = preprocessor.fit_resample(X, y)
                 else:
-                    from tuiml.base.preprocessing import InstanceTransformer
-                    if isinstance(preprocessor, InstanceTransformer):
+                    from tuiml.base.preprocessing import ResamplingTransformer
+                    if isinstance(preprocessor, ResamplingTransformer):
                         result = preprocessor.fit_transform(X, y)
                         X, y = result[0], result[1]
                     else:

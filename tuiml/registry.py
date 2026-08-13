@@ -35,7 +35,6 @@ class ComponentType(Enum):
     REGRESSOR = "regressor"
     ASSOCIATOR = "associator"
     PREPROCESSOR = "preprocessor"
-    FILTER = "filter"
     TRANSFORMER = "transformer"
     FEATURE_SELECTOR = "feature_selector"
     FEATURE_EXTRACTOR = "feature_extractor"
@@ -199,6 +198,7 @@ class Registry:
             # Optional bridges: absent unless the extra is installed.
             "tuiml.sklearn",
             "tuiml.capymoa",
+            "tuiml.weka",
         ):
             try:
                 importlib.import_module(module)

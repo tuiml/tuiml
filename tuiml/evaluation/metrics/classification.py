@@ -29,9 +29,8 @@ Multiclass averaging is controlled by the ``average`` keyword shared by
 equal weight, ``'weighted'`` weights by class support, and ``None`` returns the
 per-class array.
 
-The metric names mirror Weka's ``Evaluation`` class so results line up with a
-Weka experiment report, while the call signatures follow the scikit-learn
-convention ``metric(y_true, y_pred)``.
+Call signatures follow the conventional ``metric(y_true, y_pred)`` ordering,
+so the functions drop into any evaluation loop unchanged.
 """
 
 from typing import Dict, List, Optional, Tuple, Union
@@ -63,8 +62,6 @@ def confusion_matrix(
                         predicted 0    predicted 1
         actual 0            TN             FP
         actual 1            FN             TP
-
-    Equivalent to Weka's ``Evaluation.confusionMatrix()``.
 
     Parameters
     ----------
@@ -160,8 +157,6 @@ def accuracy_score(
     .. math::
         \\text{accuracy} = \\frac{1}{n} \\sum_{i=1}^{n}
         \\mathbb{1}[y_i = \\hat{y}_i]
-
-    Equivalent to Weka's ``Evaluation.pctCorrect() / 100``.
 
     Parameters
     ----------
@@ -389,8 +384,6 @@ def precision_score(y_true: np.ndarray, y_pred: np.ndarray, **kwargs) -> Union[f
     Precision is the metric to optimise when a false positive is expensive —
     flagging a legitimate transaction as fraud, or a healthy patient as sick.
 
-    Equivalent to Weka's ``Evaluation.precision(classIndex)``.
-
     Parameters
     ----------
     y_true : np.ndarray of shape (n_samples,)
@@ -455,8 +448,6 @@ def recall_score(y_true: np.ndarray, y_pred: np.ndarray, **kwargs) -> Union[floa
     Recall is the metric to optimise when a missed positive is expensive — an
     undiagnosed disease, or an undetected intrusion.
 
-    Equivalent to Weka's ``Evaluation.recall(classIndex)``.
-
     Parameters
     ----------
     y_true : np.ndarray of shape (n_samples,)
@@ -509,8 +500,6 @@ def f1_score(y_true: np.ndarray, y_pred: np.ndarray, **kwargs) -> Union[float, n
 
     The harmonic mean is deliberately unforgiving: it stays near the *smaller*
     of the two, so a model cannot score well by sacrificing one for the other.
-
-    Equivalent to Weka's ``Evaluation.fMeasure(classIndex)``.
 
     Parameters
     ----------
@@ -692,9 +681,6 @@ def matthews_corrcoef(y_true, y_pred):
         {\\sqrt{(\\text{TP}+\\text{FP})(\\text{TP}+\\text{FN})
                 (\\text{TN}+\\text{FP})(\\text{TN}+\\text{FN})}}
 
-    Equivalent to Weka's
-    ``Evaluation.matthewsCorrelationCoefficient(classIndex)``.
-
     Parameters
     ----------
     y_true : np.ndarray of shape (n_samples,)
@@ -760,8 +746,6 @@ def cohen_kappa_score(y_true, y_pred):
 
     .. math::
         \\kappa = \\frac{p_o - p_e}{1 - p_e}
-
-    Equivalent to Weka's ``Evaluation.kappa()``.
 
     Parameters
     ----------
