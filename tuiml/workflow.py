@@ -862,6 +862,9 @@ class Workflow(Algorithm):
             ComponentType.CLASSIFIER: "classifier",
             ComponentType.REGRESSOR: "regressor",
             ComponentType.CLUSTERER: "clusterer",
+            # Detectors predict a discrete inlier/outlier label, so they behave
+            # as classifiers to anything consuming _estimator_type.
+            ComponentType.ANOMALY: "classifier",
         }.get(getattr(final, "_component_type", None), "classifier")
 
     def __len__(self):

@@ -256,7 +256,9 @@ class Algorithm(Registrable, ABC):
         from tuiml.evaluation import metrics as metrics_module
 
         y_pred = self.predict(X)
-        if self._component_type == ComponentType.CLASSIFIER:
+        # Anomaly detectors predict a discrete inlier/outlier label, so the
+        # classification score applies to them unchanged.
+        if self._component_type in (ComponentType.CLASSIFIER, ComponentType.ANOMALY):
             return float(metrics_module.accuracy_score(y, y_pred))
         if self._component_type == ComponentType.REGRESSOR:
             return float(metrics_module.r2_score(y, y_pred))
@@ -292,7 +294,7 @@ class Algorithm(Registrable, ABC):
         y_pred = self.predict(X)
 
         if metrics == "auto":
-            if self._component_type == ComponentType.CLASSIFIER:
+            if self._component_type in (ComponentType.CLASSIFIER, ComponentType.ANOMALY):
                 metrics = ["accuracy_score", "f1_score"]
             elif self._component_type == ComponentType.REGRESSOR:
                 metrics = ["mean_squared_error", "r2_score"]
@@ -1081,6 +1083,7 @@ class AlgorithmRegistry:
             "classifier": ComponentType.CLASSIFIER,
             "clusterer": ComponentType.CLUSTERER,
             "regressor": ComponentType.REGRESSOR,
+            "anomaly": ComponentType.ANOMALY,
             "associator": ComponentType.ASSOCIATOR,
         }
         component_type = type_map.get(algorithm_type, ComponentType.ALGORITHM)
@@ -1132,6 +1135,7 @@ class AlgorithmRegistry:
             "classifier": ComponentType.CLASSIFIER,
             "clusterer": ComponentType.CLUSTERER,
             "regressor": ComponentType.REGRESSOR,
+            "anomaly": ComponentType.ANOMALY,
             "associator": ComponentType.ASSOCIATOR,
         }
 
@@ -1182,6 +1186,7 @@ class AlgorithmRegistry:
             "classifier": ComponentType.CLASSIFIER,
             "clusterer": ComponentType.CLUSTERER,
             "regressor": ComponentType.REGRESSOR,
+            "anomaly": ComponentType.ANOMALY,
             "associator": ComponentType.ASSOCIATOR,
         }
         component_type = type_map.get(algorithm_type, ComponentType.ALGORITHM)
@@ -1221,6 +1226,7 @@ def algorithm(type: str = "classifier"):
         "classifier": ComponentType.CLASSIFIER,
         "clusterer": ComponentType.CLUSTERER,
         "regressor": ComponentType.REGRESSOR,
+        "anomaly": ComponentType.ANOMALY,
         "associator": ComponentType.ASSOCIATOR,
     }
     component_type = type_map.get(type, ComponentType.ALGORITHM)
@@ -1342,6 +1348,51 @@ def regressor(
     """
     return registry.register(
         ComponentType.REGRESSOR,
+        name=name,
+        tags=tags,
+        version=version,
+        author=author,
+    )
+
+def anomaly_detector(
+    name: Optional[str] = None,
+    tags: Optional[List[str]] = None,
+    version: str = "1.0.0",
+    author: Optional[str] = None,
+):
+    """Decorator to register an anomaly detector with the component registry.
+
+    Detectors subclass :class:`Classifier` and predict a discrete
+    inlier/outlier label, so they score like a classifier. They register under
+    their own component type instead, so :func:`tuiml.list_algorithms` can
+    report them as anomaly detectors rather than burying them among the
+    classifiers.
+
+    Parameters
+    ----------
+    name : str, optional
+        Registry name. Defaults to the class name.
+    tags : list of str, optional
+        Tags for discovery and search.
+    version : str, default="1.0.0"
+        Component version string.
+    author : str, optional
+        Component author.
+
+    Returns
+    -------
+    decorator : callable
+        Class decorator that registers the detector.
+
+    Examples
+    --------
+    >>> from tuiml.base.algorithms import anomaly_detector, Classifier
+    >>> @anomaly_detector(tags=["anomaly-detection", "tree-based"])
+    ... class MyForestDetector(Classifier):
+    ...     pass
+    """
+    return registry.register(
+        ComponentType.ANOMALY,
         name=name,
         tags=tags,
         version=version,

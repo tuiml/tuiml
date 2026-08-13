@@ -33,7 +33,7 @@ See Also
 """
 
 # Base classes (single source of truth)
-from tuiml.base.algorithms import Classifier, classifier
+from tuiml.base.algorithms import Classifier, anomaly_detector
 
 # Anomaly detection algorithms
 from tuiml.algorithms.anomaly.isolation_forest import IsolationForestDetector
@@ -44,7 +44,7 @@ from tuiml.algorithms.anomaly.one_class_svm import OneClassSVMDetector
 __all__ = [
     # Base classes
     "Classifier",
-    "classifier",
+    "anomaly_detector",
     # Algorithms
     "IsolationForestDetector",
     "LocalOutlierFactorDetector",

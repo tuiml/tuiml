@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import numpy as np
 from typing import Optional, Dict, Any, List
-from tuiml.base.algorithms import Classifier, classifier
+from tuiml.base.algorithms import Classifier, anomaly_detector
 
-@classifier(tags=["anomaly-detection", "density-based", "neighbors"], version="1.0.0")
+@anomaly_detector(tags=["anomaly-detection", "density-based", "neighbors"], version="1.0.0")
 class LocalOutlierFactorDetector(Classifier):
     """Local Outlier Factor for density-based anomaly detection.
 

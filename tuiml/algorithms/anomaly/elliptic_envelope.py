@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import numpy as np
 from typing import Optional, Dict, Any, List
-from tuiml.base.algorithms import Classifier, classifier
+from tuiml.base.algorithms import Classifier, anomaly_detector
 
-@classifier(tags=["anomaly-detection", "gaussian", "covariance"], version="1.0.0")
+@anomaly_detector(tags=["anomaly-detection", "gaussian", "covariance"], version="1.0.0")
 class EllipticEnvelopeDetector(Classifier):
     """Elliptic Envelope for Gaussian-distributed anomaly detection.
 

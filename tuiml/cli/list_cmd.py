@@ -8,7 +8,7 @@ DESC_MAX_LEN = 60
 @click.command('list')
 @click.option('--category', '-c', type=click.Choice(['algorithm', 'preprocessing', 'dataset', 'feature', 'splitting', 'custom', 'all']),
               default='all', help='Only list components in this category (default: all).')
-@click.option('--type', '-t', type=click.Choice(['classifier', 'regressor', 'clusterer', 'anomaly', 'timeseries', 'all']),
+@click.option('--type', '-t', type=click.Choice(['classifier', 'regressor', 'clusterer', 'anomaly', 'associator', 'timeseries', 'all']),
               default='all', help='Only list algorithms of this task type (default: all).')
 @click.option('--search', '-s', help='Keep only components whose name or description matches this query.')
 @click.option('--include-runs', is_flag=True, help='Include the recorded run history for custom algorithms.')

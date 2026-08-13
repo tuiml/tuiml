@@ -33,6 +33,7 @@ class ComponentType(Enum):
     CLASSIFIER = "classifier"
     CLUSTERER = "clusterer"
     REGRESSOR = "regressor"
+    ANOMALY = "anomaly"
     ASSOCIATOR = "associator"
     PREPROCESSOR = "preprocessor"
     TRANSFORMER = "transformer"

@@ -76,7 +76,7 @@ def _get_algorithm_tools() -> Dict[str, ToolDefinition]:
     -------
     tools : Dict[str, ToolDefinition]
         Mapping of tool name to definition for every registered classifier,
-        regressor, and clusterer.
+        regressor, clusterer, anomaly detector, and associator.
     """
     tools = {}
 
@@ -85,58 +85,31 @@ def _get_algorithm_tools() -> Dict[str, ToolDefinition]:
         # Import algorithms to trigger registration with the component registry
         import tuiml.algorithms  # noqa: F401
 
-        # Classifiers
-        for info in registry.list(ComponentType.CLASSIFIER):
-            name = info.get("name", info.get("class_name", ""))
-            if not name:
-                continue
-            component = registry.get(name)
-            if component:
+        # One MCP tool per registered algorithm, across every algorithm
+        # component type. Anomaly detectors and associators register under
+        # their own types, so listing only classifier/regressor/clusterer
+        # would hide them from agents.
+        for ctype, label in (
+            (ComponentType.CLASSIFIER, "classifier"),
+            (ComponentType.REGRESSOR, "regressor"),
+            (ComponentType.CLUSTERER, "clusterer"),
+            (ComponentType.ANOMALY, "anomaly detector"),
+            (ComponentType.ASSOCIATOR, "associator"),
+        ):
+            for info in registry.list(ctype):
+                name = info.get("name", info.get("class_name", ""))
+                if not name:
+                    continue
+                component = registry.get(name)
+                if not component:
+                    continue
                 schema = {}
                 if hasattr(component, 'get_parameter_schema'):
                     schema = component.get_parameter_schema()
 
                 tools[f"tuiml_algorithm_{name}"] = ToolDefinition(
                     name=f"tuiml_algorithm_{name}",
-                    description=component.__doc__.split('\n')[0] if component.__doc__ else f"Create {name} classifier",
-                    category="algorithm",
-                    input_schema=_schema_to_json_schema(schema),
-                    executor=_make_component_executor(component)
-                )
-
-        # Regressors
-        for info in registry.list(ComponentType.REGRESSOR):
-            name = info.get("name", info.get("class_name", ""))
-            if not name:
-                continue
-            component = registry.get(name)
-            if component:
-                schema = {}
-                if hasattr(component, 'get_parameter_schema'):
-                    schema = component.get_parameter_schema()
-
-                tools[f"tuiml_algorithm_{name}"] = ToolDefinition(
-                    name=f"tuiml_algorithm_{name}",
-                    description=component.__doc__.split('\n')[0] if component.__doc__ else f"Create {name} regressor",
-                    category="algorithm",
-                    input_schema=_schema_to_json_schema(schema),
-                    executor=_make_component_executor(component)
-                )
-
-        # Clusterers
-        for info in registry.list(ComponentType.CLUSTERER):
-            name = info.get("name", info.get("class_name", ""))
-            if not name:
-                continue
-            component = registry.get(name)
-            if component:
-                schema = {}
-                if hasattr(component, 'get_parameter_schema'):
-                    schema = component.get_parameter_schema()
-
-                tools[f"tuiml_algorithm_{name}"] = ToolDefinition(
-                    name=f"tuiml_algorithm_{name}",
-                    description=component.__doc__.split('\n')[0] if component.__doc__ else f"Create {name} clusterer",
+                    description=component.__doc__.split('\n')[0] if component.__doc__ else f"Create {name} {label}",
                     category="algorithm",
                     input_schema=_schema_to_json_schema(schema),
                     executor=_make_component_executor(component)

@@ -18,6 +18,8 @@ def list_algorithms(type: Optional[str] = None) -> List[Dict]:
         - ``"classifier"``: Classification algorithms
         - ``"regressor"``: Regression algorithms
         - ``"clusterer"``: Clustering algorithms
+        - ``"anomaly"``: Anomaly detectors
+        - ``"associator"``: Association rule miners
         - ``None``: List all algorithms
 
     Returns
@@ -44,18 +46,24 @@ def list_algorithms(type: Optional[str] = None) -> List[Dict]:
             "classifier": ComponentType.CLASSIFIER,
             "regressor": ComponentType.REGRESSOR,
             "clusterer": ComponentType.CLUSTERER,
+            "anomaly": ComponentType.ANOMALY,
+            "associator": ComponentType.ASSOCIATOR,
         }
         component_type = type_map.get(type.lower())
         if component_type is None:
             raise ValueError(
-                f"Invalid algorithm type '{type}'. "
-                f"Valid types: 'classifier', 'regressor', 'clusterer'."
+                f"Invalid algorithm type '{type}'. Valid types: "
+                f"'classifier', 'regressor', 'clusterer', 'anomaly', 'associator'."
             )
         return registry.list(component_type)
 
     # Return all algorithms
+    # Every algorithm component type, so anomaly detectors and associators are
+    # listed alongside the rest instead of being invisible to callers.
     results = []
-    for ctype in [ComponentType.CLASSIFIER, ComponentType.REGRESSOR, ComponentType.CLUSTERER]:
+    for ctype in [ComponentType.CLASSIFIER, ComponentType.REGRESSOR,
+                  ComponentType.CLUSTERER, ComponentType.ANOMALY,
+                  ComponentType.ASSOCIATOR]:
         results.extend(registry.list(ctype))
     return results
 

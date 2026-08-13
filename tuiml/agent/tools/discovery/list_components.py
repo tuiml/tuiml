@@ -22,7 +22,7 @@ def execute_list(**kwargs) -> Dict[str, Any]:
         Case-insensitive substring filter on name/description.
     type : str, default=None
         Algorithm type filter: ``'classifier'``, ``'regressor'``,
-        ``'clusterer'``, ``'anomaly'``, or ``'timeseries'``.
+        ``'clusterer'``, ``'anomaly'``, ``'associator'``, or ``'timeseries'``.
     limit : int, default=50
         Maximum number of entries to return.
     offset : int, default=0
@@ -116,12 +116,16 @@ def execute_list(**kwargs) -> Dict[str, Any]:
 
             components_list.append(entry)
 
-        # Filter by algorithm type (classifier, regressor, clusterer, anomaly, timeseries)
+        # Filter by algorithm type (classifier, regressor, clusterer, anomaly,
+        # associator, timeseries). 'anomaly' matches either the registered
+        # component type or the tag, so a wrapper that registers as a plain
+        # classifier but carries the tag is still found.
         if algo_type:
             if algo_type == 'anomaly':
                 components_list = [
                     c for c in components_list
-                    if 'anomaly-detection' in c.get('tags', [])
+                    if c.get('type') == 'anomaly'
+                    or 'anomaly-detection' in c.get('tags', [])
                 ]
             elif algo_type == 'timeseries':
                 components_list = [
@@ -178,7 +182,7 @@ SPEC = ToolSpec(
                 },
                 "type": {
                     "type": "string",
-                    "enum": ["classifier", "regressor", "clusterer", "anomaly", "timeseries"],
+                    "enum": ["classifier", "regressor", "clusterer", "anomaly", "associator", "timeseries"],
                     "description": "Filter algorithms by type (ignored for category='custom')."
                 },
                 "search": {

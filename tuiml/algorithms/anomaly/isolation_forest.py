@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import numpy as np
 from typing import Optional, Dict, Any, List
-from tuiml.base.algorithms import Classifier, classifier
+from tuiml.base.algorithms import Classifier, anomaly_detector
 
-@classifier(tags=["anomaly-detection", "tree-based", "unsupervised"], version="1.0.0")
+@anomaly_detector(tags=["anomaly-detection", "tree-based", "unsupervised"], version="1.0.0")
 class IsolationForestDetector(Classifier):
     """Isolation Forest for unsupervised anomaly detection.
 
@@ -301,10 +301,17 @@ class IsolationForestDetector(Classifier):
         # Mark as fitted before computing threshold
         self._is_fitted = True
 
-        # Compute offset and threshold
+        # Compute offset and threshold.
+        #
+        # decision_function is oriented so that *lower* means more anomalous,
+        # the opposite of the outlierness scores used by the distance-based
+        # detectors. The cut therefore sits at the contamination percentile
+        # (the low tail), not at 1 - contamination: predict() keeps everything
+        # at or above it as an inlier, so a 1 - contamination cut would label
+        # that fraction of the data anomalous instead.
         scores = self.decision_function(X)
         self.offset_ = -0.5
-        self.threshold_ = np.percentile(scores, 100 * (1 - self.contamination))
+        self.threshold_ = np.percentile(scores, 100 * self.contamination)
 
         return self
 

@@ -21,7 +21,7 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 
-from tuiml.base.algorithms import classifier, regressor, clusterer
+from tuiml.base.algorithms import classifier, regressor, clusterer, anomaly_detector
 from tuiml.base.preprocessing import transformer
 from tuiml.base.features import feature_selector, feature_extractor
 
@@ -113,6 +113,7 @@ def _namespaced(base_decorator):
 
 
 sk_classifier = _namespaced(classifier)
+sk_anomaly_detector = _namespaced(anomaly_detector)
 sk_regressor = _namespaced(regressor)
 sk_clusterer = _namespaced(clusterer)
 sk_transformer = _namespaced(transformer)

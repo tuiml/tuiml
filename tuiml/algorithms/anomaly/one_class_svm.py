@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import numpy as np
 from typing import Optional, Dict, Any, List
-from tuiml.base.algorithms import Classifier, classifier
+from tuiml.base.algorithms import Classifier, anomaly_detector
 
-@classifier(tags=["anomaly-detection", "svm", "novelty-detection"], version="1.0.0")
+@anomaly_detector(tags=["anomaly-detection", "svm", "novelty-detection"], version="1.0.0")
 class OneClassSVMDetector(Classifier):
     """One-Class Support Vector Machine for novelty and anomaly detection.
 
@@ -82,10 +82,14 @@ class OneClassSVMDetector(Classifier):
         Independent term in the polynomial and sigmoid kernel functions.
 
     tol : float, default=1e-3
-        Tolerance for the stopping criterion in optimization.
+        Stopping tolerance on the maximal KKT violation, the gap between the
+        largest and smallest gradient over the points still free to move.
 
     max_iter : int, default=1000
-        Maximum number of iterations for the solver.
+        Hard cap on SMO iterations, where one iteration updates a single pair
+        of multipliers. Pass ``0`` or a negative value for
+        ``max(10000, 100 * n_samples)``, which is enough to reach ``tol`` on
+        typical data.
 
     Attributes
     ----------
@@ -99,7 +103,14 @@ class OneClassSVMDetector(Classifier):
         The learned offset (:math:`\\rho`) of the decision function.
 
     n_support_ : int
-        Total number of support vectors found.
+        Total number of support vectors found. At the optimum this is at least
+        :math:`\\nu` of the training set.
+
+    support_ : np.ndarray of shape (n_support,)
+        Indices of the support vectors in the training data.
+
+    n_iter_ : int
+        SMO iterations actually run before reaching ``tol``.
 
     gamma_ : float
         Actual gamma value used during the computation.
@@ -109,9 +120,24 @@ class OneClassSVMDetector(Classifier):
 
     Notes
     -----
+    **Solver:** the :math:`\\nu`-formulation dual is solved by Sequential
+    Minimal Optimization over the maximal-violating pair, the same working-set
+    rule LIBSVM uses:
+
+    .. math::
+        \\min_{\\alpha} \\; \\frac{1}{2} \\alpha^T K \\alpha
+        \\quad \\text{s.t.} \\quad
+        0 \\leq \\alpha_i \\leq \\frac{1}{\\nu n}, \\;\\; \\sum_i \\alpha_i = 1
+
+    :math:`\\nu` acts through the box bound alone, which is what makes it an
+    upper bound on the fraction of training points left outside the boundary
+    and a lower bound on the support vector fraction. The iteration starts from
+    a feasible point and is fully deterministic, so repeated fits on the same
+    data give the same model without needing a seed.
+
     **Complexity:**
 
-    - Training: :math:`O(n^2)` to :math:`O(n^3)` (depends on kernel and tolerance)
+    - Training: :math:`O(n^2)` per iteration bound by the kernel matrix, :math:`O(n^2)` memory
     - Prediction: :math:`O(n_{sv} \\cdot p)` where :math:`n_{sv}` is the number of support vectors
 
     **When to use One-Class SVM:**
@@ -213,6 +239,8 @@ class OneClassSVMDetector(Classifier):
         self.support_vectors_ = None
         self.dual_coef_ = None
         self.offset_ = None
+        self.support_ = None
+        self.n_iter_ = 0
         self.n_support_ = None
         self.gamma_ = None
         self.n_features_in_ = None
@@ -359,50 +387,85 @@ class OneClassSVMDetector(Classifier):
         # Compute kernel matrix
         K = self._kernel_function(X, X)
 
-        # Simplified SMO-like optimization
-        # Initialize dual coefficients (alpha)
-        alpha = np.random.rand(n_samples) * self.nu / n_samples
-        alpha = alpha / np.sum(alpha) * self.nu  # Normalize
+        # ---- Sequential Minimal Optimization for the nu-OCSVM dual --------
+        #
+        # Schoelkopf et al. (2001), the formulation LIBSVM's ONE_CLASS solves:
+        #
+        #     min_alpha  1/2 alpha^T K alpha
+        #     s.t.       0 <= alpha_i <= 1 / (nu * n),   sum_i alpha_i = 1
+        #
+        # nu enters only through the box bound C = 1 / (nu * n), which is what
+        # makes it an upper bound on the fraction of training points outside the
+        # boundary and a lower bound on the fraction of support vectors. A
+        # solver that rescales alpha instead leaves nu with no effect at all,
+        # because the decision sign is invariant to a uniform scaling of alpha.
+        C = 1.0 / (self.nu * n_samples)
 
-        # Simple coordinate descent optimization
-        for iteration in range(self.max_iter):
-            alpha_old = alpha.copy()
+        # Feasible start: fill alpha at the bound until the sum reaches 1, so
+        # the equality constraint holds before the first update. Deterministic,
+        # so a fit is reproducible without a seed.
+        alpha = np.zeros(n_samples)
+        n_full = int(self.nu * n_samples)
+        alpha[:n_full] = C
+        if n_full < n_samples:
+            alpha[n_full] = 1.0 - n_full * C
 
-            for i in range(n_samples):
-                # Simplified update rule
-                error = np.sum(alpha * K[:, i]) - 1
+        # Gradient of the objective: G = K alpha.
+        G = K @ alpha
 
-                # Update alpha[i]
-                delta = -error / (K[i, i] + 1e-10)
-                alpha[i] = np.clip(alpha[i] + delta, 0, 1.0 / n_samples)
+        tau = 1e-12
+        eff_max_iter = self.max_iter if self.max_iter and self.max_iter > 0 \
+            else max(10_000, 100 * n_samples)
+        self.n_iter_ = 0
 
-            # Normalize to satisfy constraint
-            alpha = alpha / np.sum(alpha) * self.nu
+        for _ in range(eff_max_iter):
+            # Maximal-violating pair (WSS1). Every y_i is +1 here, so the pair
+            # that can move is the smallest gradient among points free to
+            # increase and the largest among points free to decrease.
+            up = alpha < C - tau            # may increase
+            low = alpha > tau               # may decrease
+            if not up.any() or not low.any():
+                break
+            i = np.flatnonzero(up)[np.argmin(G[up])]
+            j = np.flatnonzero(low)[np.argmax(G[low])]
 
-            # Check convergence
-            if np.max(np.abs(alpha - alpha_old)) < self.tol:
+            gap = G[j] - G[i]
+            if gap <= self.tol:
                 break
 
-        # Identify support vectors (alpha > threshold)
-        sv_threshold = 1e-5
-        sv_indices = alpha > sv_threshold
+            # alpha_i + alpha_j is preserved, so a single step size describes
+            # the update: alpha_i rises by delta, alpha_j falls by delta.
+            quad = K[i, i] + K[j, j] - 2.0 * K[i, j]
+            if quad <= 0:
+                quad = tau
+            delta = gap / quad
+            delta = min(delta, C - alpha[i], alpha[j])
+            if delta <= 0:
+                break
 
+            alpha[i] += delta
+            alpha[j] -= delta
+            G += delta * (K[:, i] - K[:, j])
+            self.n_iter_ += 1
+
+        # Support vectors carry non-zero weight; those strictly inside the box
+        # sit exactly on the boundary and pin rho.
+        sv_indices = alpha > tau
         self.support_vectors_ = X[sv_indices]
         self.dual_coef_ = alpha[sv_indices]
-        self.n_support_ = np.sum(sv_indices)
+        self.n_support_ = int(np.sum(sv_indices))
+        self.support_ = np.flatnonzero(sv_indices)
 
-        # Compute offset (rho)
-        # Use margin support vectors (0 < alpha < C)
-        margin_sv = (alpha > sv_threshold) & (alpha < 1.0 / n_samples - sv_threshold)
-        if np.sum(margin_sv) > 0:
-            K_sv = self._kernel_function(X[margin_sv], self.support_vectors_)
-            decision_values = K_sv @ self.dual_coef_
-            self.offset_ = np.median(decision_values)
+        # rho = the decision value shared by the margin support vectors. With
+        # none of them free (every alpha at a bound), bracket it instead, the
+        # midpoint of the interval the KKT conditions still allow.
+        free = sv_indices & (alpha < C - tau)
+        if free.any():
+            self.offset_ = float(np.mean(G[free]))
         else:
-            # Fallback: use all support vectors
-            K_sv = self._kernel_function(self.support_vectors_, self.support_vectors_)
-            decision_values = K_sv @ self.dual_coef_
-            self.offset_ = np.median(decision_values)
+            hi = G[alpha > tau].max() if (alpha > tau).any() else 0.0
+            lo = G[alpha < C - tau].min() if (alpha < C - tau).any() else hi
+            self.offset_ = float((hi + lo) / 2.0)
 
         self._is_fitted = True
         return self

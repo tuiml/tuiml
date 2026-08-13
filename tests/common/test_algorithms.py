@@ -92,7 +92,11 @@ def _registered_algorithms():
     """Yield ``(name, cls)`` for every native algorithm in the registry.
 
     Third-party wrappers (``sklearn.*``, ``capymoa.*``, ``weka.*``) are excluded: they obey
-    their upstream library's contract, not TuiML's. Versioned aliases are
+    their upstream library's contract, not TuiML's. Associators are excluded
+    for the same reason, from the other direction: they mine itemsets from a
+    transaction matrix, so they take ``fit(X)`` with no target and expose
+    ``frequent_itemsets_``/``rules_`` instead of ``predict``, none of which the
+    checks below describe. Versioned aliases are
     excluded so each algorithm is checked once, and anything defined outside
     the ``tuiml`` package is excluded so the suite does not depend on which
     user-authored algorithms happen to sit in ``~/.tuiml/user_algorithms``.
@@ -106,6 +110,8 @@ def _registered_algorithms():
     for info in tuiml.list_algorithms():
         name = info["name"]
         if "." in name or "_v" in name or name in SKIP_ALGORITHMS or name in seen:
+            continue
+        if info.get("type") == "associator":
             continue
         try:
             cls = registry.get(name)

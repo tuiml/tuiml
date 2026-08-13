@@ -11,7 +11,7 @@ from typing import Any, Dict, List
 from tuiml.base.algorithms import Classifier
 from tuiml.sklearn._base import (
     _SklearnBackedMixin,
-    sk_classifier,
+    sk_anomaly_detector,
 )
 from tuiml.sklearn._spec import build_estimator, derive_schema
 
@@ -20,7 +20,7 @@ from tuiml.sklearn.specs import ANOMALY as _SPECS
 _BY_NAME = {s.name: s for s in _SPECS}
 
 
-@sk_classifier(tags=['anomaly', 'covariance', 'anomaly-detection'])
+@sk_anomaly_detector(tags=['anomaly', 'covariance', 'anomaly-detection'])
 class EllipticEnvelope(_SklearnBackedMixin, Classifier):
     """scikit-learn EllipticEnvelope (hub key ``sklearn.EllipticEnvelope``).
 
@@ -55,7 +55,7 @@ class EllipticEnvelope(_SklearnBackedMixin, Classifier):
         return list(cls._SPEC.capabilities)
 
 
-@sk_classifier(tags=['anomaly', 'ensemble', 'anomaly-detection'])
+@sk_anomaly_detector(tags=['anomaly', 'ensemble', 'anomaly-detection'])
 class IsolationForest(_SklearnBackedMixin, Classifier):
     """scikit-learn IsolationForest (hub key ``sklearn.IsolationForest``).
 
@@ -92,7 +92,7 @@ class IsolationForest(_SklearnBackedMixin, Classifier):
         return list(cls._SPEC.capabilities)
 
 
-@sk_classifier(tags=['anomaly', 'neighbors', 'anomaly-detection'])
+@sk_anomaly_detector(tags=['anomaly', 'neighbors', 'anomaly-detection'])
 class LocalOutlierFactor(_SklearnBackedMixin, Classifier):
     """scikit-learn LocalOutlierFactor (hub key ``sklearn.LocalOutlierFactor``).
 
@@ -129,7 +129,7 @@ class LocalOutlierFactor(_SklearnBackedMixin, Classifier):
         return list(cls._SPEC.capabilities)
 
 
-@sk_classifier(tags=['anomaly', 'svm', 'anomaly-detection'])
+@sk_anomaly_detector(tags=['anomaly', 'svm', 'anomaly-detection'])
 class OneClassSVM(_SklearnBackedMixin, Classifier):
     """scikit-learn OneClassSVM (hub key ``sklearn.OneClassSVM``).
 
@@ -166,7 +166,7 @@ class OneClassSVM(_SklearnBackedMixin, Classifier):
         return list(cls._SPEC.capabilities)
 
 
-@sk_classifier(tags=['anomaly', 'linear-model', 'anomaly-detection', 'svm', 'sklearn-extended'])
+@sk_anomaly_detector(tags=['anomaly', 'linear-model', 'anomaly-detection', 'svm', 'sklearn-extended'])
 class SGDOneClassSVM(_SklearnBackedMixin, Classifier):
     """scikit-learn SGDOneClassSVM (hub key ``sklearn.SGDOneClassSVM``).
 
