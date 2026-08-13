@@ -7,8 +7,9 @@
 #   2. Verifies a C/C++ compiler is available (TuiML has C++ extensions)
 #   3. Installs uv if missing (Python package manager)
 #   4. Asks whether to include the optional integrations
-#      (scikit-learn wrappers, CapyMOA streaming wrappers), and warns if
-#      CapyMOA was picked without a Java runtime on PATH
+#      (scikit-learn wrappers, CapyMOA streaming wrappers, Weka wrappers),
+#      and warns if a JVM-backed extra (CapyMOA, Weka) was picked without a
+#      Java runtime on PATH
 #   5. Installs tuiml — the latest PyPI release by default
 #   6. Verifies the install
 #   7. Prompts you to run `tuiml setup` to wire up your AI agent
@@ -26,7 +27,7 @@
 #
 # Non-interactive / automation:
 #   Set TUIML_EXTRAS to skip the prompts, e.g.
-#     curl -fsSL https://tuiml.ai/install.sh | TUIML_EXTRAS="sklearn,capymoa" bash
+#     curl -fsSL https://tuiml.ai/install.sh | TUIML_EXTRAS="sklearn,capymoa,weka" bash
 #     curl -fsSL https://tuiml.ai/install.sh | TUIML_EXTRAS="none" bash   # core only
 
 set -euo pipefail
@@ -178,10 +179,10 @@ ensure_uv() {
 # ---------------------------------------------------------------------------
 # Optional integrations — ask the user which extras to include.
 #
-# TuiML core is always installed. sklearn and capymoa are optional extras
-# (see pyproject.toml). We prompt for each, reading from /dev/tty so this works
-# even under `curl | bash` (where stdin is the script, not the keyboard).
-# Sets the global EXTRAS to a comma-separated list, e.g. "sklearn,capymoa".
+# TuiML core is always installed. sklearn, capymoa and weka are optional
+# extras (see pyproject.toml). We prompt for each, reading from /dev/tty so this
+# works even under `curl | bash` (where stdin is the script, not the keyboard).
+# Sets the global EXTRAS to a comma-separated list, e.g. "sklearn,capymoa,weka".
 # ---------------------------------------------------------------------------
 select_extras() {
     EXTRAS=""
@@ -201,7 +202,7 @@ select_extras() {
     # so read from /dev/tty. If there's no terminal (CI, Docker), default core.
     if [[ ! -t 1 ]] || [[ ! -r /dev/tty ]]; then
         info "Non-interactive install — core TuiML only."
-        info "Add wrappers later: ${DIM}TUIML_EXTRAS=sklearn,capymoa${NC} and re-run."
+        info "Add wrappers later: ${DIM}TUIML_EXTRAS=sklearn,capymoa,weka${NC} and re-run."
         return 0
     fi
 
@@ -218,6 +219,10 @@ select_extras() {
     read -r ans < /dev/tty || ans=""
     [[ "$ans" =~ ^[Yy] ]] && EXTRAS="${EXTRAS:+$EXTRAS,}capymoa"
 
+    printf "  Install Weka wrappers? ${DIM}tuiml[weka], needs Java${NC} [y/N] "
+    read -r ans < /dev/tty || ans=""
+    [[ "$ans" =~ ^[Yy] ]] && EXTRAS="${EXTRAS:+$EXTRAS,}weka"
+
     if [[ -n "$EXTRAS" ]]; then
         success "Will include extras: ${BOLD}${EXTRAS}${NC}"
     else
@@ -226,24 +231,27 @@ select_extras() {
 }
 
 # ---------------------------------------------------------------------------
-# CapyMOA runs on the JVM. Installing the wheel without a Java runtime works,
-# but every learner then fails at fit time, so warn while it is still cheap
-# to act on. Not fatal: the rest of TuiML is unaffected.
+# CapyMOA (MOA) and Weka both run on the JVM. Installing their wheels without a
+# Java runtime works, but every learner then fails at fit time, so warn while it
+# is still cheap to act on. Not fatal: the rest of TuiML is unaffected.
 # ---------------------------------------------------------------------------
-check_capymoa_java() {
-    [[ "${EXTRAS:-}" == *capymoa* ]] || return 0
+check_jvm_extras_java() {
+    local needs=""
+    [[ "${EXTRAS:-}" == *capymoa* ]] && needs="CapyMOA"
+    [[ "${EXTRAS:-}" == *weka* ]] && needs="${needs:+$needs and }Weka"
+    [[ -n "$needs" ]] || return 0
     if command -v java >/dev/null 2>&1; then
-        success "Java found (required by CapyMOA)"
+        success "Java found (required by $needs)"
         return 0
     fi
-    warn "CapyMOA selected but no 'java' on PATH. It needs a JVM (Java 11+)."
+    warn "$needs selected but no 'java' on PATH. It needs a JVM (Java 11+)."
     if [[ "$OS" == "macos" ]]; then
         echo "  Install one, then re-run:  brew install openjdk"
     else
         echo "  Install one, then re-run:  sudo apt-get install -y default-jre"
         echo "                         or: sudo dnf install -y java-latest-openjdk"
     fi
-    echo "  ${DIM}Continuing — only the CapyMOA wrappers need it.${NC}"
+    echo "  ${DIM}Continuing — only the $needs wrappers need it.${NC}"
 }
 
 # ---------------------------------------------------------------------------
@@ -350,6 +358,36 @@ install_tuiml() {
 }
 
 # ---------------------------------------------------------------------------
+# Confirm the extras that were asked for actually landed.
+#
+# uv only *warns* when a release does not carry a requested extra and still
+# exits 0, so "tuiml[weka]" against a release predating that extra installs
+# core and reports success while `import tuiml.weka` fails later. Each backend
+# registers namespaced hub keys (sklearn.SVC, capymoa.HoeffdingTree,
+# weka.J48), so asking the registry is a direct check that the wrappers are
+# usable rather than merely requested.
+# ---------------------------------------------------------------------------
+verify_extras() {
+    [[ -n "${EXTRAS:-}" ]] || return 0
+    local e missing="" sel
+    IFS=',' read -ra sel <<< "$EXTRAS"
+    for e in "${sel[@]}"; do
+        e="${e//[[:space:]]/}"
+        [[ -n "$e" ]] || continue
+        if tuiml list -s "${e}." -f names 2>/dev/null | grep -q "${e}\."; then
+            success "${e} wrappers registered"
+        else
+            missing="${missing:+$missing, }$e"
+        fi
+    done
+    [[ -n "$missing" ]] || return 0
+    warn "Selected but not usable: ${missing}"
+    echo "  The backing library did not install, or this release does not ship"
+    echo "  that extra yet. The newest code always has it:"
+    echo "  ${DIM}curl -fsSL https://tuiml.ai/install.sh | TUIML_CHANNEL=git TUIML_EXTRAS=\"${EXTRAS}\" bash${NC}"
+}
+
+# ---------------------------------------------------------------------------
 # Final guidance
 # ---------------------------------------------------------------------------
 print_next_steps() {
@@ -392,6 +430,7 @@ else
 fi
 ensure_uv
 select_extras
-check_capymoa_java
+check_jvm_extras_java
 install_tuiml
+verify_extras
 print_next_steps

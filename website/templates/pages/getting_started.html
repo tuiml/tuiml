@@ -114,7 +114,7 @@
 $env:TUIML_CHANNEL = "git"; irm https://tuiml.ai/install.ps1 | iex
 
 <span class="cm"># Non-interactive: skip the prompts</span>
-$env:TUIML_EXTRAS = "sklearn,capymoa"; irm https://tuiml.ai/install.ps1 | iex</div>
+$env:TUIML_EXTRAS = "sklearn,capymoa,weka"; irm https://tuiml.ai/install.ps1 | iex</div>
                     <p class="oc-caption" style="margin-top: 8px;">If your policy blocks remote scripts, run it in a bypassed child shell instead: <code>powershell -ExecutionPolicy Bypass -c "irm https://tuiml.ai/install.ps1 | iex"</code>. WSL also works &mdash; use the macOS/Linux command inside it.</p>
                 </div>
             </div>
@@ -126,6 +126,18 @@ pip install tuiml
 
 <span class="cm"># Using uv</span>
 uv add tuiml</div>
+            <p class="oc-caption" style="margin-top: 12px;">The optional algorithm backends are extras. Native TuiML never needs them; each one registers under a namespaced hub key (<code>sklearn.SVC</code>, <code>capymoa.HoeffdingTree</code>, <code>weka.J48</code>) so it cannot collide with a native name. <code>capymoa</code> and <code>weka</code> both run on the JVM, so they need Java 11+ on <code>PATH</code>.</p>
+<div class="code-block"><span class="cm"># scikit-learn estimators</span>
+pip install 'tuiml[sklearn]'
+
+<span class="cm"># CapyMOA streaming learners (needs Java)</span>
+pip install 'tuiml[capymoa]'
+
+<span class="cm"># Weka learners via python-weka-wrapper3 (needs Java)</span>
+pip install 'tuiml[weka]'
+
+<span class="cm"># All three at once</span>
+pip install 'tuiml[backends]'</div>
 
             <div class="oc-sub" id="install-source">From source (development)</div>
 <div class="code-block">git clone https://github.com/tuiml/tuiml.git

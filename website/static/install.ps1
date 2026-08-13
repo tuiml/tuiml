@@ -7,7 +7,8 @@
 #   3. Installs uv if missing (Python package manager)
 #   4. Asks whether to include the optional integrations
 #      (scikit-learn wrappers, CapyMOA streaming wrappers), and warns if
-#      CapyMOA was picked without a Java runtime on PATH
+#      a JVM-backed extra (CapyMOA, Weka) was picked without a Java runtime
+#      on PATH
 #   5. Installs tuiml - the latest PyPI release by default
 #   6. Verifies the install
 #   7. Prompts you to run `tuiml setup` to wire up your AI agent
@@ -25,7 +26,7 @@
 #
 # Non-interactive / automation:
 #   Set TUIML_EXTRAS to skip the prompts, e.g.
-#     $env:TUIML_EXTRAS = "sklearn,capymoa"; irm https://tuiml.ai/install.ps1 | iex
+#     $env:TUIML_EXTRAS = "sklearn,capymoa,weka"; irm https://tuiml.ai/install.ps1 | iex
 #     $env:TUIML_EXTRAS = "none";            irm https://tuiml.ai/install.ps1 | iex   # core only
 #
 # Notes for `irm | iex`:
@@ -280,9 +281,9 @@ function Confirm-Uv {
 # ---------------------------------------------------------------------------
 # Optional integrations - ask the user which extras to include.
 #
-# TuiML core is always installed. sklearn and capymoa are optional extras
-# (see pyproject.toml). Sets $script:Extras to a comma-separated list,
-# e.g. "sklearn,capymoa".
+# TuiML core is always installed. sklearn, capymoa and weka are optional
+# extras (see pyproject.toml). Sets $script:Extras to a comma-separated list,
+# e.g. "sklearn,capymoa,weka".
 # ---------------------------------------------------------------------------
 function Select-Extras {
     $script:Extras = ''
@@ -300,7 +301,7 @@ function Select-Extras {
 
     if (-not $script:Interactive) {
         Write-Info 'Non-interactive install - core TuiML only.'
-        Write-Info 'Add wrappers later: $env:TUIML_EXTRAS = "sklearn,capymoa" and re-run.'
+        Write-Info 'Add wrappers later: $env:TUIML_EXTRAS = "sklearn,capymoa,weka" and re-run.'
         return
     }
 
@@ -316,6 +317,9 @@ function Select-Extras {
     if ((Read-Answer '  Install CapyMOA streaming wrappers? tuiml[capymoa], needs Java [y/N] ') -match '^[Yy]') {
         $selected += 'capymoa'
     }
+    if ((Read-Answer '  Install Weka wrappers? tuiml[weka], needs Java [y/N] ') -match '^[Yy]') {
+        $selected += 'weka'
+    }
     $script:Extras = $selected -join ','
 
     if ($script:Extras) {
@@ -326,19 +330,23 @@ function Select-Extras {
 }
 
 # ---------------------------------------------------------------------------
-# CapyMOA runs on the JVM. Installing the wheel without a Java runtime works,
-# but every learner then fails at fit time, so warn while it is still cheap
-# to act on. Not fatal: the rest of TuiML is unaffected.
+# CapyMOA (MOA) and Weka both run on the JVM. Installing their wheels without a
+# Java runtime works, but every learner then fails at fit time, so warn while it
+# is still cheap to act on. Not fatal: the rest of TuiML is unaffected.
 # ---------------------------------------------------------------------------
-function Confirm-CapymoaJava {
-    if ($script:Extras -notlike '*capymoa*') { return }
+function Confirm-JvmExtrasJava {
+    $needs = @()
+    if ($script:Extras -like '*capymoa*') { $needs += 'CapyMOA' }
+    if ($script:Extras -like '*weka*') { $needs += 'Weka' }
+    if (-not $needs) { return }
+    $label = $needs -join ' and '
     if (Test-CommandExists 'java') {
-        Write-Ok 'Java found (required by CapyMOA)'
+        Write-Ok "Java found (required by $label)"
         return
     }
-    Write-Note "CapyMOA selected but no 'java' on PATH. It needs a JVM (Java 11+)."
+    Write-Note "$label selected but no 'java' on PATH. It needs a JVM (Java 11+)."
     Write-Detail 'Install one, then re-run:  winget install --id Microsoft.OpenJDK.21 -e'
-    Write-Detail 'Continuing - only the CapyMOA wrappers need it.'
+    Write-Detail "Continuing - only the $label wrappers need it."
 }
 
 # ---------------------------------------------------------------------------
@@ -439,6 +447,38 @@ function Install-Tuiml {
 }
 
 # ---------------------------------------------------------------------------
+# Confirm the extras that were asked for actually landed.
+#
+# uv only *warns* when a release does not carry a requested extra and still
+# exits 0, so "tuiml[weka]" against a release predating that extra installs
+# core and reports success while `import tuiml.weka` fails later. Each backend
+# registers namespaced hub keys (sklearn.SVC, capymoa.HoeffdingTree,
+# weka.J48), so asking the registry is a direct check that the wrappers are
+# usable rather than merely requested.
+# ---------------------------------------------------------------------------
+function Confirm-Extras {
+    if (-not $script:Extras) { return }
+    $missing = @()
+    foreach ($e in ($script:Extras -split ',')) {
+        $e = $e.Trim()
+        if (-not $e) { continue }
+        $names = & tuiml list -s "$e." -f names 2>$null
+        if ($names -match [regex]::Escape("$e.")) {
+            Write-Ok "$e wrappers registered"
+        } else {
+            $missing += $e
+        }
+    }
+    if (-not $missing) { return }
+    Write-Note "Selected but not usable: $($missing -join ', ')"
+    Write-Detail 'The backing library did not install, or this release does not ship that extra yet.'
+    Write-Detail 'The newest code always has it:'
+    # Backtick-escaped $env: so the command prints literally instead of being
+    # interpolated to the (empty) value of the variable in this session.
+    Write-Detail "  `$env:TUIML_CHANNEL = 'git'; `$env:TUIML_EXTRAS = '$($script:Extras)'; irm https://tuiml.ai/install.ps1 | iex"
+}
+
+# ---------------------------------------------------------------------------
 # Final guidance
 # ---------------------------------------------------------------------------
 function Show-NextSteps {
@@ -504,8 +544,9 @@ function Invoke-TuimlInstall {
     }
     Confirm-Uv
     Select-Extras
-    Confirm-CapymoaJava
+    Confirm-JvmExtrasJava
     Install-Tuiml
+    Confirm-Extras
     Show-NextSteps
 }
 

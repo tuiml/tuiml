@@ -79,7 +79,7 @@ dev = [
 # raise a clear error at instantiation if the backing library is missing.
 # `capymoa` and `weka` additionally need a Java runtime (11+) on PATH.
 sklearn = ["scikit-learn>=1.7.0"]
-capymoa = ["capymoa>=0.8.0"]
+capymoa = ["capymoa>=0.14.0"]
 weka = ["python-weka-wrapper3>=0.3.0"]
 
 # Framework adapters — `import tuiml.agent.<framework>` uses these lazily.
@@ -99,9 +99,11 @@ frameworks = [
 ]
 
 # One-shot: install every optional algorithm backend at once.
+# capymoa and python-weka-wrapper3 both need a Java runtime (11+) on PATH.
 backends = [
     "scikit-learn>=1.7.0",
-    "capymoa>=0.8.0",
+    "capymoa>=0.14.0",
+    "python-weka-wrapper3>=0.3.0",
 ]
 
 [project.urls]

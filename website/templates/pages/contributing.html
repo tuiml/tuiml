@@ -130,8 +130,8 @@
             <div class="oc-sub">Bridges live in their own packages</div>
             <p class="oc-body oc-max">
                 Bridges to external libraries are welcome, but they live in dedicated packages,
-                <code>tuiml.sklearn</code> and <code>tuiml.capymoa</code>, as optional extras, never
-                inside the core namespaces.
+                <code>tuiml.sklearn</code>, <code>tuiml.capymoa</code> and <code>tuiml.weka</code>, as
+                optional extras, never inside the core namespaces.
             </p>
 
             <div class="list-col" style="margin-top: 16px;">
@@ -436,8 +436,9 @@ __all__ = [
                     <code>sklearn_rf.py</code> does not belong in <code>tuiml/algorithms/trees/</code>.
                     The core <code>algorithms/</code>, <code>preprocessing/</code> and
                     <code>features/</code> packages contain native {{ config.project_name }}
-                    implementations only. Wrappers go in <code>tuiml/sklearn/</code> or
-                    <code>tuiml/capymoa/</code>. Mixing them makes the library look like a thin shell
+                    implementations only. Wrappers go in <code>tuiml/sklearn/</code>,
+                    <code>tuiml/capymoa/</code> or <code>tuiml/weka/</code>. Mixing them makes the
+                    library look like a thin shell
                     over scikit-learn and leaves users unable to tell what is actually ours.
                 </p>
             </div>
@@ -466,7 +467,12 @@ __all__ = [
                         <tr>
                             <td>A CapyMOA streaming learner</td>
                             <td><code>tuiml/capymoa/</code></td>
-                            <td><code>tuiml[capymoa]</code> extra</td>
+                            <td><code>tuiml[capymoa]</code> extra, needs Java</td>
+                        </tr>
+                        <tr>
+                            <td>A Weka learner</td>
+                            <td><code>tuiml/weka/</code></td>
+                            <td><code>tuiml[weka]</code> extra, needs Java</td>
                         </tr>
                         <tr>
                             <td>A bridge to some other library (JAX, PyTorch, cuML)</td>
@@ -478,7 +484,8 @@ __all__ = [
             </div>
             <p class="oc-caption" style="display: block; margin-top: 16px;">
                 Name the package after <strong>the library it wraps</strong> (<code>sklearn</code>,
-                <code>capymoa</code>), not after the capability it provides (<code>streaming</code>).
+                <code>capymoa</code>, <code>weka</code>), not after the capability it provides
+                (<code>streaming</code>).
                 Capability names are reserved for native implementations, so
                 <code>tuiml/algorithms/streaming/</code> stays free for streaming algorithms we write
                 ourselves.
@@ -487,7 +494,8 @@ __all__ = [
             <div class="oc-sub">Why wrappers never collide with native algorithms</div>
             <p class="oc-caption">
                 Each bridge registers into the hub under a namespaced key,
-                <code>sklearn.&lt;ClassName&gt;</code> or <code>capymoa.&lt;ClassName&gt;</code>. That is
+                <code>sklearn.&lt;ClassName&gt;</code>, <code>capymoa.&lt;ClassName&gt;</code> or
+                <code>weka.&lt;ClassName&gt;</code>. That is
                 what lets a scikit-learn <code>RandomForestClassifier</code> and a native
                 {{ config.project_name }} <code>RandomForestClassifier</code> coexist, and it lets users
                 choose between them explicitly:
@@ -545,7 +553,7 @@ tuiml.train(SVC(), data)</div>
 
             <div class="oc-sub">Do</div>
             <div class="list-col">
-                <div class="list-row"><span class="m ok">[x]</span><span><span class="txt">Keep every wrapper inside <code>tuiml/sklearn/</code> or <code>tuiml/capymoa/</code></span></span></div>
+                <div class="list-row"><span class="m ok">[x]</span><span><span class="txt">Keep every wrapper inside <code>tuiml/sklearn/</code>, <code>tuiml/capymoa/</code> or <code>tuiml/weka/</code></span></span></div>
                 <div class="list-row"><span class="m ok">[x]</span><span><span class="txt">Import the external library lazily, inside <code>_build_estimator()</code></span></span></div>
                 <div class="list-row"><span class="m ok">[x]</span><span><span class="txt">Register the dependency as an extra in <code>pyproject.toml</code></span></span></div>
                 <div class="list-row"><span class="m ok">[x]</span><span><span class="txt">Prefer a native implementation when the algorithm is core to the library</span></span></div>
@@ -554,7 +562,7 @@ tuiml.train(SVC(), data)</div>
             <div class="oc-sub">Don't</div>
             <div class="list-col">
                 <div class="list-row"><span class="m no">[!]</span><span><span class="txt">Add <code>sklearn_*.py</code> files to <code>algorithms/</code>, <code>preprocessing/</code> or <code>features/</code></span></span></div>
-                <div class="list-row"><span class="m no">[!]</span><span><span class="txt">Import sklearn or capymoa at module top level</span></span></div>
+                <div class="list-row"><span class="m no">[!]</span><span><span class="txt">Import sklearn, capymoa or weka at module top level</span></span></div>
                 <div class="list-row"><span class="m no">[!]</span><span><span class="txt">Make a native algorithm depend on an external library</span></span></div>
                 <div class="list-row"><span class="m no">[!]</span><span><span class="txt">Use sklearn for splitting or metrics, {{ config.project_name }} has <code>evaluation.splitting</code> and <code>evaluation.metrics</code></span></span></div>
             </div>
