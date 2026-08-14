@@ -6,9 +6,10 @@ A reproducible benchmark comparing **TuiML**, **scikit-learn**, and **Weka**
 **accuracy / R²**, **training time**, and **peak memory** for every algorithm
 that exists in all three libraries.
 
-The headline results live in [`summary.csv`](summary.csv) (one row per
-`framework × algorithm × dataset`, 1,032 rows) and are rendered on the website
-benchmarks page.
+The headline results live in [`summary_cv10.csv`](summary_cv10.csv) (one row per
+`configuration × framework × algorithm × dataset × fold`, 20,640 rows) and are
+rendered on the website benchmarks page. A score is published only when all ten
+folds for that cell completed successfully.
 
 ---
 
@@ -71,8 +72,9 @@ implicit. The full mapping, with rationale, is in
 
 ### Protocol
 
-- **Split:** stratified 80/20 holdout, fixed seed (42) — *identical* across all
-  three frameworks.
+- **Split:** shuffled 10-fold cross-validation with fixed seed 42.
+  Classification folds are stratified; regression uses ordinary shuffled
+  `KFold`. Fold assignments are *identical* across all three frameworks.
 - **Attribute types** come from `schema.json` (written by
   [`fetch_schema.py`](fetch_schema.py) from the OpenML attribute declarations),
   **not** from pandas dtypes. Inferring from dtype silently treats
@@ -128,16 +130,16 @@ benchmarks/
 │   ├── bench_sklearn.py         single-experiment runner (scikit-learn)
 │   ├── bench_tuiml.py           single-experiment runner (TuiML)
 │   ├── bench_weka.py            single-experiment runner (Weka / JVM)
-│   └── aggregate.py             results/*.json → summary.csv
+│   └── aggregate.py             results_cv10/*.json → summary_cv10.csv
 ├── tools/                   # step 3 — analyze / report
 │   ├── present.py               per-framework summary tables
 │   ├── present_bydataset.py     per-dataset "who wins" tables
 │   ├── reconcile.py             list any missing framework × algo × dataset cells
-│   ├── stub_missing.py          record still-missing cells as status=timeout
+│   ├── stub_missing.py          record scheduled folds lacking a result
 │   ├── sizes.py                 dataset size table
 │   ├── timing.py                fit-time-vs-rows analysis
-│   └── gen_web_json.py          summary.csv → website JSON (tabarena_results.json)
-└── summary.csv              # result snapshot (1,032 rows)
+│   └── gen_web_json.py          summary_cv10.csv → website JSON exports
+└── summary_cv10.csv         # two configs × 10-fold result snapshot (20,640 rows)
 ```
 
 ---
@@ -212,13 +214,14 @@ affected row `schema_source="dtype-fallback"`.
 
 ```bash
 cd harness
-MAX_JOBS=32 ./run_all.sh
+CONFIGS="matched defaults" OUT=results_cv10 JOBS_FILE=jobs_cv10.txt \
+    MAX_JOBS=32 ./run_all.sh --folds 10
 ```
 
-`run_all.sh` generates one job per `framework × algorithm × dataset`, then runs
-them with `xargs -P` (each experiment is its own process). Per-experiment results
-are written as `results/<framework>__<algo>__<dataset>.json`; per-job logs go to
-`logs/`.
+`run_all.sh` generates one job per
+`configuration × framework × algorithm × dataset × fold`, then runs them with
+`xargs -P` (each experiment is its own process). Per-fold results are written to
+`results_cv10/`; per-job logs go to `logs/`.
 
 Environment knobs (all optional):
 
@@ -245,40 +248,25 @@ PER_JOB_TIMEOUT=3600 MAX_JOBS=16 ./run_all.sh
 ### Step 3 — Aggregate, reconcile, report
 
 ```bash
-# from harness/ (where results/ was created)
-python3 aggregate.py --results results --out ../summary.csv
+# from harness/ (where results_cv10/ was created)
+uv run python ../tools/stub_missing.py \
+    --jobs-file jobs_cv10.txt --results results_cv10
+uv run python aggregate.py --results results_cv10 --out ../summary_cv10.csv
 
-# completeness check; record genuinely-too-slow cells as status=timeout
-python3 ../tools/reconcile.py
-python3 ../tools/stub_missing.py
-
-# tables
-python3 ../tools/present.py            # per-framework means
-python3 ../tools/present_bydataset.py  # who-wins-per-dataset
-python3 ../tools/timing.py             # fit time vs row count
-
-# regenerate the website JSON from summary.csv
-python3 ../tools/gen_web_json.py
+# regenerate explicit matched/default exports and the canonical matched export
+uv run python ../tools/gen_web_json.py
+uv run python ../tools/gen_web_json.py --config matched
 ```
 
 ---
 
 ## Results snapshot
 
-From the reference run (`summary.csv`, 1,032 experiments, **1,023 ok / 9 timeouts**):
-
-| | Classification (mean acc) | Regression (mean R²) | Notes |
-|---|---|---|---|
-| **Weka** | **0.843** | **0.649** | best on average, but slowest; 9 SVM/MLP jobs timed out on the biggest data |
-| scikit-learn | 0.819 | 0.406 | lightest memory (~250–280 MB) |
-| TuiML | 0.803 | 0.478 | fastest on classification |
-
-- On the workhorse **Random Forest**, all three tie (~0.875 accuracy / ~0.78 R²) —
-  a good sanity check that the harness is fair.
-- The **9 timeouts** are all Weka `SMO`/`MultilayerPerceptron` on the
-  largest/widest datasets (e.g. `customer_satisfaction` 130k rows,
-  `hiva_agnostic` 1,618 features) — single-threaded `O(n²)` compute, a genuine
-  scaling signal rather than a bug.
+The matched export contains 1,013 complete ten-fold cells, 2 partial cells,
+16 cells with no successful folds, and 1 numerically diverged cell. The defaults
+export contains 1,011 complete cells, 2 partial cells, and 19 cells with no
+successful folds. Partial and failed cells are not averaged into a displayed
+score.
 
 ---
 

@@ -8,7 +8,7 @@ goes into ``website/static/benchmarks/``, which ``build.py`` serves verbatim.
 Usage:
     python3 gen_web_json.py                          # both configs
     python3 gen_web_json.py --config matched         # matched only
-    python3 gen_web_json.py --src ../summary_v2.csv
+    python3 gen_web_json.py --src ../summary_cv10.csv
 
 The JSON shape is unchanged from the previous version so the existing benchmark
 page JS continues to work:
@@ -65,15 +65,14 @@ def build(src_csv, out_path, config_filter=None):
     """
     rows_all = list(csv.DictReader(open(src_csv)))
 
-    # Exclude numerically diverged runs before any aggregation.
-    rows = [r for r in rows_all if r.get("diverged", "False") != "True"]
+    rows = rows_all
 
     # Accumulate per (algo, dataset, framework, config) cell, then reduce to
-    # mean +/- std over the ok seeds (repeated-holdout aggregation). A cell with
-    # zero ok seeds keeps its timeout/error status.
+    # mean +/- std only when all ten CV folds succeeded. A partial CV result is
+    # not a comparable ten-fold estimate and is reported as incomplete.
     raw = {}
     datasets_meta = {}
-    n_seeds_seen = set()
+    folds_seen = set()
     configs_present = set()
     for r in rows:
         cfg = r.get("config", "defaults")
@@ -83,18 +82,20 @@ def build(src_csv, out_path, config_filter=None):
         algo, ds, fw, task = r["algorithm"], r["dataset"], r["framework"], r["task"]
         score = fnum(r["metric_accuracy"]) if task == "classification" else fnum(r["metric_r2"])
         n_train, n_test = fnum(r["n_train"]), fnum(r["n_test"])
-        n_seeds_seen.add((r.get("seed") or "42", r.get("fold") or ""))
+        fold = r.get("fold")
+        if fold not in (None, ""):
+            folds_seen.add(int(float(fold)))
+        diverged = r.get("diverged", "False") == "True"
         rec = {
             "score": score,
             "fit_s": fnum(r["fit_s"]),
             "predict_s": fnum(r["predict_s"]),
             "mem_mb": fnum(r["peak_rss_mb"]),
-            "status": r["status"],
+            "status": "diverged" if diverged else r["status"],
         }
         cell = raw.setdefault(algo, {}).setdefault(ds, {})
-        # Gather all seeds for this framework+config combination for the
-        # cell-level reduce; kept under the framework key so the reducer finds
-        # them automatically.
+        # Gather all folds for this framework+config combination; kept under
+        # the framework key so the reducer finds them automatically.
         cell_key = fw if config_filter else f"{fw}:{cfg}"
         cell.setdefault(cell_key, []).append(rec)
         if n_train:
@@ -113,11 +114,14 @@ def build(src_csv, out_path, config_filter=None):
         return
 
     def reduce_cell(recs):
-        """Mean +/- std over ok seeds; keep failure status if no seed succeeded."""
+        """Return ten-fold mean/std, or an explicit incomplete status."""
         ok = [r for r in recs if r["status"] == "ok" and r["score"] is not None]
-        if not ok:
+        if len(ok) != 10:
+            statuses = {r["status"] for r in recs}
+            status = ("diverged" if not ok and "diverged" in statuses else
+                      "timeout" if not ok else "incomplete")
             return {"score": None, "fit_s": None, "predict_s": None, "mem_mb": None,
-                    "status": recs[0]["status"], "n_seeds": 0}
+                    "status": status, "n_folds": len(ok), "expected_folds": 10}
         mean = lambda k: st.mean(r[k] for r in ok if r[k] is not None)
         return {
             "score": mean("score"),
@@ -126,7 +130,8 @@ def build(src_csv, out_path, config_filter=None):
             "predict_s": round(mean("predict_s"), 4),
             "mem_mb": round(mean("mem_mb"), 1),
             "status": "ok",
-            "n_seeds": len(ok),
+            "n_folds": len(ok),
+            "expected_folds": 10,
         }
 
     def framework_keys_from_cell(cell):
@@ -202,18 +207,19 @@ def build(src_csv, out_path, config_filter=None):
 
         n_clf = sum(1 for m in datasets_meta.values() if m["task"] == "classification")
         n_reg = sum(1 for m in datasets_meta.values() if m["task"] == "regression")
-        n_seeds = len(n_seeds_seen)
+        n_folds = len(folds_seen)
         protocol = (
-            f"{n_seeds}-seed holdout (80/20 split, seed 42) with shared preprocessing"
-            if n_seeds <= 1 else
-            f"{n_seeds}-seed repeated holdout (80/20 split) with shared preprocessing"
+            "stratified 10-fold cross-validation for classification and shuffled "
+            "10-fold cross-validation for regression (seed 42); preprocessing fit "
+            "on each training fold"
         )
+        n_experiments = sum(1 for r in rows if r.get("config", "defaults") == cfg)
         meta = {
             "frameworks": FRAMEWORKS,
             "framework_labels": {"tuiml": "TuiML", "sklearn": "scikit-learn", "weka": "Weka"},
             "framework_colors": {"tuiml": "#f97316", "sklearn": "#3b82f6", "weka": "#a855f7"},
             "n_datasets": len(datasets_meta), "n_classification": n_clf, "n_regression": n_reg,
-            "n_experiments": len(rows), "n_seeds": n_seeds,
+            "n_experiments": n_experiments, "n_folds": n_folds,
             "config": cfg,
             "config_label": CONFIG_LABELS.get(cfg, cfg),
             "protocol": protocol,
@@ -223,12 +229,16 @@ def build(src_csv, out_path, config_filter=None):
         out.parent.mkdir(parents=True, exist_ok=True)
         json.dump({"meta": meta, "algorithms": algorithms, "datasets_meta": datasets_meta,
                    "data": out_data, "timing": timing}, open(out, "w"), indent=1)
-        n_timeout = sum(1 for r in rows if r.get("config", "defaults") == cfg
-                        and r["status"] in ("timeout", "error"))
+        n_incomplete = sum(1 for r in rows if r.get("config", "defaults") == cfg
+                           and (r["status"] in ("timeout", "error", "incomplete")
+                                or r.get("diverged", "False") == "True"))
+        n_diverged = sum(1 for r in rows if r.get("config", "defaults") == cfg
+                         and r.get("diverged", "False") == "True")
         print(f"[{cfg}] wrote {out}")
         print(f"  datasets={len(datasets_meta)} algos={len(algorithms)} timing_rows={len(timing)}")
-        print(f"  experiments={meta['n_experiments']}  seeds={n_seeds}  "
-              f"timeout/error={n_timeout}  diverged_excluded={len(rows_all) - len(rows)}")
+        print(f"  experiments={meta['n_experiments']}  folds={n_folds}  "
+              f"incomplete/error={n_incomplete}  "
+              f"diverged={n_diverged}")
         if timing:
             print(f"  sample timing[0]: {json.dumps(timing[0], indent=0)}")
 
@@ -236,8 +246,8 @@ def build(src_csv, out_path, config_filter=None):
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--src", default=str(SCRIPT.parent / "summary_v2.csv"),
-                    help="path to summary.csv (default: ../summary_v2.csv)")
+    ap.add_argument("--src", default=str(SCRIPT.parent / "summary_cv10.csv"),
+                    help="path to summary CSV (default: ../summary_cv10.csv)")
     ap.add_argument("--out", default=str(SCRIPT.parent.parent
                                          / "website" / "static" / "benchmarks"
                                          / "tabarena_results.json"),

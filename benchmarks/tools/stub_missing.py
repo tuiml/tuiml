@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
-"""Write a status=timeout stub for any (fw,algo,dataset[,seed]) still lacking a
-result, so every framework ends with the identical, complete set of result files."""
+"""Write an incomplete stub for every scheduled job lacking a result file.
+
+The generated filename mirrors :func:`benchmarks.harness.common.write_result`,
+including configuration, seed, and fold suffixes.  This makes aggregation
+complete without pretending that a killed or otherwise lost job produced a
+metric.
+"""
 import argparse
 import json
 import re
@@ -25,11 +30,13 @@ for line in jobs:
     dataset = Path(re.search(r"--dataset (\S+)", line).group(1)).parent.name
     bucket = re.search(r"--bucket (\S+)", line).group(1)
     task = re.search(r"--task (\S+)", line).group(1)
+    config_m = re.search(r"--config (\S+)", line)
+    config = config_m.group(1) if config_m else "matched"
     seed_m = re.search(r"--seed (\d+)", line)
     seed = int(seed_m.group(1)) if seed_m else DEFAULT_SEED
     fold_m = re.search(r"--fold (\d+)", line)
     fold = int(fold_m.group(1)) if fold_m else None
-    fname = f"{fw}__{algo}__{dataset}.json"
+    fname = f"{fw}__{algo}__{dataset}__{config}.json"
     if seed != DEFAULT_SEED:
         fname = fname[:-5] + f"__s{seed}.json"
     if fold is not None:
@@ -37,9 +44,9 @@ for line in jobs:
     if fname in results:
         continue
     rec = {"framework": fw, "algorithm": algo, "dataset": dataset,
-           "bucket": bucket, "task": task, "seed": seed, "fold": fold,
-           "status": "timeout",
-           "error": "killed by per-job timeout (computation too slow to finish)"}
+           "bucket": bucket, "task": task, "config": config, "seed": seed,
+           "fold": fold, "status": "incomplete",
+           "error": "scheduled job produced no result file"}
     Path(args.results, fname).write_text(json.dumps(rec, indent=2))
     n += 1
-print(f"stubbed {n} still-missing combos as timeout")
+print(f"stubbed {n} scheduled jobs with no result")

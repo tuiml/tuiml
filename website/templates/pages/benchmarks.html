@@ -175,7 +175,7 @@
                     <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Datasets</span><span class="txt">: 51 tabular datasets from <a href="https://github.com/autogluon/tabarena" target="_blank" rel="noopener" style="color: var(--ink); text-decoration: underline;">TabArena&nbsp;v0.1</a> (38 classification, 13 regression)</span></span></div>
                     <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Frameworks</span><span class="txt">: TuiML, scikit-learn, Weka (python-weka-wrapper3)</span></span></div>
                     <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Algorithms</span><span class="txt">: only those available in all three libraries</span></span></div>
-                    <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Validation</span><span class="txt">: stratified 80/20 holdout (shuffled, fixed seed 42); split identical across all three frameworks</span></span></div>
+                    <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Validation</span><span class="txt">: stratified 10-fold cross-validation for classification and shuffled 10-fold cross-validation for regression (fixed seed 42); fold assignments are identical across all three frameworks</span></span></div>
                     <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Preprocessing</span><span class="txt">: attribute types from OpenML schema; numeric → median impute + standardize; nominal kept as discrete codes for Weka, one-hot for scikit-learn / TuiML; all fit on train only</span></span></div>
                     <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Hyperparameters</span><span class="txt">: matched across libraries where the underlying model is the same; see <a href="https://github.com/tuiml/tuiml/blob/main/benchmarks/harness/algorithms.py" target="_blank" rel="noopener" style="color: var(--ink); text-decoration: underline;">algorithms.py</a> for the full mapping. Defaults view also <a href="/static/benchmarks/tabarena_results_defaults.json" style="color: var(--ink); text-decoration: underline;">available</a>.</span></span></div>
                     <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Metrics</span><span class="txt">: Accuracy / R², training time, peak memory</span></span></div>
@@ -248,7 +248,7 @@
                 mem: 'Peak process memory; lower is better. Weka includes its in-process JVM baseline.'
             };
             document.getElementById('metric-note').textContent = notes[metric] +
-                '   "timeout" = too slow to finish within the time limit.';
+                '   Incomplete cells are excluded unless all 10 folds succeeded.';
 
             var tbody = document.getElementById('rows');
             tbody.innerHTML = '';
@@ -284,8 +284,14 @@
                             }
                         }
                         if (isBest[i]) cls = 'best';
+                    } else if (v.status === 'incomplete') {
+                        var rec = row[fws[i]] || {};
+                        txt = '<span class="tmo">incomplete ' +
+                            (rec.n_folds || 0) + '/' + (rec.expected_folds || 10) + '</span>';
                     } else if (v.status === 'timeout') {
                         txt = '<span class="tmo">timeout</span>';
+                    } else if (v.status === 'diverged') {
+                        txt = '<span class="tmo">diverged</span>';
                     } else {
                         txt = '<span class="na">-</span>';
                     }
@@ -448,8 +454,8 @@
                             if (fw === best) return true;
                             var c = r[fw];
                             var se = Math.sqrt(
-                                Math.pow(c.score_std || 0, 2) / (c.n_seeds || 1) +
-                                Math.pow(b.score_std || 0, 2) / (b.n_seeds || 1));
+                                Math.pow(c.score_std || 0, 2) / (c.n_folds || 1) +
+                                Math.pow(b.score_std || 0, 2) / (b.n_folds || 1));
                             return b.score - c.score <= 2 * Math.max(se, 1e-12);
                         });
                         winners.forEach(function (fw) { w[fw] += 1 / winners.length; });
