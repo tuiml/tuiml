@@ -800,6 +800,109 @@ class Regressor(Algorithm):
 
     _component_type = ComponentType.REGRESSOR
 
+
+class Survival(Algorithm):
+    """Base class for survival analysis models.
+
+    Survival models estimate the time to an event of interest — failure,
+    churn, relapse — where some subjects are right-censored: the event had
+    not happened when observation stopped. Input is therefore
+    ``(X, time, event)`` rather than ``(X, y)``, with ``event`` marking
+    which ``time`` values are observed event times and which are censoring
+    times.
+
+    A model predicts a risk score, where a larger value means an earlier
+    expected event, and optionally a survival function
+    :math:`S(t) = P(T > t)`.
+
+    See Also
+    --------
+    :class:`~tuiml.base.algorithms.Classifier` : For categorical output.
+    :class:`~tuiml.base.algorithms.Regressor` : For uncensored continuous output.
+    """
+
+    _component_type = ComponentType.SURVIVAL
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        """Return a risk score for each sample.
+
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Covariates.
+
+        Returns
+        -------
+        risk : np.ndarray of shape (n_samples,)
+            Predicted risk. Higher values mean an earlier expected event.
+        """
+        return self.predict_risk(X)
+
+    @abstractmethod
+    def predict_risk(self, X: np.ndarray) -> np.ndarray:
+        """Return a risk score for each sample.
+
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Covariates.
+
+        Returns
+        -------
+        risk : np.ndarray of shape (n_samples,)
+            Predicted risk. Higher values mean an earlier expected event.
+        """
+
+
+class UpliftModel(Algorithm):
+    """Base class for uplift / heterogeneous-treatment-effect models.
+
+    Uplift models estimate the causal effect of a treatment on an individual:
+    the difference between the outcome *with* treatment and *without* it.
+    Input is therefore ``(X, treatment, y)`` rather than ``(X, y)``, with
+    ``treatment`` a binary indicator of which group each sample belonged to.
+
+    The headline output is the individual treatment effect, or uplift, which
+    is what decides who to treat.
+
+    See Also
+    --------
+    :class:`~tuiml.base.algorithms.Classifier` : For plain classification.
+    """
+
+    _component_type = ComponentType.UPLIFT
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        """Return the predicted uplift for each sample.
+
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Covariates.
+
+        Returns
+        -------
+        uplift : np.ndarray of shape (n_samples,)
+            Predicted individual treatment effect.
+        """
+        return self.predict_uplift(X)
+
+    @abstractmethod
+    def predict_uplift(self, X: np.ndarray) -> np.ndarray:
+        """Return the predicted uplift for each sample.
+
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Covariates.
+
+        Returns
+        -------
+        uplift : np.ndarray of shape (n_samples,)
+            Predicted individual treatment effect.
+        """
+
+
 # =============================================================================
 # Associator Base Class and Data Structures
 # =============================================================================
@@ -1085,6 +1188,8 @@ class AlgorithmRegistry:
             "regressor": ComponentType.REGRESSOR,
             "anomaly": ComponentType.ANOMALY,
             "associator": ComponentType.ASSOCIATOR,
+            "survival": ComponentType.SURVIVAL,
+            "uplift": ComponentType.UPLIFT,
         }
         component_type = type_map.get(algorithm_type, ComponentType.ALGORITHM)
 
@@ -1137,6 +1242,8 @@ class AlgorithmRegistry:
             "regressor": ComponentType.REGRESSOR,
             "anomaly": ComponentType.ANOMALY,
             "associator": ComponentType.ASSOCIATOR,
+            "survival": ComponentType.SURVIVAL,
+            "uplift": ComponentType.UPLIFT,
         }
 
         if type:
@@ -1188,6 +1295,8 @@ class AlgorithmRegistry:
             "regressor": ComponentType.REGRESSOR,
             "anomaly": ComponentType.ANOMALY,
             "associator": ComponentType.ASSOCIATOR,
+            "survival": ComponentType.SURVIVAL,
+            "uplift": ComponentType.UPLIFT,
         }
         component_type = type_map.get(algorithm_type, ComponentType.ALGORITHM)
         return registry.list_names(component_type)
@@ -1432,6 +1541,78 @@ def associator(
     """
     return registry.register(
         ComponentType.ASSOCIATOR,
+        name=name,
+        tags=tags,
+        version=version,
+        author=author,
+    )
+
+
+def survival(
+    name: Optional[str] = None,
+    tags: Optional[List[str]] = None,
+    version: str = "1.0.0",
+    author: Optional[str] = None,
+):
+    """Decorator to register a survival model with the component registry.
+
+    Survival models subclass :class:`Survival` and estimate time-to-event
+    with right-censored data.
+
+    Parameters
+    ----------
+    name : str, optional
+        Registry name. Defaults to the class name.
+    tags : list of str, optional
+        Tags for discovery and search.
+    version : str, default="1.0.0"
+        Component version string.
+    author : str, optional
+        Component author.
+
+    Returns
+    -------
+    decorator : callable
+        Class decorator that registers the survival model.
+    """
+    return registry.register(
+        ComponentType.SURVIVAL,
+        name=name,
+        tags=tags,
+        version=version,
+        author=author,
+    )
+
+
+def uplift(
+    name: Optional[str] = None,
+    tags: Optional[List[str]] = None,
+    version: str = "1.0.0",
+    author: Optional[str] = None,
+):
+    """Decorator to register an uplift model with the component registry.
+
+    Uplift models subclass :class:`UpliftModel` and estimate heterogeneous
+    treatment effects.
+
+    Parameters
+    ----------
+    name : str, optional
+        Registry name. Defaults to the class name.
+    tags : list of str, optional
+        Tags for discovery and search.
+    version : str, default="1.0.0"
+        Component version string.
+    author : str, optional
+        Component author.
+
+    Returns
+    -------
+    decorator : callable
+        Class decorator that registers the uplift model.
+    """
+    return registry.register(
+        ComponentType.UPLIFT,
         name=name,
         tags=tags,
         version=version,

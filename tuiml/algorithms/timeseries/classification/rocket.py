@@ -300,7 +300,12 @@ class MiniRocketClassifier(TimeSeriesClassifier):
                 "type": ["integer", "null"],
                 "default": None,
                 "description": "Random seed for bias fitting"
-            }
+            },
+            "estimator": {
+                "type": "object",
+                "default": None,
+                "description": "Head fitted on the transformed features"
+            },
         }
 
     @classmethod
@@ -308,7 +313,7 @@ class MiniRocketClassifier(TimeSeriesClassifier):
         """Return supported capabilities."""
         return [
             "numeric",
-            "multi_class",
+            "multiclass",
             "timeseries",
             "multivariate_timeseries",
         ]
@@ -385,6 +390,7 @@ class MiniRocketClassifier(TimeSeriesClassifier):
         y_pred : np.ndarray of shape (n_samples,)
             Predicted labels.
         """
+        self._check_is_fitted()
         return self.estimator_.predict(self.transform(X))
 
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
@@ -400,6 +406,7 @@ class MiniRocketClassifier(TimeSeriesClassifier):
         proba : np.ndarray of shape (n_samples, n_classes)
             Class probabilities as reported by the head.
         """
+        self._check_is_fitted()
         return self.estimator_.predict_proba(self.transform(X))
 
     def _resolve_estimator(self) -> Any:

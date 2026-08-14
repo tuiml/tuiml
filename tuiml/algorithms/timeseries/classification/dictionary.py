@@ -276,7 +276,7 @@ class BOSSClassifier(TimeSeriesClassifier):
         """Return supported capabilities."""
         return [
             "numeric",
-            "multi_class",
+            "multiclass",
             "timeseries",
             "multivariate_timeseries",
             "noise_tolerant",

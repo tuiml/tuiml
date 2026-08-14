@@ -85,6 +85,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **New shared C++ kernel `tuiml._cpp_ext.shapley`.** `tree_shap` implements
   the path-dependent TreeSHAP recursion over the flattened tree layout TuiML's
   trees already produce, parallel over samples.
+- **Three new native algorithm families** — glassbox models, survival
+  analysis, and uplift/causal estimation — built in parallel and now passing
+  the library's full algorithm-contract suite.
+
+  **`tuiml.algorithms.glassbox/`** — interpretable-by-design models:
+  `ExplainableBoostingClassifier` / `ExplainableBoostingRegressor` (additive
+  GA1M shape functions with a readable per-feature bin→score map) and
+  `RuleFitClassifier` / `RuleFitRegressor` (sparse linear model over
+  tree-extracted rules plus the raw features, exposing human-readable rules).
+
+  **`tuiml.algorithms.survival/`** — a new task type with a new
+  `Survival` base class, `@survival` decorator and `ComponentType.SURVIVAL`:
+  `KaplanMeierEstimator`, `NelsonAalenEstimator`, `CoxPHSurvival` (partial
+  likelihood via Newton–Raphson with l2 penalty and Breslow baseline),
+  `RandomSurvivalForest`, plus hand-rolled `concordance_index`,
+  `integrated_brier_score` and `logrank_test`.
+
+  **`tuiml.algorithms.causal/`** — a new task type with a new `UpliftModel`
+  base class, `@uplift` decorator and `ComponentType.UPLIFT`: `SLearner`,
+  `TLearner`, `XLearner` (with cross-group residual models) and
+  `UpliftTreeClassifier` (greedy uplift-gain splitting), plus `qini_curve`,
+  `auuc` and `uplift_at_k`.
+
+  All three are verified against hand-computable references: Kaplan-Meier
+  matches the product-limit formula exactly, CoxPH coefficients match a
+  hand-solved MLE, concordance of perfect/reversed rankings is 1.0/0.0, and
+  the meta-learners' uplift correlates 0.95-0.99 with a known ground-truth
+  heterogeneous effect.
+
+  **The contract suite now understands the new task types.** `tests/contract`
+  previously assumed every algorithm takes `fit(X, y)`; it now dispatches
+  `fit(X, time, event)`, `fit(X, treatment, y)` and the two-argument
+  `fit(time, event)` of the marginal estimators, and generates the matching
+  data. This surfaced and fixed a set of real gaps: `multi_class` was a typo
+  for `multiclass`, several hyphenated capability strings were normalised to
+  the underscore vocabulary, five `get_parameter_schema` methods omitted an
+  `estimator`/`detectors`/`components` parameter, three timeseries
+  classifiers raised `AttributeError: NoneType` instead of "not fitted" before
+  fitting, and `LSCPDetector` was non-deterministic with `random_state=None`.
 - **Multi-fidelity hyperparameter search** in `tuiml.evaluation.tuning`.
   `SuccessiveHalvingSearchCV` runs a large candidate pool on a small slice of
   the data, discards the worst fraction and repeats with more, so most

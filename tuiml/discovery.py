@@ -48,12 +48,15 @@ def list_algorithms(type: Optional[str] = None) -> List[Dict]:
             "clusterer": ComponentType.CLUSTERER,
             "anomaly": ComponentType.ANOMALY,
             "associator": ComponentType.ASSOCIATOR,
+            "survival": ComponentType.SURVIVAL,
+            "uplift": ComponentType.UPLIFT,
         }
         component_type = type_map.get(type.lower())
         if component_type is None:
             raise ValueError(
                 f"Invalid algorithm type '{type}'. Valid types: "
-                f"'classifier', 'regressor', 'clusterer', 'anomaly', 'associator'."
+                f"'classifier', 'regressor', 'clusterer', 'anomaly', 'associator', "
+                f"'survival', 'uplift'."
             )
         return registry.list(component_type)
 
@@ -63,7 +66,8 @@ def list_algorithms(type: Optional[str] = None) -> List[Dict]:
     results = []
     for ctype in [ComponentType.CLASSIFIER, ComponentType.REGRESSOR,
                   ComponentType.CLUSTERER, ComponentType.ANOMALY,
-                  ComponentType.ASSOCIATOR]:
+                  ComponentType.ASSOCIATOR, ComponentType.SURVIVAL,
+                  ComponentType.UPLIFT]:
         results.extend(registry.list(ctype))
     return results
 

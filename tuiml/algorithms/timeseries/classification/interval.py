@@ -200,7 +200,12 @@ class TimeSeriesForestClassifier(TimeSeriesClassifier):
                 "type": ["integer", "null"],
                 "default": None,
                 "description": "Random seed"
-            }
+            },
+            "estimator": {
+                "type": "object",
+                "default": None,
+                "description": "Head fitted on the interval features"
+            },
         }
 
     @classmethod
@@ -208,7 +213,7 @@ class TimeSeriesForestClassifier(TimeSeriesClassifier):
         """Return supported capabilities."""
         return [
             "numeric",
-            "multi_class",
+            "multiclass",
             "timeseries",
             "multivariate_timeseries",
         ]
@@ -282,6 +287,7 @@ class TimeSeriesForestClassifier(TimeSeriesClassifier):
         y_pred : np.ndarray of shape (n_samples,)
             Predicted labels.
         """
+        self._check_is_fitted()
         return self.estimator_.predict(self.transform(X))
 
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
@@ -297,6 +303,7 @@ class TimeSeriesForestClassifier(TimeSeriesClassifier):
         proba : np.ndarray of shape (n_samples, n_classes)
             Class probabilities.
         """
+        self._check_is_fitted()
         return self.estimator_.predict_proba(self.transform(X))
 
     def _resolve_estimator(self) -> Any:

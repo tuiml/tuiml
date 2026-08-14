@@ -209,6 +209,30 @@ from tuiml.algorithms.timeseries import (
     Prophet,
 )
 
+# Interpretable-by-design models
+from tuiml.algorithms.glassbox import (
+    ExplainableBoostingClassifier,
+    ExplainableBoostingRegressor,
+    RuleFitClassifier,
+    RuleFitRegressor,
+)
+
+# Survival analysis
+from tuiml.algorithms.survival import (
+    CoxPHSurvival,
+    KaplanMeierEstimator,
+    NelsonAalenEstimator,
+    RandomSurvivalForest,
+)
+
+# Uplift / heterogeneous treatment effects
+from tuiml.algorithms.causal import (
+    SLearner,
+    TLearner,
+    UpliftTreeClassifier,
+    XLearner,
+)
+
 __all__ = [
     # Base classes
     "Algorithm",
@@ -300,4 +324,19 @@ __all__ = [
     "ExponentialSmoothing",
     "STLDecomposition",
     "Prophet",
+
+    "ExplainableBoostingClassifier",
+    "ExplainableBoostingRegressor",
+    "RuleFitClassifier",
+    "RuleFitRegressor",
+
+    "KaplanMeierEstimator",
+    "NelsonAalenEstimator",
+    "CoxPHSurvival",
+    "RandomSurvivalForest",
+
+    "SLearner",
+    "TLearner",
+    "XLearner",
+    "UpliftTreeClassifier",
 ]

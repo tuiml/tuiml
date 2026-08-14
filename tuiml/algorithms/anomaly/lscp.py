@@ -236,7 +236,12 @@ class LSCPDetector(Classifier):
                 "type": ["integer", "null"],
                 "default": None,
                 "description": "Random seed for subspace sampling"
-            }
+            },
+            "detectors": {
+                "type": "array",
+                "default": None,
+                "description": "Pool of unfitted base detectors"
+            },
         }
 
     @classmethod
@@ -409,7 +414,11 @@ class LSCPDetector(Classifier):
         """
         from tuiml._cpp_ext import distance as _cpp_distance
 
-        rng = np.random.default_rng(self.random_state)
+        # None is resolved to a fixed seed so a default-constructed detector is
+        # deterministic: subspace sampling happens at predict time, so an
+        # unresolved None would draw different regions on every call (and after
+        # every pickle roundtrip), making the same model give different answers.
+        rng = np.random.default_rng(0 if self.random_state is None else self.random_state)
         n_train, n_features = self.X_train_.shape
         region_size = min(self.local_region_size, n_train)
 

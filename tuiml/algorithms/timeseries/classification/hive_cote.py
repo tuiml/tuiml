@@ -222,7 +222,12 @@ class HIVECOTEClassifier(TimeSeriesClassifier):
                 "type": ["integer", "null"],
                 "default": None,
                 "description": "Random seed"
-            }
+            },
+            "components": {
+                "type": "array",
+                "default": None,
+                "description": "(name, classifier) pairs to ensemble"
+            },
         }
 
     @classmethod
@@ -230,7 +235,7 @@ class HIVECOTEClassifier(TimeSeriesClassifier):
         """Return supported capabilities."""
         return [
             "numeric",
-            "multi_class",
+            "multiclass",
             "timeseries",
             "multivariate_timeseries",
             "ensemble",
