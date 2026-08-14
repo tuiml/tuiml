@@ -148,8 +148,11 @@ from .tuning import (
     TuningResult,
     ParameterGrid,
     ParameterDistribution,
+    BayesianSearchCV,
     GridSearchCV,
+    HyperbandSearchCV,
     RandomSearchCV,
+    SuccessiveHalvingSearchCV,
 )
 
 
@@ -237,4 +240,7 @@ __all__ = [
     "ParameterDistribution",
     "GridSearchCV",
     "RandomSearchCV",
+    "BayesianSearchCV",
+    "SuccessiveHalvingSearchCV",
+    "HyperbandSearchCV",
 ]

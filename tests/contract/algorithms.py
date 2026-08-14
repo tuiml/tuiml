@@ -64,8 +64,14 @@ def _kind_of(algorithm) -> str:
     kind : str
         Result of :func:`algorithm_kind`.
     """
-    from tuiml.base.algorithms import Classifier, Clusterer, Regressor
+    from tuiml.base.algorithms import (
+        Classifier, Clusterer, Regressor, Survival, UpliftModel,
+    )
 
+    if isinstance(algorithm, Survival):
+        return "survival"
+    if isinstance(algorithm, UpliftModel):
+        return "uplift"
     if isinstance(algorithm, Classifier):
         base = "classifier"
     elif isinstance(algorithm, Regressor):
@@ -78,7 +84,12 @@ def _kind_of(algorithm) -> str:
 
 
 def _fit(algorithm, X, y):
-    """Fit an algorithm, passing ``y`` only when its kind uses one.
+    """Fit an algorithm, unpacking the two-column ``y`` for multi-arg kinds.
+
+    Survival and uplift models take three arguments rather than two:
+    ``fit(X, time, event)`` and ``fit(X, treatment, y)`` respectively. Their
+    :func:`make_data` therefore packs those two arrays into the columns of
+    ``y``, and this unpacks them again.
 
     Parameters
     ----------
@@ -87,13 +98,27 @@ def _fit(algorithm, X, y):
     X : np.ndarray
         Feature matrix or series.
     y : np.ndarray or None
-        Targets, or None for unsupervised kinds.
+        Targets, or None for unsupervised kinds; a two-column array for the
+        multi-argument kinds.
 
     Returns
     -------
     fitted : object
         Whatever ``fit`` returned.
     """
+    kind = _kind_of(algorithm)
+    if kind in ("survival", "uplift"):
+        # Covariate survival and uplift take fit(X, time, event) /
+        # fit(X, treatment, y). Marginal survival estimators (Kaplan-Meier,
+        # Nelson-Aalen) take fit(time, event) with no covariate matrix, so
+        # their two-argument fit is dispatched from the signature itself.
+        # ``inspect.signature`` on a bound method excludes ``self``: covariate
+        # survival and uplift have three parameters (X, time, event) /
+        # (X, treatment, y), marginal estimators two (time, event).
+        n_params = len(inspect.signature(algorithm.fit).parameters)
+        if n_params >= 3:
+            return algorithm.fit(X, y[:, 0], y[:, 1])
+        return algorithm.fit(y[:, 0], y[:, 1])
     return algorithm.fit(X) if y is None else algorithm.fit(X, y)
 
 

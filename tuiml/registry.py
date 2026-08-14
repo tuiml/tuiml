@@ -43,6 +43,8 @@ class ComponentType(Enum):
     METRIC = "metric"
     EVALUATOR = "evaluator"
     TIMESERIES = "timeseries"
+    SURVIVAL = "survival"
+    UPLIFT = "uplift"
 
 
 class Registrable(ABC):

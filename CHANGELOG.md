@@ -7,6 +7,384 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **New `tuiml.uncertainty` package — conformal prediction and probability
+  calibration.** TuiML could rank and predict, but it could not say how sure it
+  was, and nothing in the library measured whether a probability meant
+  anything. Neither scikit-learn, Weka nor CapyMOA offers conformal
+  prediction, so this is native:
+
+  - `SplitConformalClassifier` / `SplitConformalRegressor` — prediction sets
+    and intervals with a **distribution-free, finite-sample** guarantee of at
+    least `1 - alpha` coverage. LAC and margin nonconformity scores; optional
+    difficulty normalisation gives locally adaptive interval widths.
+  - `CVPlusRegressor` / `JackknifePlusRegressor` — cross-fitting instead of a
+    held-out calibration split, so all the data trains *and* all of it
+    calibrates, at the cost of `k` model fits.
+  - `APSConformalClassifier` / `RAPSConformalClassifier` — adaptive sets that
+    grow on ambiguous inputs. Measured on a noisy 4-class problem: APS lifts
+    worst-class coverage from 0.866 to 0.893 for a set size of 3.08 vs 2.64.
+  - `MondrianConformalClassifier` — a separate threshold per class or group,
+    giving **conditional** rather than merely marginal coverage. On an
+    imbalanced problem where plain split conformal covered the rare class only
+    3.6% of the time, Mondrian covers it fully.
+  - `ConformalizedQuantileRegressor` — heteroscedastic intervals from a pair of
+    quantile models; width correlates 0.97 with the input on funnel-shaped
+    noise, where split conformal's is constant by construction.
+  - `VennAbersCalibrator` — probability *intervals* that report their own
+    calibration uncertainty; the width shrinks as the calibration set grows.
+  - `PlattCalibrator`, `IsotonicCalibrator`, `TemperatureScaler`,
+    `VectorScaler` — post-processors mapping raw scores to probabilities you
+    can act on. Temperature scaling provably preserves accuracy.
+  - `coverage_score`, `average_set_size`, `interval_width`, `brier_score`,
+    `expected_calibration_error`, `maximum_calibration_error`,
+    `reliability_curve` — the metrics that verify the above.
+
+  These wrap an already-fitted model rather than being algorithms, so they are
+  not registered in the algorithm hub.
+- **New `tuiml.explain` package — answering why a model predicted what it did.**
+  Nothing in scikit-learn, Weka or CapyMOA covers the local-attribution half
+  of this, and the global half only partially.
+
+  - `TreeExplainer` — **exact** Shapley values for TuiML trees and forests, in
+    time polynomial in depth rather than exponential in features. Verified
+    against a brute-force enumeration of all 2^F subsets, agreeing to 4e-16,
+    and against the efficiency property (attributions plus base value
+    reconstruct the prediction) for single trees, 30-tree forests and
+    per-class on multiclass problems.
+  - `permutation_importance`, `drop_column_importance` — model-agnostic global
+    importance. The docstrings are explicit that these answer *different*
+    questions on correlated features: permutation says neither of a duplicated
+    pair matters *given the other*; drop-column refits and so says the column
+    is genuinely droppable.
+  - `partial_dependence`, `individual_conditional_expectation`,
+    `accumulated_local_effects` — how a feature moves the prediction. ALE costs
+    two prediction passes regardless of resolution, against one per grid point
+    for partial dependence, and never evaluates the model on feature
+    combinations the data does not contain.
+  - `lime_explain` — a local linear surrogate around one sample. Works on any
+    model, including ones TreeExplainer cannot touch; the docstring says to
+    check the returned `local_r2`, since the coefficients describe the
+    surrogate and say nothing if it fits badly.
+  - `counterfactual` — the smallest change that flips a prediction, anchored
+    on a real background sample so the answer stays feasible rather than
+    inventing an impossible row. Returns the per-feature delta, which is the
+    form an explanation has to take when someone is entitled to act on it.
+  - `surrogate_tree` — a shallow, readable decision tree trained on the
+    model's own predictions, with `fidelity` reporting how well it reproduces
+    them. The surrogate is a genuine TuiML tree, so TreeExplainer and the
+    dependence tools work on it.
+  - `friedman_h_statistic` — interaction strength between two features. Uses
+    centred partial dependences; without centring, a flat surface reports a
+    spurious interaction of exactly 1.0, which a test pins.
+  - `Explanation` — the shared result type, carrying feature names, method and
+    base value so numbers never travel bare.
+
+  These wrap a fitted model rather than being algorithms, so none is
+  registered in the hub.
+- **New shared C++ kernel `tuiml._cpp_ext.shapley`.** `tree_shap` implements
+  the path-dependent TreeSHAP recursion over the flattened tree layout TuiML's
+  trees already produce, parallel over samples.
+- **Three new native algorithm families** — glassbox models, survival
+  analysis, and uplift/causal estimation — built in parallel and now passing
+  the library's full algorithm-contract suite.
+
+  **`tuiml.algorithms.glassbox/`** — interpretable-by-design models:
+  `ExplainableBoostingClassifier` / `ExplainableBoostingRegressor` (additive
+  GA1M shape functions with a readable per-feature bin→score map) and
+  `RuleFitClassifier` / `RuleFitRegressor` (sparse linear model over
+  tree-extracted rules plus the raw features, exposing human-readable rules).
+
+  **`tuiml.algorithms.survival/`** — a new task type with a new
+  `Survival` base class, `@survival` decorator and `ComponentType.SURVIVAL`:
+  `KaplanMeierEstimator`, `NelsonAalenEstimator`, `CoxPHSurvival` (partial
+  likelihood via Newton–Raphson with l2 penalty and Breslow baseline),
+  `RandomSurvivalForest`, plus hand-rolled `concordance_index`,
+  `integrated_brier_score` and `logrank_test`.
+
+  **`tuiml.algorithms.causal/`** — a new task type with a new `UpliftModel`
+  base class, `@uplift` decorator and `ComponentType.UPLIFT`: `SLearner`,
+  `TLearner`, `XLearner` (with cross-group residual models) and
+  `UpliftTreeClassifier` (greedy uplift-gain splitting), plus `qini_curve`,
+  `auuc` and `uplift_at_k`.
+
+  All three are verified against hand-computable references: Kaplan-Meier
+  matches the product-limit formula exactly, CoxPH coefficients match a
+  hand-solved MLE, concordance of perfect/reversed rankings is 1.0/0.0, and
+  the meta-learners' uplift correlates 0.95-0.99 with a known ground-truth
+  heterogeneous effect.
+
+  **The contract suite now understands the new task types.** `tests/contract`
+  previously assumed every algorithm takes `fit(X, y)`; it now dispatches
+  `fit(X, time, event)`, `fit(X, treatment, y)` and the two-argument
+  `fit(time, event)` of the marginal estimators, and generates the matching
+  data. This surfaced and fixed a set of real gaps: `multi_class` was a typo
+  for `multiclass`, several hyphenated capability strings were normalised to
+  the underscore vocabulary, five `get_parameter_schema` methods omitted an
+  `estimator`/`detectors`/`components` parameter, three timeseries
+  classifiers raised `AttributeError: NoneType` instead of "not fitted" before
+  fitting, and `LSCPDetector` was non-deterministic with `random_state=None`.
+- **Multi-fidelity hyperparameter search** in `tuiml.evaluation.tuning`.
+  `SuccessiveHalvingSearchCV` runs a large candidate pool on a small slice of
+  the data, discards the worst fraction and repeats with more, so most
+  candidates die cheaply. `HyperbandSearchCV` runs several such schedules at
+  different aggression levels, removing the need to guess one. Either can
+  scale the training subsample or a named estimator parameter — growing a
+  forest's `n_estimators` from 1 to 27 across rounds costs no statistical
+  power at all, unlike subsampling.
+
+  These allocate *budget*; the existing grid, random and Bayesian searchers
+  choose *which points to try*. They are complementary, so no TPE sampler was
+  added — `BayesianSearchCV` already covers Bayesian point selection, and a
+  second one would be a redundant path.
+
+  Measured on `load_breast_cancer` tuning a RandomForest, cv=3, mean of 3
+  seeds: random search 0.7425 in 18.7s; successive halving 0.7226 in 5.0s
+  (3.8x); Hyperband 0.7374 in 6.0s (3.1x). Both docstrings carry that table,
+  including the part where plain halving gives up two points of score by
+  committing to one aggressive schedule.
+- **`BayesianSearchCV` is now exported from `tuiml.evaluation`.** It existed
+  in `tuiml.evaluation.tuning` but was never surfaced alongside `GridSearchCV`
+  and `RandomSearchCV`, so the documented "three strategies" were two.
+- **Six new native anomaly detectors** in `tuiml.algorithms.anomaly`, chosen
+  because scikit-learn, Weka and CapyMOA offer none of them. They split into
+  three groups, and which group to reach for is the whole decision:
+
+  - **Per-feature, very fast** — `ECODDetector`, `COPODDetector`,
+    `HBOSDetector`. Parameter-free (ECOD/COPOD), invariant to monotone
+    rescaling, and scale to high dimension. On 1500 points in 20 dimensions
+    they reach AUC 1.00 in **1-6 ms** against IsolationForest's 958 ms.
+    `ECODDetector.feature_contributions()` names the features that caused each
+    flag; `HBOSDetector` keeps no training data, so the fitted model stays
+    small however large the training set.
+  - **Joint-structure** — `KNNDetector`, `ABODDetector`. Slower, but they see
+    what the first group cannot. On anomalies that are ordinary in every
+    individual feature and only strange in combination, `KNNDetector` scores
+    AUC 0.955 where `ECODDetector` scores 0.243 — worse than chance. In 120
+    dimensions the reverse holds for LocalOutlierFactor, which falls to 0.56
+    while kNN, ABOD and ECOD all reach 1.00.
+
+  - **Ensemble** — `LSCPDetector`. Picks the best base detector separately for
+    each point's own neighbourhood instead of assuming one wins everywhere. On
+    mixed-density data where kNN scores 0.47 at `k=5` and 0.99 at `k=35`, a
+    plain average of that pool manages only 0.69 while LSCP reaches 0.98 —
+    without being told which `k` to trust. `local_competence()` exposes which
+    detector was selected where. It costs roughly an order of magnitude more
+    than its slowest member, so the docstring says plainly to benchmark it
+    against averaging the same pool before adopting it.
+
+  Both `KNNDetector` and `ABODDetector` are verified against brute-force
+  implementations of their published formulas. `ABODDetector` carries an
+  explicit warning with measurements: a tight group of anomalies masks itself
+  and **inverts** the ranking (AUC 0.00 at cluster spread 0.05), so bursty
+  anomalies belong to kNN or ECOD instead. `KNNDetector` has a milder form of
+  the same effect and documents the fix — set `n_neighbors` above the largest
+  anomaly group you expect.
+- **New `tuiml.algorithms.timeseries.classification` subpackage — a task type
+  the library could not serve at all.** The existing `timeseries` package only
+  forecasts; classifying a *whole series* by its shape is a different problem,
+  and flattening a series into columns for an ordinary classifier throws away
+  the time ordering that carries the signal. Nothing in scikit-learn, Weka or
+  CapyMOA covers it.
+
+  - `MiniRocketClassifier` / `MiniRocketTransformer` — 84 fixed dilated
+    kernels summarised by proportion of positive values, then a linear head.
+    On a synthetic problem where the class is the *frequency* of a burst
+    hidden at a random position (amplitude, phase, sign and position
+    randomised, series z-normalised, so no energy cue survives): **0.983**
+    against Euclidean 1NN's 0.895, DTW's 0.772 and RandomForest's 0.590 — and
+    it predicted in 168 ms where DTW took 12.9 seconds. Prediction cost is
+    flat in training-set size, which is the reason to reach for it first.
+  - `HIVECOTEClassifier` — meta-ensemble weighting each representation by its
+    own cross-validated accuracy raised to a power. The weighting demonstrably
+    works (the dictionary component was down-weighted to 0.10 where it was
+    weak) and the ensemble tracks the best member without being told which it
+    is — but MINIROCKET alone matched or beat it on every problem measured, at
+    a quarter of the cost, and the docstring says so with the table.
+  - `TimeSeriesForestClassifier` — mean, standard deviation and slope of
+    random intervals, in a forest. The temporally localised view: a split on
+    "the slope between t=40 and t=90" says *where* the difference lives.
+  - `BOSSClassifier` — bag of symbolic words built from low-frequency Fourier
+    coefficients of sliding windows, classified by the asymmetric BOSS
+    distance. A genuinely different view: what patterns a series contains and
+    how often, discarding where. It beats a Euclidean neighbour decisively
+    when position varies (0.844 against 0.588 on a motif-count problem) but
+    `MiniRocketClassifier` beat it on every problem measured, so the docstring
+    positions it as a **diverse ensemble component** rather than a standalone
+    winner — which is why every strong meta-ensemble includes a dictionary
+    member.
+  - `ShapeletTransformClassifier` — finds the short subsequences that separate
+    the classes and represents each series by its distance to them. The
+    **interpretable** member of the family: `shapelets_` holds real
+    subsequences you can plot, and `shapelet_info_` records which training
+    series, channel and position each came from. Verified against ground truth
+    on a planted-motif problem — the top five shapelets all came from series
+    containing the motif, at windows overlapping where it was planted.
+  - `DTWNeighborsClassifier` — nearest neighbour under Dynamic Time Warping,
+    the field's standard baseline. Univariate and multivariate panels,
+    unequal lengths, uniform or distance weighting, Sakoe-Chiba band.
+  - `dtw_distance`, `dtw_pairwise`, `lb_keogh`, `lb_keogh_envelope`,
+    `as_panel` as public building blocks.
+
+  The docstring documents, with measurements, the caveat that decides whether
+  to use it at all: DTW is deliberately blind to *when* things happen, so when
+  the classes differ by **shape** it scores 1.000 against Euclidean 1NN's 0.969
+  and RandomForest's 0.925 — but when the classes differ by **timing** the same
+  invariance destroys the only signal there is and DTW drops to 0.812 while
+  Euclidean gets 1.000.
+- **New shared C++ kernel `tuiml._cpp_ext.timeseries`.** `interval_features`
+  returns the mean, standard deviation and slope of arbitrary intervals from
+  prefix sums, so an interval costs O(1) whatever its width; intervals of 32
+  points or fewer take a direct path instead, because differencing prefix sums
+  left a ~1e-14 variance residue that `sqrt` turned into a ~1e-7 error in the
+  standard deviation of a width-1 interval. Also `sfa_transform`
+  computes the low-frequency DFT of every sliding window, advancing the window
+  with the momentary Fourier transform so each step costs one complex multiply
+  per coefficient instead of a fresh transform. Verified against a direct DFT
+  across five window/word/normalisation configurations. Also `shapelet_distances`
+  computes the minimum z-normalised distance from each series to each shapelet,
+  folding the window normalisation into the algebra so only one dot product per
+  window is needed. It centres each series first: the running variance is
+  `E[x^2] - mean^2`, which cancels catastrophically far from zero, and without
+  centring a series offset by 1e6 drifted ~4e-2 from the same series at zero.
+  Also `minirocket_transform`
+  and `minirocket_biases` exploit the algebraic shortcut that makes MINIROCKET
+  fast: a kernel is -1 everywhere except three positions holding +2, so the
+  all -1 convolution is computed once per dilation and the nine corrections
+  cached, after which each of the 84 kernels costs three vector additions
+  instead of a fresh convolution. Verified against a direct dilated
+  convolution across 16 (kernel, dilation) combinations. Also `dtw_distance` (with
+  Sakoe-Chiba banding and early abandoning), `lb_keogh` / `lb_keogh_envelope`
+  (O(n) envelope via a monotonic deque) and `dtw_pairwise` / `dtw_knn`. The
+  kNN path orders candidates by their lower bound and skips any that cannot
+  beat the running k-th best: **12.6x** faster than building the full distance
+  matrix on 60 queries against 400 series of length 100, returning bit-identical
+  neighbours. DTW is verified against a direct implementation of the recurrence,
+  and LB_Keogh is tested to never exceed the true distance — if it did, the
+  pruning would silently return wrong answers.
+- **New shared C++ kernels `tuiml._cpp_ext.stats`.** Beyond the PAVA kernel:
+  `tail_probabilities` (per-dimension empirical CDF by sorted binary search,
+  floored so `-log` stays finite), `skewness` (adjusted Fisher-Pearson,
+  matching `scipy.stats.skew(bias=False)`), `equal_width_histogram`,
+  `equal_frequency_histogram` and `histogram_density`. All are OpenMP-parallel
+  over dimensions and verified against numpy/scipy references. The histogram
+  pair is reusable by `tuiml.preprocessing.discretization`.
+  `pool_adjacent_violators` and `isotonic_fit` implement PAVA in O(n), used by
+  `IsotonicCalibrator` and `VennAbersCalibrator`.
+
+- **`NGBoostRegressor` / `NGBoostClassifier` — probabilistic gradient
+  boosting.** Boosts against the *natural* gradient of a proper scoring rule
+  (the ordinary gradient premultiplied by the inverse Fisher information), so
+  the update is invariant to how the predicted distribution is parameterised.
+  Predicts a full distribution rather than a point: `predict_dist`,
+  `predict_interval` and `score_samples`. Normal, log-normal and exponential
+  distributions; log score and CRPS. Pure NumPy on TuiML's own C++ tree
+  learner — no scipy, no sklearn (`erf` via libm, the normal quantile by
+  Acklam plus a Halley step, inverting the CDF to 1e-12).
+
+  Calibration is the point of the method and was measured, not assumed: on a
+  known heteroscedastic Normal the fitted sigma correlates **0.959** with the
+  true noise scale (mean ratio 1.008), and a nominal 90% interval achieves
+  **89.2%** empirical coverage on held-out data. The natural gradient agrees
+  with `solve(FisherInfo, finite_difference_gradient)` to 1.0e-08, and the CRPS
+  closed form matches numerical quadrature of its definition to 1e-07. Held-out
+  RMSE is competitive with ordinary boosting (1.019 vs XGBoost's 1.036).
+
+  Note that `predict_interval` on the *classifier* returns a boolean
+  highest-probability credible set, not a numeric interval — a nominal target
+  has no ordering.
+
+- **Five classical forecasters: `SARIMAX`, `VAR`, `ThetaForecaster`, `TBATS`,
+  `CrostonForecaster`.** No new dependencies.
+
+  - `SARIMAX` — seasonal ARIMA with exogenous regressors, estimated by exact
+    Gaussian maximum likelihood through a Kalman filter, with stationarity
+    enforced by the Monahan/Jones partial-autocorrelation transform so the
+    optimiser cannot wander into an explosive region. Adds forecast intervals
+    from the Kalman variance. Recovers AR(1) phi=0.7 as 0.69662 (OLS: 0.69697),
+    a pure-exog coefficient of 3 as 3.00029, and MA(1) theta=0.6 as 0.60.
+  - `VAR` — vector autoregression; several series predicted jointly from the
+    lagged history of all of them, with AIC/BIC lag selection. Recovers a known
+    coefficient matrix to 0.021 at n=5000, and reduces to univariate AR(1) OLS
+    bit-identically on one series. Accepts a 1-D series as a single-series
+    panel.
+  - `ThetaForecaster` — verified against Hyndman & Billah's equivalence result:
+    the standard method is simple exponential smoothing with drift b/2, matched
+    to **1.4e-14** across six alpha values, three seeds and horizons 1-24.
+    Optional deseasonalisation gated on an ACF seasonality test.
+  - `TBATS` — trigonometric seasonality, which is what lets it take
+    high-frequency and **non-integer** seasonal periods (365.25) that seasonal
+    ARIMA cannot represent. Multiple simultaneous periods, Box-Cox, damped
+    trend. On a two-sinusoid-plus-trend series it forecasts to MAE 0.0004
+    against a 1.918 no-seasonality baseline; a 52.18-period series gives MAE
+    3.1e-14.
+  - `CrostonForecaster` — intermittent demand, smoothing demand sizes and
+    inter-arrival intervals separately. `classic`, `sba`, `sbj` and `tsb`
+    variants; on demand 10 every 4 periods the classic forecast is exactly 2.5
+    and SBA exactly 2.5(1 - alpha/2).
+
+- **New optional `tuiml[torch]` extra, and six neural algorithms behind it.**
+  `tuiml/algorithms/tabular_foundation/` adds `FTTransformerClassifier` /
+  `Regressor` (per-feature tokenisation plus a CLS token through pre-norm
+  Transformer blocks), `SAINTClassifier` / `Regressor` (attention across *rows*
+  as well as features) and `NODEClassifier` / `Regressor` (differentiable
+  oblivious decision trees over a self-implemented `entmax15`).
+  `tuiml/algorithms/timeseries/deep/` adds `NBEATSForecaster` (doubly-residual
+  stacking, generic and interpretable bases), `NHITSForecaster` (multi-rate
+  pooling and hierarchical interpolation) and `PatchTSTForecaster` (patch
+  tokens, channel independence, RevIN instance normalisation).
+
+  All six learn: 0.98-0.99 accuracy on an XOR-style target where a linear model
+  gets 0.5, and R^2 0.98-0.99 on a non-linear regression. The forecasters beat
+  a naive baseline by four to six orders of magnitude on a clean signal.
+
+  **torch stays genuinely optional, at three levels.** Importing TuiML never
+  imports torch, so the catalog is byte-identical on either install — all 243
+  algorithms are listed and their schemas readable with torch absent.
+  Constructing a model never needs torch, so parameter grids and pickling work
+  everywhere. Only `fit` requires it, and raises an `ImportError` naming the
+  class and the exact command, `pip install 'tuiml[torch]'`. Enforced centrally
+  by `tuiml.utils.torch_backend` and pinned by an AST test asserting no
+  module-scope torch import anywhere in either package.
+
+- **`foundation.TabICLClassifier` / `foundation.TabICLRegressor` — the first
+  pretrained tabular foundation model, behind a new `tuiml[foundation]`
+  extra.** TabICL predicts *without training*: your rows are fed to a frozen
+  transformer as in-context examples and the answer comes out of one forward
+  pass. There is no gradient step, no tuning, and no fitted coefficient — `fit`
+  only memorises the training set, and essentially all the compute lands in
+  `predict`, which is the reverse of every other algorithm in TuiML. On a
+  non-linear target where a linear model scores 0.5, it reaches 1.0 held-out
+  accuracy with zero training.
+
+  Registered under the `foundation.` namespace, like `sklearn.SVC` and
+  `weka.J48`, because TuiML delegates to the upstream `tabicl` package rather
+  than running its own implementation. The namespace also keeps these out of
+  the generic contract sweep, which fits every algorithm it finds — and these
+  would each pull a checkpoint over the network.
+
+  **TuiML ships no model weights, and that is a deliberate constraint rather
+  than an implementation detail.** The upstream package downloads its own
+  ~150 MB checkpoint on first use, so that transfer is between the user and
+  the publisher, under the publisher's license. TabICL is the only tabular
+  foundation model integrated because its **weights** are BSD-3-Clause, the
+  same license as TuiML: nothing for a user to accept, no commercial-use
+  restriction. Others — TabPFN, Google's TabFM — publish weights restricted to
+  non-commercial use, and a BSD-3 wrapper cannot relicense what it wraps, so
+  integrating those would need a consent gate that deliberately does not exist
+  yet. A test asserts no checkpoint file ever lands inside the installed
+  package.
+
+- **The installer now detects your GPU and offers the neural extras.**
+  `install.sh` probes for CUDA (via `nvidia-smi`, including VRAM), ROCm and
+  Apple Silicon's Metal backend, then offers `tuiml[torch]` and
+  `tuiml[foundation]` — defaulting to yes when an accelerator is present and
+  to no when it is not, since both work on CPU but slowly. Warns below 8 GB of
+  VRAM. `TUIML_GPU=cuda|rocm|mps|cpu` skips the probe and
+  `TUIML_EXTRAS="torch,foundation"` skips the questions. An `nvidia-smi` that
+  is present but failing — a common driver-mismatch state — is treated as no
+  GPU rather than trusted.
+
 ### Changed
 - **`curl … | install.sh | bash` now installs a release, and asks first.** The
   installer only ever installed from `git+https://github.com/tuiml/tuiml.git`,
@@ -58,6 +436,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   still reported on every channel.
 
 ### Fixed
+- **Interpreter segfault when a neural model was fitted after any boosting
+  import (macOS).** torch bundles its own `libomp.dylib`, while xgboost,
+  LightGBM and CatBoost each resolve `@rpath/libomp.dylib` to a different copy.
+  Because `tuiml.algorithms` imports all three eagerly, a lazily-imported torch
+  landed in a process holding two OpenMP runtimes and the first `LayerNorm`
+  killed the interpreter with SIGSEGV and no traceback.
+
+  Importing torch *first* avoids it entirely, and `OMP_NUM_THREADS=1` or
+  `torch.set_num_threads(1)` both fix it; the usual `KMP_DUPLICATE_LIB_OK=TRUE`
+  advice does **not** — it still segfaults. Both neural packages now clamp
+  torch to one thread once, on darwin only, and only when a conflicting module
+  is already loaded.
+
+  This is a mitigation, not a cure: it costs multi-threaded torch on macOS,
+  and it does so in every session, because the boosting libraries are
+  unconditional hard dependencies. The real fix is to make xgboost, LightGBM
+  and CatBoost an optional extra — they are third-party wrappers sitting in a
+  core namespace, which the project's own dependency policy says should not
+  happen. Tracked separately as a breaking change.
+
 - **Exported notebooks failed on user algorithms authored in an earlier
   session.** `tuiml_export_notebook` inlines a user algorithm's source only
   when the session recorded the `tuiml_create_algorithm` call that wrote it.

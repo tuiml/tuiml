@@ -27,12 +27,17 @@ KNOWN_CAPABILITIES = frozenset({
     "binary_class", "multiclass", "numeric_class", "regression", "clustering",
     "unsupervised", "anomaly_detection", "novelty_detection",
     "noise_detection", "uncertainty", "probabilistic",
+    # survival / uplift
+    "censored", "survival_curve", "proportional_hazards", "non_parametric",
+    "uplift", "binary_treatment", "continuous_outcome",
     # timeseries
     "timeseries", "forecasting", "univariate", "multivariate", "stationary",
     "seasonal", "seasonality", "trend", "holidays",
+    "multivariate_timeseries", "unequal_length", "noise_tolerant",
     # learning style / assumptions
     "online", "incremental", "ensemble", "weighted_instances",
-    "gaussian_assumption", "kernel_methods",
+    "gaussian_assumption", "kernel_methods", "interpretable", "non_linear",
+    "tree",
 })
 
 SEED = 0
@@ -51,12 +56,17 @@ KNOWN_CAPABILITIES = frozenset({
     "binary_class", "multiclass", "numeric_class", "regression", "clustering",
     "unsupervised", "anomaly_detection", "novelty_detection",
     "noise_detection", "uncertainty", "probabilistic",
+    # survival / uplift
+    "censored", "survival_curve", "proportional_hazards", "non_parametric",
+    "uplift", "binary_treatment", "continuous_outcome",
     # timeseries
     "timeseries", "forecasting", "univariate", "multivariate", "stationary",
     "seasonal", "seasonality", "trend", "holidays",
+    "multivariate_timeseries", "unequal_length", "noise_tolerant",
     # learning style / assumptions
     "online", "incremental", "ensemble", "weighted_instances",
-    "gaussian_assumption", "kernel_methods",
+    "gaussian_assumption", "kernel_methods", "interpretable", "non_linear",
+    "tree",
 })
 
 
@@ -82,10 +92,16 @@ def algorithm_kind(kind: str, capabilities: Sequence[str]) -> str:
     -------
     kind : str
         One of ``"classifier"``, ``"regressor"``, ``"clusterer"``,
-        ``"timeseries"``.
+        ``"timeseries"`` (forecasting), ``"timeseries_classification"``,
+        ``"survival"``, ``"uplift"``.
     """
-    if "timeseries" in capabilities or "forecasting" in capabilities:
+    # Forecasting models fit on a single series with no labels. Timeseries
+    # *classifiers* fit on a panel with labels; they share the "timeseries"
+    # capability but not "forecasting", so the two must be separated.
+    if "forecasting" in capabilities:
         return "timeseries"
+    if "timeseries" in capabilities:
+        return "timeseries_classification"
     return kind
 
 
@@ -116,6 +132,32 @@ def make_data(kind: str, capabilities: Sequence[str] = (),
     if kind == "timeseries":
         t = np.arange(N_SAMPLES, dtype=float)
         return 10.0 + 0.3 * t + 2.0 * np.sin(t / 3.0) + rng.normal(0, 0.2, N_SAMPLES), None
+
+    if kind == "timeseries_classification":
+        # A panel of short series with a learnable binary label. The label is
+        # the sign of the first point, so every classifier in the family can
+        # fit whatever its internal representation.
+        length = 32
+        X = rng.normal(size=(N_SAMPLES, length))
+        y = (X[:, 0] > 0).astype(int)
+        return X, y
+
+    if kind == "survival":
+        # Right-censored: y carries [time, event] so _fit can unpack it into
+        # the three-argument fit(X, time, event).
+        X = rng.normal(size=(N_SAMPLES, N_FEATURES))
+        time = rng.exponential(1.0, N_SAMPLES) + 0.1
+        event = (rng.random(N_SAMPLES) < 0.7).astype(float)
+        return X, np.column_stack([time, event])
+
+    if kind == "uplift":
+        # y carries [treatment, outcome] so _fit can unpack it into
+        # fit(X, treatment, y). A genuine heterogeneous effect keeps the
+        # outcome learnable.
+        X = rng.normal(size=(N_SAMPLES, N_FEATURES))
+        treatment = (rng.random(N_SAMPLES) < 0.5).astype(float)
+        outcome = X[:, 0] * 2.0 + treatment * X[:, 1] + rng.normal(0, 0.1, N_SAMPLES)
+        return X, np.column_stack([treatment, outcome])
 
     if "nominal" in capabilities and "numeric" not in capabilities:
         # Nominal-only models (categorical Naive Bayes and friends) index into
