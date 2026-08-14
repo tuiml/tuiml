@@ -13,6 +13,16 @@ Searchers
 - **BayesianSearchCV:** Models the score surface with a Gaussian process and
   picks each next trial from it. Fewest evaluations, best when a single fit
   is expensive.
+- **SuccessiveHalvingSearchCV:** Runs a large pool on a small slice of the
+  data, discards the worst, and repeats with more data. Most candidates die
+  cheaply.
+- **HyperbandSearchCV:** Several successive-halving schedules at different
+  aggression levels, so the schedule need not be guessed.
+
+The first three choose **which** configurations to evaluate; the last two
+choose **how much budget each one gets**. They are complementary, not
+alternatives — the resource-allocation pair samples candidates at random,
+exactly as ``RandomSearchCV`` does.
 
 Supporting types
 ----------------
@@ -31,6 +41,8 @@ score stays honest.
 from .grid_search import GridSearchCV
 from .random_search import RandomSearchCV
 from .bayesian_search import BayesianSearchCV
+from .successive_halving import SuccessiveHalvingSearchCV
+from .hyperband import HyperbandSearchCV
 from tuiml.base.tuning import (
     BaseTuner,
     TuningResult,

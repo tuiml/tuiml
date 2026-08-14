@@ -42,6 +42,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   These wrap an already-fitted model rather than being algorithms, so they are
   not registered in the algorithm hub.
+- **Multi-fidelity hyperparameter search** in `tuiml.evaluation.tuning`.
+  `SuccessiveHalvingSearchCV` runs a large candidate pool on a small slice of
+  the data, discards the worst fraction and repeats with more, so most
+  candidates die cheaply. `HyperbandSearchCV` runs several such schedules at
+  different aggression levels, removing the need to guess one. Either can
+  scale the training subsample or a named estimator parameter — growing a
+  forest's `n_estimators` from 1 to 27 across rounds costs no statistical
+  power at all, unlike subsampling.
+
+  These allocate *budget*; the existing grid, random and Bayesian searchers
+  choose *which points to try*. They are complementary, so no TPE sampler was
+  added — `BayesianSearchCV` already covers Bayesian point selection, and a
+  second one would be a redundant path.
+
+  Measured on `load_breast_cancer` tuning a RandomForest, cv=3, mean of 3
+  seeds: random search 0.7425 in 18.7s; successive halving 0.7226 in 5.0s
+  (3.8x); Hyperband 0.7374 in 6.0s (3.1x). Both docstrings carry that table,
+  including the part where plain halving gives up two points of score by
+  committing to one aggressive schedule.
+- **`BayesianSearchCV` is now exported from `tuiml.evaluation`.** It existed
+  in `tuiml.evaluation.tuning` but was never surfaced alongside `GridSearchCV`
+  and `RandomSearchCV`, so the documented "three strategies" were two.
 - **Six new native anomaly detectors** in `tuiml.algorithms.anomaly`, chosen
   because scikit-learn, Weka and CapyMOA offer none of them. They split into
   three groups, and which group to reach for is the whole decision:
