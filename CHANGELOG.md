@@ -62,6 +62,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     two prediction passes regardless of resolution, against one per grid point
     for partial dependence, and never evaluates the model on feature
     combinations the data does not contain.
+  - `lime_explain` — a local linear surrogate around one sample. Works on any
+    model, including ones TreeExplainer cannot touch; the docstring says to
+    check the returned `local_r2`, since the coefficients describe the
+    surrogate and say nothing if it fits badly.
+  - `counterfactual` — the smallest change that flips a prediction, anchored
+    on a real background sample so the answer stays feasible rather than
+    inventing an impossible row. Returns the per-feature delta, which is the
+    form an explanation has to take when someone is entitled to act on it.
+  - `surrogate_tree` — a shallow, readable decision tree trained on the
+    model's own predictions, with `fidelity` reporting how well it reproduces
+    them. The surrogate is a genuine TuiML tree, so TreeExplainer and the
+    dependence tools work on it.
+  - `friedman_h_statistic` — interaction strength between two features. Uses
+    centred partial dependences; without centring, a flat surface reports a
+    spurious interaction of exactly 1.0, which a test pins.
   - `Explanation` — the shared result type, carrying feature names, method and
     base value so numbers never travel bare.
 

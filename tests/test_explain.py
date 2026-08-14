@@ -417,3 +417,231 @@ def test_treeshap_rejects_a_feature_count_mismatch(linear_data):
 
     with pytest.raises(ValueError, match="features"):
         explainer.explain(X[:5, :2])
+
+
+# --------------------------------------------------------------------------
+# LIME
+# --------------------------------------------------------------------------
+
+def test_lime_identifies_the_driving_feature(linear_data):
+    """A local surrogate finds the feature the model leans on here."""
+    from tuiml.explain import lime_explain
+
+    X, y = linear_data
+    model = RandomForestRegressor(n_estimators=40, random_state=0).fit(X, y)
+    result = lime_explain(model, X[0], background=X, random_state=0)
+
+    assert result.top(1)[0][0] == "feature_0"
+    assert result.metadata["local_r2"] > 0.5
+    assert "intercept" in result.metadata
+    assert "prediction" in result.metadata
+
+
+def test_lime_works_on_a_non_tree_model(linear_data):
+    """The whole point: LIME only needs predict, so any model qualifies."""
+    from tuiml.algorithms.neighbors import KNearestNeighborsRegressor
+    from tuiml.explain import lime_explain
+
+    X, y = linear_data
+    model = KNearestNeighborsRegressor(k=5).fit(X, y)
+    result = lime_explain(model, X[3], background=X, random_state=0)
+
+    assert np.all(np.isfinite(result.values))
+    assert result.metadata["local_r2"] > 0.5
+
+
+def test_lime_local_r2_is_a_valid_bounded_fit_statistic():
+    """local_r2 is a bounded fit measure, and the recorded prediction is the
+    model's own output at the explained point.
+
+    The relationship between kernel width and fit is not monotone — a narrow
+    kernel is more linear locally but leaves few effective samples, so the fit
+    can be noisier rather than tighter. The invariant worth testing is that
+    the statistic is well-formed and that the explanation is anchored on the
+    real prediction.
+    """
+    from tuiml.explain import lime_explain
+
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(400, 2))
+    y = X[:, 0] ** 3 + rng.normal(0, 0.1, 400)     # strongly non-linear
+    model = RandomForestRegressor(n_estimators=40, random_state=0).fit(X, y)
+
+    for width in (0.3, 3.0):
+        result = lime_explain(model, X[0], background=X, kernel_width=width,
+                              random_state=0)
+        r2 = result.metadata["local_r2"]
+        assert np.isfinite(r2) and r2 <= 1.0 + 1e-9
+        assert result.metadata["prediction"] == pytest.approx(
+            float(model.predict(X[0:1])[0])
+        )
+
+
+def test_lime_reports_coefficients_in_original_units(linear_data):
+    """Coefficients are per feature unit, not per standard deviation."""
+    from tuiml.explain import lime_explain
+
+    X, y = linear_data
+    model = RandomForestRegressor(n_estimators=40, random_state=0).fit(X, y)
+
+    # Rescaling one feature by 100 must not change its *effect* coefficient
+    # once expressed in original units, so the two agree to within noise.
+    result = lime_explain(model, X[0], background=X, random_state=0)
+
+    X_scaled = X.copy()
+    X_scaled[:, 0] *= 100.0
+    model_scaled = RandomForestRegressor(n_estimators=40, random_state=0).fit(X_scaled, y)
+    result_scaled = lime_explain(model_scaled, X_scaled[0], background=X_scaled, random_state=0)
+
+    # Effect on y per unit of feature 0 is roughly unchanged.
+    assert result_scaled.values[0] == pytest.approx(result.values[0] / 100.0, rel=0.5)
+
+
+def test_lime_can_limit_the_number_of_features(linear_data):
+    """Reporting a subset zeroes the rest rather than returning fewer."""
+    from tuiml.explain import lime_explain
+
+    X, y = linear_data
+    model = RandomForestRegressor(n_estimators=40, random_state=0).fit(X, y)
+    result = lime_explain(model, X[0], background=X, n_features=2, random_state=0)
+
+    assert int((result.values != 0).sum()) == 2
+
+
+# --------------------------------------------------------------------------
+# Counterfactuals
+# --------------------------------------------------------------------------
+
+@pytest.fixture
+def binary_classification():
+    """Return data where only feature 0 decides the class."""
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(400, 3))
+    y = (X[:, 0] > 0).astype(int)
+    model = DecisionTreeClassifier(max_depth=4).fit(X, y)
+    return model, X, y
+
+
+def test_counterfactual_flips_with_one_feature(binary_classification):
+    """On a single-feature rule, one change suffices."""
+    from tuiml.explain import counterfactual
+
+    model, X, y = binary_classification
+    negative = X[model.predict(X) == 0][0]
+
+    result = counterfactual(model, negative, background=X, target=1)
+
+    assert result.metadata["found"]
+    assert result.metadata["n_changed"] == 1
+    assert int(model.predict(result.metadata["counterfactual"][None, :])[0]) == 1
+
+
+def test_counterfactual_keeps_unchanged_features_unchanged(binary_classification):
+    """Only the features that need to move, move."""
+    from tuiml.explain import counterfactual
+
+    model, X, _ = binary_classification
+    negative = X[model.predict(X) == 0][0]
+
+    result = counterfactual(model, negative, background=X, target=1)
+    changed = np.flatnonzero(result.values != 0.0)
+    for column in range(3):
+        if column not in changed:
+            assert result.metadata["counterfactual"][column] == negative[column]
+
+
+def test_counterfactual_reports_not_found_cleanly():
+    """A target absent from the background fails loudly but informatively."""
+    from tuiml.explain import counterfactual
+
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(100, 2))
+    y = np.ones(100, dtype=int)          # every background row is class 1
+    model = DecisionTreeClassifier().fit(X, y)
+
+    result = counterfactual(model, X[0], background=X, target=0)
+    assert result.metadata["found"] is False
+    assert result.metadata["distance"] == float("inf")
+
+
+def test_counterfactual_is_reproducible(binary_classification):
+    """Deterministic search on a fixed background returns the same answer."""
+    from tuiml.explain import counterfactual
+
+    model, X, _ = binary_classification
+    negative = X[model.predict(X) == 0][0]
+
+    first = counterfactual(model, negative, background=X, target=1)
+    second = counterfactual(model, negative, background=X, target=1)
+    np.testing.assert_allclose(first.metadata["counterfactual"],
+                               second.metadata["counterfactual"])
+
+
+# --------------------------------------------------------------------------
+# Surrogate tree and H-statistic
+# --------------------------------------------------------------------------
+
+def test_surrogate_tree_is_a_fitted_tuiML_tree(linear_data):
+    """The surrogate is a real estimator, so downstream tools work on it."""
+    from tuiml.explain import TreeExplainer, surrogate_tree
+
+    X, y = linear_data
+    model = RandomForestRegressor(n_estimators=40, random_state=0).fit(X, y)
+    result = surrogate_tree(model, X, max_depth=3, random_state=0)
+
+    assert result.metadata["fidelity"] > 0.7
+    tree = result.metadata["tree"]
+    assert tree.tree_ is not None
+
+    # The surrogate can itself be explained, closing the loop.
+    explainer = TreeExplainer(tree, background=X)
+    assert explainer.explain(X[:5]).values.shape == (5, 4)
+
+
+def test_surrogate_fidelity_is_bounded_by_depth(linear_data):
+    """A deeper surrogate tracks the model more closely."""
+    from tuiml.explain import surrogate_tree
+
+    X, y = linear_data
+    model = RandomForestRegressor(n_estimators=40, random_state=0).fit(X, y)
+
+    shallow = surrogate_tree(model, X, max_depth=1, random_state=0)
+    deep = surrogate_tree(model, X, max_depth=6, random_state=0)
+    assert deep.metadata["fidelity"] >= shallow.metadata["fidelity"]
+
+
+def test_friedman_h_statistic_ranks_interaction_above_additive():
+    """The H-statistic distinguishes a product term from a sum term."""
+    from tuiml.explain import friedman_h_statistic
+
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(400, 3))
+    additive = 3.0 * X[:, 0] + 2.0 * X[:, 1] + rng.normal(0, 0.2, 400)
+    interaction = 3.0 * X[:, 0] * X[:, 1] + rng.normal(0, 0.2, 400)
+
+    add_model = RandomForestRegressor(n_estimators=40, random_state=0).fit(X, additive)
+    inter_model = RandomForestRegressor(n_estimators=40, random_state=0).fit(X, interaction)
+
+    h_add = friedman_h_statistic(add_model, X, 0, 1, n_points=8, random_state=0)
+    h_inter = friedman_h_statistic(inter_model, X, 0, 1, n_points=8, random_state=0)
+
+    assert h_inter > h_add
+
+
+def test_friedman_h_is_zero_when_the_model_ignores_the_features(linear_data):
+    """Two features the model never splits on cannot interact.
+
+    A stump that only splits on feature 0 has no dependence on features 2 and
+    3 at all, so their joint surface is exactly flat and H must be 0 — not the
+    1.0 that an unguarded 0/0 resolves to.
+
+    A random forest would not do here: it splits on noise features
+    occasionally, so it has genuine (spurious) dependence on them and a
+    nonzero H is the *correct* answer for that model.
+    """
+    from tuiml.explain import friedman_h_statistic
+
+    X, y = linear_data
+    model = DecisionTreeRegressor(max_depth=1).fit(X, y)   # splits on feature 0 only
+    h = friedman_h_statistic(model, X, 2, 3, n_points=6, random_state=0)
+    assert h == 0.0

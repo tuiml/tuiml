@@ -25,6 +25,11 @@ Local — why *this* prediction
 -----------------------------
 - **TreeExplainer:** Exact Shapley values for tree models in polynomial time.
   The attributions sum to the prediction exactly.
+- **lime_explain:** A local linear surrogate around one sample. Works on any
+  model; the price is that the coefficients describe the surrogate, so check
+  the returned ``local_r2`` before trusting them.
+- **counterfactual:** The smallest change that would flip the prediction,
+  anchored on a real background sample so the answer stays feasible.
 
 Notes
 -----
@@ -41,6 +46,8 @@ from tuiml.explain.dependence import (
     individual_conditional_expectation,
     partial_dependence,
 )
+from tuiml.explain.global_ import friedman_h_statistic, surrogate_tree
+from tuiml.explain.local import counterfactual, lime_explain
 from tuiml.explain.importance import (
     drop_column_importance,
     permutation_importance,
@@ -55,4 +62,8 @@ __all__ = [
     "individual_conditional_expectation",
     "accumulated_local_effects",
     "TreeExplainer",
+    "lime_explain",
+    "counterfactual",
+    "surrogate_tree",
+    "friedman_h_statistic",
 ]
