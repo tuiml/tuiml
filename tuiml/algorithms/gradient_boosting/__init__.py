@@ -1,4 +1,4 @@
-"""Gradient boosting frameworks (XGBoost, CatBoost, LightGBM).
+"""Gradient boosting frameworks (XGBoost, CatBoost, LightGBM, NGBoost).
 
 Boosted tree ensembles, each fitting the next tree to the previous ensemble's
 errors. These are usually the strongest option on tabular data, at the cost
@@ -12,16 +12,25 @@ Algorithms
   histogram binning; fastest on wide or large data.
 - **CatBoostClassifier / CatBoostRegressor:** Ordered boosting with native
   categorical handling; strongest when categorical columns dominate.
+- **NGBoostClassifier / NGBoostRegressor:** Natural gradient boosting of a
+  proper scoring rule; predicts a calibrated distribution, not just a mean.
 
 Notes
 -----
-These wrap the three upstream libraries, which are required dependencies of
-TuiML rather than optional extras. Unlike most of :mod:`tuiml.algorithms`,
-the implementations are not native.
+XGBoost, LightGBM and CatBoost wrap the three upstream libraries, which are
+required dependencies of TuiML rather than optional extras. Unlike most of
+:mod:`tuiml.algorithms`, those implementations are not native.
+
+NGBoost is the exception: it is a native pure-NumPy implementation with no
+external dependency, boosting TuiML's own
+:class:`~tuiml.algorithms.trees.DecisionTreeRegressor` base learners. It is
+also the only member of this module that predicts a full distribution rather
+than a point estimate.
 
 Trees are scale-invariant, so feature scaling gains nothing here. Set
 ``random_state`` (or pass ``random_seed`` to :func:`tuiml.train`) for
-reproducible fits — all three sample rows and columns while boosting.
+reproducible fits — the wrapped libraries sample rows and columns while
+boosting, and NGBoost subsamples rows when ``minibatch_frac < 1``.
 """
 
 # Optional imports (require external libraries)
@@ -46,6 +55,11 @@ except Exception as e:
     LightGBMClassifier = None
     LightGBMRegressor = None
 
+from tuiml.algorithms.gradient_boosting.ngboost import (
+    NGBoostClassifier,
+    NGBoostRegressor,
+)
+
 __all__ = [
     "XGBoostClassifier",
     "XGBoostRegressor",
@@ -53,4 +67,6 @@ __all__ = [
     "CatBoostRegressor",
     "LightGBMClassifier",
     "LightGBMRegressor",
+    "NGBoostClassifier",
+    "NGBoostRegressor",
 ]

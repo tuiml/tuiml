@@ -165,6 +165,8 @@ from tuiml.algorithms.gradient_boosting import (
     CatBoostRegressor,
     LightGBMClassifier,
     LightGBMRegressor,
+    NGBoostClassifier,
+    NGBoostRegressor,
 )
 
 # Clustering algorithms
@@ -207,6 +209,26 @@ from tuiml.algorithms.timeseries import (
     ExponentialSmoothing,
     STLDecomposition,
     Prophet,
+    SARIMAX,
+    VAR,
+    ThetaForecaster,
+    TBATS,
+    CrostonForecaster,
+    NBEATSForecaster,
+    NHITSForecaster,
+    PatchTSTForecaster,
+)
+
+# Attention-based and differentiable-tree tabular models. Fitting these needs
+# ``pip install 'tuiml[torch]'``; importing and constructing them does not, so
+# the catalog is identical on every install.
+from tuiml.algorithms.tabular_foundation import (
+    FTTransformerClassifier,
+    FTTransformerRegressor,
+    SAINTClassifier,
+    SAINTRegressor,
+    NODEClassifier,
+    NODERegressor,
 )
 
 # Interpretable-by-design models
@@ -297,6 +319,9 @@ __all__ = [
     "CatBoostRegressor",
     "LightGBMClassifier",
     "LightGBMRegressor",
+    # Gradient Boosting (native)
+    "NGBoostClassifier",
+    "NGBoostRegressor",
     # Clustering
     "KMeansClusterer",
     "AgglomerativeClusterer",
@@ -324,6 +349,22 @@ __all__ = [
     "ExponentialSmoothing",
     "STLDecomposition",
     "Prophet",
+    "SARIMAX",
+    "VAR",
+    "ThetaForecaster",
+    "TBATS",
+    "CrostonForecaster",
+    # Deep forecasting (needs tuiml[torch] to fit)
+    "NBEATSForecaster",
+    "NHITSForecaster",
+    "PatchTSTForecaster",
+    # Deep tabular (needs tuiml[torch] to fit)
+    "FTTransformerClassifier",
+    "FTTransformerRegressor",
+    "SAINTClassifier",
+    "SAINTRegressor",
+    "NODEClassifier",
+    "NODERegressor",
 
     "ExplainableBoostingClassifier",
     "ExplainableBoostingRegressor",

@@ -82,6 +82,13 @@ sklearn = ["scikit-learn>=1.7.0"]
 capymoa = ["capymoa>=0.14.0"]
 weka = ["python-weka-wrapper3>=0.3.0"]
 
+# Deep-learning backend for the neural tabular and forecasting models
+# (FT-Transformer, SAINT, NODE, N-BEATS, NHITS, PatchTST). These are native
+# TuiML implementations, not wrappers, but they need a tensor library with
+# autograd. Everything else in the library — including NGBoost and every
+# classical forecaster — is pure NumPy and never touches this.
+torch = ["torch>=2.2.0"]
+
 # Framework adapters — `import tuiml.agent.<framework>` uses these lazily.
 openai        = ["openai>=1.0.0"]
 anthropic     = ["anthropic>=0.30.0"]

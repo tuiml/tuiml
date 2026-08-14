@@ -26,6 +26,11 @@ from .seed import (
     set_global_seed,
     get_global_seed,
 )
+from .torch_backend import (
+    has_torch,
+    require_torch,
+    resolve_device,
+)
 
 __all__ = [
     # Serialization
@@ -38,5 +43,9 @@ __all__ = [
     # Seed utility
     "set_global_seed",
     "get_global_seed",
+    # Optional PyTorch backend
+    "has_torch",
+    "require_torch",
+    "resolve_device",
 ]
 

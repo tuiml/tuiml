@@ -272,6 +272,81 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `pool_adjacent_violators` and `isotonic_fit` implement PAVA in O(n), used by
   `IsotonicCalibrator` and `VennAbersCalibrator`.
 
+- **`NGBoostRegressor` / `NGBoostClassifier` — probabilistic gradient
+  boosting.** Boosts against the *natural* gradient of a proper scoring rule
+  (the ordinary gradient premultiplied by the inverse Fisher information), so
+  the update is invariant to how the predicted distribution is parameterised.
+  Predicts a full distribution rather than a point: `predict_dist`,
+  `predict_interval` and `score_samples`. Normal, log-normal and exponential
+  distributions; log score and CRPS. Pure NumPy on TuiML's own C++ tree
+  learner — no scipy, no sklearn (`erf` via libm, the normal quantile by
+  Acklam plus a Halley step, inverting the CDF to 1e-12).
+
+  Calibration is the point of the method and was measured, not assumed: on a
+  known heteroscedastic Normal the fitted sigma correlates **0.959** with the
+  true noise scale (mean ratio 1.008), and a nominal 90% interval achieves
+  **89.2%** empirical coverage on held-out data. The natural gradient agrees
+  with `solve(FisherInfo, finite_difference_gradient)` to 1.0e-08, and the CRPS
+  closed form matches numerical quadrature of its definition to 1e-07. Held-out
+  RMSE is competitive with ordinary boosting (1.019 vs XGBoost's 1.036).
+
+  Note that `predict_interval` on the *classifier* returns a boolean
+  highest-probability credible set, not a numeric interval — a nominal target
+  has no ordering.
+
+- **Five classical forecasters: `SARIMAX`, `VAR`, `ThetaForecaster`, `TBATS`,
+  `CrostonForecaster`.** No new dependencies.
+
+  - `SARIMAX` — seasonal ARIMA with exogenous regressors, estimated by exact
+    Gaussian maximum likelihood through a Kalman filter, with stationarity
+    enforced by the Monahan/Jones partial-autocorrelation transform so the
+    optimiser cannot wander into an explosive region. Adds forecast intervals
+    from the Kalman variance. Recovers AR(1) phi=0.7 as 0.69662 (OLS: 0.69697),
+    a pure-exog coefficient of 3 as 3.00029, and MA(1) theta=0.6 as 0.60.
+  - `VAR` — vector autoregression; several series predicted jointly from the
+    lagged history of all of them, with AIC/BIC lag selection. Recovers a known
+    coefficient matrix to 0.021 at n=5000, and reduces to univariate AR(1) OLS
+    bit-identically on one series. Accepts a 1-D series as a single-series
+    panel.
+  - `ThetaForecaster` — verified against Hyndman & Billah's equivalence result:
+    the standard method is simple exponential smoothing with drift b/2, matched
+    to **1.4e-14** across six alpha values, three seeds and horizons 1-24.
+    Optional deseasonalisation gated on an ACF seasonality test.
+  - `TBATS` — trigonometric seasonality, which is what lets it take
+    high-frequency and **non-integer** seasonal periods (365.25) that seasonal
+    ARIMA cannot represent. Multiple simultaneous periods, Box-Cox, damped
+    trend. On a two-sinusoid-plus-trend series it forecasts to MAE 0.0004
+    against a 1.918 no-seasonality baseline; a 52.18-period series gives MAE
+    3.1e-14.
+  - `CrostonForecaster` — intermittent demand, smoothing demand sizes and
+    inter-arrival intervals separately. `classic`, `sba`, `sbj` and `tsb`
+    variants; on demand 10 every 4 periods the classic forecast is exactly 2.5
+    and SBA exactly 2.5(1 - alpha/2).
+
+- **New optional `tuiml[torch]` extra, and six neural algorithms behind it.**
+  `tuiml/algorithms/tabular_foundation/` adds `FTTransformerClassifier` /
+  `Regressor` (per-feature tokenisation plus a CLS token through pre-norm
+  Transformer blocks), `SAINTClassifier` / `Regressor` (attention across *rows*
+  as well as features) and `NODEClassifier` / `Regressor` (differentiable
+  oblivious decision trees over a self-implemented `entmax15`).
+  `tuiml/algorithms/timeseries/deep/` adds `NBEATSForecaster` (doubly-residual
+  stacking, generic and interpretable bases), `NHITSForecaster` (multi-rate
+  pooling and hierarchical interpolation) and `PatchTSTForecaster` (patch
+  tokens, channel independence, RevIN instance normalisation).
+
+  All six learn: 0.98-0.99 accuracy on an XOR-style target where a linear model
+  gets 0.5, and R^2 0.98-0.99 on a non-linear regression. The forecasters beat
+  a naive baseline by four to six orders of magnitude on a clean signal.
+
+  **torch stays genuinely optional, at three levels.** Importing TuiML never
+  imports torch, so the catalog is byte-identical on either install — all 243
+  algorithms are listed and their schemas readable with torch absent.
+  Constructing a model never needs torch, so parameter grids and pickling work
+  everywhere. Only `fit` requires it, and raises an `ImportError` naming the
+  class and the exact command, `pip install 'tuiml[torch]'`. Enforced centrally
+  by `tuiml.utils.torch_backend` and pinned by an AST test asserting no
+  module-scope torch import anywhere in either package.
+
 ### Changed
 - **`curl … | install.sh | bash` now installs a release, and asks first.** The
   installer only ever installed from `git+https://github.com/tuiml/tuiml.git`,
@@ -323,6 +398,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   still reported on every channel.
 
 ### Fixed
+- **Interpreter segfault when a neural model was fitted after any boosting
+  import (macOS).** torch bundles its own `libomp.dylib`, while xgboost,
+  LightGBM and CatBoost each resolve `@rpath/libomp.dylib` to a different copy.
+  Because `tuiml.algorithms` imports all three eagerly, a lazily-imported torch
+  landed in a process holding two OpenMP runtimes and the first `LayerNorm`
+  killed the interpreter with SIGSEGV and no traceback.
+
+  Importing torch *first* avoids it entirely, and `OMP_NUM_THREADS=1` or
+  `torch.set_num_threads(1)` both fix it; the usual `KMP_DUPLICATE_LIB_OK=TRUE`
+  advice does **not** — it still segfaults. Both neural packages now clamp
+  torch to one thread once, on darwin only, and only when a conflicting module
+  is already loaded.
+
+  This is a mitigation, not a cure: it costs multi-threaded torch on macOS,
+  and it does so in every session, because the boosting libraries are
+  unconditional hard dependencies. The real fix is to make xgboost, LightGBM
+  and CatBoost an optional extra — they are third-party wrappers sitting in a
+  core namespace, which the project's own dependency policy says should not
+  happen. Tracked separately as a breaking change.
+
 - **Exported notebooks failed on user algorithms authored in an earlier
   session.** `tuiml_export_notebook` inlines a user algorithm's source only
   when the session recorded the `tuiml_create_algorithm` call that wrote it.
