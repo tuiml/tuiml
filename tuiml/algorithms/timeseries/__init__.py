@@ -16,6 +16,12 @@ Algorithms
 - **STLDecomposition:** Splits a series into trend, seasonal and residual
   components.
 
+Classification
+--------------
+:mod:`tuiml.algorithms.timeseries.classification` is a separate task: it
+labels a *whole series* by its shape rather than forecasting its next value.
+See :class:`~tuiml.algorithms.timeseries.classification.DTWNeighborsClassifier`.
+
 Notes
 -----
 These subclass :class:`~tuiml.base.algorithms.Regressor`, not ``Classifier``:
@@ -41,6 +47,16 @@ from tuiml.algorithms.timeseries.prophet import Prophet
 # Decomposition
 from tuiml.algorithms.timeseries.stl_decomposition import STLDecomposition
 
+# Whole-series classification. Imported here so the registry, which discovers
+# components by importing tuiml.algorithms, sees these too.
+from tuiml.algorithms.timeseries.classification import (
+    DTWNeighborsClassifier,
+    MiniRocketClassifier,
+    MiniRocketTransformer,
+    ShapeletTransformClassifier,
+    TimeSeriesClassifier,
+)
+
 __all__ = [
     # Base classes
     "Regressor",
@@ -57,4 +73,9 @@ __all__ = [
     "Prophet",
     # Decomposition
     "STLDecomposition",
+    "TimeSeriesClassifier",
+    "DTWNeighborsClassifier",
+    "MiniRocketClassifier",
+    "MiniRocketTransformer",
+    "ShapeletTransformClassifier",
 ]

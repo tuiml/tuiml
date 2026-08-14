@@ -7,6 +7,140 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **New `tuiml.uncertainty` package — conformal prediction and probability
+  calibration.** TuiML could rank and predict, but it could not say how sure it
+  was, and nothing in the library measured whether a probability meant
+  anything. Neither scikit-learn, Weka nor CapyMOA offers conformal
+  prediction, so this is native:
+
+  - `SplitConformalClassifier` / `SplitConformalRegressor` — prediction sets
+    and intervals with a **distribution-free, finite-sample** guarantee of at
+    least `1 - alpha` coverage. LAC and margin nonconformity scores; optional
+    difficulty normalisation gives locally adaptive interval widths.
+  - `CVPlusRegressor` / `JackknifePlusRegressor` — cross-fitting instead of a
+    held-out calibration split, so all the data trains *and* all of it
+    calibrates, at the cost of `k` model fits.
+  - `APSConformalClassifier` / `RAPSConformalClassifier` — adaptive sets that
+    grow on ambiguous inputs. Measured on a noisy 4-class problem: APS lifts
+    worst-class coverage from 0.866 to 0.893 for a set size of 3.08 vs 2.64.
+  - `MondrianConformalClassifier` — a separate threshold per class or group,
+    giving **conditional** rather than merely marginal coverage. On an
+    imbalanced problem where plain split conformal covered the rare class only
+    3.6% of the time, Mondrian covers it fully.
+  - `ConformalizedQuantileRegressor` — heteroscedastic intervals from a pair of
+    quantile models; width correlates 0.97 with the input on funnel-shaped
+    noise, where split conformal's is constant by construction.
+  - `VennAbersCalibrator` — probability *intervals* that report their own
+    calibration uncertainty; the width shrinks as the calibration set grows.
+  - `PlattCalibrator`, `IsotonicCalibrator`, `TemperatureScaler`,
+    `VectorScaler` — post-processors mapping raw scores to probabilities you
+    can act on. Temperature scaling provably preserves accuracy.
+  - `coverage_score`, `average_set_size`, `interval_width`, `brier_score`,
+    `expected_calibration_error`, `maximum_calibration_error`,
+    `reliability_curve` — the metrics that verify the above.
+
+  These wrap an already-fitted model rather than being algorithms, so they are
+  not registered in the algorithm hub.
+- **Six new native anomaly detectors** in `tuiml.algorithms.anomaly`, chosen
+  because scikit-learn, Weka and CapyMOA offer none of them. They split into
+  three groups, and which group to reach for is the whole decision:
+
+  - **Per-feature, very fast** — `ECODDetector`, `COPODDetector`,
+    `HBOSDetector`. Parameter-free (ECOD/COPOD), invariant to monotone
+    rescaling, and scale to high dimension. On 1500 points in 20 dimensions
+    they reach AUC 1.00 in **1-6 ms** against IsolationForest's 958 ms.
+    `ECODDetector.feature_contributions()` names the features that caused each
+    flag; `HBOSDetector` keeps no training data, so the fitted model stays
+    small however large the training set.
+  - **Joint-structure** — `KNNDetector`, `ABODDetector`. Slower, but they see
+    what the first group cannot. On anomalies that are ordinary in every
+    individual feature and only strange in combination, `KNNDetector` scores
+    AUC 0.955 where `ECODDetector` scores 0.243 — worse than chance. In 120
+    dimensions the reverse holds for LocalOutlierFactor, which falls to 0.56
+    while kNN, ABOD and ECOD all reach 1.00.
+
+  - **Ensemble** — `LSCPDetector`. Picks the best base detector separately for
+    each point's own neighbourhood instead of assuming one wins everywhere. On
+    mixed-density data where kNN scores 0.47 at `k=5` and 0.99 at `k=35`, a
+    plain average of that pool manages only 0.69 while LSCP reaches 0.98 —
+    without being told which `k` to trust. `local_competence()` exposes which
+    detector was selected where. It costs roughly an order of magnitude more
+    than its slowest member, so the docstring says plainly to benchmark it
+    against averaging the same pool before adopting it.
+
+  Both `KNNDetector` and `ABODDetector` are verified against brute-force
+  implementations of their published formulas. `ABODDetector` carries an
+  explicit warning with measurements: a tight group of anomalies masks itself
+  and **inverts** the ranking (AUC 0.00 at cluster spread 0.05), so bursty
+  anomalies belong to kNN or ECOD instead. `KNNDetector` has a milder form of
+  the same effect and documents the fix — set `n_neighbors` above the largest
+  anomaly group you expect.
+- **New `tuiml.algorithms.timeseries.classification` subpackage — a task type
+  the library could not serve at all.** The existing `timeseries` package only
+  forecasts; classifying a *whole series* by its shape is a different problem,
+  and flattening a series into columns for an ordinary classifier throws away
+  the time ordering that carries the signal. Nothing in scikit-learn, Weka or
+  CapyMOA covers it.
+
+  - `MiniRocketClassifier` / `MiniRocketTransformer` — 84 fixed dilated
+    kernels summarised by proportion of positive values, then a linear head.
+    On a synthetic problem where the class is the *frequency* of a burst
+    hidden at a random position (amplitude, phase, sign and position
+    randomised, series z-normalised, so no energy cue survives): **0.983**
+    against Euclidean 1NN's 0.895, DTW's 0.772 and RandomForest's 0.590 — and
+    it predicted in 168 ms where DTW took 12.9 seconds. Prediction cost is
+    flat in training-set size, which is the reason to reach for it first.
+  - `ShapeletTransformClassifier` — finds the short subsequences that separate
+    the classes and represents each series by its distance to them. The
+    **interpretable** member of the family: `shapelets_` holds real
+    subsequences you can plot, and `shapelet_info_` records which training
+    series, channel and position each came from. Verified against ground truth
+    on a planted-motif problem — the top five shapelets all came from series
+    containing the motif, at windows overlapping where it was planted.
+  - `DTWNeighborsClassifier` — nearest neighbour under Dynamic Time Warping,
+    the field's standard baseline. Univariate and multivariate panels,
+    unequal lengths, uniform or distance weighting, Sakoe-Chiba band.
+  - `dtw_distance`, `dtw_pairwise`, `lb_keogh`, `lb_keogh_envelope`,
+    `as_panel` as public building blocks.
+
+  The docstring documents, with measurements, the caveat that decides whether
+  to use it at all: DTW is deliberately blind to *when* things happen, so when
+  the classes differ by **shape** it scores 1.000 against Euclidean 1NN's 0.969
+  and RandomForest's 0.925 — but when the classes differ by **timing** the same
+  invariance destroys the only signal there is and DTW drops to 0.812 while
+  Euclidean gets 1.000.
+- **New shared C++ kernel `tuiml._cpp_ext.timeseries`.** `shapelet_distances`
+  computes the minimum z-normalised distance from each series to each shapelet,
+  folding the window normalisation into the algebra so only one dot product per
+  window is needed. It centres each series first: the running variance is
+  `E[x^2] - mean^2`, which cancels catastrophically far from zero, and without
+  centring a series offset by 1e6 drifted ~4e-2 from the same series at zero.
+  Also `minirocket_transform`
+  and `minirocket_biases` exploit the algebraic shortcut that makes MINIROCKET
+  fast: a kernel is -1 everywhere except three positions holding +2, so the
+  all -1 convolution is computed once per dilation and the nine corrections
+  cached, after which each of the 84 kernels costs three vector additions
+  instead of a fresh convolution. Verified against a direct dilated
+  convolution across 16 (kernel, dilation) combinations. Also `dtw_distance` (with
+  Sakoe-Chiba banding and early abandoning), `lb_keogh` / `lb_keogh_envelope`
+  (O(n) envelope via a monotonic deque) and `dtw_pairwise` / `dtw_knn`. The
+  kNN path orders candidates by their lower bound and skips any that cannot
+  beat the running k-th best: **12.6x** faster than building the full distance
+  matrix on 60 queries against 400 series of length 100, returning bit-identical
+  neighbours. DTW is verified against a direct implementation of the recurrence,
+  and LB_Keogh is tested to never exceed the true distance — if it did, the
+  pruning would silently return wrong answers.
+- **New shared C++ kernels `tuiml._cpp_ext.stats`.** Beyond the PAVA kernel:
+  `tail_probabilities` (per-dimension empirical CDF by sorted binary search,
+  floored so `-log` stays finite), `skewness` (adjusted Fisher-Pearson,
+  matching `scipy.stats.skew(bias=False)`), `equal_width_histogram`,
+  `equal_frequency_histogram` and `histogram_density`. All are OpenMP-parallel
+  over dimensions and verified against numpy/scipy references. The histogram
+  pair is reusable by `tuiml.preprocessing.discretization`.
+  `pool_adjacent_violators` and `isotonic_fit` implement PAVA in O(n), used by
+  `IsotonicCalibrator` and `VennAbersCalibrator`.
+
 ### Changed
 - **`curl … | install.sh | bash` now installs a release, and asks first.** The
   installer only ever installed from `git+https://github.com/tuiml/tuiml.git`,

@@ -15,6 +15,12 @@
 #include "linear/sgd.h"
 #include "clustering/hierarchical.h"
 #include "clustering/em.h"
+#include "stats/pava.h"
+#include "stats/ecdf.h"
+#include "stats/histogram.h"
+#include "timeseries/dtw.h"
+#include "timeseries/convolution.h"
+#include "timeseries/shapelet.h"
 
 namespace py = pybind11;
 
@@ -298,4 +304,95 @@ PYBIND11_MODULE(_cpp_ext, m) {
 #else
     m.attr("has_openmp") = false;
 #endif
+
+    // ── stats submodule ────────────────────────────────────────────────
+    auto stats = m.def_submodule("stats", "Shared statistical kernels");
+
+    stats.def("pool_adjacent_violators",
+              &tuiml::stats::pool_adjacent_violators,
+              py::arg("y"), py::arg("w"), py::arg("increasing") = true,
+              "Isotonic least-squares fit of a pre-sorted sequence (PAVA).");
+
+    stats.def("isotonic_fit",
+              &tuiml::stats::isotonic_fit,
+              py::arg("x"), py::arg("y"), py::arg("w"),
+              py::arg("increasing") = true,
+              "Sort by x, then PAVA; returns (x_sorted, fitted).");
+
+    stats.def("tail_probabilities",
+              &tuiml::stats::tail_probabilities,
+              py::arg("X_train"), py::arg("X_query"),
+              "Per-dimension empirical left/right tail probabilities.");
+
+    stats.def("skewness",
+              &tuiml::stats::skewness,
+              py::arg("X"),
+              "Adjusted Fisher-Pearson skewness of each column.");
+
+    stats.def("equal_width_histogram",
+              &tuiml::stats::equal_width_histogram,
+              py::arg("X"), py::arg("n_bins"),
+              "Per-dimension equal-width histogram; returns (edges, density).");
+
+    stats.def("equal_frequency_histogram",
+              &tuiml::stats::equal_frequency_histogram,
+              py::arg("X"), py::arg("n_bins"),
+              "Per-dimension quantile histogram; returns (edges, density).");
+
+    stats.def("histogram_density",
+              &tuiml::stats::histogram_density,
+              py::arg("edges"), py::arg("density"), py::arg("X_query"),
+              "Density of each query value under a fitted histogram.");
+
+    // ── timeseries submodule ───────────────────────────────────────────
+    auto ts = m.def_submodule("timeseries", "Time-series kernels");
+
+    ts.def("dtw_distance",
+           &tuiml::timeseries::dtw_distance,
+           py::arg("a"), py::arg("b"), py::arg("window") = -1,
+           py::arg("cutoff") = 0.0,
+           "DTW distance between two univariate series.");
+
+    ts.def("lb_keogh_envelope",
+           &tuiml::timeseries::lb_keogh_envelope,
+           py::arg("series"), py::arg("window"),
+           "Running min/max envelope under a Sakoe-Chiba band.");
+
+    ts.def("lb_keogh",
+           &tuiml::timeseries::lb_keogh,
+           py::arg("query"), py::arg("lower"), py::arg("upper"),
+           "LB_Keogh lower bound of the DTW distance.");
+
+    ts.def("dtw_pairwise",
+           &tuiml::timeseries::dtw_pairwise,
+           py::arg("A"), py::arg("B"), py::arg("window") = -1,
+           "Full pairwise DTW matrix over (n, channels, length) inputs.");
+
+    ts.def("dtw_knn",
+           &tuiml::timeseries::dtw_knn,
+           py::arg("A"), py::arg("B"), py::arg("k"), py::arg("window") = -1,
+           "k nearest neighbours under DTW, with LB_Keogh pruning.");
+
+    ts.def("minirocket_kernel_indices",
+           &tuiml::timeseries::minirocket_kernel_indices,
+           "The 84 fixed MINIROCKET kernels as (84, 3) gamma positions.");
+
+    ts.def("minirocket_biases",
+           &tuiml::timeseries::minirocket_biases,
+           py::arg("X"), py::arg("dilations"),
+           py::arg("features_per_dilation"), py::arg("quantiles"),
+           py::arg("seed"),
+           "Fit MINIROCKET bias quantiles from convolution output.");
+
+    ts.def("minirocket_transform",
+           &tuiml::timeseries::minirocket_transform,
+           py::arg("X"), py::arg("dilations"),
+           py::arg("features_per_dilation"), py::arg("biases"),
+           "Apply a fitted MINIROCKET transform, returning PPV features.");
+
+    ts.def("shapelet_distances",
+           &tuiml::timeseries::shapelet_distances,
+           py::arg("X"), py::arg("shapelets"), py::arg("offsets"),
+           py::arg("lengths"),
+           "Minimum z-normalised distance from each series to each shapelet.");
 }
