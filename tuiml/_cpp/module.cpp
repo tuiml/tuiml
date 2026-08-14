@@ -21,6 +21,7 @@
 #include "timeseries/dtw.h"
 #include "timeseries/convolution.h"
 #include "timeseries/shapelet.h"
+#include "timeseries/sfa.h"
 
 namespace py = pybind11;
 
@@ -395,4 +396,10 @@ PYBIND11_MODULE(_cpp_ext, m) {
            py::arg("X"), py::arg("shapelets"), py::arg("offsets"),
            py::arg("lengths"),
            "Minimum z-normalised distance from each series to each shapelet.");
+
+    ts.def("sfa_transform",
+           &tuiml::timeseries::sfa_transform,
+           py::arg("X"), py::arg("window_size"), py::arg("word_length"),
+           py::arg("norm_mean") = true,
+           "Low-frequency DFT coefficients of every sliding window (SFA).");
 }

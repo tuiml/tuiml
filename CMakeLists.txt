@@ -33,6 +33,7 @@ pybind11_add_module(_cpp_ext
     tuiml/_cpp/timeseries/dtw.cpp
     tuiml/_cpp/timeseries/convolution.cpp
     tuiml/_cpp/timeseries/shapelet.cpp
+    tuiml/_cpp/timeseries/sfa.cpp
 )
 
 target_include_directories(_cpp_ext PRIVATE

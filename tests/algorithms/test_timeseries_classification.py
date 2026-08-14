@@ -908,3 +908,211 @@ def test_shapelet_invalid_arguments_rejected():
         ShapeletTransformClassifier(quality="nonsense")
     with pytest.raises(ValueError, match="n_candidates"):
         ShapeletTransformClassifier(n_shapelets=100, n_candidates=10)
+
+
+# --------------------------------------------------------------------------
+# BOSS dictionary classification
+# --------------------------------------------------------------------------
+
+@pytest.fixture
+def motif_count():
+    """Return data whose class is *how many times* a motif repeats.
+
+    Positions are random, so the signal is position-invariant content — what a
+    bag-of-words representation is built to capture and what a pointwise
+    comparison cannot.
+    """
+    length = 400
+    motif = np.concatenate([np.linspace(0, 3, 12), np.linspace(3, 0, 12)])
+
+    def build(n, seed):
+        """Generate n series with 2 or 6 copies of the motif."""
+        rng = np.random.default_rng(seed)
+        X, y = [], []
+        for i in range(n):
+            cls = i % 2
+            series = rng.normal(0, 0.5, length)
+            for _ in range(2 if cls == 0 else 6):
+                start = rng.integers(0, length - len(motif))
+                series[start : start + len(motif)] += motif
+            X.append(series)
+            y.append(cls)
+        return np.array(X), np.array(y)
+
+    return build(120, 0), build(120, 1)
+
+
+def test_sfa_matches_a_direct_dft():
+    """The incremental sliding DFT equals recomputing each window from scratch.
+
+    Both the normalised and unnormalised paths are checked: the kernel centres
+    the series only in the normalised case, since that is the one where the DC
+    coefficient is discarded and a constant shift is therefore irrelevant.
+    """
+    def reference(series, window, word_length, norm_mean):
+        """Take a fresh DFT of every window, with no incremental update."""
+        n_coefficients = (word_length + 1) // 2 + (1 if norm_mean else 0)
+        rows = []
+        for start in range(len(series) - window + 1):
+            values = series[start : start + window]
+            spectrum = np.fft.fft(values)[:n_coefficients]
+            scale = 1.0
+            if norm_mean:
+                spread = values.std()
+                scale = 1.0 / spread if spread > 1e-6 else 1.0
+            first = 1 if norm_mean else 0
+            rows.append([
+                (
+                    spectrum[first + f // 2].real
+                    if f % 2 == 0
+                    else spectrum[first + f // 2].imag
+                )
+                * scale
+                / window
+                for f in range(word_length)
+            ])
+        return np.array(rows)
+
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(4, 120))
+
+    for window, word_length, norm_mean in (
+        (16, 8, True), (32, 6, True), (20, 4, False), (60, 10, True), (12, 2, False)
+    ):
+        actual = np.asarray(cpp_ts.sfa_transform(X, window, word_length, norm_mean))
+        expected = np.stack(
+            [reference(X[i], window, word_length, norm_mean) for i in range(4)]
+        )
+        np.testing.assert_allclose(actual, expected, atol=1e-8)
+
+
+def test_sfa_normalised_output_survives_a_large_offset():
+    """Window normalisation makes the output shift-invariant, precisely."""
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(4, 120))
+    baseline = np.asarray(cpp_ts.sfa_transform(X, 32, 8, True))
+    for offset in (1e3, 1e6):
+        shifted = np.asarray(cpp_ts.sfa_transform(X + offset, 32, 8, True))
+        np.testing.assert_allclose(shifted, baseline, atol=1e-8)
+
+
+def test_boss_beats_a_pointwise_comparison_on_motif_counts(motif_count):
+    """Position-invariant content is where a bag-of-words earns its place."""
+    from tuiml.algorithms.neighbors import KNearestNeighborsClassifier
+    from tuiml.algorithms.timeseries.classification import BOSSClassifier
+
+    (X_train, y_train), (X_test, y_test) = motif_count
+
+    boss = BOSSClassifier(window_size=40, word_length=6).fit(X_train, y_train)
+    euclidean = KNearestNeighborsClassifier(k=1).fit(X_train, y_train)
+
+    boss_accuracy = (boss.predict(X_test) == y_test).mean()
+    euclidean_accuracy = (euclidean.predict(X_test) == y_test).mean()
+
+    assert boss_accuracy > 0.75
+    assert boss_accuracy > euclidean_accuracy
+
+
+def test_boss_distance_is_asymmetric():
+    """The measure only counts words the *query* has, which breaks symmetry."""
+    from tuiml.algorithms.timeseries.classification.dictionary import _boss_distance
+
+    query = np.array([2.0, 0.0, 1.0])
+    reference = np.array([[2.0, 9.0, 1.0]])
+
+    # The reference's extra word (index 1) is invisible from the query's side.
+    assert _boss_distance(query, reference)[0] == pytest.approx(0.0)
+    # From the other direction it dominates.
+    assert _boss_distance(reference[0], query[None, :])[0] == pytest.approx(81.0)
+
+
+def test_boss_applies_numerosity_reduction():
+    """A constant stretch must not swamp the histogram by sheer duration."""
+    from tuiml.algorithms.timeseries.classification import BOSSClassifier
+
+    rng = np.random.default_rng(0)
+    varied = rng.normal(size=(4, 200))
+    # A long flat run produces the same word over and over.
+    flat = np.concatenate([rng.normal(size=(4, 40)), np.zeros((4, 160))], axis=1)
+
+    X = np.vstack([varied, flat])
+    y = np.array([0, 0, 0, 0, 1, 1, 1, 1])
+    model = BOSSClassifier(window_size=30, word_length=4).fit(X, y)
+
+    histograms = model.transform(X)
+    n_windows = X.shape[1] - model.window_size_ + 1
+    # Without numerosity reduction each series would contribute n_windows
+    # counts; collapsing runs must leave the flat series well below that.
+    assert histograms[4:].sum(axis=1).max() < n_windows
+    assert histograms.sum() > 0
+
+
+def test_boss_breakpoints_are_strictly_increasing():
+    """Tied quantiles would silently shrink the alphabet; they are nudged apart."""
+    from tuiml.algorithms.timeseries.classification import BOSSClassifier
+
+    rng = np.random.default_rng(0)
+    # A largely constant panel produces heavily tied coefficients.
+    X = np.zeros((10, 120))
+    X[:, ::20] = rng.normal(size=(10, 6))
+    y = np.arange(10) % 2
+
+    model = BOSSClassifier(window_size=30, word_length=4, alphabet_size=4).fit(X, y)
+    assert model.breakpoints_.shape == (4, 3)
+    assert np.all(np.diff(model.breakpoints_, axis=1) > 0)
+
+
+def test_boss_histograms_align_with_the_vocabulary(motif_count):
+    """transform() returns counts over the fitted vocabulary, unseen words dropped."""
+    from tuiml.algorithms.timeseries.classification import BOSSClassifier
+
+    (X_train, y_train), (X_test, _) = motif_count
+    model = BOSSClassifier(window_size=40, word_length=6).fit(X_train, y_train)
+
+    histograms = model.transform(X_test)
+    assert histograms.shape == (len(X_test), len(model.vocabulary_))
+    assert np.all(histograms >= 0)
+    assert np.all(np.isfinite(histograms))
+    assert np.all(np.diff(model.vocabulary_) > 0)  # sorted, for searchsorted
+
+
+def test_boss_predict_proba_is_a_distribution(motif_count):
+    """Vote shares are non-negative and sum to one."""
+    from tuiml.algorithms.timeseries.classification import BOSSClassifier
+
+    (X_train, y_train), (X_test, _) = motif_count
+    model = BOSSClassifier(window_size=40, word_length=6, n_neighbors=3).fit(
+        X_train, y_train
+    )
+    proba = model.predict_proba(X_test[:20])
+
+    assert proba.shape == (20, len(model.classes_))
+    assert np.all(proba >= 0.0)
+    np.testing.assert_allclose(proba.sum(axis=1), 1.0)
+
+
+def test_boss_handles_multivariate_input():
+    """Channels are pooled into one bag of patterns."""
+    from tuiml.algorithms.timeseries.classification import BOSSClassifier
+
+    rng = np.random.default_rng(0)
+    t = np.linspace(0, 8 * np.pi, 160)
+    slow = np.stack([np.sin(t), np.cos(t)])[None].repeat(20, 0)
+    fast = np.stack([np.sin(4 * t), np.cos(4 * t)])[None].repeat(20, 0)
+    X = np.concatenate([slow, fast]) + rng.normal(0, 0.2, (40, 2, 160))
+    y = np.array([0] * 20 + [1] * 20)
+
+    model = BOSSClassifier(window_size=40, word_length=6).fit(X, y)
+    assert (model.predict(X) == y).mean() > 0.9
+
+
+def test_boss_invalid_arguments_rejected():
+    """Degenerate configuration is caught at construction."""
+    from tuiml.algorithms.timeseries.classification import BOSSClassifier
+
+    with pytest.raises(ValueError, match="alphabet_size"):
+        BOSSClassifier(alphabet_size=1)
+    with pytest.raises(ValueError, match="word_length"):
+        BOSSClassifier(word_length=0)
+    with pytest.raises(ValueError, match="n_neighbors"):
+        BOSSClassifier(n_neighbors=0)

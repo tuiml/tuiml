@@ -91,6 +91,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     against Euclidean 1NN's 0.895, DTW's 0.772 and RandomForest's 0.590 — and
     it predicted in 168 ms where DTW took 12.9 seconds. Prediction cost is
     flat in training-set size, which is the reason to reach for it first.
+  - `BOSSClassifier` — bag of symbolic words built from low-frequency Fourier
+    coefficients of sliding windows, classified by the asymmetric BOSS
+    distance. A genuinely different view: what patterns a series contains and
+    how often, discarding where. It beats a Euclidean neighbour decisively
+    when position varies (0.844 against 0.588 on a motif-count problem) but
+    `MiniRocketClassifier` beat it on every problem measured, so the docstring
+    positions it as a **diverse ensemble component** rather than a standalone
+    winner — which is why every strong meta-ensemble includes a dictionary
+    member.
   - `ShapeletTransformClassifier` — finds the short subsequences that separate
     the classes and represents each series by its distance to them. The
     **interpretable** member of the family: `shapelets_` holds real
@@ -110,7 +119,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and RandomForest's 0.925 — but when the classes differ by **timing** the same
   invariance destroys the only signal there is and DTW drops to 0.812 while
   Euclidean gets 1.000.
-- **New shared C++ kernel `tuiml._cpp_ext.timeseries`.** `shapelet_distances`
+- **New shared C++ kernel `tuiml._cpp_ext.timeseries`.** `sfa_transform`
+  computes the low-frequency DFT of every sliding window, advancing the window
+  with the momentary Fourier transform so each step costs one complex multiply
+  per coefficient instead of a fresh transform. Verified against a direct DFT
+  across five window/word/normalisation configurations. Also `shapelet_distances`
   computes the minimum z-normalised distance from each series to each shapelet,
   folding the window normalisation into the algebra so only one dot product per
   window is needed. It centres each series first: the running variance is

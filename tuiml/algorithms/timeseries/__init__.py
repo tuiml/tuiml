@@ -50,6 +50,7 @@ from tuiml.algorithms.timeseries.stl_decomposition import STLDecomposition
 # Whole-series classification. Imported here so the registry, which discovers
 # components by importing tuiml.algorithms, sees these too.
 from tuiml.algorithms.timeseries.classification import (
+    BOSSClassifier,
     DTWNeighborsClassifier,
     MiniRocketClassifier,
     MiniRocketTransformer,
@@ -78,4 +79,5 @@ __all__ = [
     "MiniRocketClassifier",
     "MiniRocketTransformer",
     "ShapeletTransformClassifier",
+    "BOSSClassifier",
 ]
