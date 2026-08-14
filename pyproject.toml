@@ -112,6 +112,18 @@ backends = [
     "capymoa>=0.14.0",
     "python-weka-wrapper3>=0.3.0",
 ]
+# Pretrained tabular foundation models — `foundation.TabICLClassifier` and
+# `foundation.TabICLRegressor`. Wraps the upstream `tabicl` package, which
+# pulls torch itself and downloads its own ~150 MB checkpoint on first use.
+#
+# TuiML ships no model weights. TabICL's code *and* weights are BSD-3-Clause,
+# matching TuiML's own license, so there is nothing for a user to accept. That
+# is the reason it is the only foundation model integrated: several others
+# (TabPFN, Google's TabFM) publish weights under non-commercial terms, which a
+# BSD-3 wrapper cannot relicense.
+foundation = [
+    "tabicl>=2.1.0",
+]
 
 [project.urls]
 Homepage = "https://tuiml.ai"

@@ -347,6 +347,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   by `tuiml.utils.torch_backend` and pinned by an AST test asserting no
   module-scope torch import anywhere in either package.
 
+- **`foundation.TabICLClassifier` / `foundation.TabICLRegressor` — the first
+  pretrained tabular foundation model, behind a new `tuiml[foundation]`
+  extra.** TabICL predicts *without training*: your rows are fed to a frozen
+  transformer as in-context examples and the answer comes out of one forward
+  pass. There is no gradient step, no tuning, and no fitted coefficient — `fit`
+  only memorises the training set, and essentially all the compute lands in
+  `predict`, which is the reverse of every other algorithm in TuiML. On a
+  non-linear target where a linear model scores 0.5, it reaches 1.0 held-out
+  accuracy with zero training.
+
+  Registered under the `foundation.` namespace, like `sklearn.SVC` and
+  `weka.J48`, because TuiML delegates to the upstream `tabicl` package rather
+  than running its own implementation. The namespace also keeps these out of
+  the generic contract sweep, which fits every algorithm it finds — and these
+  would each pull a checkpoint over the network.
+
+  **TuiML ships no model weights, and that is a deliberate constraint rather
+  than an implementation detail.** The upstream package downloads its own
+  ~150 MB checkpoint on first use, so that transfer is between the user and
+  the publisher, under the publisher's license. TabICL is the only tabular
+  foundation model integrated because its **weights** are BSD-3-Clause, the
+  same license as TuiML: nothing for a user to accept, no commercial-use
+  restriction. Others — TabPFN, Google's TabFM — publish weights restricted to
+  non-commercial use, and a BSD-3 wrapper cannot relicense what it wraps, so
+  integrating those would need a consent gate that deliberately does not exist
+  yet. A test asserts no checkpoint file ever lands inside the installed
+  package.
+
+- **The installer now detects your GPU and offers the neural extras.**
+  `install.sh` probes for CUDA (via `nvidia-smi`, including VRAM), ROCm and
+  Apple Silicon's Metal backend, then offers `tuiml[torch]` and
+  `tuiml[foundation]` — defaulting to yes when an accelerator is present and
+  to no when it is not, since both work on CPU but slowly. Warns below 8 GB of
+  VRAM. `TUIML_GPU=cuda|rocm|mps|cpu` skips the probe and
+  `TUIML_EXTRAS="torch,foundation"` skips the questions. An `nvidia-smi` that
+  is present but failing — a common driver-mismatch state — is treated as no
+  GPU rather than trusted.
+
 ### Changed
 - **`curl … | install.sh | bash` now installs a release, and asks first.** The
   installer only ever installed from `git+https://github.com/tuiml/tuiml.git`,

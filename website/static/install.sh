@@ -10,6 +10,10 @@
 #      (scikit-learn wrappers, CapyMOA streaming wrappers, Weka wrappers),
 #      and warns if a JVM-backed extra (CapyMOA, Weka) was picked without a
 #      Java runtime on PATH
+#   4b. Detects your GPU (CUDA / ROCm / Apple Metal) and, if one is present,
+#      offers the PyTorch-backed neural models and the TabICL foundation
+#      model. Both work on CPU too, so they are still offered — just not
+#      defaulted to yes
 #   5. Installs tuiml — the latest PyPI release by default
 #   6. Verifies the install
 #   7. Prompts you to run `tuiml setup` to wire up your AI agent
@@ -29,6 +33,9 @@
 #   Set TUIML_EXTRAS to skip the prompts, e.g.
 #     curl -fsSL https://tuiml.ai/install.sh | TUIML_EXTRAS="sklearn,capymoa,weka" bash
 #     curl -fsSL https://tuiml.ai/install.sh | TUIML_EXTRAS="none" bash   # core only
+#     curl -fsSL https://tuiml.ai/install.sh | TUIML_EXTRAS="torch,foundation" bash
+#
+#   Skip GPU probing with TUIML_GPU=cuda|rocm|mps|cpu (default: auto-detect).
 
 set -euo pipefail
 
@@ -89,6 +96,126 @@ detect_os() {
             ;;
     esac
     success "Detected: $OS"
+}
+
+# ---------------------------------------------------------------------------
+# Accelerator detection.
+#
+# Sets ACCEL to one of cuda|rocm|mps|cpu, and ACCEL_DESC to something a human
+# can read. Used to decide whether it is worth offering the neural extras:
+# FT-Transformer, SAINT, NODE, N-BEATS, NHITS, PatchTST and the TabICL
+# foundation model all run on CPU, but a GPU is worth roughly an order of
+# magnitude on every one of them.
+#
+# Detection is deliberately conservative — a missing tool means "no", never an
+# error. This only ever gates a question, so a wrong guess costs nothing.
+# ---------------------------------------------------------------------------
+detect_accelerator() {
+    ACCEL="cpu"
+    ACCEL_DESC="CPU only"
+    ACCEL_VRAM_MB=0
+
+    # Honour an explicit override before probing anything.
+    if [[ -n "${TUIML_GPU:-}" && "${TUIML_GPU}" != "auto" ]]; then
+        ACCEL="${TUIML_GPU}"
+        ACCEL_DESC="forced by TUIML_GPU=${TUIML_GPU}"
+        return 0
+    fi
+
+    # NVIDIA. Query name and VRAM in one go; if nvidia-smi exists but fails
+    # (driver mismatch is common), fall through to CPU rather than trusting it.
+    if command -v nvidia-smi >/dev/null 2>&1; then
+        local line
+        if line=$(nvidia-smi --query-gpu=name,memory.total \
+                             --format=csv,noheader,nounits 2>/dev/null | head -1); then
+            if [[ -n "$line" ]]; then
+                ACCEL="cuda"
+                # nvidia-smi already reports the vendor in the product name
+                # ("NVIDIA GeForce RTX 4090"), so do not prepend it again.
+                ACCEL_DESC="${line%%,*}"
+                ACCEL_VRAM_MB="$(echo "$line" | awk -F', *' '{print $2}' | tr -dc '0-9')"
+                [[ -n "$ACCEL_VRAM_MB" ]] || ACCEL_VRAM_MB=0
+                return 0
+            fi
+        fi
+    fi
+
+    # AMD ROCm.
+    if command -v rocminfo >/dev/null 2>&1 || [[ -d /opt/rocm ]]; then
+        ACCEL="rocm"
+        ACCEL_DESC="AMD GPU (ROCm)"
+        return 0
+    fi
+
+    # Apple Silicon — torch reaches the GPU through Metal (MPS). Intel Macs
+    # have no such path, so check the architecture rather than just the OS.
+    if [[ "$OS" == "macos" ]] && [[ "$(uname -m)" == "arm64" ]]; then
+        ACCEL="mps"
+        ACCEL_DESC="Apple Silicon GPU (Metal)"
+        return 0
+    fi
+
+    return 0
+}
+
+# ---------------------------------------------------------------------------
+# Offer the PyTorch-backed extras, informed by what we just detected.
+#
+# Two separate questions, because they are two separate decisions:
+#   tuiml[torch]      — six neural models TuiML implements itself
+#   tuiml[foundation] — TabICL, a *pretrained* model whose weights are
+#                       downloaded on first use (~150 MB)
+#
+# Neither is offered by default on a CPU-only machine: they work, but slowly
+# enough that a user who did not ask for them would not thank us.
+# ---------------------------------------------------------------------------
+select_neural_extras() {
+    # TUIML_EXTRAS is the non-interactive contract and already covers these.
+    [[ -n "${TUIML_EXTRAS:-}" ]] && return 0
+    if [[ ! -t 1 ]] || [[ ! -r /dev/tty ]]; then
+        return 0
+    fi
+
+    local ans default_hint gpu_found="no"
+    [[ "$ACCEL" == "cuda" || "$ACCEL" == "rocm" || "$ACCEL" == "mps" ]] && gpu_found="yes"
+
+    echo
+    echo "  ${BOLD}Neural models${NC} ${DIM}(PyTorch)${NC}"
+    if [[ "$gpu_found" == "yes" ]]; then
+        success "Accelerator detected: ${BOLD}${ACCEL_DESC}${NC}"
+        default_hint="[Y/n] "
+    else
+        info "No GPU detected — ${ACCEL_DESC}. These still run, just slowly."
+        default_hint="[y/N] "
+    fi
+
+    # Warn when the card is too small to be comfortable. 8 GB is where the
+    # transformer models stop needing their batch size lowered.
+    if [[ "$ACCEL" == "cuda" && "$ACCEL_VRAM_MB" -gt 0 && "$ACCEL_VRAM_MB" -lt 8000 ]]; then
+        warn "Only ${ACCEL_VRAM_MB} MB of VRAM — you may need a smaller batch_size."
+    fi
+
+    echo "    ${DIM}FT-Transformer, SAINT, NODE, N-BEATS, NHITS, PatchTST${NC}"
+    printf "  Install neural models? ${DIM}tuiml[torch]${NC} %s" "$default_hint"
+    read -r ans < /dev/tty || ans=""
+    if [[ "$gpu_found" == "yes" ]]; then
+        [[ ! "$ans" =~ ^[Nn] ]] && EXTRAS="${EXTRAS:+$EXTRAS,}torch"
+    else
+        [[ "$ans" =~ ^[Yy] ]] && EXTRAS="${EXTRAS:+$EXTRAS,}torch"
+    fi
+
+    # The foundation model only makes sense alongside torch, which it pulls in
+    # anyway — so only ask once torch is on the list.
+    if [[ "${EXTRAS:-}" == *torch* ]]; then
+        echo
+        echo "    ${DIM}TabICL — a pretrained model that predicts without training.${NC}"
+        echo "    ${DIM}Downloads a ~150 MB checkpoint on first use, into${NC}"
+        echo "    ${DIM}~/.cache/huggingface. Code and weights are BSD-3-Clause,${NC}"
+        echo "    ${DIM}the same license as TuiML — nothing to accept.${NC}"
+        printf "  Install the TabICL foundation model? ${DIM}tuiml[foundation]${NC} [y/N] "
+        read -r ans < /dev/tty || ans=""
+        [[ "$ans" =~ ^[Yy] ]] && EXTRAS="${EXTRAS:+$EXTRAS,}foundation"
+    fi
 }
 
 # ---------------------------------------------------------------------------
@@ -374,6 +501,22 @@ verify_extras() {
     for e in "${sel[@]}"; do
         e="${e//[[:space:]]/}"
         [[ -n "$e" ]] || continue
+
+        # `torch` is not a wrapper namespace: the neural models it unlocks are
+        # native TuiML code registered under bare names, and they are listed
+        # whether or not torch is installed (that is the whole point of the
+        # lazy-import contract). So the registry cannot tell us anything here
+        # — check that torch itself imports instead.
+        if [[ "$e" == "torch" ]]; then
+            if uv run --no-project python -c "import torch" >/dev/null 2>&1 \
+               || python3 -c "import torch" >/dev/null 2>&1; then
+                success "PyTorch available — neural models ready to fit"
+            else
+                missing="${missing:+$missing, }$e"
+            fi
+            continue
+        fi
+
         if tuiml list -s "${e}." -f names 2>/dev/null | grep -q "${e}\."; then
             success "${e} wrappers registered"
         else
@@ -429,7 +572,9 @@ else
     ensure_compiler optional
 fi
 ensure_uv
+detect_accelerator
 select_extras
+select_neural_extras
 check_jvm_extras_java
 install_tuiml
 verify_extras

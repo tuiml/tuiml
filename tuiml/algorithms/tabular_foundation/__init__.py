@@ -46,6 +46,14 @@ from tuiml.algorithms.tabular_foundation.node import (
     NODERegressor,
 )
 
+# Pretrained checkpoint models. Registered under ``foundation.<Name>`` rather
+# than a bare name, because TuiML delegates to an upstream package here instead
+# of running its own implementation -- the same convention as ``sklearn.SVC``.
+from tuiml.algorithms.tabular_foundation.tabicl import (
+    TabICLClassifier,
+    TabICLRegressor,
+)
+
 __all__ = [
     "FTTransformerClassifier",
     "FTTransformerRegressor",
@@ -54,4 +62,6 @@ __all__ = [
     "NODEClassifier",
     "NODERegressor",
     "entmax15",
+    "TabICLClassifier",
+    "TabICLRegressor",
 ]

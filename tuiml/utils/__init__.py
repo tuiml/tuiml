@@ -30,6 +30,7 @@ from .torch_backend import (
     has_torch,
     require_torch,
     resolve_device,
+    guard_duplicate_openmp,
 )
 
 __all__ = [
@@ -47,5 +48,6 @@ __all__ = [
     "has_torch",
     "require_torch",
     "resolve_device",
+    "guard_duplicate_openmp",
 ]
 

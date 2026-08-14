@@ -117,6 +117,63 @@ def require_torch(cls_name: str) -> Tuple[Any, Any]:
     return torch, nn
 
 
+#: Modules that ship their own OpenMP runtime and clash with torch's on macOS.
+#: :mod:`tuiml.algorithms` imports all three unconditionally.
+_OPENMP_CONFLICTING_MODULES = ("xgboost", "lightgbm", "catboost")
+
+#: Set once the guard has run, so repeated ``fit`` calls do not re-check.
+_openmp_guard_checked = False
+
+
+def guard_duplicate_openmp(torch_module: Any) -> bool:
+    """Force torch to one thread when a second OpenMP runtime is loaded.
+
+    On macOS, xgboost, LightGBM and CatBoost each load a bundled
+    ``libomp.dylib``, and :mod:`tuiml.algorithms` imports all three. Torch is
+    then imported *afterwards* -- which is exactly what the optional-dependency
+    contract demands -- leaving two OpenMP runtimes in one process. The first
+    torch operation to open a parallel region segfaults the interpreter, with
+    no Python traceback.
+
+    Running torch single-threaded avoids parallel regions entirely. Note that
+    the usual advice, ``KMP_DUPLICATE_LIB_OK=TRUE``, does **not** help here:
+    it still segfaults. Only clamping the thread count, or importing torch
+    before the boosting libraries, avoids the crash.
+
+    The guard is a mitigation, not a cure -- it costs multi-threaded torch on
+    macOS. The real fix is to stop importing three third-party boosting
+    libraries unconditionally from a core namespace.
+
+    Does nothing when no conflicting library is loaded, so a torch-only process
+    keeps all its threads.
+
+    Parameters
+    ----------
+    torch_module : module
+        The imported ``torch`` module.
+
+    Returns
+    -------
+    applied : bool
+        Whether the thread count was actually clamped.
+    """
+    global _openmp_guard_checked
+    if _openmp_guard_checked:
+        return False
+    _openmp_guard_checked = True
+
+    import sys
+
+    if sys.platform != "darwin":
+        return False
+    if not any(name in sys.modules for name in _OPENMP_CONFLICTING_MODULES):
+        return False
+    if torch_module.get_num_threads() > 1:
+        torch_module.set_num_threads(1)
+        return True
+    return False
+
+
 def resolve_device(device: str, torch_module: Any) -> Any:
     """Turn a device string into a ``torch.device``, falling back to CPU.
 
@@ -154,4 +211,5 @@ def resolve_device(device: str, torch_module: Any) -> Any:
     return torch_module.device(device)
 
 
-__all__ = ["has_torch", "require_torch", "resolve_device"]
+__all__ = ["has_torch", "require_torch", "resolve_device",
+           "guard_duplicate_openmp"]
