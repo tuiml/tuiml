@@ -91,6 +91,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     against Euclidean 1NN's 0.895, DTW's 0.772 and RandomForest's 0.590 — and
     it predicted in 168 ms where DTW took 12.9 seconds. Prediction cost is
     flat in training-set size, which is the reason to reach for it first.
+  - `HIVECOTEClassifier` — meta-ensemble weighting each representation by its
+    own cross-validated accuracy raised to a power. The weighting demonstrably
+    works (the dictionary component was down-weighted to 0.10 where it was
+    weak) and the ensemble tracks the best member without being told which it
+    is — but MINIROCKET alone matched or beat it on every problem measured, at
+    a quarter of the cost, and the docstring says so with the table.
+  - `TimeSeriesForestClassifier` — mean, standard deviation and slope of
+    random intervals, in a forest. The temporally localised view: a split on
+    "the slope between t=40 and t=90" says *where* the difference lives.
   - `BOSSClassifier` — bag of symbolic words built from low-frequency Fourier
     coefficients of sliding windows, classified by the asymmetric BOSS
     distance. A genuinely different view: what patterns a series contains and
@@ -119,7 +128,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and RandomForest's 0.925 — but when the classes differ by **timing** the same
   invariance destroys the only signal there is and DTW drops to 0.812 while
   Euclidean gets 1.000.
-- **New shared C++ kernel `tuiml._cpp_ext.timeseries`.** `sfa_transform`
+- **New shared C++ kernel `tuiml._cpp_ext.timeseries`.** `interval_features`
+  returns the mean, standard deviation and slope of arbitrary intervals from
+  prefix sums, so an interval costs O(1) whatever its width; intervals of 32
+  points or fewer take a direct path instead, because differencing prefix sums
+  left a ~1e-14 variance residue that `sqrt` turned into a ~1e-7 error in the
+  standard deviation of a width-1 interval. Also `sfa_transform`
   computes the low-frequency DFT of every sliding window, advancing the window
   with the momentary Fourier transform so each step costs one complex multiply
   per coefficient instead of a fresh transform. Verified against a direct DFT

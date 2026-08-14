@@ -52,6 +52,8 @@ from tuiml.algorithms.timeseries.stl_decomposition import STLDecomposition
 from tuiml.algorithms.timeseries.classification import (
     BOSSClassifier,
     DTWNeighborsClassifier,
+    HIVECOTEClassifier,
+    TimeSeriesForestClassifier,
     MiniRocketClassifier,
     MiniRocketTransformer,
     ShapeletTransformClassifier,
@@ -80,4 +82,6 @@ __all__ = [
     "MiniRocketTransformer",
     "ShapeletTransformClassifier",
     "BOSSClassifier",
+    "TimeSeriesForestClassifier",
+    "HIVECOTEClassifier",
 ]

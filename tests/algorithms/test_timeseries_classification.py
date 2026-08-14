@@ -1116,3 +1116,259 @@ def test_boss_invalid_arguments_rejected():
         BOSSClassifier(word_length=0)
     with pytest.raises(ValueError, match="n_neighbors"):
         BOSSClassifier(n_neighbors=0)
+
+
+# --------------------------------------------------------------------------
+# Interval features and the time series forest
+# --------------------------------------------------------------------------
+
+def test_interval_features_match_numpy():
+    """Prefix-sum statistics equal a direct per-interval computation.
+
+    Widths on both sides of the direct/prefix-sum threshold are covered, plus
+    a width-1 interval — the case where differencing prefix sums left a ~1e-14
+    variance residue that sqrt turned into a ~1e-7 error in the standard
+    deviation.
+    """
+    rng = np.random.default_rng(0)
+    for scale, offset in ((1.0, 0.0), (3.0, 2.0), (1.0, 1e6)):
+        X = rng.normal(size=(6, 300)) * scale + offset
+        starts = np.array([0, 10, 50, 0, 297, 100, 5], dtype=np.int32)
+        ends = np.array([300, 40, 51, 2, 300, 280, 6], dtype=np.int32)
+
+        actual = np.asarray(cpp_ts.interval_features(X, starts, ends))
+        assert actual.shape == (6, len(starts) * 3)
+
+        for i in range(6):
+            for k, (a, b) in enumerate(zip(starts, ends)):
+                segment = X[i, a:b].astype(np.float64)
+                time = np.arange(a, b, dtype=np.float64)
+
+                assert actual[i, k * 3] == pytest.approx(segment.mean(), abs=1e-6)
+                assert actual[i, k * 3 + 1] == pytest.approx(segment.std(), abs=1e-9)
+
+                if len(segment) > 1:
+                    centred_time = time - time.mean()
+                    slope = float(
+                        (centred_time * (segment - segment.mean())).sum()
+                        / (centred_time ** 2).sum()
+                    )
+                else:
+                    slope = 0.0
+                assert actual[i, k * 3 + 2] == pytest.approx(slope, abs=1e-9)
+
+
+def test_interval_std_of_a_single_point_is_exactly_zero():
+    """A width-1 interval has zero spread and must report exactly that."""
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(4, 200)) * 5 + 100
+    features = np.asarray(
+        cpp_ts.interval_features(
+            X, np.array([7], np.int32), np.array([8], np.int32)
+        )
+    )
+    np.testing.assert_array_equal(features[:, 1], 0.0)
+    np.testing.assert_array_equal(features[:, 2], 0.0)
+
+
+@pytest.fixture
+def localised_trend():
+    """Return data whose classes differ only in the middle of the series."""
+
+    def build(n, seed):
+        """Generate n series, adding a ramp to one class in a fixed window."""
+        rng = np.random.default_rng(seed)
+        X = rng.normal(0, 1.0, (n, 200))
+        y = np.arange(n) % 2
+        X[y == 1, 60:120] += np.linspace(0, 3, 60)
+        return X, y
+
+    return build(120, 0), build(120, 1)
+
+
+def test_time_series_forest_finds_a_localised_trend(localised_trend):
+    """The interval view's design case: a difference confined to one stretch."""
+    from tuiml.algorithms.timeseries.classification import TimeSeriesForestClassifier
+
+    (X_train, y_train), (X_test, y_test) = localised_trend
+    model = TimeSeriesForestClassifier(n_estimators=100, random_state=0).fit(
+        X_train, y_train
+    )
+    assert (model.predict(X_test) == y_test).mean() > 0.95
+
+
+def test_time_series_forest_intervals_are_well_formed(localised_trend):
+    """Sampled intervals lie inside the series and meet the minimum width."""
+    from tuiml.algorithms.timeseries.classification import TimeSeriesForestClassifier
+
+    (X, y), _ = localised_trend
+    model = TimeSeriesForestClassifier(
+        n_intervals=25, min_interval=5, n_estimators=20, random_state=0
+    ).fit(X, y)
+
+    assert model.intervals_.shape == (25, 2)
+    assert np.all(model.intervals_[:, 0] >= 0)
+    assert np.all(model.intervals_[:, 1] <= X.shape[1])
+    assert np.all(model.intervals_[:, 1] - model.intervals_[:, 0] >= 5)
+    assert model.transform(X).shape == (len(X), 25 * 3)
+
+
+def test_time_series_forest_multivariate_concatenates_channels():
+    """Every channel contributes the same intervals."""
+    from tuiml.algorithms.timeseries.classification import TimeSeriesForestClassifier
+
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(30, 3, 120))
+    y = np.arange(30) % 2
+    model = TimeSeriesForestClassifier(
+        n_intervals=10, n_estimators=20, random_state=0
+    ).fit(X, y)
+    assert model.transform(X).shape == (30, 10 * 3 * 3)
+
+
+# --------------------------------------------------------------------------
+# HIVE-COTE
+# --------------------------------------------------------------------------
+
+def test_hive_cote_weights_reflect_component_competence(localised_trend):
+    """A component that cross-validates worse must receive a smaller weight."""
+    from tuiml.algorithms.timeseries.classification import (
+        BOSSClassifier,
+        HIVECOTEClassifier,
+        MiniRocketClassifier,
+    )
+
+    (X, y), _ = localised_trend
+    model = HIVECOTEClassifier(
+        components=[
+            ("rocket", MiniRocketClassifier(n_features=840, random_state=0)),
+            ("dictionary", BOSSClassifier(window_size=40, word_length=4)),
+        ],
+        cv=2,
+        random_state=0,
+    ).fit(X, y)
+
+    assert set(model.component_accuracy_) == {"rocket", "dictionary"}
+    assert np.isclose(model.weights_.sum(), 1.0)
+
+    accuracies = [model.component_accuracy_[n] for n, _ in model.components_]
+    # Weight order must follow accuracy order, which is the whole mechanism.
+    assert np.argmax(model.weights_) == int(np.argmax(accuracies))
+
+
+def test_hive_cote_tracks_its_best_component(localised_trend):
+    """The ensemble should land at or near the best member without being told."""
+    from tuiml.algorithms.timeseries.classification import (
+        HIVECOTEClassifier,
+        MiniRocketClassifier,
+        TimeSeriesForestClassifier,
+    )
+
+    (X_train, y_train), (X_test, y_test) = localised_trend
+    specification = [
+        ("rocket", MiniRocketClassifier(n_features=840, random_state=0)),
+        ("interval", TimeSeriesForestClassifier(n_estimators=50, random_state=0)),
+    ]
+
+    individual = []
+    for _, component in specification:
+        import copy as copy_module
+
+        fitted = copy_module.deepcopy(component).fit(X_train, y_train)
+        individual.append((fitted.predict(X_test) == y_test).mean())
+
+    ensemble = HIVECOTEClassifier(
+        components=specification, cv=2, random_state=0
+    ).fit(X_train, y_train)
+    accuracy = (ensemble.predict(X_test) == y_test).mean()
+
+    assert accuracy >= max(individual) - 0.05
+
+
+def test_hive_cote_predict_proba_is_a_distribution(localised_trend):
+    """The weighted combination stays a probability distribution."""
+    from tuiml.algorithms.timeseries.classification import (
+        HIVECOTEClassifier,
+        MiniRocketClassifier,
+        TimeSeriesForestClassifier,
+    )
+
+    (X, y), (X_test, _) = localised_trend
+    model = HIVECOTEClassifier(
+        components=[
+            ("rocket", MiniRocketClassifier(n_features=840, random_state=0)),
+            ("interval", TimeSeriesForestClassifier(n_estimators=50, random_state=0)),
+        ],
+        cv=2,
+        random_state=0,
+    ).fit(X, y)
+
+    proba = model.predict_proba(X_test[:20])
+    assert proba.shape == (20, len(model.classes_))
+    assert np.all(proba >= 0.0)
+    np.testing.assert_allclose(proba.sum(axis=1), 1.0)
+
+
+def test_hive_cote_aligns_components_that_saw_fewer_classes():
+    """A component missing a class must not shift the other columns.
+
+    Cross-validation folds can leave a component without every class, so its
+    predict_proba columns cannot be assumed to line up with the ensemble's.
+    """
+    from tuiml.algorithms.timeseries.classification import (
+        HIVECOTEClassifier,
+        MiniRocketClassifier,
+    )
+
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(40, 80))
+    y = np.arange(40) % 3
+    X[y == 1, 20:40] += 3.0
+    X[y == 2, 50:70] -= 3.0
+
+    model = HIVECOTEClassifier(
+        components=[
+            ("a", MiniRocketClassifier(n_features=840, random_state=0)),
+            ("b", MiniRocketClassifier(n_features=840, random_state=1)),
+        ],
+        cv=2,
+        random_state=0,
+    ).fit(X, y)
+
+    class Partial:
+        """A stand-in component that only ever saw two of the three classes."""
+
+        classes_ = np.array([0, 2])
+
+        def predict_proba(self, panel):
+            """Return confident predictions over its two known classes."""
+            return np.tile([0.25, 0.75], (len(panel), 1))
+
+    aligned = model._aligned_proba(Partial(), np.zeros((5, 1, 80)))
+    assert aligned.shape == (5, 3)
+    np.testing.assert_allclose(aligned[:, 0], 0.25)
+    np.testing.assert_allclose(aligned[:, 1], 0.0)   # the unseen class
+    np.testing.assert_allclose(aligned[:, 2], 0.75)
+
+
+def test_hive_cote_default_components_cover_every_representation():
+    """The default ensemble is one member per view, which is the whole point."""
+    from tuiml.algorithms.timeseries.classification import HIVECOTEClassifier
+
+    names = [name for name, _ in HIVECOTEClassifier()._resolve_components()]
+    assert names == ["rocket", "dictionary", "interval", "distance"]
+
+
+def test_hive_cote_invalid_arguments_rejected():
+    """A single component is not an ensemble."""
+    from tuiml.algorithms.timeseries.classification import (
+        HIVECOTEClassifier,
+        MiniRocketClassifier,
+    )
+
+    with pytest.raises(ValueError, match="at least 2 components"):
+        HIVECOTEClassifier(components=[("only", MiniRocketClassifier())])
+    with pytest.raises(ValueError, match="cv"):
+        HIVECOTEClassifier(cv=1)
+    with pytest.raises(ValueError, match="alpha"):
+        HIVECOTEClassifier(alpha=-1.0)

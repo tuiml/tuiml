@@ -15,6 +15,11 @@ Algorithms
 - **MiniRocketClassifier:** 84 fixed dilated kernels summarised by proportion
   of positive values, then a linear head. Near state-of-the-art accuracy at a
   tiny fraction of the cost, and the right default at any real scale.
+- **HIVECOTEClassifier:** Combines all of the below, weighting each by its own
+  cross-validated accuracy. The most accurate and by far the most expensive.
+- **TimeSeriesForestClassifier:** Mean, standard deviation and slope of random
+  intervals, in a forest. The temporally localised option: it says *where* in
+  the series the difference lives.
 - **BOSSClassifier:** Turns each series into a bag of symbolic words built
   from low-frequency Fourier coefficients. The noise-tolerant option: the
   low-pass step discards exactly the detail noise lives in.
@@ -59,6 +64,10 @@ from tuiml.algorithms.timeseries.classification.distance import (
 )
 from tuiml.algorithms.timeseries.classification.knn import DTWNeighborsClassifier
 from tuiml.algorithms.timeseries.classification.dictionary import BOSSClassifier
+from tuiml.algorithms.timeseries.classification.hive_cote import HIVECOTEClassifier
+from tuiml.algorithms.timeseries.classification.interval import (
+    TimeSeriesForestClassifier,
+)
 from tuiml.algorithms.timeseries.classification.shapelets import (
     ShapeletTransformClassifier,
 )
@@ -75,6 +84,8 @@ __all__ = [
     "MiniRocketTransformer",
     "ShapeletTransformClassifier",
     "BOSSClassifier",
+    "TimeSeriesForestClassifier",
+    "HIVECOTEClassifier",
     "dtw_distance",
     "dtw_pairwise",
     "lb_keogh",

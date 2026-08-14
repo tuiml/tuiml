@@ -22,6 +22,7 @@
 #include "timeseries/convolution.h"
 #include "timeseries/shapelet.h"
 #include "timeseries/sfa.h"
+#include "timeseries/interval.h"
 
 namespace py = pybind11;
 
@@ -402,4 +403,9 @@ PYBIND11_MODULE(_cpp_ext, m) {
            py::arg("X"), py::arg("window_size"), py::arg("word_length"),
            py::arg("norm_mean") = true,
            "Low-frequency DFT coefficients of every sliding window (SFA).");
+
+    ts.def("interval_features",
+           &tuiml::timeseries::interval_features,
+           py::arg("X"), py::arg("starts"), py::arg("ends"),
+           "Mean, standard deviation and slope of arbitrary intervals.");
 }
