@@ -23,6 +23,7 @@
 #include "timeseries/shapelet.h"
 #include "timeseries/sfa.h"
 #include "timeseries/interval.h"
+#include "shapley/treeshap.h"
 
 namespace py = pybind11;
 
@@ -408,4 +409,14 @@ PYBIND11_MODULE(_cpp_ext, m) {
            &tuiml::timeseries::interval_features,
            py::arg("X"), py::arg("starts"), py::arg("ends"),
            "Mean, standard deviation and slope of arbitrary intervals.");
+
+    // ── shapley submodule ──────────────────────────────────────────────
+    auto shapley = m.def_submodule("shapley", "Shapley value kernels");
+
+    shapley.def("tree_shap",
+                &tuiml::shapley::tree_shap,
+                py::arg("feature"), py::arg("threshold"),
+                py::arg("children_left"), py::arg("children_right"),
+                py::arg("value"), py::arg("node_weight"), py::arg("X"),
+                "Exact Shapley values for a decision tree, in polynomial time.");
 }

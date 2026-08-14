@@ -42,6 +42,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   These wrap an already-fitted model rather than being algorithms, so they are
   not registered in the algorithm hub.
+- **New `tuiml.explain` package — answering why a model predicted what it did.**
+  Nothing in scikit-learn, Weka or CapyMOA covers the local-attribution half
+  of this, and the global half only partially.
+
+  - `TreeExplainer` — **exact** Shapley values for TuiML trees and forests, in
+    time polynomial in depth rather than exponential in features. Verified
+    against a brute-force enumeration of all 2^F subsets, agreeing to 4e-16,
+    and against the efficiency property (attributions plus base value
+    reconstruct the prediction) for single trees, 30-tree forests and
+    per-class on multiclass problems.
+  - `permutation_importance`, `drop_column_importance` — model-agnostic global
+    importance. The docstrings are explicit that these answer *different*
+    questions on correlated features: permutation says neither of a duplicated
+    pair matters *given the other*; drop-column refits and so says the column
+    is genuinely droppable.
+  - `partial_dependence`, `individual_conditional_expectation`,
+    `accumulated_local_effects` — how a feature moves the prediction. ALE costs
+    two prediction passes regardless of resolution, against one per grid point
+    for partial dependence, and never evaluates the model on feature
+    combinations the data does not contain.
+  - `Explanation` — the shared result type, carrying feature names, method and
+    base value so numbers never travel bare.
+
+  These wrap a fitted model rather than being algorithms, so none is
+  registered in the hub.
+- **New shared C++ kernel `tuiml._cpp_ext.shapley`.** `tree_shap` implements
+  the path-dependent TreeSHAP recursion over the flattened tree layout TuiML's
+  trees already produce, parallel over samples.
 - **Multi-fidelity hyperparameter search** in `tuiml.evaluation.tuning`.
   `SuccessiveHalvingSearchCV` runs a large candidate pool on a small slice of
   the data, discards the worst fraction and repeats with more, so most

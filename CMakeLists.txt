@@ -35,6 +35,7 @@ pybind11_add_module(_cpp_ext
     tuiml/_cpp/timeseries/shapelet.cpp
     tuiml/_cpp/timeseries/sfa.cpp
     tuiml/_cpp/timeseries/interval.cpp
+    tuiml/_cpp/shapley/treeshap.cpp
 )
 
 target_include_directories(_cpp_ext PRIVATE
