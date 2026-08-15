@@ -7,7 +7,7 @@
 #   2. Verifies a C/C++ compiler is available (TuiML has C++ extensions)
 #   3. Installs uv if missing (Python package manager)
 #   4. Asks whether to include the optional integrations
-#      (scikit-learn wrappers, CapyMOA streaming wrappers, Weka wrappers),
+#      (gradient-boosting backends, scikit-learn / CapyMOA / Weka wrappers),
 #      and warns if a JVM-backed extra (CapyMOA, Weka) was picked without a
 #      Java runtime on PATH
 #   4b. Detects your GPU (CUDA / ROCm / Apple Metal) and, if one is present,
@@ -31,7 +31,7 @@
 #
 # Non-interactive / automation:
 #   Set TUIML_EXTRAS to skip the prompts, e.g.
-#     curl -fsSL https://tuiml.ai/install.sh | TUIML_EXTRAS="sklearn,capymoa,weka" bash
+#     curl -fsSL https://tuiml.ai/install.sh | TUIML_EXTRAS="boosting,sklearn,capymoa,weka" bash
 #     curl -fsSL https://tuiml.ai/install.sh | TUIML_EXTRAS="none" bash   # core only
 #     curl -fsSL https://tuiml.ai/install.sh | TUIML_EXTRAS="torch,foundation" bash
 #
@@ -329,7 +329,7 @@ select_extras() {
     # so read from /dev/tty. If there's no terminal (CI, Docker), default core.
     if [[ ! -t 1 ]] || [[ ! -r /dev/tty ]]; then
         info "Non-interactive install — core TuiML only."
-        info "Add wrappers later: ${DIM}TUIML_EXTRAS=sklearn,capymoa,weka${NC} and re-run."
+        info "Add extras later: ${DIM}TUIML_EXTRAS=boosting,sklearn,capymoa,weka${NC} and re-run."
         return 0
     fi
 
@@ -341,6 +341,15 @@ select_extras() {
     printf "  Install scikit-learn wrappers? ${DIM}tuiml[sklearn]${NC} [y/N] "
     read -r ans < /dev/tty || ans=""
     [[ "$ans" =~ ^[Yy] ]] && EXTRAS="sklearn"
+
+    # XGBoost / LightGBM / CatBoost were required dependencies until they were
+    # made optional. Defaulted to yes because they are the usual accuracy
+    # ceiling on tabular data and users upgrading from an older TuiML expect
+    # them present.
+    echo "    ${DIM}XGBoost, LightGBM, CatBoost — usually the strongest on tabular data${NC}"
+    printf "  Install gradient-boosting backends? ${DIM}tuiml[boosting]${NC} [Y/n] "
+    read -r ans < /dev/tty || ans=""
+    [[ ! "$ans" =~ ^[Nn] ]] && EXTRAS="${EXTRAS:+$EXTRAS,}boosting"
 
     printf "  Install CapyMOA streaming wrappers? ${DIM}tuiml[capymoa], needs Java${NC} [y/N] "
     read -r ans < /dev/tty || ans=""
@@ -502,15 +511,20 @@ verify_extras() {
         e="${e//[[:space:]]/}"
         [[ -n "$e" ]] || continue
 
-        # `torch` is not a wrapper namespace: the neural models it unlocks are
-        # native TuiML code registered under bare names, and they are listed
-        # whether or not torch is installed (that is the whole point of the
-        # lazy-import contract). So the registry cannot tell us anything here
-        # — check that torch itself imports instead.
-        if [[ "$e" == "torch" ]]; then
-            if uv run --no-project python -c "import torch" >/dev/null 2>&1 \
-               || python3 -c "import torch" >/dev/null 2>&1; then
-                success "PyTorch available — neural models ready to fit"
+        # `torch` and `boosting` are not wrapper namespaces. The algorithms they
+        # unlock are registered under bare names and are listed whether or not
+        # the library is installed — that is the whole point of the lazy-import
+        # contract. So the registry cannot tell us anything about them; check
+        # that the libraries themselves import instead.
+        local probe="" label=""
+        case "$e" in
+            torch)    probe="import torch"; label="PyTorch available — neural models ready to fit" ;;
+            boosting) probe="import xgboost, lightgbm, catboost"; label="XGBoost, LightGBM and CatBoost available" ;;
+        esac
+        if [[ -n "$probe" ]]; then
+            if uv run --no-project python -c "$probe" >/dev/null 2>&1 \
+               || python3 -c "$probe" >/dev/null 2>&1; then
+                success "$label"
             else
                 missing="${missing:+$missing, }$e"
             fi

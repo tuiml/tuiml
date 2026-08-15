@@ -59,12 +59,6 @@ class ARIMA(Regressor):
         - :math:`p`: Autoregressive order.
         - :math:`d`: Degree of differencing.
         - :math:`q`: Moving average order.
-    seasonal_order : tuple of (int, int, int, int), optional, default=None
-        The seasonal :math:`(P, D, Q, s)` order:
-        - :math:`P`: Seasonal autoregressive order.
-        - :math:`D`: Seasonal differencing degree.
-        - :math:`Q`: Seasonal moving average order.
-        - :math:`s`: Seasonality period (e.g., 12 for monthly).
     trend : {"c", "t", "ct", None}, default=None
         The trend component to include:
         - ``"c"``: Constant term.
@@ -107,6 +101,19 @@ class ARIMA(Regressor):
     - When both autoregressive and moving average components are needed
     - Short-to-medium term forecasting of univariate series
 
+    **This model is non-seasonal, and has no exogenous regressors.** It once
+    accepted a ``seasonal_order`` argument that was stored and never read, so
+    passing ``(1, 1, 1, 12)`` quietly fitted a non-seasonal model and returned
+    forecasts with no seasonal structure at all. The argument has been removed
+    rather than left to mislead. For seasonal terms, exogenous regressors,
+    exact Gaussian maximum likelihood via a Kalman filter, and forecast
+    intervals, use :class:`~tuiml.algorithms.timeseries.SARIMAX`, which
+    supersedes this class on every axis except speed.
+
+    Parameters here are estimated by minimising the **conditional sum of
+    squares**, conditioning on the first :math:`\\max(p, q)` observations,
+    rather than the exact likelihood.
+
     References
     ----------
     .. [Box2015] Box, G. E., Jenkins, G. M., Reinsel, G. C., & Ljung, G. M. (2015).
@@ -117,6 +124,7 @@ class ARIMA(Regressor):
 
     See Also
     --------
+    :class:`~tuiml.algorithms.timeseries.SARIMAX` : Seasonal terms, exogenous regressors and exact maximum likelihood.
     :class:`~tuiml.algorithms.timeseries.AR` : Pure autoregressive model for stationary series.
     :class:`~tuiml.algorithms.timeseries.ARMA` : Combined AR and MA without differencing.
     :class:`~tuiml.algorithms.timeseries.ExponentialSmoothing` : State-space approach to forecasting with trend and seasonality.
@@ -129,14 +137,23 @@ class ARIMA(Regressor):
     >>> np.random.seed(42)
     >>> y = np.cumsum(np.random.normal(size=100))
     >>> model = ARIMA(order=(1, 1, 1))
-    >>> model.fit(y)
-    >>> forecast = model.predict(steps=5)
+    >>> _ = model.fit(y)          # fit returns self; bind it to keep doctest quiet
+    >>> model.predict(steps=5).shape
+    (5,)
+
+    The moving-average term is genuinely estimated, so ``q`` is not decorative:
+
+    >>> rng = np.random.default_rng(0)
+    >>> e = rng.normal(size=2001)
+    >>> ma_series = e[1:] + 0.6 * e[:-1]        # MA(1) with theta = 0.6
+    >>> fitted = ARIMA(order=(0, 0, 1)).fit(ma_series)
+    >>> bool(abs(fitted.ma_params_[0] - 0.6) < 0.1)
+    True
     """
 
     def __init__(
         self,
         order: Tuple[int, int, int] = (1, 0, 0),
-        seasonal_order: Tuple[int, int, int, int] | None = None,
         trend: str | None = None,
         method: str = "css-mle",
         maxiter: int = 50,
@@ -147,8 +164,6 @@ class ARIMA(Regressor):
         ----------
         order : tuple of (int, int, int), default=(1, 0, 0)
             (p, d, q) order.
-        seasonal_order : tuple or None, default=None
-            (P, D, Q, s) seasonal order.
         trend : str or None, default=None
             Trend component.
         method : str, default="css-mle"
@@ -158,7 +173,6 @@ class ARIMA(Regressor):
         """
         super().__init__()
         self.order = order
-        self.seasonal_order = seasonal_order
         self.trend = trend
         self.method = method
         self.maxiter = maxiter
@@ -184,14 +198,6 @@ class ARIMA(Regressor):
                 "maxItems": 3,
                 "items": {"type": "integer", "minimum": 0},
                 "description": "(p, d, q) order of the ARIMA model"
-            },
-            "seasonal_order": {
-                "type": ["array", "null"],
-                "default": None,
-                "minItems": 4,
-                "maxItems": 4,
-                "items": {"type": "integer", "minimum": 0},
-                "description": "(P, D, Q, s) seasonal order"
             },
             "trend": {
                 "type": ["string", "null"],
@@ -424,36 +430,79 @@ class ARIMA(Regressor):
 
         return resid
 
+    def _pack_params(self) -> np.ndarray:
+        """Flatten the free parameters into one vector for the optimiser."""
+        return np.concatenate([[self.const_], self.ar_params_, self.ma_params_])
+
+    def _unpack_params(self, theta: np.ndarray) -> None:
+        """Write a flat parameter vector back onto the fitted attributes."""
+        p, _, q = self.order
+        self.const_ = float(theta[0])
+        self.ar_params_ = np.asarray(theta[1:1 + p], dtype=float)
+        self.ma_params_ = np.asarray(theta[1 + p:1 + p + q], dtype=float)
+
     def _refine_parameters(self, y: np.ndarray):
-        """Refine parameters using simple gradient descent (simplified MLE).
+        """Minimise the conditional sum of squares over *all* parameters.
+
+        This replaces a fixed-step numerical-gradient descent that looped over
+        ``range(p)`` only. Because the loop never touched ``ma_params_``, the
+        MA coefficients kept the zeros they were initialised with, and any
+        model with ``q > 0`` silently returned :math:`\\theta = 0` -- an
+        ``ARIMA(0, 0, 1)`` was a constant. The optimiser below varies the
+        constant, the AR block and the MA block together, so ``q`` finally
+        means something.
+
+        Conditional sum of squares is the objective rather than the exact
+        likelihood: residuals are computed by the recursion in
+        :meth:`_compute_residuals`, conditioning on the first ``max(p, q)``
+        observations. For the exact Gaussian likelihood through a Kalman
+        filter, plus seasonal terms and exogenous regressors, use
+        :class:`~tuiml.algorithms.timeseries.SARIMAX`.
 
         Parameters
         ----------
         y : np.ndarray
-            Time series.
+            The differenced series to fit.
         """
-        p, _, _q = self.order
-        learning_rate = 0.01
+        from scipy.optimize import minimize
 
-        for _ in range(self.maxiter):
-            resid = self._compute_residuals(y)
-            sse = np.sum(resid ** 2)
+        p, _, q = self.order
+        if p == 0 and q == 0 and self.trend not in ("c", "ct"):
+            return
 
-            # Simple gradient updates
-            if p > 0:
-                for i in range(p):
-                    # Numerical gradient
-                    eps = 1e-5
-                    self.ar_params_[i] += eps
-                    resid_plus = self._compute_residuals(y)
-                    sse_plus = np.sum(resid_plus ** 2)
-                    self.ar_params_[i] -= eps
+        max_lag = max(p, q)
 
-                    grad = (sse_plus - sse) / eps
-                    self.ar_params_[i] -= learning_rate * grad
+        def objective(theta: np.ndarray) -> float:
+            """Conditional sum of squares for a candidate parameter vector."""
+            saved = (self.const_, self.ar_params_, self.ma_params_)
+            try:
+                self._unpack_params(theta)
+                resid = self._compute_residuals(y)
+                sse = float(np.sum(resid[max_lag:] ** 2))
+            finally:
+                self.const_, self.ar_params_, self.ma_params_ = saved
+            # A diverging MA recursion produces inf/nan; report a large finite
+            # value so the optimiser backs away instead of failing outright.
+            return sse if np.isfinite(sse) else 1e300
 
-            # Update residuals for next iteration
-            self.resid_ = self._compute_residuals(y)
+        theta0 = self._pack_params()
+
+        # Keep the search inside the invertible/stationary region. Individual
+        # coefficients in (-1, 1) does not characterise it exactly for p or q
+        # above 1, but it keeps the CSS recursion from exploding, which an
+        # unbounded search does readily.
+        bounds = [(None, None)] + [(-0.999, 0.999)] * (p + q)
+
+        result = minimize(objective, theta0, method="L-BFGS-B", bounds=bounds,
+                          options={"maxiter": self.maxiter})
+
+        # Only accept the result if it genuinely improved on the starting
+        # point: a failed optimisation must not make the fit worse than the
+        # Yule-Walker initialisation it began from.
+        if np.all(np.isfinite(result.x)) and objective(result.x) <= objective(theta0):
+            self._unpack_params(result.x)
+
+        self.resid_ = self._compute_residuals(y)
 
     def predict(self, steps: int = 1, _X: Optional[np.ndarray] = None) -> np.ndarray:
         """Forecast future values using the fitted ARIMA model.

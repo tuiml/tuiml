@@ -435,7 +435,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `installed_commit`, `tracking_ref` and `latest_commit`. `latest_version` is
   still reported on every channel.
 
+### Changed (breaking)
+- **XGBoost, LightGBM and CatBoost are now optional: `pip install
+  'tuiml[boosting]'`.** They were required dependencies, imported eagerly by
+  `tuiml.algorithms`. Three problems came from that, and this fixes all three:
+  they are third-party wrappers sitting in a core namespace, which the
+  project's own dependency policy confines to optional backends; together they
+  dominated the size of a base install, for algorithms many users never call;
+  and each bundles its own OpenMP runtime, so **every** session was one
+  `import torch` away from a segfault.
+
+  **What breaks:** `XGBoostClassifier`, `LightGBMRegressor` and their four
+  siblings now raise an `ImportError` from `fit` on an install without the
+  extra. The message names the class and gives the command. Nothing else
+  changes — the classes are still exported under the same names, still
+  registered, and their schemas still readable, so `list_algorithms()` returns
+  the same catalog either way. The installer offers the extra alongside the
+  scikit-learn, CapyMOA and Weka wrappers, defaulted to yes.
+
+  The availability check also moved out of `__init__` and into `fit`, matching
+  every other optional backend: constructing a wrapper records hyperparameters
+  and now works on any install, which parameter grids and pickling depend on.
+
+- **`ARIMA` no longer accepts `seasonal_order`.** The argument was stored in
+  `__init__` and read nowhere else in the file, so `seasonal_order=(1,1,1,12)`
+  silently fitted a **non-seasonal** model and returned forecasts with no
+  seasonal structure. Rather than leave a parameter that lies, it is removed;
+  `SARIMAX` implements seasonal terms properly, along with exogenous
+  regressors, exact maximum likelihood and forecast intervals. Passing it now
+  raises `TypeError` instead of being ignored.
+
 ### Fixed
+- **`ARIMA` never estimated its moving-average parameters.** `ma_params_` was
+  initialised to `np.zeros(q)` and `_refine_parameters` looped over `range(p)`
+  only, so theta stayed at exactly zero for the life of the model. Any `q > 0`
+  specification was silently a pure-AR fit, and `ARIMA(order=(0, 0, 1))` was a
+  constant.
+
+  The fixed-step AR-only descent is replaced by an L-BFGS-B minimisation of the
+  conditional sum of squares over the constant, the AR block and the MA block
+  together, bounded to keep the recursion from exploding, and accepted only
+  when it improves on the Yule-Walker starting point. Measured on simulated
+  series: MA(1) theta=0.6 recovers as **0.6001**, AR(1) phi=0.7 as 0.7111, and
+  ARMA(1,1) with (0.5, 0.4) as (0.521, 0.389).
+
 - **Interpreter segfault when a neural model was fitted after any boosting
   import (macOS).** torch bundles its own `libomp.dylib`, while xgboost,
   LightGBM and CatBoost each resolve `@rpath/libomp.dylib` to a different copy.
@@ -443,18 +486,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   landed in a process holding two OpenMP runtimes and the first `LayerNorm`
   killed the interpreter with SIGSEGV and no traceback.
 
-  Importing torch *first* avoids it entirely, and `OMP_NUM_THREADS=1` or
-  `torch.set_num_threads(1)` both fix it; the usual `KMP_DUPLICATE_LIB_OK=TRUE`
-  advice does **not** — it still segfaults. Both neural packages now clamp
-  torch to one thread once, on darwin only, and only when a conflicting module
-  is already loaded.
+  **Fixed at the root** by making the three libraries optional and lazily
+  imported (above). A process that never boosts never loads a second OpenMP
+  runtime, so torch now keeps all its threads: measured 8 before, 1 under the
+  previous mitigation.
 
-  This is a mitigation, not a cure: it costs multi-threaded torch on macOS,
-  and it does so in every session, because the boosting libraries are
-  unconditional hard dependencies. The real fix is to make xgboost, LightGBM
-  and CatBoost an optional extra — they are third-party wrappers sitting in a
-  core namespace, which the project's own dependency policy says should not
-  happen. Tracked separately as a breaking change.
+  The clash is **symmetric**, and a guard remains for the case where one
+  process genuinely uses both. Whichever runtime initialises second can crash,
+  and the two directions do not share a fix — measured:
+
+  | Situation | `KMP_DUPLICATE_LIB_OK=TRUE` | `torch.set_num_threads(1)` | `OMP_NUM_THREADS=1` in env |
+  |---|---|---|---|
+  | boosting loaded first, then torch | still segfaults | **works** | works |
+  | torch loaded first, then boosting | still segfaults | still segfaults | **works** |
+
+  So `tuiml.utils.torch_backend.guard_duplicate_openmp` clamps torch after
+  importing it, and `tuiml.algorithms.gradient_boosting._backend` sets
+  `OMP_NUM_THREADS` before importing a boosting library — each only on darwin,
+  and only when the other library is already loaded. Note that the widely
+  recommended `KMP_DUPLICATE_LIB_OK=TRUE` fixes neither direction.
 
 - **Exported notebooks failed on user algorithms authored in an earlier
   session.** `tuiml_export_notebook` inlines a user algorithm's source only

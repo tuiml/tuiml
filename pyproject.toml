@@ -47,9 +47,6 @@ dependencies = [
     "requests>=2.28.0",
     "matplotlib>=3.5.0",
     "seaborn>=0.11.0",
-    "xgboost>=2.0.0",
-    "catboost>=1.2.0",
-    "lightgbm>=4.0.0",
     # 2.x only. The 2.0 SDK replaced the low-level decorator API the MCP
     # server was built on (@server.list_tools / @server.call_tool / the
     # resource decorators) with constructor-registered on_* handlers, so the
@@ -82,6 +79,24 @@ sklearn = ["scikit-learn>=1.7.0"]
 capymoa = ["capymoa>=0.14.0"]
 weka = ["python-weka-wrapper3>=0.3.0"]
 
+# Gradient-boosting backends. `XGBoostClassifier`, `LightGBMRegressor` and the
+# rest are wrappers around these three libraries, and were required
+# dependencies until they were made optional here, for three reasons:
+#   * they are third-party wrappers, which the dependency policy keeps in
+#     optional backends rather than the core install;
+#   * together they dominate the size of a base install, for algorithms many
+#     users never call;
+#   * each bundles its own OpenMP runtime, and importing one before PyTorch
+#     segfaults the interpreter on macOS. Importing them eagerly put *every*
+#     session in that state.
+# TuiML's native `GradientBoostingRegressor`, `RandomForestClassifier` and
+# `NGBoostRegressor` need none of this.
+boosting = [
+    "xgboost>=2.0.0",
+    "catboost>=1.2.0",
+    "lightgbm>=4.0.0",
+]
+
 # Deep-learning backend for the neural tabular and forecasting models
 # (FT-Transformer, SAINT, NODE, N-BEATS, NHITS, PatchTST). These are native
 # TuiML implementations, not wrappers, but they need a tensor library with
@@ -111,6 +126,9 @@ backends = [
     "scikit-learn>=1.7.0",
     "capymoa>=0.14.0",
     "python-weka-wrapper3>=0.3.0",
+    "xgboost>=2.0.0",
+    "catboost>=1.2.0",
+    "lightgbm>=4.0.0",
 ]
 # Pretrained tabular foundation models — `foundation.TabICLClassifier` and
 # `foundation.TabICLRegressor`. Wraps the upstream `tabicl` package, which

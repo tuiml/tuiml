@@ -7793,11 +7793,9 @@ version = "0.1.9"
 source = { editable = "." }
 dependencies = [
     { name = "bigtree" },
-    { name = "catboost" },
     { name = "click" },
     { name = "fastapi" },
     { name = "joblib" },
-    { name = "lightgbm" },
     { name = "matplotlib", version = "3.10.9", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "matplotlib", version = "3.11.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "mcp" },
@@ -7810,7 +7808,6 @@ dependencies = [
     { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "seaborn" },
     { name = "uvicorn" },
-    { name = "xgboost" },
 ]
 
 [package.optional-dependencies]
@@ -7819,9 +7816,17 @@ anthropic = [
 ]
 backends = [
     { name = "capymoa" },
+    { name = "catboost" },
+    { name = "lightgbm" },
     { name = "python-weka-wrapper3" },
     { name = "scikit-learn", version = "1.7.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "scikit-learn", version = "1.9.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "xgboost" },
+]
+boosting = [
+    { name = "catboost" },
+    { name = "lightgbm" },
+    { name = "xgboost" },
 ]
 capymoa = [
     { name = "capymoa" },
@@ -7886,7 +7891,8 @@ requires-dist = [
     { name = "build", marker = "extra == 'dev'" },
     { name = "capymoa", marker = "extra == 'backends'", specifier = ">=0.14.0" },
     { name = "capymoa", marker = "extra == 'capymoa'", specifier = ">=0.14.0" },
-    { name = "catboost", specifier = ">=1.2.0" },
+    { name = "catboost", marker = "extra == 'backends'", specifier = ">=1.2.0" },
+    { name = "catboost", marker = "extra == 'boosting'", specifier = ">=1.2.0" },
     { name = "click", specifier = ">=8.0.0" },
     { name = "crewai", marker = "extra == 'crewai'", specifier = ">=0.100.0" },
     { name = "crewai", marker = "extra == 'frameworks'", specifier = ">=0.100.0" },
@@ -7896,7 +7902,8 @@ requires-dist = [
     { name = "jupyter", marker = "extra == 'dev'", specifier = ">=1.0.0" },
     { name = "langchain-core", marker = "extra == 'frameworks'", specifier = ">=0.3.0" },
     { name = "langchain-core", marker = "extra == 'langchain'", specifier = ">=0.3.0" },
-    { name = "lightgbm", specifier = ">=4.0.0" },
+    { name = "lightgbm", marker = "extra == 'backends'", specifier = ">=4.0.0" },
+    { name = "lightgbm", marker = "extra == 'boosting'", specifier = ">=4.0.0" },
     { name = "matplotlib", specifier = ">=3.5.0" },
     { name = "mcp", specifier = ">=2.0.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=0.950" },
@@ -7920,9 +7927,10 @@ requires-dist = [
     { name = "torch", marker = "extra == 'torch'", specifier = ">=2.2.0" },
     { name = "twine", marker = "extra == 'dev'" },
     { name = "uvicorn", specifier = ">=0.23.0" },
-    { name = "xgboost", specifier = ">=2.0.0" },
+    { name = "xgboost", marker = "extra == 'backends'", specifier = ">=2.0.0" },
+    { name = "xgboost", marker = "extra == 'boosting'", specifier = ">=2.0.0" },
 ]
-provides-extras = ["dev", "sklearn", "capymoa", "weka", "torch", "openai", "anthropic", "langchain", "pydantic-ai", "crewai", "frameworks", "backends", "foundation"]
+provides-extras = ["dev", "sklearn", "capymoa", "weka", "boosting", "torch", "openai", "anthropic", "langchain", "pydantic-ai", "crewai", "frameworks", "backends", "foundation"]
 
 [package.metadata.requires-dev]
 dev = [
