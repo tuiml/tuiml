@@ -461,6 +461,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   into a few hundred megabytes on an ordinary laptop. The neural extras
   therefore default to yes on every machine rather than only on GPU boxes.
 
+- **Getting-started and contributing pages rewritten for the new extras.**
+  Both had drifted. Getting started claimed every optional backend registers
+  under a namespaced hub key — true for `sklearn.SVC`, `weka.J48` and
+  `foundation.TabICLClassifier`, but the boosting and neural models keep bare
+  names, so a contributor copying that would have got it wrong. Contributing
+  listed 6 of the 17 directories under `algorithms/`, and did not mention that
+  `uv sync` now yields a core-only environment in which backend tests *skip*
+  rather than fail — so a change to `tabular_foundation/` could show a fully
+  green run having tested none of it. It now documents `--all-extras`,
+  per-extra sync and `pytest -rs`, plus the three-level rule any new optional
+  dependency has to follow.
+
 ### Changed (breaking)
 - **`ARIMA` no longer accepts `seasonal_order`.** The argument was stored in
   `__init__` and read nowhere else in the file, so `seasonal_order=(1,1,1,12)`
