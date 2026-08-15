@@ -5,10 +5,13 @@
 #   1. Verifies it is running on Windows PowerShell 5.1+ / PowerShell 7+
 #   2. Checks for an MSVC toolchain (only needed when building from source)
 #   3. Installs uv if missing (Python package manager)
-#   4. Asks whether to include the optional integrations
-#      (scikit-learn wrappers, CapyMOA streaming wrappers), and warns if
-#      a JVM-backed extra (CapyMOA, Weka) was picked without a Java runtime
-#      on PATH
+#   4. Asks whether to include the optional wrappers (scikit-learn, CapyMOA,
+#      Weka), and warns if a JVM-backed extra was picked without a Java runtime
+#      on PATH. XGBoost, LightGBM and CatBoost ship with TuiML itself.
+#   4b. Detects an NVIDIA GPU, offers the PyTorch-backed neural models and the
+#      TabICL foundation model, and picks the matching PyTorch build: CPU
+#      wheels when there is no GPU, which is a few hundred MB instead of the
+#      multi-GB CUDA build PyPI serves by default
 #   5. Installs tuiml - the latest PyPI release by default
 #   6. Verifies the install
 #   7. Prompts you to run `tuiml setup` to wire up your AI agent
@@ -27,7 +30,11 @@
 # Non-interactive / automation:
 #   Set TUIML_EXTRAS to skip the prompts, e.g.
 #     $env:TUIML_EXTRAS = "sklearn,capymoa,weka"; irm https://tuiml.ai/install.ps1 | iex
+#     $env:TUIML_EXTRAS = "torch,foundation"; irm https://tuiml.ai/install.ps1 | iex
 #     $env:TUIML_EXTRAS = "none";            irm https://tuiml.ai/install.ps1 | iex   # core only
+#
+#   Skip GPU probing with $env:TUIML_GPU = "cpu" (or cuda). Default: auto-detect.
+#   That also selects the PyTorch build, so TUIML_GPU=cpu forces CPU wheels.
 #
 # Notes for `irm | iex`:
 #   This script deliberately has NO param() block. `iex` evaluates the text in
@@ -279,11 +286,55 @@ function Confirm-Uv {
 }
 
 # ---------------------------------------------------------------------------
+# Accelerator detection.
+#
+# Returns an object with .Found and .Description. Used to decide whether the
+# PyTorch-backed models are worth defaulting to yes: they run on CPU, but a GPU
+# is worth roughly an order of magnitude on every one of them.
+#
+# Deliberately conservative - anything unexpected means "no GPU", never an
+# error. This only gates a question, so a wrong guess costs nothing. Set
+# TUIML_GPU to skip the probe entirely.
+# ---------------------------------------------------------------------------
+function Get-Accelerator {
+    if ($env:TUIML_GPU -and $env:TUIML_GPU -ne 'auto') {
+        return [pscustomobject]@{
+            Found       = ($env:TUIML_GPU -ne 'cpu' -and $env:TUIML_GPU -ne 'none')
+            Description = "forced by TUIML_GPU=$($env:TUIML_GPU)"
+        }
+    }
+
+    # nvidia-smi is the only reliable probe on Windows. It may exist but fail
+    # on a driver mismatch, so treat any error or empty output as "no GPU"
+    # rather than trusting its presence.
+    if (Get-Command nvidia-smi -ErrorAction SilentlyContinue) {
+        try {
+            $line = (& nvidia-smi --query-gpu=name,memory.total `
+                        --format=csv,noheader,nounits 2>$null | Select-Object -First 1)
+            if ($line) {
+                $parts = $line -split ',\s*'
+                $vram = 0
+                [void][int]::TryParse(($parts[1] -replace '\D', ''), [ref]$vram)
+                if ($vram -gt 0 -and $vram -lt 8000) {
+                    Write-Note "Only $vram MB of VRAM - you may need a smaller batch_size."
+                }
+                # nvidia-smi already includes the vendor in the product name.
+                return [pscustomobject]@{ Found = $true; Description = $parts[0] }
+            }
+        } catch {
+            # Fall through to CPU.
+        }
+    }
+
+    return [pscustomobject]@{ Found = $false; Description = 'CPU only' }
+}
+
+# ---------------------------------------------------------------------------
 # Optional integrations - ask the user which extras to include.
 #
-# TuiML core is always installed. sklearn, capymoa and weka are optional
-# extras (see pyproject.toml). Sets $script:Extras to a comma-separated list,
-# e.g. "sklearn,capymoa,weka".
+# TuiML core - including XGBoost, LightGBM and CatBoost - is always installed.
+# sklearn, capymoa, weka, torch and foundation are extras (see pyproject.toml).
+# Sets $script:Extras to a comma-separated list, e.g. "sklearn,torch".
 # ---------------------------------------------------------------------------
 function Select-Extras {
     $script:Extras = ''
@@ -301,7 +352,7 @@ function Select-Extras {
 
     if (-not $script:Interactive) {
         Write-Info 'Non-interactive install - core TuiML only.'
-        Write-Info 'Add wrappers later: $env:TUIML_EXTRAS = "sklearn,capymoa,weka" and re-run.'
+        Write-Info 'Add extras later: $env:TUIML_EXTRAS = "sklearn,capymoa,weka,torch" and re-run.'
         return
     }
 
@@ -310,7 +361,12 @@ function Select-Extras {
     Write-Host '(you can always add these later)' -ForegroundColor DarkGray
     Write-Host ''
 
+    # Nested here so the prompt block below can call it; see Get-Accelerator.
+
     $selected = @()
+
+    # XGBoost, LightGBM and CatBoost ship with TuiML itself, so there is
+    # nothing to ask about here. They are still imported lazily.
     if ((Read-Answer '  Install scikit-learn wrappers? tuiml[sklearn] [y/N] ') -match '^[Yy]') {
         $selected += 'sklearn'
     }
@@ -320,6 +376,32 @@ function Select-Extras {
     if ((Read-Answer '  Install Weka wrappers? tuiml[weka], needs Java [y/N] ') -match '^[Yy]') {
         $selected += 'weka'
     }
+
+    # Neural models. Ask about the GPU first, because the answer changes
+    # whether these are worth defaulting to yes: they run on CPU, just slowly.
+    $gpu = Get-Accelerator
+    Write-Host ''
+    Write-Host '  Neural models ' -NoNewline
+    Write-Host '(PyTorch)' -ForegroundColor DarkGray
+    if ($gpu.Found) {
+        Write-Ok "Accelerator detected: $($gpu.Description)"
+    } else {
+        Write-Info "No GPU detected - $($gpu.Description). These run on CPU, just slower."
+        Write-Info 'Installing the CPU-only PyTorch build: a few hundred MB rather'
+        Write-Info 'than the multi-GB CUDA build PyPI serves by default.'
+    }
+    $script:GpuFound = $gpu.Found
+    $wantTorch = (Read-Answer '  Install neural models? tuiml[torch] [Y/n] ') -notmatch '^[Nn]' 
+    if ($wantTorch) {
+        $selected += 'torch'
+        Write-Host '    TabICL - a pretrained model that predicts without training.' -ForegroundColor DarkGray
+        Write-Host '    Downloads a ~150 MB checkpoint on first use. BSD-3 licensed,' -ForegroundColor DarkGray
+        Write-Host '    the same as TuiML - nothing to accept.' -ForegroundColor DarkGray
+        if ((Read-Answer '  Install the TabICL foundation model? tuiml[foundation] [y/N] ') -match '^[Yy]') {
+            $selected += 'foundation'
+        }
+    }
+
     $script:Extras = $selected -join ','
 
     if ($script:Extras) {
@@ -423,12 +505,29 @@ function Install-Tuiml {
     # compiling bytecode for the whole dependency tree - numpy, pandas,
     # xgboost, matplotlib and the rest - while printing nothing, which reads
     # as a hang right after "Installed 2 executables".
+    # Pick the right PyTorch build. PyPI's default wheel is the CUDA one, so a
+    # plain install drags in ~20 NVIDIA runtime packages - several gigabytes -
+    # even on a machine with no NVIDIA GPU. uv's --torch-backend resolves
+    # against PyTorch's own indexes instead: `cpu` gives the few-hundred-MB CPU
+    # build, `auto` detects the local CUDA driver. Only relevant when a
+    # torch-backed extra was actually selected.
+    $torchArgs = @()
+    if ($script:Extras -match 'torch|foundation|all') {
+        # GpuFound is set by the interactive prompt, which a TUIML_EXTRAS run
+        # skips entirely - so probe here if it was never filled in, or a
+        # non-interactive install on a CUDA box would silently take CPU wheels.
+        if ($null -eq $script:GpuFound) { $script:GpuFound = (Get-Accelerator).Found }
+        $backend = if ($script:GpuFound) { 'auto' } else { 'cpu' }
+        $torchArgs = @("--torch-backend=$backend")
+        Write-Info "PyTorch build: $backend"
+    }
+
     if (Test-CommandExists 'tuiml') {
         # Reinstall rather than upgrade: `uv tool upgrade` only ever checks
         # PyPI, so it would not move a git install onto newer commits.
-        & uv tool install --compile-bytecode --reinstall --force $spec
+        & uv tool install --compile-bytecode --reinstall --force @torchArgs $spec
     } else {
-        & uv tool install --compile-bytecode $spec
+        & uv tool install --compile-bytecode @torchArgs $spec
     }
     if ($LASTEXITCODE -ne 0) { throw "uv tool install failed (exit code $LASTEXITCODE)" }
 
@@ -462,6 +561,24 @@ function Confirm-Extras {
     foreach ($e in ($script:Extras -split ',')) {
         $e = $e.Trim()
         if (-not $e) { continue }
+
+        # `boosting` and `torch` are not wrapper namespaces. The algorithms
+        # they unlock register under bare names and are listed whether or not
+        # the library is installed - that is the point of the lazy-import
+        # contract - so the registry cannot tell us anything about them. Check
+        # that the libraries themselves import instead.
+        $probe = $null
+        switch ($e) {
+            'boosting' { $probe = 'import xgboost, lightgbm, catboost'; $label = 'XGBoost, LightGBM and CatBoost available' }
+            'all'      { $probe = 'import torch, tabicl'; $label = 'PyTorch and TabICL available' }
+            'torch'    { $probe = 'import torch'; $label = 'PyTorch available - neural models ready to fit' }
+        }
+        if ($probe) {
+            & uv run --no-project python -c $probe 2>$null | Out-Null
+            if ($LASTEXITCODE -eq 0) { Write-Ok $label } else { $missing += $e }
+            continue
+        }
+
         $names = & tuiml list -s "$e." -f names 2>$null
         if ($names -match [regex]::Escape("$e.")) {
             Write-Ok "$e wrappers registered"

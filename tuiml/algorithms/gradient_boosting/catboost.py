@@ -6,12 +6,38 @@ import warnings
 
 from tuiml.base.algorithms import Classifier, Regressor, classifier, regressor
 
-try:
-    import catboost as cb
-    CATBOOST_AVAILABLE = True
-except Exception:
-    cb = None
-    CATBOOST_AVAILABLE = False
+from tuiml.algorithms.gradient_boosting._backend import (
+    has_backend,
+    require_backend,
+)
+
+
+class _LazyCatboost:
+    """Defer ``import catboost`` until an attribute is actually touched.
+
+    Importing catboost at module scope would load its bundled OpenMP
+    runtime into every TuiML process, which is both wasted work for
+    users who never boost and the direct cause of a macOS segfault
+    when PyTorch is imported afterwards. Attribute access happens
+    only inside ``fit``/``predict``, by which point ``fit`` has
+    already raised a well-worded error if the library is missing.
+    """
+
+    __slots__ = ("_module",)
+
+    def __init__(self):
+        self._module = None
+
+    def __getattr__(self, attr):
+        """Import on first use, then delegate."""
+        if self._module is None:
+            self._module = require_backend("catboost", "This algorithm")
+        return getattr(self._module, attr)
+
+
+#: Lazy stand-in for ``import catboost as cb``. Same call sites, no
+#: import until something is used.
+cb = _LazyCatboost()
 
 @classifier(tags=["gradient-boosting", "catboost", "categorical"], version="1.0.0")
 class CatBoostClassifier(Classifier):
@@ -187,10 +213,6 @@ class CatBoostClassifier(Classifier):
             Random seed.
         """
         super().__init__()
-        if not CATBOOST_AVAILABLE:
-            raise ImportError(
-                "CatBoost is not installed. Install it with: pip install catboost"
-            )
 
         self.iterations = iterations
         self.depth = depth
@@ -268,6 +290,10 @@ class CatBoostClassifier(Classifier):
         self : CatBoostClassifier
             Fitted estimator.
         """
+        # Checked here rather than in ``__init__``: constructing the
+        # wrapper must work without the backend so schemas, parameter
+        # grids and pickling behave the same on every install.
+        require_backend("catboost", type(self).__name__)
         X = np.asarray(X)
         y = np.asarray(y)
 
@@ -503,10 +529,6 @@ class CatBoostRegressor(Regressor):
             Random seed.
         """
         super().__init__()
-        if not CATBOOST_AVAILABLE:
-            raise ImportError(
-                "CatBoost is not installed. Install it with: pip install catboost"
-            )
 
         self.iterations = iterations
         self.depth = depth
@@ -582,6 +604,10 @@ class CatBoostRegressor(Regressor):
         self : CatBoostRegressor
             Fitted estimator.
         """
+        # Checked here rather than in ``__init__``: constructing the
+        # wrapper must work without the backend so schemas, parameter
+        # grids and pickling behave the same on every install.
+        require_backend("catboost", type(self).__name__)
         X = np.asarray(X)
         y = np.asarray(y)
 

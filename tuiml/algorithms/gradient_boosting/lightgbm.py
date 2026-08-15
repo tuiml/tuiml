@@ -6,12 +6,38 @@ import warnings
 
 from tuiml.base.algorithms import Classifier, Regressor, classifier, regressor
 
-try:
-    import lightgbm as lgb
-    LIGHTGBM_AVAILABLE = True
-except Exception:
-    lgb = None
-    LIGHTGBM_AVAILABLE = False
+from tuiml.algorithms.gradient_boosting._backend import (
+    has_backend,
+    require_backend,
+)
+
+
+class _LazyLightgbm:
+    """Defer ``import lightgbm`` until an attribute is actually touched.
+
+    Importing lightgbm at module scope would load its bundled OpenMP
+    runtime into every TuiML process, which is both wasted work for
+    users who never boost and the direct cause of a macOS segfault
+    when PyTorch is imported afterwards. Attribute access happens
+    only inside ``fit``/``predict``, by which point ``fit`` has
+    already raised a well-worded error if the library is missing.
+    """
+
+    __slots__ = ("_module",)
+
+    def __init__(self):
+        self._module = None
+
+    def __getattr__(self, attr):
+        """Import on first use, then delegate."""
+        if self._module is None:
+            self._module = require_backend("lightgbm", "This algorithm")
+        return getattr(self._module, attr)
+
+
+#: Lazy stand-in for ``import lightgbm as lgb``. Same call sites, no
+#: import until something is used.
+lgb = _LazyLightgbm()
 
 @classifier(tags=["gradient-boosting", "lightgbm", "distributed"], version="1.0.0")
 class LightGBMClassifier(Classifier):
@@ -204,10 +230,6 @@ class LightGBMClassifier(Classifier):
             Random seed.
         """
         super().__init__()
-        if not LIGHTGBM_AVAILABLE:
-            raise ImportError(
-                "LightGBM is not installed. Install it with: pip install lightgbm"
-            )
 
         self.n_estimators = n_estimators
         self.max_depth = max_depth
@@ -308,6 +330,10 @@ class LightGBMClassifier(Classifier):
         self : LightGBMClassifier
             Fitted estimator.
         """
+        # Checked here rather than in ``__init__``: constructing the
+        # wrapper must work without the backend so schemas, parameter
+        # grids and pickling behave the same on every install.
+        require_backend("lightgbm", type(self).__name__)
         X = np.asarray(X)
         y = np.asarray(y)
 
@@ -568,10 +594,6 @@ class LightGBMRegressor(Regressor):
             Random seed.
         """
         super().__init__()
-        if not LIGHTGBM_AVAILABLE:
-            raise ImportError(
-                "LightGBM is not installed. Install it with: pip install lightgbm"
-            )
 
         self.n_estimators = n_estimators
         self.max_depth = max_depth
@@ -647,6 +669,10 @@ class LightGBMRegressor(Regressor):
         self : LightGBMRegressor
             Fitted estimator.
         """
+        # Checked here rather than in ``__init__``: constructing the
+        # wrapper must work without the backend so schemas, parameter
+        # grids and pickling behave the same on every install.
+        require_backend("lightgbm", type(self).__name__)
         X = np.asarray(X)
         y = np.asarray(y, dtype=float)
 

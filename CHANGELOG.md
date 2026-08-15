@@ -435,7 +435,67 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `installed_commit`, `tracking_ref` and `latest_commit`. `latest_version` is
   still reported on every channel.
 
+- **XGBoost, LightGBM and CatBoost are imported lazily.** They remain part of
+  the default install, but `tuiml.algorithms` no longer imports them at module
+  load. Each ships its own OpenMP runtime, and importing all three
+  unconditionally left every session one `import torch` away from a segfault
+  (see Fixed). Being *installed* was never the problem; being imported eagerly
+  was.
+
+  The availability check also moved out of `__init__` and into `fit`, matching
+  every other backend: constructing a wrapper records hyperparameters and reads
+  its schema without loading the library. Nothing else changes for callers.
+
+  A `tuiml[boosting]` extra exists as a no-op alias so an existing Dockerfile
+  or CI line carrying it keeps resolving.
+
+- **New `tuiml[all]` extra** — every wrapper backend, the neural models and the
+  pretrained foundation model in one command. On Linux, pin CPU wheels unless
+  you want the CUDA build: `uv pip install --torch-backend=cpu 'tuiml[all]'`.
+
+- **The installer picks the right PyTorch build.** PyPI serves the CUDA wheel
+  by default, so `pip install torch` on Linux pulls roughly twenty NVIDIA
+  runtime packages — several gigabytes — *even with no NVIDIA GPU present*.
+  `install.sh` and `install.ps1` now pass `--torch-backend=cpu` when they find
+  no accelerator and `auto` when they do, turning a multi-gigabyte download
+  into a few hundred megabytes on an ordinary laptop. The neural extras
+  therefore default to yes on every machine rather than only on GPU boxes.
+
+- **Getting-started and contributing pages rewritten for the new extras.**
+  Both had drifted. Getting started claimed every optional backend registers
+  under a namespaced hub key — true for `sklearn.SVC`, `weka.J48` and
+  `foundation.TabICLClassifier`, but the boosting and neural models keep bare
+  names, so a contributor copying that would have got it wrong. Contributing
+  listed 6 of the 17 directories under `algorithms/`, and did not mention that
+  `uv sync` now yields a core-only environment in which backend tests *skip*
+  rather than fail — so a change to `tabular_foundation/` could show a fully
+  green run having tested none of it. It now documents `--all-extras`,
+  per-extra sync and `pytest -rs`, plus the three-level rule any new optional
+  dependency has to follow.
+
+### Changed (breaking)
+- **`ARIMA` no longer accepts `seasonal_order`.** The argument was stored in
+  `__init__` and read nowhere else in the file, so `seasonal_order=(1,1,1,12)`
+  silently fitted a **non-seasonal** model and returned forecasts with no
+  seasonal structure. Rather than leave a parameter that lies, it is removed;
+  `SARIMAX` implements seasonal terms properly, along with exogenous
+  regressors, exact maximum likelihood and forecast intervals. Passing it now
+  raises `TypeError` instead of being ignored.
+
 ### Fixed
+- **`ARIMA` never estimated its moving-average parameters.** `ma_params_` was
+  initialised to `np.zeros(q)` and `_refine_parameters` looped over `range(p)`
+  only, so theta stayed at exactly zero for the life of the model. Any `q > 0`
+  specification was silently a pure-AR fit, and `ARIMA(order=(0, 0, 1))` was a
+  constant.
+
+  The fixed-step AR-only descent is replaced by an L-BFGS-B minimisation of the
+  conditional sum of squares over the constant, the AR block and the MA block
+  together, bounded to keep the recursion from exploding, and accepted only
+  when it improves on the Yule-Walker starting point. Measured on simulated
+  series: MA(1) theta=0.6 recovers as **0.6001**, AR(1) phi=0.7 as 0.7111, and
+  ARMA(1,1) with (0.5, 0.4) as (0.521, 0.389).
+
 - **Interpreter segfault when a neural model was fitted after any boosting
   import (macOS).** torch bundles its own `libomp.dylib`, while xgboost,
   LightGBM and CatBoost each resolve `@rpath/libomp.dylib` to a different copy.
@@ -443,18 +503,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   landed in a process holding two OpenMP runtimes and the first `LayerNorm`
   killed the interpreter with SIGSEGV and no traceback.
 
-  Importing torch *first* avoids it entirely, and `OMP_NUM_THREADS=1` or
-  `torch.set_num_threads(1)` both fix it; the usual `KMP_DUPLICATE_LIB_OK=TRUE`
-  advice does **not** — it still segfaults. Both neural packages now clamp
-  torch to one thread once, on darwin only, and only when a conflicting module
-  is already loaded.
+  **Fixed at the root** by importing the three lazily (above). They are still
+  installed by default — that was never the problem. A process that never
+  boosts now never loads a second OpenMP runtime, so torch keeps all its
+  threads: measured 8, against 1 under the previous thread-clamping
+  mitigation.
 
-  This is a mitigation, not a cure: it costs multi-threaded torch on macOS,
-  and it does so in every session, because the boosting libraries are
-  unconditional hard dependencies. The real fix is to make xgboost, LightGBM
-  and CatBoost an optional extra — they are third-party wrappers sitting in a
-  core namespace, which the project's own dependency policy says should not
-  happen. Tracked separately as a breaking change.
+  The clash is **symmetric**, and a guard remains for the case where one
+  process genuinely uses both. Whichever runtime initialises second can crash,
+  and the two directions do not share a fix — measured:
+
+  | Situation | `KMP_DUPLICATE_LIB_OK=TRUE` | `torch.set_num_threads(1)` | `OMP_NUM_THREADS=1` in env |
+  |---|---|---|---|
+  | boosting loaded first, then torch | still segfaults | **works** | works |
+  | torch loaded first, then boosting | still segfaults | still segfaults | **works** |
+
+  So `tuiml.utils.torch_backend.guard_duplicate_openmp` clamps torch after
+  importing it, and `tuiml.algorithms.gradient_boosting._backend` sets
+  `OMP_NUM_THREADS` before importing a boosting library — each only on darwin,
+  and only when the other library is already loaded. Note that the widely
+  recommended `KMP_DUPLICATE_LIB_OK=TRUE` fixes neither direction.
 
 - **Exported notebooks failed on user algorithms authored in an earlier
   session.** `tuiml_export_notebook` inlines a user algorithm's source only

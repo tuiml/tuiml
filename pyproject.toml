@@ -47,6 +47,12 @@ dependencies = [
     "requests>=2.28.0",
     "matplotlib>=3.5.0",
     "seaborn>=0.11.0",
+    # Gradient boosting. Kept in the default install: ~111 MB of plain CPU
+    # wheels, no CUDA and no platform lag, and they are what people reach for
+    # first on tabular data. They are still imported *lazily* (see
+    # tuiml/algorithms/gradient_boosting/_backend.py) -- being installed was
+    # never the problem, being imported eagerly was, because each ships its own
+    # OpenMP runtime and clashes with PyTorch's on macOS.
     "xgboost>=2.0.0",
     "catboost>=1.2.0",
     "lightgbm>=4.0.0",
@@ -82,6 +88,15 @@ sklearn = ["scikit-learn>=1.7.0"]
 capymoa = ["capymoa>=0.14.0"]
 weka = ["python-weka-wrapper3>=0.3.0"]
 
+# No-op alias. The three boosting libraries are required dependencies, so this
+# resolves to what you already have. Kept so that existing Dockerfiles and CI
+# configs carrying `pip install 'tuiml[boosting]'` keep working.
+boosting = [
+    "xgboost>=2.0.0",
+    "catboost>=1.2.0",
+    "lightgbm>=4.0.0",
+]
+
 # Deep-learning backend for the neural tabular and forecasting models
 # (FT-Transformer, SAINT, NODE, N-BEATS, NHITS, PatchTST). These are native
 # TuiML implementations, not wrappers, but they need a tensor library with
@@ -111,6 +126,20 @@ backends = [
     "scikit-learn>=1.7.0",
     "capymoa>=0.14.0",
     "python-weka-wrapper3>=0.3.0",
+]
+
+# Everything: every wrapper backend, the neural models and the pretrained
+# foundation model. Pulls in PyTorch, which on Linux resolves to the CUDA build
+# and several gigabytes of NVIDIA runtime libraries unless the index is pinned
+# to CPU wheels -- `uv pip install --torch-backend=cpu 'tuiml[all]'`, or the
+# UV_TORCH_BACKEND=cpu environment variable. The bundled installer picks that
+# automatically when it finds no GPU.
+all = [
+    "scikit-learn>=1.7.0",
+    "capymoa>=0.14.0",
+    "python-weka-wrapper3>=0.3.0",
+    "torch>=2.2.0",
+    "tabicl>=2.1.0",
 ]
 # Pretrained tabular foundation models — `foundation.TabICLClassifier` and
 # `foundation.TabICLRegressor`. Wraps the upstream `tabicl` package, which

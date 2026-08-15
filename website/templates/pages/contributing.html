@@ -136,7 +136,32 @@
 
             <div class="list-col" style="margin-top: 16px;">
                 <div class="list-row"><span class="m no">[!]</span><span><span class="txt">Wrapper files never go in <code>algorithms/</code>, <code>preprocessing/</code> or <code>features/</code>. See <a href="#integrations">External libraries</a> for the full rules.</span></span></div>
+                <div class="list-row"><span class="m no">[!]</span><span><span class="txt"><code>algorithms/gradient_boosting/</code> is the one exception, and a historical one: the XGBoost, LightGBM and CatBoost wrappers predate this rule and keep their bare names for compatibility. Do not treat it as a precedent.</span></span></div>
             </div>
+
+            <div class="oc-sub">Optional dependencies are lazy at three levels</div>
+            <p class="oc-body oc-max">
+                Anything that needs a library outside the core install &mdash; PyTorch, a boosting
+                backend, a foundation model &mdash; has to stay invisible until it is actually used.
+                The rule is not "wrap the import in a <code>try</code>": it is that the algorithm
+                catalog must be <strong>byte-identical</strong> on every install, so an agent
+                browsing the hub sees the same thing whatever the user happens to have.
+            </p>
+
+            <div class="list-col" style="margin-top: 16px;">
+                <div class="list-row"><span class="m ok">[1]</span><span><span class="txt"><strong>Import time.</strong> No module-scope <code>import torch</code> or <code>import xgboost</code>, anywhere. Classes are still defined, exported and registered without the library, so <code>list_algorithms()</code> is unchanged. An AST test fails the build if you add one.</span></span></div>
+                <div class="list-row"><span class="m ok">[2]</span><span><span class="txt"><strong>Construction time.</strong> <code>YourModel()</code> must succeed without the library &mdash; it only records hyperparameters. Checking availability in <code>__init__</code> breaks parameter grids, pickling and the generic contract suite.</span></span></div>
+                <div class="list-row"><span class="m ok">[3]</span><span><span class="txt"><strong>Fit time.</strong> The first line of <code>fit</code> calls the shared helper, which raises an <code>ImportError</code> naming your class and the exact install command.</span></span></div>
+            </div>
+
+            <p class="oc-caption" style="margin-top: 12px;">Use the existing helpers rather than writing your own check: <code>tuiml.utils.torch_backend.require_torch</code> for PyTorch, <code>tuiml.algorithms.gradient_boosting._backend.require_backend</code> for a boosting library.</p>
+<div class="code-block"><span class="kw">from</span> tuiml.utils.torch_backend <span class="kw">import</span> require_torch
+
+<span class="kw">class</span> YourNeuralModel(Classifier):
+    <span class="kw">def</span> fit(<span class="kw">self</span>, X, y):
+        torch, nn = require_torch(<span class="kw">type</span>(<span class="kw">self</span>).__name__)   <span class="cm"># first line</span>
+        ...</div>
+            <p class="oc-caption" style="margin-top: 12px;">Also declare the extra in <code>pyproject.toml</code>, add it to the installer prompts in <code>website/static/install.sh</code> and <code>install.ps1</code>, and gate your tests with <code>pytest.mark.skipif</code> so they skip cleanly rather than erroring on a core-only install.</p>
         </section>
 
         <!-- ===================== DEV SETUP ===================== -->
@@ -154,6 +179,16 @@ uv run pytest
 
 <span class="cm"># Run with coverage</span>
 uv run pytest --cov=tuiml</div>
+
+            <p class="oc-caption" style="margin-top: 12px;">A plain <code>uv sync</code> gives you the core library only. Tests that need an optional backend <strong>skip</strong> rather than fail, so a green run does not by itself mean you covered your change &mdash; install what your work touches:</p>
+<div class="code-block"><span class="cm"># Everything, including PyTorch and the foundation model</span>
+uv sync --all-extras
+
+<span class="cm"># Or just what you need</span>
+uv sync --extra torch         <span class="cm"># the neural models</span>
+uv sync --extra foundation    <span class="cm"># TabICL</span>
+uv sync --extra sklearn</div>
+            <p class="oc-caption" style="margin-top: 12px;">If you changed something in <code>algorithms/tabular_foundation/</code> or <code>algorithms/timeseries/deep/</code>, check the skip count before you open the PR &mdash; <code>uv run pytest -rs</code> lists exactly what was skipped and why.</p>
 
             <div class="list-col" style="margin-top: 16px;">
                 <div class="list-row"><span class="m no">[!]</span><span><span class="txt">Always use <code>uv run</code> to execute Python scripts and commands. Never use <code>python3</code> directly.</span></span></div>
@@ -318,12 +353,23 @@ uv run pytest --cov=tuiml</div>
             <div class="oc-sub">Step 1: Choose the right location</div>
             <p class="oc-caption">Place your algorithm in the matching subdirectory under <code>tuiml/algorithms/</code>:</p>
             <div class="list-grid" style="margin-top: 8px;">
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">anomaly/</span><span class="txt">: outlier and novelty detection</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">associations/</span><span class="txt">: frequent itemsets and rules</span></span></div>
                 <div class="list-row"><span class="m">[+]</span><span><span class="lbl">bayesian/</span><span class="txt">: probabilistic models</span></span></div>
-                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">trees/</span><span class="txt">: decision trees and forests</span></span></div>
-                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">linear/</span><span class="txt">: linear models</span></span></div>
-                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">neural/</span><span class="txt">: neural networks</span></span></div>
-                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">ensemble/</span><span class="txt">: meta-learners</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">causal/</span><span class="txt">: uplift and treatment effects</span></span></div>
                 <div class="list-row"><span class="m">[+]</span><span><span class="lbl">clustering/</span><span class="txt">: clustering algorithms</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">ensemble/</span><span class="txt">: meta-learners</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">glassbox/</span><span class="txt">: interpretable-by-design models</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">gradient_boosting/</span><span class="txt">: boosted ensembles</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">linear/</span><span class="txt">: linear models</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">neighbors/</span><span class="txt">: instance-based learning</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">neural/</span><span class="txt">: neural networks</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">rules/</span><span class="txt">: rule-based baselines</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">survival/</span><span class="txt">: time-to-event with censoring</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">svm/</span><span class="txt">: maximum-margin methods</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">tabular_foundation/</span><span class="txt">: deep and pretrained tabular models</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">timeseries/</span><span class="txt">: forecasting and series classification</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">trees/</span><span class="txt">: decision trees and forests</span></span></div>
             </div>
 
             <div class="oc-sub">Step 2: Create your algorithm file</div>
@@ -475,7 +521,17 @@ __all__ = [
                             <td><code>tuiml[weka]</code> extra, needs Java</td>
                         </tr>
                         <tr>
-                            <td>A bridge to some other library (JAX, PyTorch, cuML)</td>
+                            <td>A pretrained foundation model (weights downloaded, not shipped)</td>
+                            <td><code>tuiml/algorithms/tabular_foundation/</code></td>
+                            <td><code>tuiml[foundation]</code> extra, hub key <code>foundation.&lt;Name&gt;</code></td>
+                        </tr>
+                        <tr>
+                            <td>A neural architecture {{ config.project_name }} trains itself</td>
+                            <td><code>tabular_foundation/</code> or <code>timeseries/deep/</code></td>
+                            <td><code>tuiml[torch]</code> extra, bare name</td>
+                        </tr>
+                        <tr>
+                            <td>A bridge to some other library (JAX, cuML)</td>
                             <td>a new <code>tuiml/&lt;library&gt;/</code> package</td>
                             <td>its own extra</td>
                         </tr>

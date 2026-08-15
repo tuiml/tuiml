@@ -6,14 +6,14 @@
 #   1. Detects your OS (macOS or Linux)
 #   2. Verifies a C/C++ compiler is available (TuiML has C++ extensions)
 #   3. Installs uv if missing (Python package manager)
-#   4. Asks whether to include the optional integrations
-#      (scikit-learn wrappers, CapyMOA streaming wrappers, Weka wrappers),
-#      and warns if a JVM-backed extra (CapyMOA, Weka) was picked without a
-#      Java runtime on PATH
-#   4b. Detects your GPU (CUDA / ROCm / Apple Metal) and, if one is present,
-#      offers the PyTorch-backed neural models and the TabICL foundation
-#      model. Both work on CPU too, so they are still offered — just not
-#      defaulted to yes
+#   4. Asks whether to include the optional wrappers (scikit-learn, CapyMOA,
+#      Weka), and warns if a JVM-backed extra was picked without a Java
+#      runtime on PATH. XGBoost, LightGBM and CatBoost ship with TuiML itself,
+#      so there is nothing to ask about there.
+#   4b. Detects your GPU (CUDA / ROCm / Apple Metal), offers the PyTorch-backed
+#      neural models and the TabICL foundation model, and picks the matching
+#      PyTorch build: the CPU wheels when there is no GPU, which is a few
+#      hundred MB instead of the multi-GB CUDA build PyPI serves by default
 #   5. Installs tuiml — the latest PyPI release by default
 #   6. Verifies the install
 #   7. Prompts you to run `tuiml setup` to wire up your AI agent
@@ -36,6 +36,7 @@
 #     curl -fsSL https://tuiml.ai/install.sh | TUIML_EXTRAS="torch,foundation" bash
 #
 #   Skip GPU probing with TUIML_GPU=cuda|rocm|mps|cpu (default: auto-detect).
+#   That also selects the PyTorch build, so TUIML_GPU=cpu forces CPU wheels.
 
 set -euo pipefail
 
@@ -166,8 +167,9 @@ detect_accelerator() {
 #   tuiml[foundation] — TabICL, a *pretrained* model whose weights are
 #                       downloaded on first use (~150 MB)
 #
-# Neither is offered by default on a CPU-only machine: they work, but slowly
-# enough that a user who did not ask for them would not thank us.
+# Both default to yes, GPU or not: they run fine on CPU, and install_tuiml
+# pins the CPU PyTorch wheels when no accelerator was found, so saying yes on
+# a laptop costs a few hundred MB rather than several gigabytes of CUDA.
 # ---------------------------------------------------------------------------
 select_neural_extras() {
     # TUIML_EXTRAS is the non-interactive contract and already covers these.
@@ -176,17 +178,17 @@ select_neural_extras() {
         return 0
     fi
 
-    local ans default_hint gpu_found="no"
+    local ans gpu_found="no"
     [[ "$ACCEL" == "cuda" || "$ACCEL" == "rocm" || "$ACCEL" == "mps" ]] && gpu_found="yes"
 
     echo
     echo "  ${BOLD}Neural models${NC} ${DIM}(PyTorch)${NC}"
     if [[ "$gpu_found" == "yes" ]]; then
         success "Accelerator detected: ${BOLD}${ACCEL_DESC}${NC}"
-        default_hint="[Y/n] "
     else
-        info "No GPU detected — ${ACCEL_DESC}. These still run, just slowly."
-        default_hint="[y/N] "
+        info "No GPU detected — ${ACCEL_DESC}. These run on CPU, just slower."
+        info "Installing the ${BOLD}CPU-only${NC} PyTorch build: a few hundred MB"
+        info "rather than the multi-GB CUDA build PyPI serves by default."
     fi
 
     # Warn when the card is too small to be comfortable. 8 GB is where the
@@ -196,13 +198,9 @@ select_neural_extras() {
     fi
 
     echo "    ${DIM}FT-Transformer, SAINT, NODE, N-BEATS, NHITS, PatchTST${NC}"
-    printf "  Install neural models? ${DIM}tuiml[torch]${NC} %s" "$default_hint"
+    printf "  Install neural models? ${DIM}tuiml[torch]${NC} [Y/n] "
     read -r ans < /dev/tty || ans=""
-    if [[ "$gpu_found" == "yes" ]]; then
-        [[ ! "$ans" =~ ^[Nn] ]] && EXTRAS="${EXTRAS:+$EXTRAS,}torch"
-    else
-        [[ "$ans" =~ ^[Yy] ]] && EXTRAS="${EXTRAS:+$EXTRAS,}torch"
-    fi
+    [[ ! "$ans" =~ ^[Nn] ]] && EXTRAS="${EXTRAS:+$EXTRAS,}torch"
 
     # The foundation model only makes sense alongside torch, which it pulls in
     # anyway — so only ask once torch is on the list.
@@ -329,7 +327,7 @@ select_extras() {
     # so read from /dev/tty. If there's no terminal (CI, Docker), default core.
     if [[ ! -t 1 ]] || [[ ! -r /dev/tty ]]; then
         info "Non-interactive install — core TuiML only."
-        info "Add wrappers later: ${DIM}TUIML_EXTRAS=sklearn,capymoa,weka${NC} and re-run."
+        info "Add extras later: ${DIM}TUIML_EXTRAS=sklearn,capymoa,weka,torch${NC} and re-run."
         return 0
     fi
 
@@ -341,6 +339,9 @@ select_extras() {
     printf "  Install scikit-learn wrappers? ${DIM}tuiml[sklearn]${NC} [y/N] "
     read -r ans < /dev/tty || ans=""
     [[ "$ans" =~ ^[Yy] ]] && EXTRAS="sklearn"
+
+    # XGBoost, LightGBM and CatBoost ship with TuiML itself, so there is
+    # nothing to ask about here. They are still imported lazily.
 
     printf "  Install CapyMOA streaming wrappers? ${DIM}tuiml[capymoa], needs Java${NC} [y/N] "
     read -r ans < /dev/tty || ans=""
@@ -464,12 +465,31 @@ install_tuiml() {
     # compiling bytecode for the whole dependency tree — numpy, pandas,
     # xgboost, matplotlib and the rest — while printing nothing, which reads
     # as a hang right after "Installed 2 executables".
+    # Pick the right PyTorch build. The default PyPI wheel is the CUDA one, so
+    # on Linux a plain `pip install torch` drags in ~20 NVIDIA runtime packages
+    # — several gigabytes — even on a machine with no NVIDIA GPU at all. uv's
+    # --torch-backend resolves against PyTorch's own indexes instead: `cpu`
+    # gives the few-hundred-MB CPU build, `auto` detects the local CUDA driver.
+    # Only relevant when the torch extra was actually selected.
+    local torch_args=()
+    if [[ "${EXTRAS:-}" == *torch* || "${EXTRAS:-}" == *foundation* || "${EXTRAS:-}" == *all* ]]; then
+        case "$ACCEL" in
+            cuda|rocm) torch_args=(--torch-backend=auto) ;;
+            *)         torch_args=(--torch-backend=cpu) ;;
+        esac
+        info "PyTorch build: ${BOLD}${torch_args[0]#--torch-backend=}${NC}"
+    fi
+
     if command -v tuiml >/dev/null 2>&1; then
         # Reinstall rather than upgrade: `uv tool upgrade` only ever checks
         # PyPI, so it would not move a git install onto newer commits.
-        uv tool install --compile-bytecode --reinstall --force "$spec"
+        # ${a[@]+"${a[@]}"} rather than "${a[@]}": macOS still ships bash 3.2,
+        # where expanding an empty array under `set -u` is an unbound-variable
+        # error rather than nothing.
+        uv tool install --compile-bytecode --reinstall --force \
+            ${torch_args[@]+"${torch_args[@]}"} "$spec"
     else
-        uv tool install --compile-bytecode "$spec"
+        uv tool install --compile-bytecode ${torch_args[@]+"${torch_args[@]}"} "$spec"
     fi
 
     if ! command -v tuiml >/dev/null 2>&1; then
@@ -502,15 +522,21 @@ verify_extras() {
         e="${e//[[:space:]]/}"
         [[ -n "$e" ]] || continue
 
-        # `torch` is not a wrapper namespace: the neural models it unlocks are
-        # native TuiML code registered under bare names, and they are listed
-        # whether or not torch is installed (that is the whole point of the
-        # lazy-import contract). So the registry cannot tell us anything here
-        # — check that torch itself imports instead.
-        if [[ "$e" == "torch" ]]; then
-            if uv run --no-project python -c "import torch" >/dev/null 2>&1 \
-               || python3 -c "import torch" >/dev/null 2>&1; then
-                success "PyTorch available — neural models ready to fit"
+        # `torch` and `boosting` are not wrapper namespaces. The algorithms they
+        # unlock are registered under bare names and are listed whether or not
+        # the library is installed — that is the whole point of the lazy-import
+        # contract. So the registry cannot tell us anything about them; check
+        # that the libraries themselves import instead.
+        local probe="" label=""
+        case "$e" in
+            torch)    probe="import torch"; label="PyTorch available — neural models ready to fit" ;;
+            boosting) probe="import xgboost, lightgbm, catboost"; label="XGBoost, LightGBM and CatBoost available" ;;
+            foundation) probe="import tabicl"; label="TabICL available" ;;
+        esac
+        if [[ -n "$probe" ]]; then
+            if uv run --no-project python -c "$probe" >/dev/null 2>&1 \
+               || python3 -c "$probe" >/dev/null 2>&1; then
+                success "$label"
             else
                 missing="${missing:+$missing, }$e"
             fi
