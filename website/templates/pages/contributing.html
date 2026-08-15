@@ -185,10 +185,10 @@ uv run pytest --cov=tuiml</div>
 uv sync --all-extras
 
 <span class="cm"># Or just what you need</span>
-uv sync --extra boosting      <span class="cm"># XGBoost, LightGBM, CatBoost</span>
 uv sync --extra torch         <span class="cm"># the neural models</span>
+uv sync --extra foundation    <span class="cm"># TabICL</span>
 uv sync --extra sklearn</div>
-            <p class="oc-caption" style="margin-top: 12px;">If you changed something in <code>algorithms/gradient_boosting/</code>, <code>algorithms/tabular_foundation/</code> or <code>algorithms/timeseries/deep/</code>, check the skip count before you open the PR &mdash; <code>uv run pytest -rs</code> lists exactly what was skipped and why.</p>
+            <p class="oc-caption" style="margin-top: 12px;">If you changed something in <code>algorithms/tabular_foundation/</code> or <code>algorithms/timeseries/deep/</code>, check the skip count before you open the PR &mdash; <code>uv run pytest -rs</code> lists exactly what was skipped and why.</p>
 
             <div class="list-col" style="margin-top: 16px;">
                 <div class="list-row"><span class="m no">[!]</span><span><span class="txt">Always use <code>uv run</code> to execute Python scripts and commands. Never use <code>python3</code> directly.</span></span></div>

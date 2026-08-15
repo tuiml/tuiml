@@ -435,28 +435,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `installed_commit`, `tracking_ref` and `latest_commit`. `latest_version` is
   still reported on every channel.
 
-### Changed (breaking)
-- **XGBoost, LightGBM and CatBoost are now optional: `pip install
-  'tuiml[boosting]'`.** They were required dependencies, imported eagerly by
-  `tuiml.algorithms`. Three problems came from that, and this fixes all three:
-  they are third-party wrappers sitting in a core namespace, which the
-  project's own dependency policy confines to optional backends; together they
-  dominated the size of a base install, for algorithms many users never call;
-  and each bundles its own OpenMP runtime, so **every** session was one
-  `import torch` away from a segfault.
-
-  **What breaks:** `XGBoostClassifier`, `LightGBMRegressor` and their four
-  siblings now raise an `ImportError` from `fit` on an install without the
-  extra. The message names the class and gives the command. Nothing else
-  changes — the classes are still exported under the same names, still
-  registered, and their schemas still readable, so `list_algorithms()` returns
-  the same catalog either way. The installer offers the extra alongside the
-  scikit-learn, CapyMOA and Weka wrappers, defaulted to yes.
+- **XGBoost, LightGBM and CatBoost are imported lazily.** They remain part of
+  the default install, but `tuiml.algorithms` no longer imports them at module
+  load. Each ships its own OpenMP runtime, and importing all three
+  unconditionally left every session one `import torch` away from a segfault
+  (see Fixed). Being *installed* was never the problem; being imported eagerly
+  was.
 
   The availability check also moved out of `__init__` and into `fit`, matching
-  every other optional backend: constructing a wrapper records hyperparameters
-  and now works on any install, which parameter grids and pickling depend on.
+  every other backend: constructing a wrapper records hyperparameters and reads
+  its schema without loading the library. Nothing else changes for callers.
 
+  A `tuiml[boosting]` extra exists as a no-op alias so an existing Dockerfile
+  or CI line carrying it keeps resolving.
+
+- **New `tuiml[all]` extra** — every wrapper backend, the neural models and the
+  pretrained foundation model in one command. On Linux, pin CPU wheels unless
+  you want the CUDA build: `uv pip install --torch-backend=cpu 'tuiml[all]'`.
+
+- **The installer picks the right PyTorch build.** PyPI serves the CUDA wheel
+  by default, so `pip install torch` on Linux pulls roughly twenty NVIDIA
+  runtime packages — several gigabytes — *even with no NVIDIA GPU present*.
+  `install.sh` and `install.ps1` now pass `--torch-backend=cpu` when they find
+  no accelerator and `auto` when they do, turning a multi-gigabyte download
+  into a few hundred megabytes on an ordinary laptop. The neural extras
+  therefore default to yes on every machine rather than only on GPU boxes.
+
+### Changed (breaking)
 - **`ARIMA` no longer accepts `seasonal_order`.** The argument was stored in
   `__init__` and read nowhere else in the file, so `seasonal_order=(1,1,1,12)`
   silently fitted a **non-seasonal** model and returned forecasts with no
@@ -486,10 +491,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   landed in a process holding two OpenMP runtimes and the first `LayerNorm`
   killed the interpreter with SIGSEGV and no traceback.
 
-  **Fixed at the root** by making the three libraries optional and lazily
-  imported (above). A process that never boosts never loads a second OpenMP
-  runtime, so torch now keeps all its threads: measured 8 before, 1 under the
-  previous mitigation.
+  **Fixed at the root** by importing the three lazily (above). They are still
+  installed by default — that was never the problem. A process that never
+  boosts now never loads a second OpenMP runtime, so torch keeps all its
+  threads: measured 8, against 1 under the previous thread-clamping
+  mitigation.
 
   The clash is **symmetric**, and a guard remains for the case where one
   process genuinely uses both. Whichever runtime initialises second can crash,

@@ -5,13 +5,13 @@
 #   1. Verifies it is running on Windows PowerShell 5.1+ / PowerShell 7+
 #   2. Checks for an MSVC toolchain (only needed when building from source)
 #   3. Installs uv if missing (Python package manager)
-#   4. Asks whether to include the optional integrations (gradient-boosting
-#      backends, scikit-learn / CapyMOA / Weka wrappers), and warns if a
-#      JVM-backed extra (CapyMOA, Weka) was picked without a Java runtime on
-#      PATH
-#   4b. Detects an NVIDIA GPU and, if one is present, offers the PyTorch-backed
-#      neural models and the TabICL foundation model. Both work on CPU too, so
-#      they are still offered - just not defaulted to yes
+#   4. Asks whether to include the optional wrappers (scikit-learn, CapyMOA,
+#      Weka), and warns if a JVM-backed extra was picked without a Java runtime
+#      on PATH. XGBoost, LightGBM and CatBoost ship with TuiML itself.
+#   4b. Detects an NVIDIA GPU, offers the PyTorch-backed neural models and the
+#      TabICL foundation model, and picks the matching PyTorch build: CPU
+#      wheels when there is no GPU, which is a few hundred MB instead of the
+#      multi-GB CUDA build PyPI serves by default
 #   5. Installs tuiml - the latest PyPI release by default
 #   6. Verifies the install
 #   7. Prompts you to run `tuiml setup` to wire up your AI agent
@@ -29,11 +29,12 @@
 #
 # Non-interactive / automation:
 #   Set TUIML_EXTRAS to skip the prompts, e.g.
-#     $env:TUIML_EXTRAS = "boosting,sklearn,capymoa,weka"; irm https://tuiml.ai/install.ps1 | iex
+#     $env:TUIML_EXTRAS = "sklearn,capymoa,weka"; irm https://tuiml.ai/install.ps1 | iex
 #     $env:TUIML_EXTRAS = "torch,foundation"; irm https://tuiml.ai/install.ps1 | iex
 #     $env:TUIML_EXTRAS = "none";            irm https://tuiml.ai/install.ps1 | iex   # core only
 #
 #   Skip GPU probing with $env:TUIML_GPU = "cpu" (or cuda). Default: auto-detect.
+#   That also selects the PyTorch build, so TUIML_GPU=cpu forces CPU wheels.
 #
 # Notes for `irm | iex`:
 #   This script deliberately has NO param() block. `iex` evaluates the text in
@@ -331,9 +332,9 @@ function Get-Accelerator {
 # ---------------------------------------------------------------------------
 # Optional integrations - ask the user which extras to include.
 #
-# TuiML core is always installed; boosting, sklearn, capymoa, weka, torch and
-# foundation are extras (see pyproject.toml). Sets $script:Extras to a
-# comma-separated list, e.g. "boosting,sklearn,torch".
+# TuiML core - including XGBoost, LightGBM and CatBoost - is always installed.
+# sklearn, capymoa, weka, torch and foundation are extras (see pyproject.toml).
+# Sets $script:Extras to a comma-separated list, e.g. "sklearn,torch".
 # ---------------------------------------------------------------------------
 function Select-Extras {
     $script:Extras = ''
@@ -351,7 +352,7 @@ function Select-Extras {
 
     if (-not $script:Interactive) {
         Write-Info 'Non-interactive install - core TuiML only.'
-        Write-Info 'Add extras later: $env:TUIML_EXTRAS = "boosting,sklearn,capymoa,weka" and re-run.'
+        Write-Info 'Add extras later: $env:TUIML_EXTRAS = "sklearn,capymoa,weka,torch" and re-run.'
         return
     }
 
@@ -364,13 +365,8 @@ function Select-Extras {
 
     $selected = @()
 
-    # Gradient boosting was bundled with TuiML until it became an extra.
-    # Defaulted to yes: it is the usual accuracy ceiling on tabular data, and
-    # anyone upgrading from an older TuiML expects the three to be present.
-    Write-Host '    XGBoost, LightGBM, CatBoost - usually the strongest on tabular data' -ForegroundColor DarkGray
-    if ((Read-Answer '  Install gradient-boosting backends? tuiml[boosting] [Y/n] ') -notmatch '^[Nn]') {
-        $selected += 'boosting'
-    }
+    # XGBoost, LightGBM and CatBoost ship with TuiML itself, so there is
+    # nothing to ask about here. They are still imported lazily.
     if ((Read-Answer '  Install scikit-learn wrappers? tuiml[sklearn] [y/N] ') -match '^[Yy]') {
         $selected += 'sklearn'
     }
@@ -389,13 +385,13 @@ function Select-Extras {
     Write-Host '(PyTorch)' -ForegroundColor DarkGray
     if ($gpu.Found) {
         Write-Ok "Accelerator detected: $($gpu.Description)"
-        $torchPrompt = '  Install neural models? tuiml[torch] [Y/n] '
-        $wantTorch = (Read-Answer $torchPrompt) -notmatch '^[Nn]'
     } else {
-        Write-Info "No GPU detected - $($gpu.Description). These still run, just slowly."
-        $torchPrompt = '  Install neural models? tuiml[torch] [y/N] '
-        $wantTorch = (Read-Answer $torchPrompt) -match '^[Yy]'
+        Write-Info "No GPU detected - $($gpu.Description). These run on CPU, just slower."
+        Write-Info 'Installing the CPU-only PyTorch build: a few hundred MB rather'
+        Write-Info 'than the multi-GB CUDA build PyPI serves by default.'
     }
+    $script:GpuFound = $gpu.Found
+    $wantTorch = (Read-Answer '  Install neural models? tuiml[torch] [Y/n] ') -notmatch '^[Nn]' 
     if ($wantTorch) {
         $selected += 'torch'
         Write-Host '    TabICL - a pretrained model that predicts without training.' -ForegroundColor DarkGray
@@ -509,12 +505,29 @@ function Install-Tuiml {
     # compiling bytecode for the whole dependency tree - numpy, pandas,
     # xgboost, matplotlib and the rest - while printing nothing, which reads
     # as a hang right after "Installed 2 executables".
+    # Pick the right PyTorch build. PyPI's default wheel is the CUDA one, so a
+    # plain install drags in ~20 NVIDIA runtime packages - several gigabytes -
+    # even on a machine with no NVIDIA GPU. uv's --torch-backend resolves
+    # against PyTorch's own indexes instead: `cpu` gives the few-hundred-MB CPU
+    # build, `auto` detects the local CUDA driver. Only relevant when a
+    # torch-backed extra was actually selected.
+    $torchArgs = @()
+    if ($script:Extras -match 'torch|foundation|all') {
+        # GpuFound is set by the interactive prompt, which a TUIML_EXTRAS run
+        # skips entirely - so probe here if it was never filled in, or a
+        # non-interactive install on a CUDA box would silently take CPU wheels.
+        if ($null -eq $script:GpuFound) { $script:GpuFound = (Get-Accelerator).Found }
+        $backend = if ($script:GpuFound) { 'auto' } else { 'cpu' }
+        $torchArgs = @("--torch-backend=$backend")
+        Write-Info "PyTorch build: $backend"
+    }
+
     if (Test-CommandExists 'tuiml') {
         # Reinstall rather than upgrade: `uv tool upgrade` only ever checks
         # PyPI, so it would not move a git install onto newer commits.
-        & uv tool install --compile-bytecode --reinstall --force $spec
+        & uv tool install --compile-bytecode --reinstall --force @torchArgs $spec
     } else {
-        & uv tool install --compile-bytecode $spec
+        & uv tool install --compile-bytecode @torchArgs $spec
     }
     if ($LASTEXITCODE -ne 0) { throw "uv tool install failed (exit code $LASTEXITCODE)" }
 
@@ -557,6 +570,7 @@ function Confirm-Extras {
         $probe = $null
         switch ($e) {
             'boosting' { $probe = 'import xgboost, lightgbm, catboost'; $label = 'XGBoost, LightGBM and CatBoost available' }
+            'all'      { $probe = 'import torch, tabicl'; $label = 'PyTorch and TabICL available' }
             'torch'    { $probe = 'import torch'; $label = 'PyTorch available - neural models ready to fit' }
         }
         if ($probe) {

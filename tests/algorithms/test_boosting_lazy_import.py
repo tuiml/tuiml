@@ -1,14 +1,16 @@
-"""The gradient-boosting backends must stay optional and lazily imported.
+"""The gradient-boosting backends must stay *lazily imported*.
 
-XGBoost, LightGBM and CatBoost were required dependencies imported eagerly by
-:mod:`tuiml.algorithms`. Three things were wrong with that: they are
-third-party wrappers in a core namespace, they dominate the install size for
-algorithms many users never call, and each loads its own OpenMP runtime --
-which on macOS segfaults the interpreter when PyTorch is imported afterwards.
+XGBoost, LightGBM and CatBoost ship with TuiML, but importing them eagerly is
+what caused an interpreter segfault: each loads its own OpenMP runtime, and on
+macOS a second runtime arriving with PyTorch kills the process on the first
+parallel region. Because :mod:`tuiml.algorithms` imported all three
+unconditionally, *every* session was one ``import torch`` away from that.
 
-The eager import is the load-bearing detail, so it is what these tests pin.
-A stray module-scope ``import xgboost`` would restore all three problems at
-once while every other test kept passing.
+Being installed was never the problem; being imported at ``import tuiml`` time
+was. That distinction is the whole point of this file: a stray module-scope
+``import xgboost`` would bring the crash straight back while every other test
+kept passing, so the absence of one is pinned two ways -- by a subprocess check
+of what actually gets imported, and by an AST scan of the source.
 """
 
 import ast
@@ -42,7 +44,8 @@ _PACKAGE = pathlib.Path(__file__).resolve().parents[2] / "tuiml"
 
 
 def test_importing_tuiml_does_not_import_any_backend():
-    """The invariant the OpenMP fix rests on.
+    """The invariant the OpenMP fix rests on -- true even though all three
+    are installed.
 
     Run in a subprocess: this test session has almost certainly imported the
     backends already, so checking ``sys.modules`` in-process proves nothing.
@@ -59,6 +62,7 @@ def test_importing_tuiml_does_not_import_any_backend():
 
 def test_no_module_scope_backend_import_in_the_package():
     """Catch a re-introduced top-level import by reading the source.
+
 
     The subprocess test above only covers what ``tuiml.algorithms`` pulls in
     today. This one fails the moment anybody writes the import, wherever it is.
@@ -81,10 +85,11 @@ def test_no_module_scope_backend_import_in_the_package():
 
 @pytest.mark.parametrize("cls, rounds_param", WRAPPERS)
 def test_construction_never_needs_the_backend(cls, rounds_param):
-    """Constructing records hyperparameters and must work on any install.
+    """Constructing records hyperparameters and must not touch the library.
 
-    The availability check used to live in ``__init__``, which made the
-    catalog, the schemas and pickling differ between installs.
+    The availability check used to live in ``__init__``. Moving it to ``fit``
+    keeps construction free of the import, which is what lets the schema be
+    read without loading a second OpenMP runtime.
     """
     model = cls(**{rounds_param: 7})
     assert getattr(model, rounds_param) == 7
@@ -111,7 +116,7 @@ def test_has_backend_reports_a_bool(name):
     assert isinstance(has_backend(name), bool)
 
 
-@pytest.mark.skipif(not has_backend("xgboost"), reason="needs tuiml[boosting]")
+@pytest.mark.skipif(not has_backend("xgboost"), reason="boosting libraries missing")
 def test_wrappers_still_fit_when_the_backend_is_present():
     """Making the import lazy must not change what the wrappers do."""
     rng = np.random.default_rng(0)
@@ -125,7 +130,8 @@ def test_wrappers_still_fit_when_the_backend_is_present():
 
 
 @pytest.mark.skipif(sys.platform != "darwin", reason="OpenMP clash is macOS-specific")
-@pytest.mark.skipif(not has_backend("xgboost"), reason="needs tuiml[boosting]")
+@pytest.mark.skipif(not has_backend("xgboost"), reason="boosting libraries missing")
+@pytest.mark.skipif(not has_backend("torch"), reason="needs uv sync --extra torch")
 def test_boosting_and_neural_models_coexist_in_one_process():
     """Both orderings must survive, because the libomp clash is symmetric.
 

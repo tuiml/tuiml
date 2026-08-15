@@ -100,7 +100,7 @@
 <div class="code-block">curl -fsSL https://tuiml.ai/install.sh | TUIML_CHANNEL=git bash</div>
                     <p class="oc-caption" style="margin-top: 12px;">The installer asks which extras you want, and <strong>detects your GPU</strong> &mdash; CUDA, ROCm or Apple Metal &mdash; before offering the PyTorch-backed models. On a machine without one it still offers them, just not by default, since they run on CPU only slowly. Answer everything up front to skip the questions:</p>
 <div class="code-block"><span class="cm"># Non-interactive: pick the extras yourself</span>
-curl -fsSL https://tuiml.ai/install.sh | TUIML_EXTRAS="boosting,sklearn" bash
+curl -fsSL https://tuiml.ai/install.sh | TUIML_EXTRAS="sklearn,torch" bash
 
 <span class="cm"># Core only, no extras</span>
 curl -fsSL https://tuiml.ai/install.sh | TUIML_EXTRAS="none" bash
@@ -108,7 +108,7 @@ curl -fsSL https://tuiml.ai/install.sh | TUIML_EXTRAS="none" bash
 <span class="cm"># Neural models and the TabICL foundation model</span>
 curl -fsSL https://tuiml.ai/install.sh | TUIML_EXTRAS="torch,foundation" bash
 
-<span class="cm"># Skip GPU probing: cuda | rocm | mps | cpu</span>
+<span class="cm"># Skip GPU probing; also picks the PyTorch build</span>
 curl -fsSL https://tuiml.ai/install.sh | TUIML_GPU=cpu bash</div>
                 </div>
 
@@ -126,7 +126,7 @@ curl -fsSL https://tuiml.ai/install.sh | TUIML_GPU=cpu bash</div>
 $env:TUIML_CHANNEL = "git"; irm https://tuiml.ai/install.ps1 | iex
 
 <span class="cm"># Non-interactive: skip the prompts</span>
-$env:TUIML_EXTRAS = "boosting,sklearn,capymoa,weka"; irm https://tuiml.ai/install.ps1 | iex</div>
+$env:TUIML_EXTRAS = "sklearn,capymoa,weka,torch"; irm https://tuiml.ai/install.ps1 | iex</div>
                     <p class="oc-caption" style="margin-top: 8px;">If your policy blocks remote scripts, run it in a bypassed child shell instead: <code>powershell -ExecutionPolicy Bypass -c "irm https://tuiml.ai/install.ps1 | iex"</code>. WSL also works &mdash; use the macOS/Linux command inside it.</p>
                 </div>
             </div>
@@ -139,10 +139,7 @@ pip install tuiml
 <span class="cm"># Using uv</span>
 uv add tuiml</div>
             <p class="oc-caption" style="margin-top: 12px;">Everything beyond the core install is an extra. The core is pure Python and C++ &mdash; over 200 algorithms, including every tree, linear, clustering, anomaly, survival, uplift, conformal and classical forecasting model &mdash; and needs none of the below.</p>
-<div class="code-block"><span class="cm"># Gradient boosting: XGBoost, LightGBM, CatBoost</span>
-pip install 'tuiml[boosting]'
-
-<span class="cm"># scikit-learn estimators</span>
+<div class="code-block"><span class="cm"># scikit-learn estimators</span>
 pip install 'tuiml[sklearn]'
 
 <span class="cm"># CapyMOA streaming learners (needs Java 11+)</span>
@@ -151,7 +148,7 @@ pip install 'tuiml[capymoa]'
 <span class="cm"># Weka learners via python-weka-wrapper3 (needs Java 11+)</span>
 pip install 'tuiml[weka]'
 
-<span class="cm"># All four at once</span>
+<span class="cm"># All three wrapper backends at once</span>
 pip install 'tuiml[backends]'
 
 <span class="cm"># Neural models: FT-Transformer, SAINT, NODE,</span>
@@ -160,8 +157,13 @@ pip install 'tuiml[torch]'
 
 <span class="cm"># TabICL, a pretrained foundation model that</span>
 <span class="cm"># predicts without training</span>
-pip install 'tuiml[foundation]'</div>
-            <p class="oc-caption" style="margin-top: 12px;"><strong>XGBoost, LightGBM and CatBoost moved to <code>tuiml[boosting]</code>.</strong> They used to be installed with TuiML itself. If you upgrade and call <code>XGBoostClassifier</code> without the extra, <code>fit</code> raises an <code>ImportError</code> telling you the command &mdash; the class is still there, still listed, and its parameters still readable. Three reasons for the move: they are third-party wrappers rather than TuiML code, together they dominated the download for algorithms many people never call, and each ships its own OpenMP runtime, which crashed the interpreter on macOS when PyTorch was used in the same session.</p>
+pip install 'tuiml[foundation]'
+
+<span class="cm"># Everything. On Linux, pin CPU wheels unless you</span>
+<span class="cm"># want several GB of NVIDIA CUDA libraries:</span>
+uv pip install --torch-backend=cpu 'tuiml[all]'</div>
+            <p class="oc-caption" style="margin-top: 12px;"><strong>XGBoost, LightGBM and CatBoost are in the default install</strong> &mdash; nothing extra to type. They are ~111&nbsp;MB of plain CPU wheels and they are what most people reach for first on tabular data. <code>tuiml[boosting]</code> still resolves, so an existing Dockerfile or CI line carrying it keeps working.</p>
+            <p class="oc-caption" style="margin-top: 12px;"><strong>PyTorch is the one thing deliberately left out</strong>, and only because of what it drags behind it. PyPI serves the CUDA build by default, so on Linux <code>pip install torch</code> pulls roughly twenty NVIDIA runtime packages &mdash; several gigabytes &mdash; even on a machine with no NVIDIA GPU. That is a steep toll for 11 of TuiML&rsquo;s 245 algorithms, every one of which has a no-dependency alternative already in the library. Install it when you want those 11, and pin the CPU wheels if you have no GPU.</p>
             <p class="oc-caption" style="margin-top: 12px;">Wrappers around another library register under a <strong>namespaced</strong> hub key &mdash; <code>sklearn.SVC</code>, <code>capymoa.HoeffdingTree</code>, <code>weka.J48</code>, <code>foundation.TabICLClassifier</code> &mdash; so they can never collide with a native name. The boosting and neural models keep bare names (<code>XGBoostClassifier</code>, <code>NBEATSForecaster</code>), because TuiML has no native algorithm called either.</p>
             <p class="oc-caption" style="margin-top: 12px;">An extra is only needed to <em>fit</em>. Importing TuiML never imports PyTorch or a boosting library, so <code>list_algorithms()</code> returns the same catalog on every install and you can read any model's parameters before deciding to install anything. <code>tuiml[foundation]</code> downloads a ~150&nbsp;MB checkpoint on first use, into <code>~/.cache/huggingface</code>; TuiML itself ships no model weights.</p>
 
