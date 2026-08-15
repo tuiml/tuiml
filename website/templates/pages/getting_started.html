@@ -98,6 +98,18 @@
                     </div>
                     <p class="oc-caption" style="margin-top: 8px;">Installs the latest PyPI release as a prebuilt wheel &mdash; no compiler needed. To build the newest unreleased code from GitHub <code>main</code> instead, set <code>TUIML_CHANNEL=git</code> (that one needs <code>git</code> and a C++ compiler):</p>
 <div class="code-block">curl -fsSL https://tuiml.ai/install.sh | TUIML_CHANNEL=git bash</div>
+                    <p class="oc-caption" style="margin-top: 12px;">The installer asks which extras you want, and <strong>detects your GPU</strong> &mdash; CUDA, ROCm or Apple Metal &mdash; before offering the PyTorch-backed models. On a machine without one it still offers them, just not by default, since they run on CPU only slowly. Answer everything up front to skip the questions:</p>
+<div class="code-block"><span class="cm"># Non-interactive: pick the extras yourself</span>
+curl -fsSL https://tuiml.ai/install.sh | TUIML_EXTRAS="boosting,sklearn" bash
+
+<span class="cm"># Core only, no extras</span>
+curl -fsSL https://tuiml.ai/install.sh | TUIML_EXTRAS="none" bash
+
+<span class="cm"># Neural models and the TabICL foundation model</span>
+curl -fsSL https://tuiml.ai/install.sh | TUIML_EXTRAS="torch,foundation" bash
+
+<span class="cm"># Skip GPU probing: cuda | rocm | mps | cpu</span>
+curl -fsSL https://tuiml.ai/install.sh | TUIML_GPU=cpu bash</div>
                 </div>
 
                 <div class="oc-panel" data-panel="windows">
@@ -114,7 +126,7 @@
 $env:TUIML_CHANNEL = "git"; irm https://tuiml.ai/install.ps1 | iex
 
 <span class="cm"># Non-interactive: skip the prompts</span>
-$env:TUIML_EXTRAS = "sklearn,capymoa,weka"; irm https://tuiml.ai/install.ps1 | iex</div>
+$env:TUIML_EXTRAS = "boosting,sklearn,capymoa,weka"; irm https://tuiml.ai/install.ps1 | iex</div>
                     <p class="oc-caption" style="margin-top: 8px;">If your policy blocks remote scripts, run it in a bypassed child shell instead: <code>powershell -ExecutionPolicy Bypass -c "irm https://tuiml.ai/install.ps1 | iex"</code>. WSL also works &mdash; use the macOS/Linux command inside it.</p>
                 </div>
             </div>
@@ -126,18 +138,32 @@ pip install tuiml
 
 <span class="cm"># Using uv</span>
 uv add tuiml</div>
-            <p class="oc-caption" style="margin-top: 12px;">The optional algorithm backends are extras. Native TuiML never needs them; each one registers under a namespaced hub key (<code>sklearn.SVC</code>, <code>capymoa.HoeffdingTree</code>, <code>weka.J48</code>) so it cannot collide with a native name. <code>capymoa</code> and <code>weka</code> both run on the JVM, so they need Java 11+ on <code>PATH</code>.</p>
-<div class="code-block"><span class="cm"># scikit-learn estimators</span>
+            <p class="oc-caption" style="margin-top: 12px;">Everything beyond the core install is an extra. The core is pure Python and C++ &mdash; over 200 algorithms, including every tree, linear, clustering, anomaly, survival, uplift, conformal and classical forecasting model &mdash; and needs none of the below.</p>
+<div class="code-block"><span class="cm"># Gradient boosting: XGBoost, LightGBM, CatBoost</span>
+pip install 'tuiml[boosting]'
+
+<span class="cm"># scikit-learn estimators</span>
 pip install 'tuiml[sklearn]'
 
-<span class="cm"># CapyMOA streaming learners (needs Java)</span>
+<span class="cm"># CapyMOA streaming learners (needs Java 11+)</span>
 pip install 'tuiml[capymoa]'
 
-<span class="cm"># Weka learners via python-weka-wrapper3 (needs Java)</span>
+<span class="cm"># Weka learners via python-weka-wrapper3 (needs Java 11+)</span>
 pip install 'tuiml[weka]'
 
-<span class="cm"># All three at once</span>
-pip install 'tuiml[backends]'</div>
+<span class="cm"># All four at once</span>
+pip install 'tuiml[backends]'
+
+<span class="cm"># Neural models: FT-Transformer, SAINT, NODE,</span>
+<span class="cm"># N-BEATS, N-HiTS, PatchTST. Pulls in PyTorch.</span>
+pip install 'tuiml[torch]'
+
+<span class="cm"># TabICL, a pretrained foundation model that</span>
+<span class="cm"># predicts without training</span>
+pip install 'tuiml[foundation]'</div>
+            <p class="oc-caption" style="margin-top: 12px;"><strong>XGBoost, LightGBM and CatBoost moved to <code>tuiml[boosting]</code>.</strong> They used to be installed with TuiML itself. If you upgrade and call <code>XGBoostClassifier</code> without the extra, <code>fit</code> raises an <code>ImportError</code> telling you the command &mdash; the class is still there, still listed, and its parameters still readable. Three reasons for the move: they are third-party wrappers rather than TuiML code, together they dominated the download for algorithms many people never call, and each ships its own OpenMP runtime, which crashed the interpreter on macOS when PyTorch was used in the same session.</p>
+            <p class="oc-caption" style="margin-top: 12px;">Wrappers around another library register under a <strong>namespaced</strong> hub key &mdash; <code>sklearn.SVC</code>, <code>capymoa.HoeffdingTree</code>, <code>weka.J48</code>, <code>foundation.TabICLClassifier</code> &mdash; so they can never collide with a native name. The boosting and neural models keep bare names (<code>XGBoostClassifier</code>, <code>NBEATSForecaster</code>), because TuiML has no native algorithm called either.</p>
+            <p class="oc-caption" style="margin-top: 12px;">An extra is only needed to <em>fit</em>. Importing TuiML never imports PyTorch or a boosting library, so <code>list_algorithms()</code> returns the same catalog on every install and you can read any model's parameters before deciding to install anything. <code>tuiml[foundation]</code> downloads a ~150&nbsp;MB checkpoint on first use, into <code>~/.cache/huggingface</code>; TuiML itself ships no model weights.</p>
 
             <div class="oc-sub" id="install-source">From source (development)</div>
 <div class="code-block">git clone https://github.com/tuiml/tuiml.git
