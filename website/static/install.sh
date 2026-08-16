@@ -47,6 +47,17 @@ TUIML_CHANNEL="${TUIML_CHANNEL:-}"   # "stable" (PyPI) or "git" (GitHub main);
                                      # empty means ask, or stable if no terminal
 TUIML_GIT_URL="${TUIML_GIT_URL:-git+https://github.com/tuiml/tuiml.git}"
 
+# Python floor, mirroring requires-python in pyproject.toml. Passed to every
+# `uv tool install` so uv selects (or downloads) a suitable interpreter rather
+# than whatever `python3` happens to be first on PATH. Without it, a machine
+# whose default is older -- macOS still ships 3.9, and plenty of Windows boxes
+# have a stale 3.9 -- fails resolution with a message that blames the extras
+# rather than the Python version:
+#   "Because the current Python version (3.9.19) does not satisfy Python>=3.10
+#    and you require tuiml[sklearn], your requirements are unsatisfiable."
+TUIML_PYTHON="${TUIML_PYTHON:-}"
+[[ -n "$TUIML_PYTHON" ]] || TUIML_PYTHON=">=3.10"
+
 # ---------------------------------------------------------------------------
 # Colors and UI helpers
 # ---------------------------------------------------------------------------
@@ -480,16 +491,31 @@ install_tuiml() {
         info "PyTorch build: ${BOLD}${torch_args[0]#--torch-backend=}${NC}"
     fi
 
-    if command -v tuiml >/dev/null 2>&1; then
-        # Reinstall rather than upgrade: `uv tool upgrade` only ever checks
-        # PyPI, so it would not move a git install onto newer commits.
-        # ${a[@]+"${a[@]}"} rather than "${a[@]}": macOS still ships bash 3.2,
-        # where expanding an empty array under `set -u` is an unbound-variable
-        # error rather than nothing.
-        uv tool install --compile-bytecode --reinstall --force \
-            ${torch_args[@]+"${torch_args[@]}"} "$spec"
-    else
-        uv tool install --compile-bytecode ${torch_args[@]+"${torch_args[@]}"} "$spec"
+    # Reinstall rather than upgrade: `uv tool upgrade` only ever checks PyPI,
+    # so it would not move a git install onto newer commits.
+    # ${a[@]+"${a[@]}"} rather than "${a[@]}": macOS still ships bash 3.2, where
+    # expanding an empty array under `set -u` is an unbound-variable error.
+    local reinstall_args=()
+    command -v tuiml >/dev/null 2>&1 && reinstall_args=(--reinstall --force)
+
+    run_uv_install() {
+        uv tool install --compile-bytecode --python "$TUIML_PYTHON" \
+            ${reinstall_args[@]+"${reinstall_args[@]}"} \
+            ${1:+"$@"} "$spec"
+    }
+
+    # --torch-backend is flagged experimental by uv and prints a warning to say
+    # so, which means a future release may rename or drop it. If the install
+    # fails while we are passing it, retry once without: a CUDA-heavy download
+    # is a far better outcome than an installer that cannot install anything.
+    if ! run_uv_install ${torch_args[@]+"${torch_args[@]}"}; then
+        if [[ ${#torch_args[@]} -gt 0 ]]; then
+            warn "Install failed with ${torch_args[0]}; retrying without it."
+            warn "On Linux this may pull the CUDA build of PyTorch (several GB)."
+            run_uv_install
+        else
+            return 1
+        fi
     fi
 
     if ! command -v tuiml >/dev/null 2>&1; then

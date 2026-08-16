@@ -50,6 +50,16 @@ $TuimlChannelEnv = $env:TUIML_CHANNEL   # "stable" (PyPI) or "git" (GitHub main)
 $TuimlGitUrl = $env:TUIML_GIT_URL
 if (-not $TuimlGitUrl) { $TuimlGitUrl = 'git+https://github.com/tuiml/tuiml.git' }
 
+# Python floor, mirroring requires-python in pyproject.toml. Passed to every
+# `uv tool install` so uv selects (or downloads) a suitable interpreter instead
+# of whatever `python` happens to be first on PATH. Without it, a machine whose
+# default is older fails resolution with a message that blames the extras
+# rather than the Python version:
+#   "Because the current Python version (3.9.19) does not satisfy Python>=3.10
+#    and you require tuiml[sklearn], your requirements are unsatisfiable."
+$TuimlPython = $env:TUIML_PYTHON
+if (-not $TuimlPython) { $TuimlPython = '>=3.10' }
+
 # ---------------------------------------------------------------------------
 # UI helpers
 #
@@ -301,6 +311,7 @@ function Get-Accelerator {
         return [pscustomobject]@{
             Found       = ($env:TUIML_GPU -ne 'cpu' -and $env:TUIML_GPU -ne 'none')
             Description = "forced by TUIML_GPU=$($env:TUIML_GPU)"
+            VramMb      = 0
         }
     }
 
@@ -315,18 +326,18 @@ function Get-Accelerator {
                 $parts = $line -split ',\s*'
                 $vram = 0
                 [void][int]::TryParse(($parts[1] -replace '\D', ''), [ref]$vram)
-                if ($vram -gt 0 -and $vram -lt 8000) {
-                    Write-Note "Only $vram MB of VRAM - you may need a smaller batch_size."
-                }
                 # nvidia-smi already includes the vendor in the product name.
-                return [pscustomobject]@{ Found = $true; Description = $parts[0] }
+                # The VRAM warning is the caller's to print, so that it lands
+                # under the "Neural models" heading it refers to rather than
+                # above it.
+                return [pscustomobject]@{ Found = $true; Description = $parts[0]; VramMb = $vram }
             }
         } catch {
             # Fall through to CPU.
         }
     }
 
-    return [pscustomobject]@{ Found = $false; Description = 'CPU only' }
+    return [pscustomobject]@{ Found = $false; Description = 'CPU only'; VramMb = 0 }
 }
 
 # ---------------------------------------------------------------------------
@@ -385,6 +396,10 @@ function Select-Extras {
     Write-Host '(PyTorch)' -ForegroundColor DarkGray
     if ($gpu.Found) {
         Write-Ok "Accelerator detected: $($gpu.Description)"
+        # 8 GB is where the transformer models stop needing a smaller batch.
+        if ($gpu.VramMb -gt 0 -and $gpu.VramMb -lt 8000) {
+            Write-Note "Only $($gpu.VramMb) MB of VRAM - you may need a smaller batch_size."
+        }
     } else {
         Write-Info "No GPU detected - $($gpu.Description). These run on CPU, just slower."
         Write-Info 'Installing the CPU-only PyTorch build: a few hundred MB rather'
@@ -522,12 +537,23 @@ function Install-Tuiml {
         Write-Info "PyTorch build: $backend"
     }
 
-    if (Test-CommandExists 'tuiml') {
-        # Reinstall rather than upgrade: `uv tool upgrade` only ever checks
-        # PyPI, so it would not move a git install onto newer commits.
-        & uv tool install --compile-bytecode --reinstall --force @torchArgs $spec
-    } else {
-        & uv tool install --compile-bytecode @torchArgs $spec
+    # Reinstall rather than upgrade: `uv tool upgrade` only ever checks PyPI,
+    # so it would not move a git install onto newer commits.
+    $reinstallArgs = @()
+    if (Test-CommandExists 'tuiml') { $reinstallArgs = @('--reinstall', '--force') }
+
+    & uv tool install --compile-bytecode --python $TuimlPython `
+        @reinstallArgs @torchArgs $spec
+
+    # --torch-backend is flagged experimental by uv and prints a warning saying
+    # so, which means a future release may rename or drop it. If the install
+    # failed while we were passing it, retry once without: a CUDA-heavy
+    # download beats an installer that cannot install anything.
+    if ($LASTEXITCODE -ne 0 -and $torchArgs.Count -gt 0) {
+        Write-Note "Install failed with $($torchArgs[0]); retrying without it."
+        Write-Detail 'This may pull the CUDA build of PyTorch (several GB).'
+        & uv tool install --compile-bytecode --python $TuimlPython `
+            @reinstallArgs $spec
     }
     if ($LASTEXITCODE -ne 0) { throw "uv tool install failed (exit code $LASTEXITCODE)" }
 

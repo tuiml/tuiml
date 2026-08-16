@@ -483,6 +483,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   raises `TypeError` instead of being ignored.
 
 ### Fixed
+- **The installers failed on any machine whose default Python is older than
+  3.10.** Neither passed `--python` to `uv tool install`, so uv built the tool
+  environment against whatever interpreter it found first. On a Windows box
+  defaulting to 3.9.19 — and equally on macOS, which still ships 3.9 — the
+  install died after every question had been answered, with an error that
+  blamed the extras rather than the Python version:
+
+  ```
+  Because the current Python version (3.9.19) does not satisfy Python>=3.10
+  and you require tuiml[sklearn], your requirements are unsatisfiable.
+  ```
+
+  Both installers now pass `--python ">=3.10"`, mirroring `requires-python`,
+  so uv selects a suitable interpreter or downloads a managed one. Verified on
+  a host whose default is 3.9.6: the tool environment is built on 3.13.11.
+  Override with `TUIML_PYTHON`.
+
+- **The installers now survive `--torch-backend` being changed or removed.**
+  uv prints "the `--torch-backend` option is experimental and may change
+  without warning" when it is used, so a future uv release could break the
+  install outright. Both installers now retry once without the flag, warning
+  that this may pull the CUDA build. A failed install is worse than a large
+  one.
+
+- **`install.ps1` printed the low-VRAM warning before the section it belongs
+  to**, so "Only 6144 MB of VRAM" appeared above the "Neural models" heading
+  that explains what it refers to. The probe now returns the figure and the
+  caller prints it in place.
+
 - **`ARIMA` never estimated its moving-average parameters.** `ma_params_` was
   initialised to `np.zeros(q)` and `_refine_parameters` looped over `range(p)`
   only, so theta stayed at exactly zero for the life of the model. Any `q > 0`
