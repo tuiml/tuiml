@@ -219,13 +219,94 @@ function Confirm-Compiler {
 # ---------------------------------------------------------------------------
 # Prerequisite: git (uv needs it for source installs)
 # ---------------------------------------------------------------------------
+# Is git actually usable? Resolving the command is not quite enough - a broken
+# or half-installed git resolves but fails - so run it and check the result.
+function Test-GitUsable {
+    if (-not (Test-CommandExists 'git')) { return $false }
+    try {
+        & git --version 2>$null | Out-Null
+        return ($LASTEXITCODE -eq 0)
+    } catch {
+        return $false
+    }
+}
+
+# Re-read PATH from the registry.
+#
+# winget writes the new entry to the machine/user environment, but the running
+# PowerShell session keeps the PATH it started with - so git stays "missing"
+# straight after a successful install until the shell is restarted. Rebuilding
+# $env:Path from both scopes avoids telling the user to reopen their terminal.
+function Update-PathFromRegistry {
+    $machine = [System.Environment]::GetEnvironmentVariable('Path', 'Machine')
+    $user = [System.Environment]::GetEnvironmentVariable('Path', 'User')
+    $env:Path = (@($machine, $user) | Where-Object { $_ }) -join ';'
+}
+
+# Ask before installing anything system-wide. TUIML_INSTALL_GIT=1 answers yes
+# for automation, 0 answers no; with no console and no variable the answer is
+# no, since an unattended run should not install software on its own.
+function Confirm-GitInstallWanted {
+    switch -Regex ($env:TUIML_INSTALL_GIT) {
+        '^(1|yes|true)$'  { return $true }
+        '^(0|no|false)$'  { return $false }
+    }
+    if (-not $script:Interactive) { return $false }
+    return ((Read-Answer '  Install git now? [Y/n] ') -notmatch '^[Nn]')
+}
+
+function Install-Git {
+    # winget ships with App Installer on Windows 10 1709+ and every Windows 11.
+    if (Test-CommandExists 'winget') {
+        Write-Info 'Installing git with winget...'
+        & winget install --id Git.Git -e --source winget `
+            --accept-package-agreements --accept-source-agreements
+        Update-PathFromRegistry
+        if (Test-GitUsable) { return $true }
+    }
+
+    # Scoop and Chocolatey are common on developer machines that predate winget.
+    if (Test-CommandExists 'scoop') {
+        Write-Info 'Installing git with scoop...'
+        & scoop install git
+        Update-PathFromRegistry
+        if (Test-GitUsable) { return $true }
+    }
+    if (Test-CommandExists 'choco') {
+        Write-Info 'Installing git with Chocolatey (needs an elevated shell)...'
+        & choco install git -y
+        Update-PathFromRegistry
+        if (Test-GitUsable) { return $true }
+    }
+
+    return $false
+}
+
 function Confirm-Git {
-    if (Test-CommandExists 'git') {
+    if (Test-GitUsable) {
         Write-Ok 'git is available'
         return
     }
-    Write-Fail 'git is required to install from source.'
-    Write-Detail 'Install it, then re-run:  winget install --id Git.Git -e'
+
+    Write-Note 'git is required to install from source, and was not found.'
+    if (-not (Confirm-GitInstallWanted)) {
+        Write-Fail "git is needed for the 'git' channel."
+        Write-Detail 'Install it, then re-run:  winget install --id Git.Git -e'
+        Write-Detail 'Or take the stable release, which needs no git:'
+        Write-Detail '  $env:TUIML_CHANNEL = "stable"; irm https://tuiml.ai/install.ps1 | iex'
+        throw 'git missing'
+    }
+
+    if (Install-Git) {
+        Write-Ok "git installed: $(& git --version)"
+        return
+    }
+
+    Write-Fail 'git still not available after the install attempt.'
+    Write-Detail 'No package manager worked (winget / scoop / choco).'
+    Write-Detail 'Download it directly:  https://git-scm.com/download/win'
+    Write-Detail 'Or take the stable release, which needs no git:'
+    Write-Detail '  $env:TUIML_CHANNEL = "stable"; irm https://tuiml.ai/install.ps1 | iex'
     throw 'git missing'
 }
 
