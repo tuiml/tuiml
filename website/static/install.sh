@@ -265,18 +265,129 @@ ensure_compiler() {
 # ---------------------------------------------------------------------------
 # Prerequisite: git (uv needs it for source installs)
 # ---------------------------------------------------------------------------
+# Is git actually usable?
+#
+# `command -v git` is not enough on macOS: /usr/bin/git exists as a stub even
+# with no Command Line Tools installed, so the command resolves while every
+# invocation fails (or pops a GUI dialog). Run it and check the exit status.
+have_git() {
+    command -v git >/dev/null 2>&1 && git --version >/dev/null 2>&1
+}
+
+# Ask before installing anything system-wide.
+#
+# TUIML_INSTALL_GIT=1 answers yes for automation, =0 answers no. With no
+# terminal and no variable the answer is no: a non-interactive run must never
+# invoke sudo on its own initiative.
+want_git_install() {
+    case "${TUIML_INSTALL_GIT:-}" in
+        1|yes|true) return 0 ;;
+        0|no|false) return 1 ;;
+    esac
+    if [[ ! -t 1 ]] || [[ ! -r /dev/tty ]]; then
+        return 1
+    fi
+    local ans
+    printf "  Install git now? [Y/n] "
+    read -r ans < /dev/tty || ans=""
+    [[ ! "$ans" =~ ^[Nn] ]]
+}
+
+# Install git on macOS.
+#
+# Homebrew first when present: no sudo, no GUI, and it finishes synchronously.
+# Otherwise fall back to the Command Line Tools, whose installer is a separate
+# GUI process -- xcode-select returns immediately while the download continues,
+# so poll rather than assume it is done when the command exits.
+install_git_macos() {
+    if command -v brew >/dev/null 2>&1; then
+        info "Installing git with Homebrew..."
+        brew install git && return 0
+        return 1
+    fi
+
+    info "Requesting the Xcode Command Line Tools (this opens a dialog)..."
+    xcode-select --install 2>/dev/null || true
+
+    info "Waiting for the install to finish. Accept the dialog if it appears."
+    local waited=0
+    while (( waited < 600 )); do
+        have_git && return 0
+        sleep 10
+        waited=$(( waited + 10 ))
+        (( waited % 60 == 0 )) && info "  still waiting... (${waited}s)"
+    done
+    return 1
+}
+
+# Install git on Linux via whichever package manager is present.
+#
+# Needs root. sudo is used only when we are not already root, and only after
+# the user has said yes -- this function is never reached otherwise.
+install_git_linux() {
+    local sudo_cmd=""
+    if [[ "$(id -u)" != "0" ]]; then
+        if command -v sudo >/dev/null 2>&1; then
+            sudo_cmd="sudo"
+            info "This needs root; you may be prompted for your password."
+        else
+            err "Need root to install git, and sudo is not available."
+            return 1
+        fi
+    fi
+
+    if command -v apt-get >/dev/null 2>&1; then
+        $sudo_cmd apt-get update -qq && $sudo_cmd apt-get install -y git
+    elif command -v dnf >/dev/null 2>&1; then
+        $sudo_cmd dnf install -y git
+    elif command -v yum >/dev/null 2>&1; then
+        $sudo_cmd yum install -y git
+    elif command -v pacman >/dev/null 2>&1; then
+        $sudo_cmd pacman -Sy --noconfirm git
+    elif command -v zypper >/dev/null 2>&1; then
+        $sudo_cmd zypper install -y git
+    elif command -v apk >/dev/null 2>&1; then
+        $sudo_cmd apk add --no-cache git
+    else
+        err "No supported package manager found (apt/dnf/yum/pacman/zypper/apk)."
+        return 1
+    fi
+}
+
 ensure_git() {
-    if command -v git >/dev/null 2>&1; then
+    if have_git; then
         success "git is available"
         return 0
     fi
-    err "git is required to install from source."
-    if [[ "$OS" == "macos" ]]; then
-        echo "  Run: xcode-select --install"
-    else
-        echo "  Run: sudo apt-get install -y git    (Debian/Ubuntu)"
-        echo "    or sudo dnf install -y git        (Fedora/RHEL)"
+
+    warn "git is required to install from source, and was not found."
+    if ! want_git_install; then
+        err "git is needed for the 'git' channel."
+        if [[ "$OS" == "macos" ]]; then
+            echo "  Run: xcode-select --install    ${DIM}(or: brew install git)${NC}"
+        else
+            echo "  Run: sudo apt-get install -y git    ${DIM}(Debian/Ubuntu)${NC}"
+            echo "    or sudo dnf install -y git        ${DIM}(Fedora/RHEL)${NC}"
+        fi
+        echo "  ${DIM}Or install the stable release instead, which needs no git:${NC}"
+        echo "  ${DIM}curl -fsSL https://tuiml.ai/install.sh | TUIML_CHANNEL=stable bash${NC}"
+        exit 1
     fi
+
+    if [[ "$OS" == "macos" ]]; then
+        install_git_macos || true
+    else
+        install_git_linux || true
+    fi
+
+    if have_git; then
+        success "git installed: $(git --version)"
+        return 0
+    fi
+
+    err "git still not available after the install attempt."
+    echo "  Install it yourself and re-run, or take the stable release:"
+    echo "  ${DIM}curl -fsSL https://tuiml.ai/install.sh | TUIML_CHANNEL=stable bash${NC}"
     exit 1
 }
 

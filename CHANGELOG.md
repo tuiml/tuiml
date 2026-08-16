@@ -482,6 +482,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   regressors, exact maximum likelihood and forecast intervals. Passing it now
   raises `TypeError` instead of being ignored.
 
+### Added
+- **The installers offer to install `git` instead of just refusing.** Building
+  from source (`TUIML_CHANNEL=git`) needs git, and both installers previously
+  aborted with instructions and left you to start over. They now offer to
+  install it: Homebrew or the Xcode Command Line Tools on macOS,
+  apt/dnf/yum/pacman/zypper/apk on Linux, winget/scoop/choco on Windows.
+
+  Consent is required, because this installs software system-wide and may use
+  `sudo`. `TUIML_INSTALL_GIT=1` answers yes for automation and `0` answers no;
+  with no terminal and no variable set the answer is **no**, so an unattended
+  run never escalates on its own. Declining still prints the manual command,
+  and now also points at the stable channel, which needs no git at all.
+
+  Two details that would otherwise bite:
+
+  - On macOS, `/usr/bin/git` exists as a stub even with no Command Line Tools
+    installed, so `command -v git` succeeds while every invocation fails. The
+    check runs `git --version` and tests the exit status instead.
+  - On Windows, winget writes PATH to the registry but the running session
+    keeps the PATH it started with, so git would still look missing right
+    after a successful install. `$env:Path` is rebuilt from the machine and
+    user scopes before re-checking.
+
+  The Xcode Command Line Tools installer is a separate GUI process that runs
+  on after `xcode-select` returns, so that path polls for git to appear rather
+  than assuming the command exiting means it finished.
+
 ### Fixed
 - **The installers failed on any machine whose default Python is older than
   3.10.** Neither passed `--python` to `uv tool install`, so uv built the tool
