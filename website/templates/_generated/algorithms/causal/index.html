@@ -1,0 +1,113 @@
+{% extends 'layouts/docs_generated.html' %}
+
+{% set active_nav = 'api' %}
+{% set breadcrumb_html = '<a href="/api-reference.html" class="hover:text-gray-900">API Reference</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="../index.html" class="hover:text-gray-900">algorithms</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">causal</span>' %}
+
+{% block title %}causal - API Documentation{% endblock %}
+
+{% block content %}
+<div class="api-crumb-row" style="margin-bottom: 40px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="/api-reference.html">API Reference</a> / <a href="../index.html">algorithms</a> / <h1 class="api-crumb-file">causal/</h1></div><a href="https://github.com/tuiml/tuiml/tree/main/tuiml/algorithms/causal" target="_blank" rel="noopener noreferrer" title="View algorithms/causal/ on GitHub" aria-label="View algorithms/causal/ on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a></div>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Causal inference — uplift and heterogeneous treatment effects.</p>
+<div class="doc-extended mb-8">Estimating <em>who</em> a treatment helps: the difference between the outcome with and without treatment, per individual. Unlike a plain regression, these models take <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">(X, treatment, y)</code> and predict the individual treatment effect, or uplift, which is what decides who to treat.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Algorithms</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>SLearner:</strong> One model on <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">[X, treatment]</code>; uplift is the difference
+</li>
+
+</ul>
+between the treated and control predictions. Simplest, but the treatment   signal can get diluted among the covariates.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>TLearner:</strong> Two models, one per treatment group; uplift is their
+</li>
+
+</ul>
+difference. Lets each group have its own response surface.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>XLearner:</strong> T-learner plus two &quot;imputed effect&quot; models fitted on the
+</li>
+
+</ul>
+cross-group residuals, combined with a propensity weight. Often the best of   the meta-learners when treatment groups are imbalanced.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>UpliftTreeClassifier:</strong> A single tree that splits directly on uplift gain,
+</li>
+
+</ul>
+so the leaves are groups with genuinely different treatment effects.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Utilities</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">qini_curve</code> — cumulative incremental
+</li>
+
+</ul>
+gain of treating the top-ranked individuals.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">auuc</code> — area under the uplift curve.
+</li>
+
+<li class="text-gray-700">
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">uplift_at_k</code> — mean uplift of the
+</li>
+
+</ul>
+top-k predicted group.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4"><code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">treatment</code> is binary (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">0</code> = control, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">1</code> = treated) and must contain both groups. <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">y</code> is a numeric outcome; uplift is <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">E[y | t=1] - E[y | t=0]</code>.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/algorithms/trees/index.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">trees</code>
+                            <p class="text-sm text-gray-600 mt-0.5">The regressors these meta-learners wrap.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        </div>
+<h2 class="oc-h">Modules</h2>
+<hr class="oc-rule">
+<div class="why-grid" style="margin-top: 0;">
+<a href="meta_learners.html" class="why-card api-card"><div class="why-title">meta_learners</div><p class="why-text">Meta-learners for uplift / heterogeneous treatment effect estimation....</p><div class="oc-caption" style="margin-top: auto;">3 classes · 0 functions</div></a>
+<a href="metrics.html" class="why-card api-card"><div class="why-title">metrics</div><p class="why-text">Evaluation metrics for uplift models....</p><div class="oc-caption" style="margin-top: auto;">0 classes · 3 functions</div></a>
+<a href="uplift_tree.html" class="why-card api-card"><div class="why-title">uplift_tree</div><p class="why-text">A decision tree that splits directly on uplift gain....</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
+</div>
+{% endblock %}

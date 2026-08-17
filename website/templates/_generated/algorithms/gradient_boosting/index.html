@@ -7,7 +7,7 @@
 
 {% block content %}
 <div class="api-crumb-row" style="margin-bottom: 40px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="/api-reference.html">API Reference</a> / <a href="../index.html">algorithms</a> / <h1 class="api-crumb-file">gradient_boosting/</h1></div><a href="https://github.com/tuiml/tuiml/tree/main/tuiml/algorithms/gradient_boosting" target="_blank" rel="noopener noreferrer" title="View algorithms/gradient_boosting/ on GitHub" aria-label="View algorithms/gradient_boosting/ on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a></div>
-<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Gradient boosting frameworks (XGBoost, CatBoost, LightGBM).</p>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Gradient boosting frameworks (XGBoost, CatBoost, LightGBM, NGBoost).</p>
 <div class="doc-extended mb-8">Boosted tree ensembles, each fitting the next tree to the previous ensemble&#x27;s errors. These are usually the strongest option on tabular data, at the cost of longer training and more hyperparameters than a single tree.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -38,7 +38,15 @@ histogram binning; fastest on wide or large data.
 </li>
 
 </ul>
-categorical handling; strongest when categorical columns dominate.</div>
+categorical handling; strongest when categorical columns dominate.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>NGBoostClassifier / NGBoostRegressor:</strong> Natural gradient boosting of a
+</li>
+
+</ul>
+proper scoring rule; predicts a calibrated distribution, not just a mean.</div>
         </div>
         
 
@@ -48,11 +56,15 @@ categorical handling; strongest when categorical columns dominate.</div>
             </div>
             <div class="p-4">
 <p class="mb-4">
-These wrap the three upstream libraries, which are required dependencies of TuiML rather than optional extras. Unlike most of <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">algorithms</code>, the implementations are not native.
+XGBoost, LightGBM and CatBoost wrap the three upstream libraries, which are required dependencies of TuiML rather than optional extras. Unlike most of <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">algorithms</code>, those implementations are not native.
 </p>
 
 <p class="mb-4">
-Trees are scale-invariant, so feature scaling gains nothing here. Set <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">random_state</code> (or pass <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">random_seed</code> to <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">train</code>) for reproducible fits — all three sample rows and columns while boosting.
+NGBoost is the exception: it is a native pure-NumPy implementation with no external dependency, boosting TuiML&#x27;s own <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">DecisionTreeRegressor</code> base learners. It is also the only member of this module that predicts a full distribution rather than a point estimate.
+</p>
+
+<p class="mb-4">
+Trees are scale-invariant, so feature scaling gains nothing here. Set <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">random_state</code> (or pass <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">random_seed</code> to <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">train</code>) for reproducible fits — the wrapped libraries sample rows and columns while boosting, and NGBoost subsamples rows when <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">minibatch_frac &lt; 1</code>.
 </p>
 </div>
         </div>
@@ -62,6 +74,7 @@ Trees are scale-invariant, so feature scaling gains nothing here. Set <code clas
 <div class="why-grid" style="margin-top: 0;">
 <a href="catboost.html" class="why-card api-card"><div class="why-title">catboost</div><p class="why-text">CatBoost (Categorical Boosting) implementation.</p><div class="oc-caption" style="margin-top: auto;">2 classes · 0 functions</div></a>
 <a href="lightgbm.html" class="why-card api-card"><div class="why-title">lightgbm</div><p class="why-text">LightGBM (Light Gradient Boosting Machine) implementation.</p><div class="oc-caption" style="margin-top: auto;">2 classes · 0 functions</div></a>
+<a href="ngboost.html" class="why-card api-card"><div class="why-title">ngboost</div><p class="why-text">NGBoost - Natural Gradient Boosting for probabilistic prediction....</p><div class="oc-caption" style="margin-top: auto;">2 classes · 0 functions</div></a>
 <a href="xgboost.html" class="why-card api-card"><div class="why-title">xgboost</div><p class="why-text">XGBoost (eXtreme Gradient Boosting) implementation.</p><div class="oc-caption" style="margin-top: auto;">2 classes · 0 functions</div></a>
 </div>
 {% endblock %}

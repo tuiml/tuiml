@@ -1,0 +1,87 @@
+{% extends 'layouts/docs_generated.html' %}
+
+{% set active_nav = 'api' %}
+{% set breadcrumb_html = '<a href="/api-reference.html" class="hover:text-gray-900">API Reference</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="../index.html" class="hover:text-gray-900">algorithms</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">tabular_foundation</span>' %}
+
+{% block title %}tabular_foundation - API Documentation{% endblock %}
+
+{% block content %}
+<div class="api-crumb-row" style="margin-bottom: 40px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="/api-reference.html">API Reference</a> / <a href="../index.html">algorithms</a> / <h1 class="api-crumb-file">tabular_foundation/</h1></div><a href="https://github.com/tuiml/tuiml/tree/main/tuiml/algorithms/tabular_foundation" target="_blank" rel="noopener noreferrer" title="View algorithms/tabular_foundation/ on GitHub" aria-label="View algorithms/tabular_foundation/ on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a></div>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Deep learning architectures for tabular data, backed by PyTorch.</p>
+<div class="doc-extended mb-8">
+<p class="mb-4">
+Three families, each with a classifier and a regressor:
+</p>
+
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>FT-Transformer</strong> (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">FTTransformerClassifier</code>,
+</li>
+
+</ul>
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">FTTransformerRegressor</code>) -- a feature tokenizer turns every column   into its own embedding, and a Transformer attends across those feature   tokens.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>SAINT</strong> (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">SAINTClassifier</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">SAINTRegressor</code>) -- the same,
+</li>
+
+</ul>
+plus <strong>intersample attention</strong>: a second attention stage that runs across   the rows of the batch, so a sample&#x27;s representation depends on its   neighbours.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>NODE</strong> (<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">NODEClassifier</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">NODERegressor</code>) -- ensembles of
+</li>
+
+</ul>
+oblivious decision trees made differentiable with   <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">entmax15</code> and stacked with   DenseNet-style connectivity.
+<p class="mb-4">
+PyTorch is an <strong>optional</strong> dependency:
+</p>
+
+<p class="mb-4">
+.. code-block:: bash
+</p>
+
+<p class="mb-4">
+pip install &#x27;tuiml[torch]&#x27;
+</p>
+
+<p class="mb-4">
+Importing this package never imports torch, and constructing a model never imports torch either -- the classes are registered and introspectable on any install. The dependency is required only by <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">fit</code>, which raises a clear <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ImportError</code> naming the install command. See <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">torch_backend</code>.
+</p>
+</div>
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.algorithms.tabular_foundation import FTTransformerClassifier
+&gt;&gt;&gt; model = FTTransformerClassifier(d_token=8, n_blocks=1, random_state=0)
+&gt;&gt;&gt; model.n_blocks
+1</code></pre>
+            </div>
+        </div>
+        </div></div>
+<h2 class="oc-h">Modules</h2>
+<hr class="oc-rule">
+<div class="why-grid" style="margin-top: 0;">
+<a href="ft_transformer.html" class="why-card api-card"><div class="why-title">ft_transformer</div><p class="why-text">FT-Transformer: the Transformer, adapted to tabular data....</p><div class="oc-caption" style="margin-top: auto;">2 classes · 0 functions</div></a>
+<a href="node.html" class="why-card api-card"><div class="why-title">node</div><p class="why-text">NODE: Neural Oblivious Decision Ensembles....</p><div class="oc-caption" style="margin-top: auto;">2 classes · 1 function</div></a>
+<a href="saint.html" class="why-card api-card"><div class="why-title">saint</div><p class="why-text">SAINT: self-attention over features <strong>and</strong> over rows....</p><div class="oc-caption" style="margin-top: auto;">2 classes · 0 functions</div></a>
+<a href="tabicl.html" class="why-card api-card"><div class="why-title">tabicl</div><p class="why-text">TabICL — in-context learning on tabular data, with no gradient step....</p><div class="oc-caption" style="margin-top: auto;">2 classes · 0 functions</div></a>
+</div>
+{% endblock %}

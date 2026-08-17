@@ -46,6 +46,46 @@ weights; handles level, trend and seasonality.
 </li>
 
 <li class="text-gray-700">
+<strong>SARIMAX:</strong> Seasonal ARIMA with exogenous regressors, estimated by exact
+</li>
+
+</ul>
+Gaussian maximum likelihood through a Kalman filter. Unlike <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ARIMA</code> it   really does fit the seasonal and moving-average terms, and it supports   regressors and forecast intervals.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>VAR:</strong> Vector autoregression — several series predicted jointly from the
+</li>
+
+</ul>
+lagged history of all of them.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>ThetaForecaster:</strong> The Theta method; equivalent to simple exponential
+</li>
+
+</ul>
+smoothing with half the series&#x27; OLS drift, with optional deseasonalisation.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>TBATS:</strong> Exponential smoothing with trigonometric seasonality, which is
+</li>
+
+</ul>
+what lets it handle high-frequency and <em>non-integer</em> seasonal periods   (365.25) that seasonal ARIMA cannot.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>CrostonForecaster:</strong> Intermittent demand — smooths demand sizes and
+</li>
+
+</ul>
+inter-arrival intervals separately.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
 <strong>STLDecomposition:</strong> Splits a series into trend, seasonal and residual
 </li>
 
@@ -56,20 +96,47 @@ components.</div>
 
         <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Deep forecasting</h4>
+            </div>
+            <div class="p-4"><code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">deep</code> holds <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">NBEATSForecaster</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">NHITSForecaster</code> and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">PatchTSTForecaster</code>. They are native TuiML implementations, but they need a tensor library with autograd, so fitting one requires <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">pip install &#x27;tuiml[torch]&#x27;</code>. Importing them never imports torch and constructing one never requires it — only <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">fit</code> does, and it raises a clear <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ImportError</code> naming the install command.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Classification</h4>
+            </div>
+            <div class="p-4"><code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">classification</code> is a separate task: it labels a <em>whole series</em> by its shape rather than forecasting its next value. See <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">DTWNeighborsClassifier</code>.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
                 <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
             </div>
             <div class="p-4">These subclass <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Regressor</code>, not <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">Classifier</code>: forecasting predicts a continuous value. Ordinary cross-validation shuffles observations and leaks the future into the past, so evaluate with <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">TimeSeriesSplit</code>, which only ever trains on data preceding the test fold.</div>
         </div>
         </div>
+<h2 class="oc-h">Packages</h2>
+<hr class="oc-rule">
+<div class="why-grid" style="margin-top: 0; margin-bottom: 48px;">
+<a href="classification/index.html" class="why-card api-card"><div class="why-title">classification/</div></a>
+<a href="deep/index.html" class="why-card api-card"><div class="why-title">deep/</div></a>
+</div>
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">
 <a href="ar.html" class="why-card api-card"><div class="why-title">ar</div><p class="why-text">Autoregressive (AR) models for univariate time series forecasting.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
 <a href="arima.html" class="why-card api-card"><div class="why-title">arima</div><p class="why-text">Autoregressive Integrated Moving Average (ARIMA) models for time series.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
 <a href="arma.html" class="why-card api-card"><div class="why-title">arma</div><p class="why-text">Autoregressive Moving Average (ARMA) models for stationary time series.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
+<a href="croston.html" class="why-card api-card"><div class="why-title">croston</div><p class="why-text">Croston&#x27;s method and its variants for intermittent demand forecasting.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
 <a href="exponential_smoothing.html" class="why-card api-card"><div class="why-title">exponential_smoothing</div><p class="why-text">Exponential Smoothing models for time series forecasting.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
 <a href="ma.html" class="why-card api-card"><div class="why-title">ma</div><p class="why-text">Moving Average (MA) models for univariate time series forecasting.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
 <a href="prophet.html" class="why-card api-card"><div class="why-title">prophet</div><p class="why-text">Prophet forecasting model for business time series.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
+<a href="sarimax.html" class="why-card api-card"><div class="why-title">sarimax</div><p class="why-text">Seasonal ARIMA with eXogenous regressors, estimated by Kalman-filter MLE.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
 <a href="stl_decomposition.html" class="why-card api-card"><div class="why-title">stl_decomposition</div><p class="why-text">Seasonal-Trend decomposition using LOESS (STL) for time series.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
+<a href="tbats.html" class="why-card api-card"><div class="why-title">tbats</div><p class="why-text">TBATS: trigonometric seasonal exponential smoothing with Box-Cox and ARMA errors.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
+<a href="theta.html" class="why-card api-card"><div class="why-title">theta</div><p class="why-text">Theta method for univariate time series forecasting.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
+<a href="var.html" class="why-card api-card"><div class="why-title">var</div><p class="why-text">Vector Autoregression (VAR) for multivariate time series forecasting.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
 </div>
 {% endblock %}

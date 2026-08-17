@@ -1,0 +1,63 @@
+{% extends 'layouts/docs_generated.html' %}
+
+{% set active_nav = 'api' %}
+{% set breadcrumb_html = '<a href="/api-reference.html" class="hover:text-gray-900">API Reference</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">uncertainty</span>' %}
+
+{% block title %}uncertainty - API Documentation{% endblock %}
+
+{% block content %}
+<div class="api-crumb-row" style="margin-bottom: 40px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="/api-reference.html">API Reference</a> / <h1 class="api-crumb-file">uncertainty/</h1></div><a href="https://github.com/tuiml/tuiml/tree/main/tuiml/uncertainty" target="_blank" rel="noopener noreferrer" title="View uncertainty/ on GitHub" aria-label="View uncertainty/ on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a></div>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Uncertainty quantification.</p>
+<div class="doc-extended mb-8">
+<p class="mb-4">
+Distribution-free prediction sets and intervals, probability calibration, and the metrics that verify both.
+</p>
+
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>Conformal prediction:</strong> <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">SplitConformalClassifier</code>,
+</li>
+
+</ul>
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">SplitConformalRegressor</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">CVPlusRegressor</code>,   <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">JackknifePlusRegressor</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">APSConformalClassifier</code>,   <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">RAPSConformalClassifier</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">MondrianConformalClassifier</code>,   <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ConformalizedQuantileRegressor</code> — prediction sets and intervals with   a finite-sample coverage guarantee that needs no distributional assumption.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>Venn-Abers:</strong> <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">VennAbersCalibrator</code> — probability <em>intervals</em> that
+</li>
+
+</ul>
+report their own calibration uncertainty.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>Calibration:</strong> <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">PlattCalibrator</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">IsotonicCalibrator</code>,
+</li>
+
+</ul>
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">TemperatureScaler</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">VectorScaler</code> — post-processors that turn   raw scores into probabilities you can act on.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>Metrics:</strong> <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">coverage_score</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">average_set_size</code>,
+</li>
+
+</ul>
+<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">interval_width</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">brier_score</code>,   <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">expected_calibration_error</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">maximum_calibration_error</code>,   <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">reliability_curve</code>.
+<p class="mb-4">
+These are post-processors around an already-fitted model rather than algorithms, so they are not registered in the TuiML algorithm hub.
+</p>
+</div></div>
+<h2 class="oc-h">Packages</h2>
+<hr class="oc-rule">
+<div class="why-grid" style="margin-top: 0; margin-bottom: 48px;">
+<a href="calibration/index.html" class="why-card api-card"><div class="why-title">calibration/</div></a>
+<a href="conformal/index.html" class="why-card api-card"><div class="why-title">conformal/</div></a>
+</div>
+<h2 class="oc-h">Modules</h2>
+<hr class="oc-rule">
+<div class="why-grid" style="margin-top: 0;">
+<a href="metrics.html" class="why-card api-card"><div class="why-title">metrics</div><p class="why-text">Metrics for calibration quality and conformal prediction validity.</p><div class="oc-caption" style="margin-top: auto;">0 classes · 7 functions</div></a>
+</div>
+{% endblock %}

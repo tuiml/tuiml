@@ -20,6 +20,15 @@ on:
       # page lists shipped versions only.
       - 'tutorials/**'
       - 'CHANGELOG.md'
+      # The API reference under website/templates/_generated/ is produced from
+      # the package by scripts/generate_docs.py, which the build step below
+      # runs. A docstring edit or a brand-new subpackage therefore changes what
+      # the site would publish without touching website/ at all — so the
+      # package and the generator both belong in the trigger. Without them the
+      # API docs silently lag the library until some unrelated website/ change
+      # fires a deploy (that drift is how eleven packages went missing).
+      - 'tuiml/**'
+      - 'scripts/generate_docs.py'
       - '.github/workflows/pages.yml'
   workflow_dispatch:   # allow manual runs from the Actions tab
 
@@ -50,8 +59,14 @@ jobs:
         # Root build (no BASE_PATH): build.py keeps root-absolute links and writes
         # the CNAME (tuiml.ai), so the deploy binds the custom domain. For a
         # subpath preview instead, set BASE_PATH: /tuiml here.
+        # generate_docs.py is stdlib-only, so the website venv runs it fine. It
+        # must come first: build.py scans _generated/ to build the API cards and
+        # sidebar, so regenerating in the same job is what keeps new packages
+        # from being dropped. The committed _generated/ tree is overwritten here
+        # and only exists so a local `python build.py` previews without it.
         run: |
           uv sync
+          uv run python ../scripts/generate_docs.py
           uv run python build.py
 
       - name: Upload Pages artifact

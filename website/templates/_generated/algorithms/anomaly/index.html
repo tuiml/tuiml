@@ -42,7 +42,59 @@ neighbours&#x27;. Catches anomalies that are only unusual for their region,   wh
 </li>
 
 </ul>
-points. Strong when the data really is roughly normal, poor when it is not.   dimensions, where distances concentrate and become uninformative.</div>
+points. Strong when the data really is roughly normal, poor when it is not.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>ECODDetector:</strong> Per-dimension empirical tail probabilities. Parameter-free,
+</li>
+
+</ul>
+scales to high dimension, and reports which feature caused each flag.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>COPODDetector:</strong> The same tail idea framed through the empirical copula;
+</li>
+
+</ul>
+the widely cited baseline.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>HBOSDetector:</strong> One histogram per feature. The fastest of the family, with
+</li>
+
+</ul>
+a fitted model whose size does not depend on the training set.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>KNNDetector:</strong> Distance to the k-th nearest neighbour. Works on the joint
+</li>
+
+</ul>
+distribution, so it finds points that are ordinary in every single feature   yet sit in an empty region.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>ABODDetector:</strong> Variance of the angles subtended at a point. Angles resist
+</li>
+
+</ul>
+the dimensionality curse better than distances do.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>LSCPDetector:</strong> An ensemble that picks the best base detector separately
+</li>
+
+</ul>
+for each point&#x27;s own neighbourhood, rather than assuming one detector wins   everywhere.
+<p class="mb-4">
+ECOD, COPOD and HBOS assume outlyingness shows up in individual features. They are fast and dimension-scalable but blind to anomalies that are only unusual in the joint distribution — for those use the isolation or density methods above, which see feature interactions but struggle in very high dimensions, where distances concentrate and become uninformative.
+</p>
+</div>
         </div>
         
 
@@ -82,9 +134,15 @@ Accuracy is the wrong metric here: with 1% anomalies, calling everything normal 
 <h2 class="oc-h">Modules</h2>
 <hr class="oc-rule">
 <div class="why-grid" style="margin-top: 0;">
+<a href="abod.html" class="why-card api-card"><div class="why-title">abod</div><p class="why-text">ABOD - Angle-Based Outlier Detection.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
+<a href="copod.html" class="why-card api-card"><div class="why-title">copod</div><p class="why-text">COPOD - Copula-Based Outlier Detection.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
+<a href="ecod.html" class="why-card api-card"><div class="why-title">ecod</div><p class="why-text">ECOD - Empirical Cumulative Distribution based Outlier Detection.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
 <a href="elliptic_envelope.html" class="why-card api-card"><div class="why-title">elliptic_envelope</div><p class="why-text">Elliptic Envelope anomaly detection algorithm.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
+<a href="hbos.html" class="why-card api-card"><div class="why-title">hbos</div><p class="why-text">HBOS - Histogram-Based Outlier Score.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
 <a href="isolation_forest.html" class="why-card api-card"><div class="why-title">isolation_forest</div><p class="why-text">Isolation Forest - Unsupervised Anomaly Detection Algorithm.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
+<a href="knn_detector.html" class="why-card api-card"><div class="why-title">knn_detector</div><p class="why-text">kNN-based outlier detection by distance to the k-th nearest neighbour.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
 <a href="local_outlier_factor.html" class="why-card api-card"><div class="why-title">local_outlier_factor</div><p class="why-text">Local Outlier Factor (LOF) anomaly detection algorithm.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
+<a href="lscp.html" class="why-card api-card"><div class="why-title">lscp</div><p class="why-text">LSCP - Locally Selective Combination in Parallel outlier ensembles.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
 <a href="one_class_svm.html" class="why-card api-card"><div class="why-title">one_class_svm</div><p class="why-text">One-Class SVM for novelty detection and anomaly detection.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
 </div>
 {% endblock %}

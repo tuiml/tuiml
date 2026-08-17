@@ -38,7 +38,27 @@ comparable result far sooner when only a few parameters actually matter,   since
 </li>
 
 </ul>
-picks each next trial from it. Fewest evaluations, best when a single fit   is expensive.</div>
+picks each next trial from it. Fewest evaluations, best when a single fit   is expensive.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>SuccessiveHalvingSearchCV:</strong> Runs a large pool on a small slice of the
+</li>
+
+</ul>
+data, discards the worst, and repeats with more data. Most candidates die   cheaply.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>HyperbandSearchCV:</strong> Several successive-halving schedules at different
+</li>
+
+</ul>
+aggression levels, so the schedule need not be guessed.
+<p class="mb-4">
+The first three choose <strong>which</strong> configurations to evaluate; the last two choose <strong>how much budget each one gets</strong>. They are complementary, not alternatives — the resource-allocation pair samples candidates at random, exactly as <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">RandomSearchCV</code> does.
+</p>
+</div>
         </div>
         
 
@@ -78,6 +98,8 @@ picks each next trial from it. Fewest evaluations, best when a single fit   is e
 <div class="why-grid" style="margin-top: 0;">
 <a href="bayesian_search.html" class="why-card api-card"><div class="why-title">bayesian_search</div><p class="why-text">Sequential model-based hyperparameter search using Gaussian Processes....</p><div class="oc-caption" style="margin-top: auto;">3 classes · 0 functions</div></a>
 <a href="grid_search.html" class="why-card api-card"><div class="why-title">grid_search</div><p class="why-text">Exhaustive grid search over a discrete hyperparameter grid....</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
+<a href="hyperband.html" class="why-card api-card"><div class="why-title">hyperband</div><p class="why-text">Hyperband - successive halving without having to guess the schedule.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
 <a href="random_search.html" class="why-card api-card"><div class="why-title">random_search</div><p class="why-text">Randomized cross-validated search over hyperparameter distributions....</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
+<a href="successive_halving.html" class="why-card api-card"><div class="why-title">successive_halving</div><p class="why-text">Successive halving - multi-fidelity hyperparameter search.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
 </div>
 {% endblock %}

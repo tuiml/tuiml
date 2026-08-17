@@ -1,0 +1,62 @@
+{% extends 'layouts/docs_generated.html' %}
+
+{% set active_nav = 'api' %}
+{% set breadcrumb_html = '<a href="/api-reference.html" class="hover:text-gray-900">API Reference</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="../index.html" class="hover:text-gray-900">uncertainty</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">conformal</span>' %}
+
+{% block title %}conformal - API Documentation{% endblock %}
+
+{% block content %}
+<div class="api-crumb-row" style="margin-bottom: 40px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="/api-reference.html">API Reference</a> / <a href="../index.html">uncertainty</a> / <h1 class="api-crumb-file">conformal/</h1></div><a href="https://github.com/tuiml/tuiml/tree/main/tuiml/uncertainty/conformal" target="_blank" rel="noopener noreferrer" title="View uncertainty/conformal/ on GitHub" aria-label="View uncertainty/conformal/ on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a></div>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Conformal prediction.</p>
+<div class="doc-extended mb-8">
+<p class="mb-4">
+Wrappers that convert a fitted point predictor into a set or interval predictor with a distribution-free, finite-sample coverage guarantee.
+</p>
+
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>Split conformal:</strong> one model fit, needs a held-out calibration split.
+</li>
+
+<li class="text-gray-700">
+<strong>CV+ / jackknife+:</strong> cross-fitting instead of a held-out split; uses all the
+</li>
+
+</ul>
+data at the cost of <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">k</code> fits.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>APS / RAPS:</strong> adaptive sets that grow on ambiguous inputs.
+</li>
+
+<li class="text-gray-700">
+<strong>Mondrian:</strong> a separate threshold per class or group, for conditional rather
+</li>
+
+</ul>
+than merely marginal coverage.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>CQR:</strong> conformalised quantile regression, for heteroscedastic intervals.
+</li>
+
+<li class="text-gray-700">
+<strong>Venn-Abers:</strong> probability intervals that report their own calibration
+</li>
+
+</ul>
+uncertainty.</div></div>
+<h2 class="oc-h">Modules</h2>
+<hr class="oc-rule">
+<div class="why-grid" style="margin-top: 0;">
+<a href="aps.html" class="why-card api-card"><div class="why-title">aps</div><p class="why-text">Adaptive prediction sets (APS) and their regularised variant (RAPS).</p><div class="oc-caption" style="margin-top: auto;">2 classes · 0 functions</div></a>
+<a href="cqr.html" class="why-card api-card"><div class="why-title">cqr</div><p class="why-text">Conformalized quantile regression.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
+<a href="cv_plus.html" class="why-card api-card"><div class="why-title">cv_plus</div><p class="why-text">Cross-validation-based conformal regression (CV+ and jackknife+).</p><div class="oc-caption" style="margin-top: auto;">2 classes · 0 functions</div></a>
+<a href="mondrian.html" class="why-card api-card"><div class="why-title">mondrian</div><p class="why-text">Mondrian (class-conditional) conformal classification.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
+<a href="split.html" class="why-card api-card"><div class="why-title">split</div><p class="why-text">Split (inductive) conformal prediction for classifiers and regressors.</p><div class="oc-caption" style="margin-top: auto;">2 classes · 0 functions</div></a>
+<a href="venn_abers.html" class="why-card api-card"><div class="why-title">venn_abers</div><p class="why-text">Venn-Abers predictors: calibrated probability intervals.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
+</div>
+{% endblock %}

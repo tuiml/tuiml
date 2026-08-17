@@ -1,0 +1,135 @@
+{% extends 'layouts/docs_generated.html' %}
+
+{% set active_nav = 'api' %}
+{% set breadcrumb_html = '<a href="/api-reference.html" class="hover:text-gray-900">API Reference</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="../../index.html" class="hover:text-gray-900">algorithms</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="../index.html" class="hover:text-gray-900">timeseries</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">classification</span>' %}
+
+{% block title %}classification - API Documentation{% endblock %}
+
+{% block content %}
+<div class="api-crumb-row" style="margin-bottom: 40px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="/api-reference.html">API Reference</a> / <a href="../../index.html">algorithms</a> / <a href="../index.html">timeseries</a> / <h1 class="api-crumb-file">classification/</h1></div><a href="https://github.com/tuiml/tuiml/tree/main/tuiml/algorithms/timeseries/classification" target="_blank" rel="noopener noreferrer" title="View algorithms/timeseries/classification/ on GitHub" aria-label="View algorithms/timeseries/classification/ on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a></div>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Time-series classification.</p>
+<div class="doc-extended mb-8">
+<p class="mb-4">
+Classifying a <em>whole series</em> by its shape, rather than forecasting its next value. Input is a panel of shape <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">(n_samples, n_channels, n_timepoints)</code>; a 2-D array is read as univariate.
+</p>
+
+<p class="mb-4">
+This is a different task from everything in the parent <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">timeseries</code> package, which forecasts. It is also different from ordinary classification: flattening a series into columns and handing it to a feature-matrix classifier discards the time ordering that carries the signal.
+</p>
+</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Algorithms</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>MiniRocketClassifier:</strong> 84 fixed dilated kernels summarised by proportion
+</li>
+
+</ul>
+of positive values, then a linear head. Near state-of-the-art accuracy at a   tiny fraction of the cost, and the right default at any real scale.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>HIVECOTEClassifier:</strong> Combines all of the below, weighting each by its own
+</li>
+
+</ul>
+cross-validated accuracy. The most accurate and by far the most expensive.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>TimeSeriesForestClassifier:</strong> Mean, standard deviation and slope of random
+</li>
+
+</ul>
+intervals, in a forest. The temporally localised option: it says <em>where</em> in   the series the difference lives.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>BOSSClassifier:</strong> Turns each series into a bag of symbolic words built
+</li>
+
+</ul>
+from low-frequency Fourier coefficients. The noise-tolerant option: the   low-pass step discards exactly the detail noise lives in.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>ShapeletTransformClassifier:</strong> Finds the short subsequences that separate
+</li>
+
+</ul>
+the classes, and represents each series by its distance to them. The   interpretable option: the fitted shapelets are real subsequences you can   plot and read.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>DTWNeighborsClassifier:</strong> Nearest neighbour under Dynamic Time Warping.
+</li>
+
+</ul>
+The standard baseline of the field, and still hard to beat — but its cost   grows with the training set, which MINIROCKET&#x27;s does not.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Transforms</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>MiniRocketTransformer:</strong> The MINIROCKET features without a classifier, for
+</li>
+
+</ul>
+pipelines and non-classification uses.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Distances</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>dtw_distance / dtw_pairwise:</strong> Elastic alignment that tolerates stretching
+</li>
+
+</ul>
+and compression of the time axis.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>lb_keogh / lb_keogh_envelope:</strong> The cheap lower bound that makes
+</li>
+
+</ul>
+nearest-neighbour search under DTW affordable.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">Z-normalise each series before using an elastic distance unless the absolute level is genuinely meaningful — otherwise DTW largely measures offset. A Sakoe-Chiba band of roughly 10% of the series length is the usual starting point: it speeds the computation up and typically improves accuracy by forbidding degenerate alignments.</div>
+        </div>
+        </div>
+<h2 class="oc-h">Modules</h2>
+<hr class="oc-rule">
+<div class="why-grid" style="margin-top: 0;">
+<a href="dictionary.html" class="why-card api-card"><div class="why-title">dictionary</div><p class="why-text">BOSS - Bag-of-SFA-Symbols dictionary classification.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
+<a href="distance.html" class="why-card api-card"><div class="why-title">distance</div><p class="why-text">Elastic distance measures for time series.</p><div class="oc-caption" style="margin-top: auto;">0 classes · 4 functions</div></a>
+<a href="hive_cote.html" class="why-card api-card"><div class="why-title">hive_cote</div><p class="why-text">HIVE-COTE - a meta-ensemble over distinct time-series representations.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
+<a href="interval.html" class="why-card api-card"><div class="why-title">interval</div><p class="why-text">Time series forest - interval-based classification.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
+<a href="knn.html" class="why-card api-card"><div class="why-title">knn</div><p class="why-text">Nearest-neighbour time-series classification under elastic distances.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
+<a href="rocket.html" class="why-card api-card"><div class="why-title">rocket</div><p class="why-text">MINIROCKET - fast random convolutional features for time series.</p><div class="oc-caption" style="margin-top: auto;">2 classes · 0 functions</div></a>
+<a href="shapelets.html" class="why-card api-card"><div class="why-title">shapelets</div><p class="why-text">Shapelet transform - interpretable time-series classification.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
+</div>
+{% endblock %}

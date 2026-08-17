@@ -1,0 +1,121 @@
+{% extends 'layouts/docs_generated.html' %}
+
+{% set active_nav = 'api' %}
+{% set breadcrumb_html = '<a href="/api-reference.html" class="hover:text-gray-900">API Reference</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">explain</span>' %}
+
+{% block title %}explain - API Documentation{% endblock %}
+
+{% block content %}
+<div class="api-crumb-row" style="margin-bottom: 40px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="/api-reference.html">API Reference</a> / <h1 class="api-crumb-file">explain/</h1></div><a href="https://github.com/tuiml/tuiml/tree/main/tuiml/explain" target="_blank" rel="noopener noreferrer" title="View explain/ on GitHub" aria-label="View explain/ on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a></div>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Model explanation.</p>
+<div class="doc-extended mb-8">Answering <em>why</em> a model predicted what it did, and <em>what</em> it relies on. These wrap an already-fitted model rather than being algorithms, so none of them is registered in the algorithm hub.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Global — what the model relies on overall</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>permutation_importance:</strong> Shuffle a feature, watch the score fall. Works
+</li>
+
+</ul>
+on any model; measures what the fitted model uses.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>drop_column_importance:</strong> Remove a feature and refit. Answers the
+</li>
+
+</ul>
+different question of whether the feature is worth collecting at all.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Effects — how a feature moves the prediction</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>partial_dependence:</strong> The average effect across the data.
+</li>
+
+<li class="text-gray-700">
+<strong>individual_conditional_expectation:</strong> One curve per sample. Look here
+</li>
+
+</ul>
+before trusting a flat partial-dependence curve, which can hide curves that   rise for half the population and fall for the other half.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>accumulated_local_effects:</strong> The same question answered without evaluating
+</li>
+
+</ul>
+the model on feature combinations the data never contains — the right choice   when features are correlated.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Local — why *this* prediction</h4>
+            </div>
+            <div class="p-4">
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>TreeExplainer:</strong> Exact Shapley values for tree models in polynomial time.
+</li>
+
+</ul>
+The attributions sum to the prediction exactly.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>lime_explain:</strong> A local linear surrogate around one sample. Works on any
+</li>
+
+</ul>
+model; the price is that the coefficients describe the surrogate, so check   the returned <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">local_r2</code> before trusting them.
+<ul class="list-disc list-inside my-3 space-y-1 pl-4">
+
+<li class="text-gray-700">
+<strong>counterfactual:</strong> The smallest change that would flip the prediction,
+</li>
+
+</ul>
+anchored on a real background sample so the answer stays feasible.</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sticky-note text-yellow-500 mr-2"></i>Notes</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+Compute importance on <strong>held-out</strong> data. On training data these measure what the model memorised rather than what it generalises with.
+</p>
+
+<p class="mb-4">
+None of this establishes causation. A large attribution says the model used a feature, not that the feature drives the outcome in the world.
+</p>
+</div>
+        </div>
+        </div>
+<h2 class="oc-h">Modules</h2>
+<hr class="oc-rule">
+<div class="why-grid" style="margin-top: 0;">
+<a href="dependence.html" class="why-card api-card"><div class="why-title">dependence</div><p class="why-text">Partial dependence, ICE and ALE - how the prediction moves with a feature.</p><div class="oc-caption" style="margin-top: auto;">0 classes · 3 functions</div></a>
+<a href="global_.html" class="why-card api-card"><div class="why-title">global_</div><p class="why-text">Global model explanations: a surrogate tree and feature-interaction strength.</p><div class="oc-caption" style="margin-top: auto;">0 classes · 2 functions</div></a>
+<a href="importance.html" class="why-card api-card"><div class="why-title">importance</div><p class="why-text">Model-agnostic feature importance by measuring what breaking a feature costs.</p><div class="oc-caption" style="margin-top: auto;">0 classes · 2 functions</div></a>
+<a href="local.html" class="why-card api-card"><div class="why-title">local</div><p class="why-text">Local, model-agnostic explanations: LIME surrogates and counterfactuals.</p><div class="oc-caption" style="margin-top: auto;">0 classes · 2 functions</div></a>
+<a href="shapley.html" class="why-card api-card"><div class="why-title">shapley</div><p class="why-text">Exact Shapley attributions for TuiML&#x27;s tree models.</p><div class="oc-caption" style="margin-top: auto;">1 class · 0 functions</div></a>
+</div>
+{% endblock %}
