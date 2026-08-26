@@ -71,6 +71,8 @@ See Also
 :mod:`tuiml.sklearn` : scikit-learn estimators, under ``sklearn.*`` names.
 :mod:`tuiml.capymoa` : CapyMOA streaming learners, under ``capymoa.*`` names.
 :mod:`tuiml.weka` : Weka learners, under ``weka.*`` names.
+:mod:`tuiml.foundation` : Pretrained tabular foundation models, under
+    ``foundation.*`` names.
 """
 
 # Base classes (single source of truth)
@@ -222,7 +224,7 @@ from tuiml.algorithms.timeseries import (
 # Attention-based and differentiable-tree tabular models. Fitting these needs
 # ``pip install 'tuiml[torch]'``; importing and constructing them does not, so
 # the catalog is identical on every install.
-from tuiml.algorithms.tabular_foundation import (
+from tuiml.algorithms.tabular_deep import (
     FTTransformerClassifier,
     FTTransformerRegressor,
     SAINTClassifier,

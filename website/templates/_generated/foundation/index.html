@@ -1,0 +1,208 @@
+{% extends 'layouts/docs_generated.html' %}
+
+{% set active_nav = 'api' %}
+{% set breadcrumb_html = '<a href="/api-reference.html" class="hover:text-gray-900">API Reference</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">foundation</span>' %}
+
+{% block title %}foundation - API Documentation{% endblock %}
+
+{% block content %}
+<div class="api-crumb-row" style="margin-bottom: 40px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="/api-reference.html">API Reference</a> / <h1 class="api-crumb-file">foundation/</h1></div><a href="https://github.com/tuiml/tuiml/tree/main/tuiml/foundation" target="_blank" rel="noopener noreferrer" title="View foundation/ on GitHub" aria-label="View foundation/ on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a></div>
+<div class="api-package-overview" style="margin-bottom: 48px;"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Pretrained tabular foundation model bridge for TuiML.</p>
+<div class="doc-extended mb-8">
+<p class="mb-4">
+Importing this package registers the wrapped foundation models into the TuiML hub under <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">foundation.<ClassName></code> keys, so they never collide with the native TuiML algorithms.
+</p>
+
+<p class="mb-4">
+A <strong>pretrained tabular foundation model</strong> is a different animal from every other model in the library. The native learners -- including the deep ones in <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tabular_deep</code> -- are TuiML&#x27;s own code and train from scratch on your data: <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">fit</code> runs gradient steps or grows trees, and the resulting parameters <em>are</em> the model. A foundation model arrives already trained. Its weights are a <strong>pretrained checkpoint</strong>, downloaded from a model hub and run in a single forward pass with no gradient step at all. Nothing is fitted here: <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">fit</code> only memorises the training set so it can be handed back as in-context examples at predict time, which is why these models are fast to &quot;train&quot; and why their cost lands almost entirely in <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">predict</code>.
+</p>
+
+<p class="mb-4">
+That difference is what the namespace records. A key like <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">foundation.TabICLClassifier</code> is an honest signal that TuiML is delegating to someone else&#x27;s artifact rather than running its own implementation -- exactly the convention <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">sklearn</code> uses for <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">sklearn.SVC</code> and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">weka</code> for <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">weka.J48</code>. Native algorithms keep their bare names.
+</p>
+</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Installation</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+The backing packages are an optional dependency:
+</p>
+<div class="bg-slate-900 rounded-lg p-4 my-3 overflow-x-auto"><pre class="text-sm font-mono text-slate-100 leading-relaxed">pip install &#x27;tuiml[foundation]&#x27;   # or: uv pip install &#x27;tuiml[foundation]&#x27;</pre></div>
+<p class="mb-4">
+This also pulls in PyTorch. If it is not installed, importing this package still succeeds and the wrapper classes remain fully introspectable -- the algorithm catalog, the parameter schemas and pickling are identical on every install. The dependency is checked in <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">fit</code>, which raises a clear <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ImportError</code> naming the exact install command.
+</p>
+</div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-info-circle text-gray-400 mr-2"></i>Licensing</h4>
+            </div>
+            <div class="p-4">
+<p class="mb-4">
+TuiML is BSD-3-Clause and <strong>never ships or mirrors model weights</strong>. The upstream package fetches its own checkpoint, so the download is a direct transaction between the user and whoever publishes it, under that publisher&#x27;s license.
+</p>
+
+<p class="mb-4">
+This matters because a permissive wrapper does not relicense what it wraps: a checkpoint restricted to non-commercial use stays restricted no matter how TuiML is licensed. Only models whose <strong>weights</strong> carry a license compatible with TuiML&#x27;s own are integrated here. Today that means TabICL alone, which is BSD-3-Clause for code <em>and</em> weights. Adding a model with restricted weights would require a consent gate, which deliberately does not exist yet.
+</p>
+</div>
+        </div>
+        
+<div class="mb-8 last:mb-0"><p class="text-gray-600 my-2">There are two ways to reach a foundation model, and they are equivalent.</p>
+<p class="text-gray-600 my-2"><strong>1. Import the class</strong> and use it like any TuiML algorithm. Constructing and</p>
+<p class="text-gray-600 my-2">inspecting it needs no optional dependency:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.foundation import TabICLClassifier
+&gt;&gt;&gt; clf = TabICLClassifier(n_estimators=2)
+&gt;&gt;&gt; clf.n_estimators
+2
+&gt;&gt;&gt; &quot;softmax_temperature&quot; in clf.get_parameter_schema()
+True</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">Fitting downloads the checkpoint on first use (~150 MB, cached under</p>
+<p class="text-gray-600 my-2"><code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">~/.cache/huggingface</code>) and then predicts in a single forward pass:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.datasets import load_iris  # doctest: +SKIP
+&gt;&gt;&gt; data = load_iris()  # doctest: +SKIP
+&gt;&gt;&gt; clf.fit(data.X, data.y).predict(data.X[:5]).tolist()  # doctest: +SKIP
+[0, 0, 0, 0, 0]</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2"><strong>2. Name it in a spec</strong>, as <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;foundation.&lt;ClassName&gt;&quot;</code>. This is the form</p>
+<p class="text-gray-600 my-2"><code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">train</code> takes, and the form an agent uses over MCP. The prefix is</p>
+<p class="text-gray-600 my-2">part of the name:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; import tuiml  # doctest: +SKIP
+&gt;&gt;&gt; import tuiml.foundation                    # registers the foundation.* keys
+&gt;&gt;&gt; model = tuiml.train({  # doctest: +SKIP
+...     &quot;model&quot;: {&quot;name&quot;: &quot;foundation.TabICLClassifier&quot;,
+...               &quot;params&quot;: {&quot;n_estimators&quot;: 4}},
+...     &quot;data&quot;: {&quot;source&quot;: &quot;iris&quot;, &quot;target&quot;: &quot;class&quot;},
+...     &quot;evaluation&quot;: {&quot;test_size&quot;: 0.3, &quot;metrics&quot;: [&quot;accuracy_score&quot;]},
+... })
+&gt;&gt;&gt; round(model.metrics_[&quot;accuracy_score&quot;], 2)  # doctest: +SKIP
+0.98</code></pre>
+            </div>
+        </div>
+        
+<p class="text-gray-600 my-2">The registration is what makes the key resolvable:</p>
+
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; import tuiml.foundation
+&gt;&gt;&gt; from tuiml.registry import registry
+&gt;&gt;&gt; sorted(k for k in registry.list_names() if k.startswith(&quot;foundation.&quot;))
+[&#x27;foundation.TabICLClassifier&#x27;, &#x27;foundation.TabICLRegressor&#x27;]</code></pre>
+            </div>
+        </div>
+        </div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-link text-gray-500 mr-2"></i>See Also</h4>
+            </div>
+            <div class="p-4"><div class="space-y-2">
+                    <a href="/docs/algorithms/tabular_deep/index.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">tabular_deep</code>
+                            <p class="text-sm text-gray-600 mt-0.5">Native deep tabular architectures (FT-Transformer, SAINT, NODE) trained from scratch on your data.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/sklearn/index.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">sklearn</code>
+                            <p class="text-sm text-gray-600 mt-0.5">The same bridge pattern for scikit-learn estimators.</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs/weka/index.html" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </span>
+                        <div>
+                            <code class="font-bold text-indigo-600 group-hover:text-indigo-800">weka</code>
+                            <p class="text-sm text-gray-600 mt-0.5">The same bridge pattern for Weka (JVM) learners.</p>
+                        </div>
+                    </a>
+                    </div></div>
+        </div>
+        </div>
+<h2 class="oc-h">Modules</h2>
+<hr class="oc-rule">
+<div class="why-grid" style="margin-top: 0;">
+<a href="tabicl.html" class="why-card api-card"><div class="why-title">tabicl</div><p class="why-text">TabICL — in-context learning on tabular data, with no gradient step....</p><div class="oc-caption" style="margin-top: auto;">2 classes · 0 functions</div></a>
+</div>
+{% endblock %}

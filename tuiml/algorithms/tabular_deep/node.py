@@ -21,7 +21,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional, Sequence
 
 from tuiml.base.algorithms import Classifier, classifier, Regressor, regressor
-from tuiml.algorithms.tabular_foundation._base import (
+from tuiml.algorithms.tabular_deep._base import (
     _DeepTabularClassifierMixin,
     _DeepTabularRegressorMixin,
     _training_schema,
@@ -89,7 +89,7 @@ def entmax15(inputs, dim: int = -1):
 
     Examples
     --------
-    >>> from tuiml.algorithms.tabular_foundation.node import entmax15
+    >>> from tuiml.algorithms.tabular_deep.node import entmax15
     >>> from tuiml.utils.torch_backend import has_torch
     >>> if has_torch():
     ...     import torch
@@ -530,15 +530,15 @@ class NODEClassifier(_NODECore, _DeepTabularClassifierMixin, Classifier):
 
     See Also
     --------
-    :class:`~tuiml.algorithms.tabular_foundation.FTTransformerClassifier` : Attention over features instead of trees.
-    :class:`~tuiml.algorithms.tabular_foundation.SAINTClassifier` : Attention over features and rows.
-    :class:`~tuiml.algorithms.tabular_foundation.NODERegressor` : The regression counterpart.
+    :class:`~tuiml.algorithms.tabular_deep.FTTransformerClassifier` : Attention over features instead of trees.
+    :class:`~tuiml.algorithms.tabular_deep.SAINTClassifier` : Attention over features and rows.
+    :class:`~tuiml.algorithms.tabular_deep.NODERegressor` : The regression counterpart.
 
     Examples
     --------
     Constructing and inspecting a model needs no torch:
 
-    >>> from tuiml.algorithms.tabular_foundation import NODEClassifier
+    >>> from tuiml.algorithms.tabular_deep import NODEClassifier
     >>> model = NODEClassifier(n_trees=16, tree_depth=3, random_state=0)
     >>> model.tree_depth
     3
@@ -593,7 +593,7 @@ class NODERegressor(_NODECore, _DeepTabularRegressorMixin, Regressor):
     """NODE for regression: differentiable oblivious tree ensembles.
 
     The regression counterpart of
-    :class:`~tuiml.algorithms.tabular_foundation.NODEClassifier`. The architecture
+    :class:`~tuiml.algorithms.tabular_deep.NODEClassifier`. The architecture
     is unchanged -- entmax-relaxed oblivious trees, densely stacked -- and only
     the objective changes: a single response dimension trained with mean
     squared error against a standardised target.
@@ -688,13 +688,13 @@ class NODERegressor(_NODECore, _DeepTabularRegressorMixin, Regressor):
 
     See Also
     --------
-    :class:`~tuiml.algorithms.tabular_foundation.NODEClassifier` : The classification counterpart.
-    :class:`~tuiml.algorithms.tabular_foundation.FTTransformerRegressor` : Attention over features instead of trees.
-    :class:`~tuiml.algorithms.tabular_foundation.SAINTRegressor` : Attention over features and rows.
+    :class:`~tuiml.algorithms.tabular_deep.NODEClassifier` : The classification counterpart.
+    :class:`~tuiml.algorithms.tabular_deep.FTTransformerRegressor` : Attention over features instead of trees.
+    :class:`~tuiml.algorithms.tabular_deep.SAINTRegressor` : Attention over features and rows.
 
     Examples
     --------
-    >>> from tuiml.algorithms.tabular_foundation import NODERegressor
+    >>> from tuiml.algorithms.tabular_deep import NODERegressor
     >>> model = NODERegressor(n_layers=2, n_trees=16)
     >>> model.n_layers
     2

@@ -8,6 +8,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **New `tuiml.automl` package — model selection and tuning built from parts
+  the library already owns.** No new dependency and no second modelling stack:
+  the search reads each algorithm's published `get_parameter_schema()`, ranks
+  candidates out of the registry, and scores them with TuiML's own splitters
+  and metrics.
+
+  - `AutoMLClassifier` / `AutoMLRegressor` — time-budgeted search over a
+    task-appropriate portfolio.
+  - `search_space_for` / `schema_to_distribution` — turn any algorithm's
+    parameter schema into a `ParameterDistribution`, usable on its own with
+    `RandomSearchCV`.
+  - `build_portfolio` / `describe_portfolio` — query the registry for the
+    algorithms that fit a task, ranked cheap-and-strong first.
+  - `GreedyEnsemble` / `greedy_selection` — greedy ensemble selection
+    (Caruana et al., 2004) over the trial pool.
+
+  The distinguishing output is `best_spec_`: the winning configuration written
+  as a `tuiml.train` spec, so a search returns portable data rather than a
+  pickled object.
+
 - **New `tuiml.uncertainty` package — conformal prediction and probability
   calibration.** TuiML could rank and predict, but it could not say how sure it
   was, and nothing in the library measured whether a probability meant
@@ -681,6 +701,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   collapse to one definition, and `tuiml_get_skeleton` / `tuiml_delete_algorithm`
   are no longer recorded — a template is superseded by the create call, and an
   exported delete would remove real files from `~/.tuiml/` on re-run.
+
+### Changed
+- **`tuiml.algorithms.tabular_foundation` split into two packages.** Bundling a
+  pretrained checkpoint next to architectures TuiML trains itself blurred the
+  one distinction that matters to a user deciding what to run:
+
+  - `tuiml.algorithms.tabular_deep` — FT-Transformer, SAINT and NODE, TuiML's
+    own code, trained from scratch on your data, keeping their bare hub names.
+  - `tuiml.foundation` — the TabICL wrappers, now a top-level bridge package
+    registering under `foundation.<ClassName>` keys, matching the convention
+    `tuiml.sklearn` and `tuiml.weka` already use for delegated implementations.
+
+### Fixed
+- **Boolean hyperparameters were silently dropped from random search.** `bool`
+  is a subclass of `int`, so a two-value choice such as `[True, False]` was
+  read as the numeric range `(1, 0)` and never sampled. `ParameterDistribution`
+  now excludes booleans when deciding whether a tuple is a range.
 
 ## [0.1.9] - 2026-08-03
 

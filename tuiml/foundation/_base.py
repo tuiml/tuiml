@@ -1,31 +1,11 @@
-"""Shared machinery for the pretrained tabular foundation models.
+"""Shared machinery for the wrappers in :mod:`tuiml.foundation`.
 
-The rest of :mod:`tuiml.algorithms.tabular_foundation` — FT-Transformer, SAINT,
-NODE — is native TuiML code that trains from scratch on your data. The models
-built on this module are a different animal: they are **pretrained
-checkpoints**, downloaded from a model hub and run in a single forward pass
-with no gradient step at all. Nothing is fitted; ``fit`` only memorises the
-training set to hand back as in-context examples at predict time.
-
-That difference is why they register under a **namespaced hub key**,
-``foundation.<ClassName>``, exactly as :mod:`tuiml.sklearn` registers
-``sklearn.SVC``. The namespace is an honest signal that TuiML is delegating to
-someone else's artifact rather than running its own implementation, and it
-keeps the names from colliding with native algorithms.
-
-Licensing
----------
-TuiML is BSD-3-Clause and **never ships or mirrors model weights**. The
-upstream package fetches its own checkpoint, so the download is a direct
-transaction between the user and whoever publishes it, under that publisher's
-license.
-
-This matters because a permissive wrapper does not relicense what it wraps: a
-checkpoint restricted to non-commercial use stays restricted no matter how
-TuiML is licensed. Only models whose **weights** carry a license compatible
-with TuiML's own are integrated here. Today that means TabICL alone, which is
-BSD-3-Clause for code *and* weights. Adding a model with restricted weights
-would require a consent gate, which deliberately does not exist yet.
+Provides the two namespaced registration decorators every wrapper in this
+package uses, and the lazy import helper that turns a missing optional
+dependency into an actionable error message. See the package docstring of
+:mod:`tuiml.foundation` for what a pretrained tabular foundation model is, why
+it registers under a ``foundation.<ClassName>`` key rather than a bare name,
+and TuiML's stance on model-weight licensing.
 
 Notes
 -----

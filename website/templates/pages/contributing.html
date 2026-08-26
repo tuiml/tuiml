@@ -188,7 +188,7 @@ uv sync --all-extras
 uv sync --extra torch         <span class="cm"># the neural models</span>
 uv sync --extra foundation    <span class="cm"># TabICL</span>
 uv sync --extra sklearn</div>
-            <p class="oc-caption" style="margin-top: 12px;">If you changed something in <code>algorithms/tabular_foundation/</code> or <code>algorithms/timeseries/deep/</code>, check the skip count before you open the PR &mdash; <code>uv run pytest -rs</code> lists exactly what was skipped and why.</p>
+            <p class="oc-caption" style="margin-top: 12px;">If you changed something in <code>algorithms/tabular_deep/</code> or <code>algorithms/timeseries/deep/</code>, check the skip count before you open the PR &mdash; <code>uv run pytest -rs</code> lists exactly what was skipped and why.</p>
 
             <div class="list-col" style="margin-top: 16px;">
                 <div class="list-row"><span class="m no">[!]</span><span><span class="txt">Always use <code>uv run</code> to execute Python scripts and commands. Never use <code>python3</code> directly.</span></span></div>
@@ -367,7 +367,7 @@ uv sync --extra sklearn</div>
                 <div class="list-row"><span class="m">[+]</span><span><span class="lbl">rules/</span><span class="txt">: rule-based baselines</span></span></div>
                 <div class="list-row"><span class="m">[+]</span><span><span class="lbl">survival/</span><span class="txt">: time-to-event with censoring</span></span></div>
                 <div class="list-row"><span class="m">[+]</span><span><span class="lbl">svm/</span><span class="txt">: maximum-margin methods</span></span></div>
-                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">tabular_foundation/</span><span class="txt">: deep and pretrained tabular models</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">tabular_deep/</span><span class="txt">: deep tabular architectures (FT-Transformer, SAINT, NODE)</span></span></div>
                 <div class="list-row"><span class="m">[+]</span><span><span class="lbl">timeseries/</span><span class="txt">: forecasting and series classification</span></span></div>
                 <div class="list-row"><span class="m">[+]</span><span><span class="lbl">trees/</span><span class="txt">: decision trees and forests</span></span></div>
             </div>
@@ -522,12 +522,12 @@ __all__ = [
                         </tr>
                         <tr>
                             <td>A pretrained foundation model (weights downloaded, not shipped)</td>
-                            <td><code>tuiml/algorithms/tabular_foundation/</code></td>
+                            <td><code>tuiml/foundation/</code></td>
                             <td><code>tuiml[foundation]</code> extra, hub key <code>foundation.&lt;Name&gt;</code></td>
                         </tr>
                         <tr>
                             <td>A neural architecture {{ config.project_name }} trains itself</td>
-                            <td><code>tabular_foundation/</code> or <code>timeseries/deep/</code></td>
+                            <td><code>algorithms/tabular_deep/</code> or <code>timeseries/deep/</code></td>
                             <td><code>tuiml[torch]</code> extra, bare name</td>
                         </tr>
                         <tr>

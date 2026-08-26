@@ -23,7 +23,7 @@ import sys
 import numpy as np
 import pytest
 
-from tuiml.algorithms.tabular_foundation import (
+from tuiml.algorithms.tabular_deep import (
     FTTransformerClassifier,
     FTTransformerRegressor,
     NODEClassifier,
@@ -269,7 +269,7 @@ def test_attention_and_block_output_shapes():
     import torch
     from torch import nn
 
-    from tuiml.algorithms.tabular_foundation._base import (
+    from tuiml.algorithms.tabular_deep._base import (
         _build_attention,
         _build_tokenizer,
         _build_transformer_block,
@@ -298,7 +298,7 @@ def test_intersample_attention_shape_and_row_mixing():
     import torch
     from torch import nn
 
-    from tuiml.algorithms.tabular_foundation.saint import _build_intersample_block
+    from tuiml.algorithms.tabular_deep.saint import _build_intersample_block
 
     torch.manual_seed(0)
     block = _build_intersample_block(torch, nn, n_tokens=6, d_token=8,
@@ -433,7 +433,7 @@ def test_oblivious_tree_layer_shapes_and_leaf_weights():
     import torch
     from torch import nn
 
-    from tuiml.algorithms.tabular_foundation.node import _build_oblivious_tree_layer
+    from tuiml.algorithms.tabular_deep.node import _build_oblivious_tree_layer
 
     generator = torch.Generator().manual_seed(0)
     layer = _build_oblivious_tree_layer(

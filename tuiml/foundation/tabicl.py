@@ -12,7 +12,7 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 
 from tuiml.base.algorithms import Classifier, Regressor
-from tuiml.algorithms.tabular_foundation._foundation import (
+from tuiml.foundation._base import (
     fd_classifier,
     fd_regressor,
     require_package,
@@ -282,15 +282,15 @@ class TabICLClassifier(_TabICLBase, Classifier):
 
     See Also
     --------
-    :class:`~tuiml.algorithms.tabular_foundation.TabICLRegressor` : Regression counterpart.
-    :class:`~tuiml.algorithms.tabular_foundation.FTTransformerClassifier` : Native transformer trained on your data.
+    :class:`~tuiml.foundation.TabICLRegressor` : Regression counterpart.
+    :class:`~tuiml.algorithms.tabular_deep.FTTransformerClassifier` : Native transformer trained on your data.
     :class:`~tuiml.algorithms.gradient_boosting.XGBoostClassifier` : The usual strong tabular baseline.
 
     Examples
     --------
     Constructing and inspecting the model needs no optional dependency:
 
-    >>> from tuiml.algorithms.tabular_foundation import TabICLClassifier
+    >>> from tuiml.foundation import TabICLClassifier
     >>> clf = TabICLClassifier(n_estimators=2)
     >>> clf.n_estimators
     2
@@ -404,7 +404,7 @@ class TabICLRegressor(_TabICLBase, Regressor):
     r"""Tabular regression by **in-context learning**, with no training.
 
     The regression counterpart of
-    :class:`~tuiml.algorithms.tabular_foundation.TabICLClassifier`, using the
+    :class:`~tuiml.foundation.TabICLClassifier`, using the
     same frozen pretrained transformer and the same one-forward-pass
     prediction. See that class for the full description of the method; this
     docstring covers only what differs.
@@ -487,13 +487,13 @@ class TabICLRegressor(_TabICLBase, Regressor):
 
     See Also
     --------
-    :class:`~tuiml.algorithms.tabular_foundation.TabICLClassifier` : Classification counterpart.
+    :class:`~tuiml.foundation.TabICLClassifier` : Classification counterpart.
     :class:`~tuiml.algorithms.gradient_boosting.NGBoostRegressor` : Native probabilistic boosting.
-    :class:`~tuiml.algorithms.tabular_foundation.FTTransformerRegressor` : Native transformer trained on your data.
+    :class:`~tuiml.algorithms.tabular_deep.FTTransformerRegressor` : Native transformer trained on your data.
 
     Examples
     --------
-    >>> from tuiml.algorithms.tabular_foundation import TabICLRegressor
+    >>> from tuiml.foundation import TabICLRegressor
     >>> reg = TabICLRegressor(n_estimators=2)
     >>> reg.n_estimators
     2

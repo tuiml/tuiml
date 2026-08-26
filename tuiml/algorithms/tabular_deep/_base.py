@@ -1,9 +1,9 @@
 """Shared machinery for the torch-backed deep tabular models.
 
 Everything in this module is internal. It holds the parts that
-:mod:`~tuiml.algorithms.tabular_foundation.ft_transformer`,
-:mod:`~tuiml.algorithms.tabular_foundation.saint` and
-:mod:`~tuiml.algorithms.tabular_foundation.node` would otherwise each repeat: label
+:mod:`~tuiml.algorithms.tabular_deep.ft_transformer`,
+:mod:`~tuiml.algorithms.tabular_deep.saint` and
+:mod:`~tuiml.algorithms.tabular_deep.node` would otherwise each repeat: label
 encoding, feature standardisation, the mini-batch training loop, early
 stopping, seeding, device placement, prediction, and the pickling protocol that
 lets a fitted network round-trip without its layer classes being importable.

@@ -206,13 +206,20 @@ class ParameterDistribution:
         return params
 
     def _is_range(self, t: tuple) -> bool:
-        """Check if a tuple represents a range ``(low, high)`` or ``(low, high, type)``."""
+        """Check if a tuple represents a range ``(low, high)`` or ``(low, high, type)``.
+
+        Booleans are deliberately not counted as numbers here. ``bool`` is a
+        subclass of ``int``, so a two-value choice such as ``[True, False]``
+        would otherwise be mistaken for the range ``(1, 0)`` and silently
+        dropped from the sample.
+        """
+        def _numeric(value) -> bool:
+            return isinstance(value, (int, float)) and not isinstance(value, bool)
+
         if len(t) == 2:
-            return isinstance(t[0], (int, float)) and isinstance(t[1], (int, float))
+            return _numeric(t[0]) and _numeric(t[1])
         if len(t) == 3:
-            return (isinstance(t[0], (int, float)) and
-                    isinstance(t[1], (int, float)) and
-                    isinstance(t[2], str))
+            return _numeric(t[0]) and _numeric(t[1]) and isinstance(t[2], str)
         return False
 
 class BaseTuner(ABC):

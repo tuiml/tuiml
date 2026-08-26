@@ -1,0 +1,324 @@
+{% extends 'layouts/docs_generated.html' %}
+
+{% set active_nav = 'api' %}
+{% set breadcrumb_html = '<a href="/api-reference.html" class="hover:text-gray-900">API Reference</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <a href="index.html" class="hover:text-gray-900">automl</a> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 mx-2"></i> <span class="text-gray-900 font-semibold">search_space.py</span>' %}
+
+{% block title %}search_space - API Documentation{% endblock %}
+
+{% block content %}
+<div class="api-crumb-row" style="margin-bottom: 32px;"><div class="oc-caption api-crumb" style="margin: 0;"><a href="/api-reference.html">API Reference</a> / <a href="index.html">automl</a> / <h1 class="api-crumb-file">search_space.py</h1></div><a href="https://github.com/tuiml/tuiml/blob/main/tuiml/automl/search_space.py" target="_blank" rel="noopener noreferrer" title="View automl/search_space.py source on GitHub" aria-label="View automl/search_space.py source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a></div>
+<nav class="oc-toc oc-toc-flow api-rail" aria-label="On this page">
+<div class="oc-toc-label">On this page</div>
+<a href="#func-schema_to_distribution">schema_to_distribution</a>
+<a href="#func-search_space_for">search_space_for</a>
+</nav>
+<main>
+<div class="prose max-w-none mb-10 text-gray-600 bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Turn a component&#x27;s JSON Schema into a searchable parameter space.</p>
+<div class="doc-extended mb-8">
+<p class="mb-4">
+Every TuiML algorithm already publishes <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">get_parameter_schema</code>, a JSON Schema per constructor parameter. This module reads that schema and derives a <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ParameterDistribution</code> from it, so a tuner can search any algorithm in the library without a hand-written grid.
+</p>
+
+<p class="mb-4">
+The module is deliberately standalone: it depends only on the registry metadata and <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">tuning</code>, so <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">RandomSearchCV</code> and friends can use it directly, with or without <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">automl</code>.
+</p>
+</div>
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.automl.search_space import search_space_for
+&gt;&gt;&gt; from tuiml.algorithms.trees import DecisionTreeClassifier
+&gt;&gt;&gt; space = search_space_for(DecisionTreeClassifier)
+&gt;&gt;&gt; sorted(space.param_distributions)
+[&#x27;criterion&#x27;, &#x27;max_depth&#x27;, &#x27;min_samples_leaf&#x27;, &#x27;min_samples_split&#x27;]
+&gt;&gt;&gt; space.skipped_[&quot;random_state&quot;]
+&#x27;excluded: not a model-behaviour parameter&#x27;</code></pre>
+            </div>
+        </div>
+        </div></div>
+<div class="mb-12">
+<h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><i class="fa-solid fa-code text-indigo-500"></i> Functions</h2>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-schema_to_distribution">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">schema_to_distribution</h3>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/automl/search_space.py#L303" target="_blank" rel="noopener noreferrer" title="View schema_to_distribution source on GitHub" aria-label="View schema_to_distribution source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 303</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">schema_to_distribution(schema: Dict[str, Dict[str, Any]], *, include: Optional[Iterable[str]]=None, exclude: Optional[Iterable[str]]=None) -&gt; Tuple[Dict[str, Any], Dict[str, str]]</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Convert a parameter schema into <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">ParameterDistribution</code> specs.</p>
+<div class="doc-extended mb-8">
+<p class="mb-4">
+Each parameter is mapped to one of the forms <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">ParameterDistribution</code> understands:
+</p>
+
+<p class="mb-4">
+==================================  ================================ Schema fragment                     Distribution spec ==================================  ================================ <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">{&quot;enum&quot;: [...]}</code>                 the list of enum values <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">{&quot;type&quot;: &quot;boolean&quot;}</code>             <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">[True, False]</code> <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">{&quot;type&quot;: &quot;integer&quot;, min, max}</code>   <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">(min, max, &#x27;int&#x27;)</code> <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">{&quot;type&quot;: &quot;number&quot;, min, max}</code>    <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">(min, max)</code> or <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">(min, max, &#x27;log&#x27;)</code> <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">{&quot;type&quot;: [&quot;integer&quot;, &quot;null&quot;]}</code>   <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">[None, level, level, ...]</code> <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">{&quot;default&quot;: None, min, no max}</code>  <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">[None, level, level, ...]</code> ==================================  ================================
+</p>
+
+<p class="mb-4">
+A union with <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&quot;null&quot;</code> keeps <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">None</code> as an explicit choice, since for parameters like <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">max_depth</code> &quot;no limit&quot; is a real setting rather than a missing value. A union of two or more <em>concrete</em> types (for example <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">[&quot;number&quot;, &quot;string&quot;]</code> for a parameter that also accepts <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">&quot;auto&quot;</code>) is skipped unless it carries an <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">enum</code>: there is no safe way to guess which arm the tuner should explore.
+</p>
+</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">schema</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-700">dict</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Mapping of parameter name to its JSON Schema fragment, as returned by <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">get_parameter_schema</code>.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">include</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">iterable of str</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    If given, only these parameter names are considered.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">exclude</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">iterable of str</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Extra parameter names to drop, on top of <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">EXCLUDED_PARAMETERS</code>.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-arrow-right-from-bracket text-green-500 mr-2"></i>Returns</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">distributions</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-700">dict</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Parameter name to distribution spec, ready for <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">ParameterDistribution</code>.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">skipped</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-700">dict</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Parameter name to a human-readable reason it was left out.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.automl.search_space import schema_to_distribution
+&gt;&gt;&gt; schema = {
+...     &quot;alpha&quot;: {&quot;type&quot;: &quot;number&quot;, &quot;minimum&quot;: 0.0001, &quot;maximum&quot;: 1.0},
+...     &quot;fit_intercept&quot;: {&quot;type&quot;: &quot;boolean&quot;, &quot;default&quot;: True},
+...     &quot;n_jobs&quot;: {&quot;type&quot;: &quot;integer&quot;, &quot;default&quot;: 1},
+... }
+&gt;&gt;&gt; dists, skipped = schema_to_distribution(schema)
+&gt;&gt;&gt; dists[&quot;alpha&quot;]
+(0.0001, 1.0, &#x27;log&#x27;)
+&gt;&gt;&gt; dists[&quot;fit_intercept&quot;]
+[True, False]
+&gt;&gt;&gt; skipped[&quot;n_jobs&quot;]
+&#x27;excluded: not a model-behaviour parameter&#x27;</code></pre>
+            </div>
+        </div>
+        </div></div>
+</div></div>
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6 scroll-mt-24" id="func-search_space_for">
+
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wide">Func</span>
+                <h3 class="text-lg font-bold text-gray-900 font-mono">search_space_for</h3>
+                <a href="https://github.com/tuiml/tuiml/blob/main/tuiml/automl/search_space.py#L452" target="_blank" rel="noopener noreferrer" title="View search_space_for source on GitHub" aria-label="View search_space_for source on GitHub" class="gh-source-link"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+            </div>
+            <div class="text-xs text-gray-400 mt-1 font-mono">Line 452</div>
+        </div>
+        
+<div class="p-6">
+<div class="mb-4 bg-gray-900 text-gray-200 p-3 rounded-lg font-mono text-sm overflow-x-auto shadow-inner">search_space_for(algorithm_cls, *, include: Optional[Iterable[str]]=None, exclude: Optional[Iterable[str]]=None) -&gt; ParameterDistribution</div>
+<div class="prose max-w-none text-gray-600"><p class="doc-summary text-lg font-semibold text-gray-900 mb-4">Build a searchable parameter space for one algorithm class.</p>
+<div class="doc-extended mb-8">Reads the class&#x27;s <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">get_parameter_schema</code>, converts it with <code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">schema_to_distribution</code>, and drops anything the constructor does not actually accept -- a schema occasionally documents a parameter that the current signature no longer takes, and sampling it would raise.</div>
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Parameters</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">algorithm_cls</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">type or str</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    The algorithm class, or its registry name (<code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">&quot;RandomForestClassifier&quot;</code>).
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">include</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">iterable of str</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    If given, only these parameter names are searched.
+                </div>
+            </div>
+            
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">exclude</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">iterable of str</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    Extra parameter names to drop, on top of <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">EXCLUDED_PARAMETERS</code>.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+
+        <div class="mb-8 last:mb-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 class="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center"><i class="fa-solid fa-arrow-right-from-bracket text-green-500 mr-2"></i>Returns</h4>
+            </div>
+            <div class="p-4"><div class="divide-y divide-gray-100">
+
+            <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 hover:bg-gray-50 transition-colors px-2 rounded">
+                <div class="md:col-span-3">
+                    <code class="font-bold text-indigo-600 text-sm">space</code>
+                </div>
+                <div class="md:col-span-3 flex flex-wrap items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">ParameterDistribution</span>
+                    
+                </div>
+                <div class="md:col-span-6 text-sm text-gray-600">
+                    The search space. The attribute <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-xs font-mono">space.skipped_</code> maps every parameter that was left out to the reason why, so an empty or surprising space can be debugged without re-deriving it.
+                </div>
+            </div>
+            
+</div></div>
+        </div>
+        
+<div class="mb-8 last:mb-0">
+        <div class="code-block-wrapper !bg-slate-900 !rounded-xl !border-slate-800 !p-0 overflow-hidden shadow-md group !my-2">
+            <div class="bg-slate-950/50 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                <div class="flex gap-1.5 opacity-60">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider">python</span>
+                    <button class="copy-btn text-slate-500 hover:text-white transition-colors !p-1">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="!p-4 overflow-x-auto">
+                <pre class="!m-0 !p-0 !bg-transparent font-mono text-xs text-blue-100 leading-relaxed"><code class="language-python">&gt;&gt;&gt; from tuiml.automl.search_space import search_space_for
+&gt;&gt;&gt; space = search_space_for(&quot;RandomForestClassifier&quot;)
+&gt;&gt;&gt; space.param_distributions[&quot;criterion&quot;]
+[&#x27;gini&#x27;, &#x27;entropy&#x27;]
+&gt;&gt;&gt; params = space.sample(random_state=0)
+&gt;&gt;&gt; sorted(params)
+[&#x27;bootstrap&#x27;, &#x27;criterion&#x27;, &#x27;max_depth&#x27;, &#x27;min_samples_leaf&#x27;, &#x27;min_samples_split&#x27;, &#x27;n_estimators&#x27;, &#x27;oob_score&#x27;]
+&gt;&gt;&gt; space.skipped_[&quot;max_features&quot;]
+&quot;ambiguous union type [&#x27;string&#x27;, &#x27;integer&#x27;, &#x27;number&#x27;] without an enum; no safe way to pick which arm to search&quot;</code></pre>
+            </div>
+        </div>
+        </div></div>
+</div></div>
+</div>
+</main>
+{% endblock %}

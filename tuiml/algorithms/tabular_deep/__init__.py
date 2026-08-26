@@ -1,6 +1,9 @@
-"""Deep learning architectures for tabular data, backed by PyTorch.
+"""Native deep learning architectures for tabular data, backed by PyTorch.
 
-Three families, each with a classifier and a regressor:
+Three supervised architectures, each with a classifier and a regressor. They
+are TuiML's own implementations: torch is used only as a tensor and autograd
+library, and every model is **trained from scratch on your data**. There is no
+pretrained checkpoint and nothing is downloaded.
 
 - **FT-Transformer** (:class:`FTTransformerClassifier`,
   :class:`FTTransformerRegressor`) -- a feature tokenizer turns every column
@@ -12,8 +15,11 @@ Three families, each with a classifier and a regressor:
   neighbours.
 - **NODE** (:class:`NODEClassifier`, :class:`NODERegressor`) -- ensembles of
   oblivious decision trees made differentiable with
-  :func:`~tuiml.algorithms.tabular_foundation.node.entmax15` and stacked with
+  :func:`~tuiml.algorithms.tabular_deep.node.entmax15` and stacked with
   DenseNet-style connectivity.
+
+Being native implementations, all six register in the TuiML hub under their
+**bare** class names, alongside every other native algorithm.
 
 PyTorch is an **optional** dependency:
 
@@ -29,29 +35,26 @@ install. The dependency is required only by :meth:`fit`, which raises a clear
 
 Examples
 --------
->>> from tuiml.algorithms.tabular_foundation import FTTransformerClassifier
+>>> from tuiml.algorithms.tabular_deep import FTTransformerClassifier
 >>> model = FTTransformerClassifier(d_token=8, n_blocks=1, random_state=0)
 >>> model.n_blocks
 1
+
+See Also
+--------
+:mod:`tuiml.foundation` : Pretrained tabular foundation models (TabICL), which
+    run a downloaded checkpoint instead of training on your data.
 """
 
-from tuiml.algorithms.tabular_foundation.ft_transformer import (
+from tuiml.algorithms.tabular_deep.ft_transformer import (
     FTTransformerClassifier,
     FTTransformerRegressor,
 )
-from tuiml.algorithms.tabular_foundation.saint import SAINTClassifier, SAINTRegressor
-from tuiml.algorithms.tabular_foundation.node import (
+from tuiml.algorithms.tabular_deep.saint import SAINTClassifier, SAINTRegressor
+from tuiml.algorithms.tabular_deep.node import (
     entmax15,
     NODEClassifier,
     NODERegressor,
-)
-
-# Pretrained checkpoint models. Registered under ``foundation.<Name>`` rather
-# than a bare name, because TuiML delegates to an upstream package here instead
-# of running its own implementation -- the same convention as ``sklearn.SVC``.
-from tuiml.algorithms.tabular_foundation.tabicl import (
-    TabICLClassifier,
-    TabICLRegressor,
 )
 
 __all__ = [
@@ -62,6 +65,4 @@ __all__ = [
     "NODEClassifier",
     "NODERegressor",
     "entmax15",
-    "TabICLClassifier",
-    "TabICLRegressor",
 ]

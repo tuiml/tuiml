@@ -16,7 +16,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional, Sequence
 
 from tuiml.base.algorithms import Classifier, classifier, Regressor, regressor
-from tuiml.algorithms.tabular_foundation._base import (
+from tuiml.algorithms.tabular_deep._base import (
     _DeepTabularClassifierMixin,
     _DeepTabularRegressorMixin,
     _build_head,
@@ -338,7 +338,7 @@ class SAINTClassifier(_SAINTCore, _DeepTabularClassifierMixin, Classifier):
     **When to use.** SAINT pays off when rows are informative about each other
     -- semi-supervised settings, or data with cluster structure the label
     respects. When rows are genuinely i.i.d. given the features,
-    :class:`~tuiml.algorithms.tabular_foundation.FTTransformerClassifier` gives
+    :class:`~tuiml.algorithms.tabular_deep.FTTransformerClassifier` gives
     similar accuracy for less compute.
 
     References
@@ -350,15 +350,15 @@ class SAINTClassifier(_SAINTCore, _DeepTabularClassifierMixin, Classifier):
 
     See Also
     --------
-    :class:`~tuiml.algorithms.tabular_foundation.FTTransformerClassifier` : Feature attention only.
-    :class:`~tuiml.algorithms.tabular_foundation.NODEClassifier` : Differentiable oblivious trees.
-    :class:`~tuiml.algorithms.tabular_foundation.SAINTRegressor` : The regression counterpart.
+    :class:`~tuiml.algorithms.tabular_deep.FTTransformerClassifier` : Feature attention only.
+    :class:`~tuiml.algorithms.tabular_deep.NODEClassifier` : Differentiable oblivious trees.
+    :class:`~tuiml.algorithms.tabular_deep.SAINTRegressor` : The regression counterpart.
 
     Examples
     --------
     Constructing and inspecting a model needs no torch:
 
-    >>> from tuiml.algorithms.tabular_foundation import SAINTClassifier
+    >>> from tuiml.algorithms.tabular_deep import SAINTClassifier
     >>> model = SAINTClassifier(d_token=8, n_blocks=2, random_state=0)
     >>> model.n_blocks
     2
@@ -411,7 +411,7 @@ class SAINTRegressor(_SAINTCore, _DeepTabularRegressorMixin, Regressor):
     """SAINT for regression: feature attention plus intersample attention.
 
     The regression counterpart of
-    :class:`~tuiml.algorithms.tabular_foundation.SAINTClassifier`. The stack is
+    :class:`~tuiml.algorithms.tabular_deep.SAINTClassifier`. The stack is
     identical -- tokenizer, alternating feature and row attention, ``[CLS]``
     readout -- and only the objective changes: one output unit trained with
     mean squared error against a standardised target.
@@ -498,7 +498,7 @@ class SAINTRegressor(_SAINTCore, _DeepTabularRegressorMixin, Regressor):
     term quadratic in ``batch_size``.
 
     **When to use.** Choose SAINT over
-    :class:`~tuiml.algorithms.tabular_foundation.FTTransformerRegressor` when
+    :class:`~tuiml.algorithms.tabular_deep.FTTransformerRegressor` when
     neighbouring rows carry information about the target -- clustered or
     grouped data -- and accept the extra compute for it.
 
@@ -511,13 +511,13 @@ class SAINTRegressor(_SAINTCore, _DeepTabularRegressorMixin, Regressor):
 
     See Also
     --------
-    :class:`~tuiml.algorithms.tabular_foundation.SAINTClassifier` : The classification counterpart.
-    :class:`~tuiml.algorithms.tabular_foundation.FTTransformerRegressor` : Feature attention only.
-    :class:`~tuiml.algorithms.tabular_foundation.NODERegressor` : Differentiable oblivious trees.
+    :class:`~tuiml.algorithms.tabular_deep.SAINTClassifier` : The classification counterpart.
+    :class:`~tuiml.algorithms.tabular_deep.FTTransformerRegressor` : Feature attention only.
+    :class:`~tuiml.algorithms.tabular_deep.NODERegressor` : Differentiable oblivious trees.
 
     Examples
     --------
-    >>> from tuiml.algorithms.tabular_foundation import SAINTRegressor
+    >>> from tuiml.algorithms.tabular_deep import SAINTRegressor
     >>> model = SAINTRegressor(d_token=8, n_heads=2)
     >>> model.d_token
     8

@@ -19,7 +19,7 @@ import pytest
 
 import tuiml
 from tuiml.registry import registry
-from tuiml.algorithms.tabular_foundation import TabICLClassifier, TabICLRegressor
+from tuiml.foundation import TabICLClassifier, TabICLRegressor
 from ..contract._data import KNOWN_CAPABILITIES
 
 WRAPPERS = [TabICLClassifier, TabICLRegressor]

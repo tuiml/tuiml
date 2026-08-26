@@ -197,11 +197,13 @@ class Registry:
             "tuiml.benchmarking",
             "tuiml.serving",
             "tuiml.workflow",
+            "tuiml.automl",
             "tuiml.agent",
             # Optional bridges: absent unless the extra is installed.
             "tuiml.sklearn",
             "tuiml.capymoa",
             "tuiml.weka",
+            "tuiml.foundation",
         ):
             try:
                 importlib.import_module(module)

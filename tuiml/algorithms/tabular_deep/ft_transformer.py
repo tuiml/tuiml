@@ -14,7 +14,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional, Sequence
 
 from tuiml.base.algorithms import Classifier, classifier, Regressor, regressor
-from tuiml.algorithms.tabular_foundation._base import (
+from tuiml.algorithms.tabular_deep._base import (
     _DeepTabularClassifierMixin,
     _DeepTabularRegressorMixin,
     _build_head,
@@ -30,7 +30,7 @@ class _FTTransformerCore:
 
     Internal mixin. It is not registered and defines no task behaviour; the
     classifier and regressor pair it with the matching task mixin from
-    :mod:`tuiml.algorithms.tabular_foundation._base`.
+    :mod:`tuiml.algorithms.tabular_deep._base`.
     """
 
     def __init__(
@@ -293,15 +293,15 @@ class FTTransformerClassifier(_FTTransformerCore, _DeepTabularClassifierMixin, C
 
     See Also
     --------
-    :class:`~tuiml.algorithms.tabular_foundation.SAINTClassifier` : Adds attention across rows.
-    :class:`~tuiml.algorithms.tabular_foundation.NODEClassifier` : Differentiable oblivious trees instead of attention.
-    :class:`~tuiml.algorithms.tabular_foundation.FTTransformerRegressor` : The regression counterpart.
+    :class:`~tuiml.algorithms.tabular_deep.SAINTClassifier` : Adds attention across rows.
+    :class:`~tuiml.algorithms.tabular_deep.NODEClassifier` : Differentiable oblivious trees instead of attention.
+    :class:`~tuiml.algorithms.tabular_deep.FTTransformerRegressor` : The regression counterpart.
 
     Examples
     --------
     Constructing and inspecting a model needs no torch:
 
-    >>> from tuiml.algorithms.tabular_foundation import FTTransformerClassifier
+    >>> from tuiml.algorithms.tabular_deep import FTTransformerClassifier
     >>> model = FTTransformerClassifier(d_token=8, n_blocks=1, random_state=0)
     >>> model.d_token
     8
@@ -353,7 +353,7 @@ class FTTransformerRegressor(_FTTransformerCore, _DeepTabularRegressorMixin, Reg
     """FT-Transformer for regression: per-feature tokens, ``[CLS]`` readout.
 
     The regression counterpart of
-    :class:`~tuiml.algorithms.tabular_foundation.FTTransformerClassifier`. The
+    :class:`~tuiml.algorithms.tabular_deep.FTTransformerClassifier`. The
     architecture is identical -- feature tokenizer, ``[CLS]`` token, pre-norm
     Transformer blocks -- and only the output layer and objective change: a
     single unit trained with mean squared error against a standardised target,
@@ -452,13 +452,13 @@ class FTTransformerRegressor(_FTTransformerCore, _DeepTabularRegressorMixin, Reg
 
     See Also
     --------
-    :class:`~tuiml.algorithms.tabular_foundation.FTTransformerClassifier` : The classification counterpart.
-    :class:`~tuiml.algorithms.tabular_foundation.SAINTRegressor` : Adds attention across rows.
-    :class:`~tuiml.algorithms.tabular_foundation.NODERegressor` : Differentiable oblivious trees.
+    :class:`~tuiml.algorithms.tabular_deep.FTTransformerClassifier` : The classification counterpart.
+    :class:`~tuiml.algorithms.tabular_deep.SAINTRegressor` : Adds attention across rows.
+    :class:`~tuiml.algorithms.tabular_deep.NODERegressor` : Differentiable oblivious trees.
 
     Examples
     --------
-    >>> from tuiml.algorithms.tabular_foundation import FTTransformerRegressor
+    >>> from tuiml.algorithms.tabular_deep import FTTransformerRegressor
     >>> model = FTTransformerRegressor(d_token=8, n_epochs=10)
     >>> model.n_epochs
     10
