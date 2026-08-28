@@ -714,6 +714,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `tuiml.sklearn` and `tuiml.weka` already use for delegated implementations.
 
 ### Added
+- **Reference-parity tests against scikit-learn**
+  (`tests/test_reference_parity.py`). The contract suite checks that an
+  algorithm is self-consistent; nothing checked whether the answer was
+  *correct*, because no external reference was ever consulted. That gap is
+  precisely how the benchmark's "logistic regression is 2.6 points behind"
+  result went unexplained. Covers logistic regression, Gaussian naive Bayes,
+  k-NN and linear regression; CI installs `tuiml[sklearn]` so they actually
+  run rather than skipping.
+
+### Fixed
+- **The logistic-regression "accuracy gap" was a benchmark error, not a
+  defect.** The three libraries normalise the objective differently —
+  scikit-learn minimises `0.5||w||² + C·sum(loss)`, Weka `sum(loss) +
+  ridge·||w||²`, TuiML `mean(loss) + 0.5·ridge·||w||²` — so the penalty
+  constant does not transfer. The harness converted `C=1.0` to a fixed
+  `ridge=0.5` for TuiML as well as Weka; correct for Weka, but a factor of *n*
+  too strong for TuiML, which is 75× on a 150-row dataset. It cost 8.7 points
+  on iris and 7.7 on digits, and produced the entire reported deficit. The
+  matched arm now uses `ridge="auto"`, which resolves to `1/n_samples` and is
+  exactly scikit-learn's `C=1.0`. TuiML's own default was already correct, so
+  no shipped behaviour changes; the committed benchmark results predate the
+  fix and will change on the next run.
+- **`StackingClassifier` could not fit at all.** Its default meta-classifier
+  was `'Logistic'`, which is Weka's class name — the native component is
+  `LogisticRegression`, and bare names are reserved for native components. Any
+  default-constructed `StackingClassifier` raised `KeyError`.
+- **Stacking was not reproducible under a seed.** The internal cross-validation
+  was seeded but the base estimators were constructed bare, so two fits at the
+  same `random_state` produced different meta-features. Both stacking classes
+  now seed whatever they build.
+- **`StackingRegressor` discarded configured base estimators.** The instance
+  branch called `type(reg_spec)()`, so a hand-tuned regressor was silently
+  replaced by a default-constructed one. It now passes the parameters through,
+  matching the classifier.
+- **A fitted `SVR` could not be pickled**, so it could not be saved or served.
+  The native solver returns a pybind11 object with no pickle support; `SVR`
+  now drops it on serialisation and retrains from the stored training data on
+  restore, which is what `SVC` already did. Predictions are identical across
+  the round trip for every kernel.
+
 - **CI runs the test suite.** `.github/workflows/test.yml` runs pytest on
   ubuntu/macos/windows across Python 3.10-3.13 on every push and pull request,
   asserts the compiled C++ extension actually imported (a source install

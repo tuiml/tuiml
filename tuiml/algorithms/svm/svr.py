@@ -217,6 +217,7 @@ class SVR(Regressor):
         self.intercept_ = None
         self.n_support_ = None
         self._X_train = None
+        self._y_train = None
         self._gamma_value = None
         self._kernel_obj = None
         self._cpp_model = None
@@ -389,12 +390,35 @@ class SVR(Regressor):
         if X.ndim == 1:
             X = X.reshape(-1, 1)
 
-        n_samples, n_features = X.shape
         self._X_train = X
+        self._y_train = np.ascontiguousarray(y, dtype=np.float64)
         self._setup_kernel(X)
+        self._train_cpp_model(X, self._y_train)
 
-        y_c = np.ascontiguousarray(y, dtype=np.float64)
+        self._is_fitted = True
+        return self
 
+    def _train_cpp_model(self, X: np.ndarray, y_c: np.ndarray) -> None:
+        """Run the native SMO solver and read the fitted attributes back.
+
+        Separate from :meth:`fit` because :meth:`__setstate__` has to repeat it:
+        the solver returns a pybind11 object that cannot be pickled, so a
+        restored model is retrained from the stored training data rather than
+        deserialised.
+
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_samples, n_features)
+            Training data. The kernel must already be built for it.
+        y_c : np.ndarray of shape (n_samples,)
+            Contiguous float64 targets.
+
+        Returns
+        -------
+        None
+            Sets ``_cpp_model``, ``support_vectors_``, ``dual_coef_``,
+            ``n_support_`` and ``intercept_`` in-place.
+        """
         # Auto-scale the iteration cap when max_iter=-1 (default), so SMO
         # converges on larger datasets instead of returning an under-trained
         # model. An explicit positive max_iter is always respected.
@@ -425,9 +449,6 @@ class SVR(Regressor):
         self.dual_coef_ = np.array(model.dual_coef)
         self.n_support_ = len(sv_indices)
         self.intercept_ = -model.rho
-
-        self._is_fitted = True
-        return self
 
     def predict(self, X: np.ndarray) -> np.ndarray:
         """Predict target values for samples.
@@ -489,6 +510,43 @@ class SVR(Regressor):
             return 0.0
 
         return 1 - (ss_res / ss_tot)
+
+    def __getstate__(self) -> Dict[str, Any]:
+        """Return pickle-safe state for persisted SVR models.
+
+        The solver returns a ``tuiml._cpp_ext.svm.SVRModel``, a pybind11 object
+        with no pickle support, and the kernel holds native handles too. Both
+        are dropped here and rebuilt in :meth:`__setstate__`; without this an
+        SVR could be fitted but never saved or served.
+
+        Returns
+        -------
+        state : dict
+            Object state without the live C++ model or kernel instance.
+        """
+        state = self.__dict__.copy()
+        state['_cpp_model'] = None
+        state['_kernel_obj'] = None
+        return state
+
+    def __setstate__(self, state: Dict[str, Any]) -> None:
+        """Restore SVR state and rebuild the native model if fitted.
+
+        Parameters
+        ----------
+        state : dict
+            Pickled object state.
+
+        Returns
+        -------
+        None
+            Updates the current instance in-place.
+        """
+        self.__dict__.update(state)
+
+        if self._is_fitted and self._X_train is not None and self._y_train is not None:
+            self._setup_kernel(self._X_train)
+            self._train_cpp_model(self._X_train, self._y_train)
 
     def __repr__(self) -> str:
         """String representation."""

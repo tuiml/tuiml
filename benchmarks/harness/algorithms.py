@@ -112,16 +112,35 @@ ALGORITHMS = {
             "tuiml": ("LogisticRegression", {}),
             "weka": ("weka.classifiers.functions.Logistic", []),
         },
-        # scikit-learn minimizes 0.5||w||^2 + C*sum(loss); Weka/TuiML minimize
-        # sum(loss) + ridge*||w||^2. So ridge = 1/(2C): C=1.0 <-> ridge=0.5.
+        # The three objectives are normalised differently, so the penalty
+        # constant does not transfer directly.
+        #
+        #   scikit-learn   0.5*||w||^2 + C*sum(loss)
+        #   Weka           sum(loss) + ridge*||w||^2
+        #   TuiML          mean(loss) + 0.5*ridge*||w||^2
+        #
+        # Dividing scikit-learn's by C*n gives mean(loss) + 1/(2*C*n)*||w||^2,
+        # so matching TuiML needs ridge = 1/(C*n) -- it depends on the dataset
+        # size, which "auto" already resolves to 1/n_samples at fit time. Weka
+        # sums rather than averages, so ridge = 1/(2C) = 0.5 is correct there.
+        #
+        # This row previously used ridge=0.5 for TuiML on the assumption that
+        # it also summed. On a 150-row dataset that is 75x scikit-learn's
+        # effective penalty, and it cost TuiML 8.7 points on iris and 7.7 on
+        # digits -- the whole of the "logistic regression is 2.6 points behind"
+        # result, which was a measurement artefact rather than a defect.
+        # tests/test_reference_parity.py pins the corrected equivalence.
+        #
         # Weka's default ridge of 1e-8 is effectively unregularized, which is a
         # different model, not just a different constant.
         "matched": {
             "sklearn": {"C": 1.0, "max_iter": 1000},
-            "tuiml": {"ridge": 0.5, "max_iter": 1000},
+            "tuiml": {"ridge": "auto", "max_iter": 1000},
             "weka": ["-R", "0.5", "-M", "1000"],
         },
-        "note": "Ridge 0.5 in Weka/TuiML corresponds to scikit-learn's C=1.0.",
+        "note": ("scikit-learn C=1.0 corresponds to Weka -R 0.5 and to TuiML "
+                 "ridge='auto' (1/n_samples); the three objectives normalise "
+                 "the loss differently."),
     },
     "knn": {
         "task": "classification",

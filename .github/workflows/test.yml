@@ -48,8 +48,13 @@ jobs:
       # Compiling the C++ core is most of the point: a source install that
       # silently lacks the extension makes two dozen modules skip, so the suite
       # would go green with every native path untested.
+      #
+      # scikit-learn is included for the same reason. tests/test_reference_parity.py
+      # is the only thing checking TuiML's numerics against an outside
+      # reference, and it skips without it -- which is how a benchmark result
+      # went unexplained for a release. It is a small, pure-Python wheel.
       - name: Install
-        run: uv sync --extra dev
+        run: uv sync --extra dev --extra sklearn
 
       - name: Verify the C++ extension built
         run: uv run python -c "import tuiml._cpp; print('C++ core present')"

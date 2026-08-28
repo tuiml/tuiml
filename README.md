@@ -128,8 +128,17 @@ Every framework on its own library defaults, across **13 algorithms × 51 real-w
 
 The harness also runs a **matched** arm, where hyperparameters are forced to agree across
 frameworks rather than each library using its own defaults. TuiML matches scikit-learn exactly on
-SVM, naive Bayes and k-NN there, and leads on Random Forest, but trails on logistic regression
-(&minus;2.6 pt) and the MLP (&minus;1.7 pt) — two known gaps being tracked.
+SVM, naive Bayes and k-NN there, and leads on Random Forest.
+
+Logistic regression appeared to trail by 2.6 points in that arm. It does not: the three libraries
+normalise the objective differently, and the harness converted scikit-learn's `C=1.0` into a fixed
+`ridge=0.5` for TuiML as well as Weka. That is correct for Weka, which sums the loss, but TuiML
+averages it — making the penalty a factor of *n* too strong, 75× on a 150-row dataset. With the
+equivalence corrected (`ridge = 1/(C·n)`, which is what TuiML's default `ridge="auto"` already
+computes) the two agree to four decimal places on iris, and TuiML is ahead on wine and breast
+cancer. [`tests/test_reference_parity.py`](tests/test_reference_parity.py) pins this against
+scikit-learn directly. The matched-arm figures above predate the correction and will change on the
+next benchmark run. The MLP gap is unexplained and still open.
 
 <sub>Weka memory includes its in-process JVM baseline. Every number above is recomputed from
 [`benchmarks/summary_cv10.csv`](benchmarks/summary_cv10.csv) by

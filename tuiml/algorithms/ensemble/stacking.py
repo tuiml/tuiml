@@ -55,7 +55,7 @@ class StackingClassifier(Classifier):
         The base classifiers to use. Can be classifier names (strings),
         classes, or instances.
 
-    meta_classifier : str or object, default='Logistic'
+    meta_classifier : str or object, default='LogisticRegression'
         The meta-classifier used to combine base classifier predictions.
 
     num_folds : int, default=10
@@ -131,7 +131,7 @@ class StackingClassifier(Classifier):
     >>> # Fit the Stacking classifier
     >>> clf = StackingClassifier(
     ...     classifiers=['NaiveBayesClassifier', 'DecisionTreeClassifier'],
-    ...     meta_classifier='Logistic'
+    ...     meta_classifier='LogisticRegression'
     ... )
     >>> clf.fit(X_train, y_train)
     StackingClassifier(...)
@@ -139,7 +139,7 @@ class StackingClassifier(Classifier):
     """
 
     def __init__(self, classifiers: List[Any] = None,
-                 meta_classifier: Any = 'Logistic',
+                 meta_classifier: Any = 'LogisticRegression',
                  num_folds: int = 10,
                  use_probabilities: bool = True,
                  random_state: Optional[int] = None):
@@ -149,7 +149,7 @@ class StackingClassifier(Classifier):
         ----------
         classifiers : list or None, default=None
             Base classifiers. Defaults to ``['NaiveBayesClassifier', 'DecisionTreeClassifier']``.
-        meta_classifier : str or object, default='Logistic'
+        meta_classifier : str or object, default='LogisticRegression'
             The meta-classifier for combining base predictions.
         num_folds : int, default=10
             Number of cross-validation folds for meta-feature generation.
@@ -174,7 +174,7 @@ class StackingClassifier(Classifier):
         return {
             "classifiers": {"type": "array", "default": ["NaiveBayesClassifier", "DecisionTreeClassifier"],
                            "description": "List of base classifier names"},
-            "meta_classifier": {"type": "string", "default": "Logistic",
+            "meta_classifier": {"type": "string", "default": "LogisticRegression",
                                "description": "Meta-classifier name"},
             "num_folds": {"type": "integer", "default": 10, "minimum": 2,
                          "description": "CV folds for meta-features"},
@@ -210,14 +210,22 @@ class StackingClassifier(Classifier):
         classifier : Classifier
             A new classifier instance.
         """
+        # Seed whatever is built. Stacking's own KFold is seeded, but a base
+        # estimator constructed bare stays unseeded, so two fits at the same
+        # random_state produced different meta-features and different
+        # predictions -- reproducible in name only.
+        from tuiml.workflow import _inject_seed
+
         if isinstance(clf_spec, str):
             clf_class = registry.get(clf_spec)
-            return clf_class()
+            return clf_class(**_inject_seed(clf_class, {}, self.random_state))
         elif isinstance(clf_spec, type):
-            return clf_spec()
+            return clf_spec(**_inject_seed(clf_spec, {}, self.random_state))
         elif isinstance(clf_spec, Classifier):
-            # Clone by creating new instance
-            return type(clf_spec)(**clf_spec.get_params())
+            # Clone by creating new instance. An explicitly configured
+            # instance keeps its own seed: _inject_seed only fills a None.
+            cls = type(clf_spec)
+            return cls(**_inject_seed(cls, clf_spec.get_params(), self.random_state))
         else:
             raise ValueError(f"Invalid classifier specification: {clf_spec}")
 
@@ -571,13 +579,21 @@ class StackingRegressor(Regressor):
         regressor : Regressor
             A new regressor instance.
         """
+        # Mirrors _get_classifier: seed whatever is built, so two fits at the
+        # same random_state agree. The instance branch also carried a separate
+        # bug -- it called type(reg_spec)() and dropped the configuration
+        # entirely, so a hand-tuned regressor was silently replaced by a
+        # default-constructed one.
+        from tuiml.workflow import _inject_seed
+
         if isinstance(reg_spec, str):
             reg_class = registry.get(reg_spec)
-            return reg_class()
+            return reg_class(**_inject_seed(reg_class, {}, self.random_state))
         elif isinstance(reg_spec, type):
-            return reg_spec()
+            return reg_spec(**_inject_seed(reg_spec, {}, self.random_state))
         elif isinstance(reg_spec, Regressor):
-            return type(reg_spec)()
+            cls = type(reg_spec)
+            return cls(**_inject_seed(cls, reg_spec.get_params(), self.random_state))
         else:
             raise ValueError(f"Invalid regressor specification: {reg_spec}")
 

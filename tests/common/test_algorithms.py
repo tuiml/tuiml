@@ -75,20 +75,6 @@ XFAIL_CHECKS = {
             'check_predict_proba_is_a_distribution',
         )},
     },
-    'SVR': {
-        'check_pickle_roundtrip':
-            'fitted model is not picklable, so it cannot be saved or served',
-    },
-    'StackingClassifier': {
-        **{c: "references unregistered component 'Logistic'" for c in (
-            'check_fit_does_not_mutate_input',
-            'check_fit_returns_self',
-            'check_pickle_roundtrip',
-            'check_predict_output_shape',
-            'check_predict_proba_is_a_distribution',
-            'check_seeded_fit_is_reproducible',
-        )},
-    },
     'XGBoostRegressor': {
         'check_missing_value_support_is_honest':
             'declares missing_values but raises on NaN',
