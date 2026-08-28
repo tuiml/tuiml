@@ -742,6 +742,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   they pinned different pytest versions, so whether the lint tools existed
   depended on which install command you ran. They are now identical.
 
+### Fixed
+- **Cross-validation did not stratify.** `Workflow._cross_validate` hardcoded
+  plain `KFold` and never received the `stratify` argument the holdout path and
+  `Benchmark` both honour. On an imbalanced target that leaves a rare class out
+  of whole folds — measurably: with five members of a class in 100 rows, 5-fold
+  `KFold` omits it from two folds entirely, making the per-fold score undefined
+  there and the reported mean quietly wrong. Classification folds are now
+  stratified, falling back with a warning when the rarest class has fewer than
+  `cv` members rather than raising.
+- **`registry.clear()` left the registry permanently empty.** Reads go through
+  `_ensure_populated`, which short-circuits on a flag `clear()` never reset, so
+  every later lookup in the process returned nothing — worst in the testing the
+  method exists for. Resetting the flag alone is not enough: components
+  register as an import side effect, and those do not repeat once the modules
+  are cached. `clear()` now snapshots what it removes and the next read
+  restores it, including anything registered after startup.
+- **A mistyped component type registered silently into the wrong bucket.**
+  `registry.register("classifer")` fell back to `ComponentType.ALGORITHM`,
+  reporting success while filing the component where nothing would list it.
+  Unknown types now raise, naming the valid ones.
+- **`Clusterer.fit` was not abstract.** The override existed only to document
+  that `y` is ignored, but its `pass` body cancelled `Algorithm.fit`'s
+  `@abstractmethod`, so a clusterer that forgot to implement `fit` instantiated
+  happily and returned `None`.
+- **The agent skill file was never installed.** `cli/setup.py` read `SKILL.md`
+  from `tuiml.agent` instead of `tuiml.agent.prompts`, so `is_file()` was False
+  on every install and the CLI reported the miss as a non-change.
+- **A foreign estimator instance got an unhelpful error.**
+  `_reject_foreign_estimator` ran after the check that accepts only a
+  `{"name": ...}` dict, and it returns immediately for dicts, so it could never
+  fire. Passing an `SVC()` instance now names the wrapper convention to use
+  instead of complaining about the spec's shape.
+- **A missing algorithm or preprocessing import was silent.**
+  `_get_algorithm_tools` swallowed `ImportError` and returned nothing, so a
+  broken install — usually the C++ extension failing to build — produced an MCP
+  server advertising zero algorithms with a startup banner that read as normal.
+  Both sites now log the failure and the likely cause.
+
+### Removed
+- `_parse_component_spec`, which had no callers.
+
 ### Security
 - **The agent-facing write and execute paths are now contained.** Both were
   reachable from a single tool call, and they composed: an arbitrary write into

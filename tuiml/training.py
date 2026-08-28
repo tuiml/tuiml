@@ -146,6 +146,12 @@ def train(spec: Union[Dict[str, Any], str]) -> "Workflow":
             'The spec needs a "model" key, e.g. '
             '{"name": "RandomForestClassifier", "params": {...}}.'
         )
+    # Before _require_component, not after. _require_component accepts only a
+    # {"name": ...} dict, and _reject_foreign_estimator returns immediately for
+    # dicts, so running it afterwards meant it could never fire. Someone who
+    # passes an SVC() instance should be told which wrapper to name, not given
+    # the generic "must be {name: ...}" message.
+    _reject_foreign_estimator(model)
     _require_component(model, '"model" spec')
     if spec.get("data") is None:
         raise ValueError(
@@ -161,8 +167,6 @@ def train(spec: Union[Dict[str, Any], str]) -> "Workflow":
             'The data spec resolved to nothing. Use {"source": ...} for a '
             'file or builtin name, or {"X": ..., "y": ...} for arrays.'
         )
-    _reject_foreign_estimator(model)
-
     # Unpack the evaluation options
     evaluation = dict(spec.get("evaluation") or {})
     unknown = set(evaluation) - _EVALUATION_KEYS

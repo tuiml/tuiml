@@ -822,7 +822,11 @@ def install_skill_file(skills_dir: Path) -> tuple[bool, str]:
     """
     try:
         from importlib.resources import files
-        skill_src = files("tuiml.agent").joinpath("SKILL.md")
+        # SKILL.md lives in tuiml/agent/prompts/, not tuiml/agent/. Reading the
+        # wrong package made is_file() False on every install, so the skill was
+        # never written and the caller was told "not found in package" -- which
+        # the CLI reports as a non-change rather than an error.
+        skill_src = files("tuiml.agent.prompts").joinpath("SKILL.md")
         if not skill_src.is_file():
             return False, f"skill file not found in package: {skill_src}"
         src_text = skill_src.read_text(encoding="utf-8")

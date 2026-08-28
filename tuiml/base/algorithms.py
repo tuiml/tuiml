@@ -648,6 +648,11 @@ class Clusterer(Algorithm):
         self.labels_ = None
         self.cluster_centers_ = None
 
+    # Restated as abstract. This override exists only to document that y is
+    # ignored, and a plain body silently cancelled Algorithm.fit's
+    # @abstractmethod: a clusterer that forgot to implement fit instantiated
+    # happily and returned None from fit(), failing later and elsewhere.
+    @abstractmethod
     def fit(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> "Clusterer":
         """Build the clustering model from training data.
 

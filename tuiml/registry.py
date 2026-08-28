@@ -171,6 +171,13 @@ class Registry:
 
     _populated = False
 
+    #: State captured by :meth:`clear`, restored on the next read. The
+    #: component modules register via import side effects, which do not repeat
+    #: once the module is cached, so re-importing after a clear would register
+    #: nothing; this is what makes clear() reversible within a process. None
+    #: unless a clear is outstanding.
+    _snapshot = None
+
     def _ensure_populated(self) -> None:
         """Import the component packages so a read sees the whole library.
 
@@ -189,6 +196,17 @@ class Registry:
         # Set before importing, not after: the imports below register
         # components, and any read they perform must not re-enter here.
         Registry._populated = True
+
+        # After clear(), re-importing would register nothing: the modules are
+        # already in sys.modules, so their decorators do not run a second time.
+        # Restore what clear() put aside instead.
+        if Registry._snapshot is not None:
+            components, type_index = Registry._snapshot
+            Registry._snapshot = None
+            self._components.update(components)
+            for kind, names in type_index.items():
+                self._type_index[kind] = list(names)
+            return
 
         import importlib
         for module in (
@@ -282,8 +300,15 @@ class Registry:
             try:
                 component_type = ComponentType(component_type.lower())
             except ValueError:
-                # Default to ALGORITHM if unknown string
-                component_type = ComponentType.ALGORITHM
+                # Raise rather than default to ALGORITHM. A mistyped type used
+                # to bury the component in a bucket nothing lists: it would
+                # register, report success, and then never appear in the
+                # category the author meant -- indistinguishable from a
+                # registration that did not happen.
+                valid = ", ".join(sorted(t.value for t in ComponentType))
+                raise ValueError(
+                    f"Unknown component type {component_type!r}. Valid types: {valid}"
+                ) from None
 
         def decorator(cls: Type) -> Type:
             # Set component metadata
@@ -607,9 +632,31 @@ class Registry:
         self._hooks[event].append(callback)
 
     def clear(self) -> None:
-        """Clear all registered components (mainly for testing)."""
+        """Clear all registered components (mainly for testing).
+
+        Resetting ``_populated`` is the point: every read goes through
+        :meth:`_ensure_populated`, which short-circuits once that flag is set.
+        Emptying the maps while leaving it True makes the registry permanently
+        empty rather than merely cleared -- worst in the testing this exists
+        for, where it silently drains every later lookup in the process.
+        """
+        # Snapshot first. Restoring on the next read is the only way back:
+        # the component modules populate the registry as an import side effect,
+        # and those do not run again once the modules are cached. Capturing
+        # here rather than at first population means a clear also returns
+        # anything registered since.
+        # Only when no clear is already outstanding: a second clear before any
+        # read would otherwise snapshot the emptied maps over the good one and
+        # make the loss permanent, which is the failure this whole mechanism
+        # exists to prevent.
+        if Registry._snapshot is None:
+            Registry._snapshot = (
+                dict(self._components),
+                {kind: list(names) for kind, names in self._type_index.items()},
+            )
         self._components.clear()
         self._type_index = {t: [] for t in ComponentType}
+        Registry._populated = False
 
     def __contains__(self, name: str) -> bool:
         """Check if a component is registered."""

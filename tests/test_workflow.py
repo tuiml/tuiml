@@ -240,8 +240,16 @@ class TestWorkflowFit:
 
         Workflow([_TrackingScaler(), _TrackingModel()]).fit(X, y, cv=3, random_seed=0)
 
-        assert sorted(_TrackingScaler.fit_sizes) == [8, 8, 8, 12]
-        assert sorted(_TrackingModel.fit_sizes) == [8, 8, 8, 12]
+        # Three fold fits, then one on everything. Fold sizes are not asserted
+        # exactly: classification folds are stratified, which balances class
+        # proportions rather than row counts, so on 12 rows they come out
+        # uneven. What matters is that each fold trains on a strict subset and
+        # the delivered pipeline has seen every row.
+        for sizes in (_TrackingScaler.fit_sizes, _TrackingModel.fit_sizes):
+            assert len(sizes) == 4
+            assert sizes[-1] == 12
+            assert all(0 < n < 12 for n in sizes[:-1])
+            assert sum(12 - n for n in sizes[:-1]) == 12
 
     def test_features_subset(self):
         wf = Workflow([NaiveBayesClassifier()]).fit(

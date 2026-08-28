@@ -6,9 +6,12 @@ components (algorithms, preprocessors, datasets, features) so LLMs
 can call any TuiML component directly.
 """
 
+import logging
 import threading
 from typing import Dict, List, Any, Optional, Callable
 from dataclasses import dataclass, field
+
+logger = logging.getLogger(__name__)
 
 @dataclass
 class ToolDefinition:
@@ -115,8 +118,17 @@ def _get_algorithm_tools() -> Dict[str, ToolDefinition]:
                     executor=_make_component_executor(component)
                 )
 
-    except ImportError:
-        pass
+    except ImportError as e:
+        # Never silent. This imports the core algorithm package, not an
+        # optional bridge, so failing here means the install is broken -- most
+        # often the compiled extension did not build. Swallowing it produced a
+        # server advertising zero algorithms with a startup banner that read as
+        # normal, which is far harder to diagnose than an error.
+        logger.error(
+            "No algorithm tools could be built: %s. The install looks broken -- "
+            "if tuiml._cpp is missing, reinstall so the C++ core compiles "
+            "(pip install --force-reinstall --no-binary tuiml tuiml).", e
+        )
 
     return tools
 
@@ -148,8 +160,11 @@ def _get_preprocessing_tools() -> Dict[str, ToolDefinition]:
                     input_schema=_schema_to_json_schema(schema),
                     executor=_make_component_executor(component)
                 )
-    except ImportError:
-        pass
+    except ImportError as e:
+        logger.error(
+            "No preprocessing tools could be built: %s. The install looks "
+            "broken; the agent will have no preprocessing available.", e
+        )
 
     return tools
 

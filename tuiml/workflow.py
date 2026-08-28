@@ -16,6 +16,7 @@ to :func:`tuiml.train`, which resolves names through the hub and runs on
 this same engine.
 """
 
+import warnings
 from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
@@ -1043,7 +1044,7 @@ class Workflow(Algorithm):
             evaluation = task
         elif cv:
             self.metrics_, self.cv_results_ = self._cross_validate(
-                X, y, cv, requested, seed
+                X, y, cv, requested, seed, stratify, task
             )
             evaluation = "cross_validate"
         elif test_size:
@@ -1137,11 +1138,62 @@ class Workflow(Algorithm):
 
     # ----- evaluation paths ---------------------------------------------
 
-    def _cross_validate(self, X, y, cv, requested, seed):
+    def _make_folds(self, y, cv, seed, stratify, task):
+        """Build the fold splitter for cross-validation.
+
+        Stratification needs at least ``cv`` members of every class. Rather
+        than let :class:`StratifiedKFold` raise on a target that cannot supply
+        that, fall back to plain k-fold and say so: the run is still valid, it
+        just cannot balance the folds.
+
+        Parameters
+        ----------
+        y : np.ndarray or None
+            Target values, used to check class counts.
+        cv : int
+            Number of folds.
+        seed : int or None
+            Seed for the split.
+        stratify : bool
+            Whether stratification was asked for.
+        task : str or None
+            The model's task; only ``"classifier"`` is stratified.
+
+        Returns
+        -------
+        splitter : BaseSplitter
+            A ``StratifiedKFold`` or ``KFold``, configured and seeded.
+        """
+        from tuiml.evaluation.splitting import KFold, StratifiedKFold
+
+        plain = KFold(n_splits=cv, shuffle=True, random_state=seed)
+        if not stratify or y is None or task != "classifier":
+            return plain
+
+        _, counts = np.unique(y, return_counts=True)
+        if counts.min() < cv:
+            warnings.warn(
+                f"Cannot stratify {cv}-fold cross-validation: the rarest class has "
+                f"{counts.min()} member(s). Falling back to unstratified k-fold, so "
+                f"some folds may not contain every class.",
+                UserWarning,
+                stacklevel=3,
+            )
+            return plain
+
+        return StratifiedKFold(n_splits=cv, shuffle=True, random_state=seed)
+
+    def _cross_validate(self, X, y, cv, requested, seed, stratify=True, task=None):
         """Score the pipeline with k-fold cross-validation.
 
         Each fold refits the whole pipeline from scratch, so no transformation
         ever sees its validation fold.
+
+        Classification folds are stratified by default, matching the holdout
+        path and :class:`~tuiml.benchmarking.Benchmark`. Plain k-fold on an
+        imbalanced target can leave a rare class out of a fold entirely, which
+        makes the per-fold score undefined for that class and the mean quietly
+        wrong.
 
         Parameters
         ----------
@@ -1153,6 +1205,12 @@ class Workflow(Algorithm):
             Metric function names.
         seed : int or None
             Seed for the fold split.
+        stratify : bool, default=True
+            Preserve class balance across folds. Ignored for regression, where
+            there are no classes to balance.
+        task : str, optional
+            The model's task, from :meth:`_task`. Only ``"classifier"`` is
+            stratified.
 
         Returns
         -------
@@ -1161,9 +1219,7 @@ class Workflow(Algorithm):
         cv_results : dict
             Raw per-fold scores.
         """
-        from tuiml.evaluation.splitting import KFold
-
-        kfold = KFold(n_splits=cv, shuffle=True, random_state=seed)
+        kfold = self._make_folds(y, cv, seed, stratify, task)
         scores = {m: [] for m in requested if self._metric_func(m) is not None}
 
         for train_idx, val_idx in kfold.split(X, y):
