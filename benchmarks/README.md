@@ -9,7 +9,10 @@ that exists in all three libraries.
 The headline results live in [`summary_cv10.csv`](summary_cv10.csv) (one row per
 `configuration × framework × algorithm × dataset × fold`, 20,640 rows) and are
 rendered on the website benchmarks page. A score is published only when all ten
-folds for that cell completed successfully.
+folds for that cell completed successfully, and every published aggregate is
+restricted to cells where **all three** frameworks finished — otherwise a
+framework that crashed on the hard datasets would score better than one that
+completed them.
 
 ---
 
@@ -138,9 +141,41 @@ benchmarks/
 │   ├── stub_missing.py          record scheduled folds lacking a result
 │   ├── sizes.py                 dataset size table
 │   ├── timing.py                fit-time-vs-rows analysis
-│   └── gen_web_json.py          summary_cv10.csv → website JSON exports
-└── summary_cv10.csv         # two configs × 10-fold result snapshot (20,640 rows)
+│   ├── gen_web_json.py          summary_cv10.csv → website JSON exports
+│   ├── headline.py              recompute every published number from the CSV
+│   └── figure.py                regenerate assets/benchmark_summary_*.svg
+├── summary_cv10.csv         # current run: two configs × 10-fold (20,640 rows)
+└── summary_cv10_2026-07.csv # superseded July run, kept for provenance
 ```
+
+### Which snapshot is authoritative
+
+`summary_cv10.csv` (2026-08-14) is the one to use. It covers the same 51
+datasets and 13 algorithms as the earlier run, but adds the `matched`
+configuration arm and thirteen provenance columns — `options`, `lib_version`,
+`note`, `diverged` and others — that record how each cell was actually
+configured.
+
+`summary_cv10_2026-07.csv` is the superseded 2026-07-06 run. It is kept only
+because the figures published before 2026-08 were computed from it; nothing new
+should cite it. Both runs agree on the headline: under library defaults TuiML
+leads on accuracy. They are not interchangeable, though — the older file has no
+`config` column, so pooling the two silently mixes the default and matched arms
+and produces a number that matches neither.
+
+### Reproducing the published numbers
+
+```bash
+uv run python tools/headline.py   # every figure quoted in README.md / the site
+uv run python tools/figure.py     # regenerate the four-panel SVG
+```
+
+`headline.py` prints both configuration arms. The published chart reports
+**defaults** — each library as it ships, which is what a user gets on install.
+The **matched** arm forces hyperparameters to agree and is the one to read when
+asking whether an *implementation* is correct: it is where TuiML's logistic
+regression (−2.6 pt) and MLP (−1.7 pt) deficits against scikit-learn show up,
+while SVM, naive Bayes and k-NN match to the decimal and Random Forest leads.
 
 ---
 
