@@ -583,6 +583,7 @@ class TestServeBackground:
         response = requests.post(
             info["endpoints"]["predict"],
             json={"features": dataset.X[:3].tolist()},
+            headers={"Authorization": f"Bearer {info['auth_token']}"},
             timeout=10,
         )
         assert response.status_code == 200, response.text

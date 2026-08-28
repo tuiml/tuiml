@@ -3,6 +3,29 @@
 import click
 
 
+def _announce(token, host, port):
+    """Print the bearer token before the server takes over the terminal.
+
+    Parameters
+    ----------
+    token : str or False
+        The token clients must send, or False when authentication is off.
+    host, port : str, int
+        Where the server is about to bind, for a copy-pasteable example.
+    """
+    if token is False:
+        click.secho(
+            "Authentication is OFF. Anyone who can reach this port can load and "
+            "run models on this machine.",
+            fg="red",
+        )
+        return
+    click.secho(f"Auth token: {token}", fg="green", bold=True)
+    click.echo(
+        f'  curl -H "Authorization: Bearer {token}" http://{host}:{port}/models'
+    )
+
+
 @click.command()
 @click.option('--model-path', type=click.Path(exists=True), help='Path to a saved model file to serve (alternative to --model-id).')
 @click.option('--model-id', '-m', help='ID of a model already trained by "tuiml train". Also names the model in the URL path.')
@@ -14,7 +37,14 @@ import click
               help='Number of worker processes to run (default: 1). Raise this to serve concurrent requests.')
 @click.option('--reload', is_flag=True,
               help='Restart the server whenever the source changes. For development only.')
-def serve(model_path, model_id, host, port, workers, reload):
+@click.option('--auth-token', default=None,
+              help='Bearer token clients must send. Generated and printed if omitted.')
+@click.option('--no-auth', is_flag=True,
+              help='Serve without authentication. Only safe behind a proxy that authenticates for you.')
+@click.option('--models-dir', type=click.Path(exists=True, file_okay=False), default=None,
+              help='Directory that POST /models may load from. Omitted, that endpoint is refused.')
+def serve(model_path, model_id, host, port, workers, reload,
+          auth_token, no_auth, models_dir):
     """Serve a trained model over a REST API.
 
     Loads a model and runs it behind HTTP endpoints in the foreground, so
@@ -57,10 +87,28 @@ def serve(model_path, model_id, host, port, workers, reload):
     After starting the server, visit:
     - http://localhost:8000/docs - Swagger UI
     - http://localhost:8000/redoc - ReDoc
+
+    Authentication
+    --------------
+    Every endpoint except / and /health needs a bearer token, printed on
+    startup. Loading a model unpickles a file and predicting runs it, so the
+    server does not expose either without one.
+
+    $ curl -H "Authorization: Bearer $TOKEN" localhost:8000/health
     """
+    import secrets
+
     try:
         from tuiml.serving import serve as start_server
         from tuiml.agent.tools import _load_model_from_disk
+
+        if no_auth and auth_token:
+            raise click.UsageError("Pass either --auth-token or --no-auth, not both.")
+
+        # Generated here rather than inside serve(): this command runs the
+        # server in the foreground, so anything it only logged would be missed,
+        # and a token nobody can read makes the server unusable.
+        token = False if no_auth else (auth_token or secrets.token_urlsafe(32))
         
         if not model_path and not model_id:
             raise click.UsageError("Must provide either --model-path or --model-id option.")
@@ -70,6 +118,7 @@ def serve(model_path, model_id, host, port, workers, reload):
             if not model:
                 raise click.ClickException(f"Model ID '{model_id}' not found.")
             
+            _announce(token, host, port)
             start_server(
                 model,
                 model_id=model_id,
@@ -78,11 +127,14 @@ def serve(model_path, model_id, host, port, workers, reload):
                 workers=workers,
                 reload=reload,
                 background=False,
+                auth_token=token,
+                models_dir=models_dir,
             )
         else:
             if not model_id:
                 model_id = 'default'
             
+            _announce(token, host, port)
             start_server(
                 model_path,
                 model_id=model_id,
@@ -91,6 +143,8 @@ def serve(model_path, model_id, host, port, workers, reload):
                 workers=workers,
                 reload=reload,
                 background=False,
+                auth_token=token,
+                models_dir=models_dir,
             )
     except ImportError as e:
         raise click.ClickException(

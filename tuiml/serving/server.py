@@ -18,6 +18,8 @@ Usage:
 """
 
 import logging
+import os
+import secrets
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
@@ -56,6 +58,11 @@ class ModelServer:
     Wraps FastAPI to provide endpoints for model management
     and prediction serving.
 
+    Loading a model deserialises a pickle, which executes whatever the file
+    says. The endpoints are therefore authenticated by default and ``POST
+    /models`` -- the one that takes a path from the caller -- is disabled
+    unless ``models_dir`` bounds where it may read from.
+
     Parameters
     ----------
     max_models : int, default=10
@@ -64,6 +71,24 @@ class ModelServer:
         API title for documentation.
     version : str, default="1.0.0"
         API version.
+    auth_token : str or bool, default=True
+        Bearer token required on every endpoint except ``/`` and ``/health``.
+        ``True`` generates one; a string uses it as given; ``False`` disables
+        authentication entirely, which is only appropriate behind a proxy that
+        provides its own.
+    models_dir : str or Path, optional
+        Directory that ``POST /models`` may load from. Paths are resolved and
+        must stay inside it. When unset that endpoint is refused, because
+        without a bound it will unpickle any file the caller names.
+    allow_origins : list of str, optional
+        Browser origins permitted to call the API. Empty by default: a model
+        server is normally reached by a script, not a web page, and a wildcard
+        here lets any site the operator visits drive their local server.
+
+    Attributes
+    ----------
+    auth_token : str or None
+        The token clients must present, or None when authentication is off.
 
     Examples
     --------
@@ -72,6 +97,7 @@ class ModelServer:
     >>> server.load_model("clf", "classifier.pkl")
     >>> app = server.create_app()
     >>> # Run with: uvicorn app:app --port 8000
+    >>> # Then: curl -H "Authorization: Bearer $TOKEN" localhost:8000/models
     """
 
     def __init__(
@@ -79,6 +105,9 @@ class ModelServer:
         max_models: int = 10,
         title: str = "TuiML Model Server",
         version: str = "1.0.0",
+        auth_token: Union[str, bool] = True,
+        models_dir: Optional[Union[str, Path]] = None,
+        allow_origins: Optional[List[str]] = None,
     ):
         if not FASTAPI_AVAILABLE:
             raise ImportError(
@@ -90,6 +119,55 @@ class ModelServer:
         self.title = title
         self.version = version
         self._app: Optional[FastAPI] = None
+
+        if auth_token is True:
+            # secrets, not uuid: this is a credential, and uuid4 does not
+            # promise cryptographic unpredictability on every platform.
+            self.auth_token: Optional[str] = secrets.token_urlsafe(32)
+        elif auth_token is False:
+            self.auth_token = None
+        else:
+            self.auth_token = str(auth_token)
+
+        self.models_dir = Path(models_dir).expanduser().resolve() if models_dir else None
+        self.allow_origins = list(allow_origins) if allow_origins else []
+
+    def _resolve_within_models_dir(self, path: Union[str, Path]) -> Path:
+        """Resolve a caller-supplied model path inside :attr:`models_dir`.
+
+        Parameters
+        ----------
+        path : str or Path
+            Path as received from the request body.
+
+        Returns
+        -------
+        resolved : Path
+            The absolute path to load.
+
+        Raises
+        ------
+        PermissionError
+            If no ``models_dir`` is configured, or the path escapes it.
+        """
+        if self.models_dir is None:
+            raise PermissionError(
+                "Loading models over HTTP is disabled because this server has no "
+                "models_dir. Loading deserialises a pickle, so the directory it "
+                "may read from has to be stated explicitly: "
+                "ModelServer(models_dir=...) or serve(..., models_dir=...). "
+                "Models can always be loaded in-process with server.load_model()."
+            )
+
+        resolved = (self.models_dir / path).resolve() if not os.path.isabs(str(path)) \
+            else Path(path).expanduser().resolve()
+        if resolved != self.models_dir and not str(resolved).startswith(
+            str(self.models_dir) + os.sep
+        ):
+            raise PermissionError(
+                f"Refusing to load from outside models_dir ({self.models_dir})."
+            )
+        return resolved
 
     def load_model(
         self,
@@ -142,15 +220,48 @@ class ModelServer:
             redoc_url="/redoc",
         )
 
-        # CORS middleware for cross-origin requests
-        app.add_middleware(
-            CORSMiddleware,
-            allow_origins=["*"],
-            allow_methods=["*"],
-            allow_headers=["*"],
-        )
+        # Cross-origin access is opt-in. With a wildcard here, any page the
+        # operator happens to visit can drive a model server bound to their
+        # own machine.
+        if self.allow_origins:
+            app.add_middleware(
+                CORSMiddleware,
+                allow_origins=self.allow_origins,
+                allow_methods=["GET", "POST", "DELETE"],
+                allow_headers=["Authorization", "Content-Type"],
+            )
 
         manager = self.manager
+        auth_token = self.auth_token
+        resolve_model_path = self._resolve_within_models_dir
+
+        # Unauthenticated: liveness and the token-free banner. Everything that
+        # names a model, loads one, or runs one requires the token.
+        _PUBLIC_PATHS = {"/", "/health", "/docs", "/redoc", "/openapi.json"}
+
+        @app.middleware("http")
+        async def require_token(request, call_next):
+            """Reject any non-public request without the bearer token."""
+            if auth_token is None or request.url.path in _PUBLIC_PATHS:
+                return await call_next(request)
+
+            header = request.headers.get("authorization", "")
+            scheme, _, presented = header.partition(" ")
+            # compare_digest keeps the check constant-time; a plain == leaks
+            # the token prefix through response timing.
+            if scheme.lower() != "bearer" or not secrets.compare_digest(
+                presented.strip(), auth_token
+            ):
+                return JSONResponse(
+                    status_code=401,
+                    content={
+                        "detail": "Missing or invalid bearer token. Pass the token "
+                                  "printed when the server started as "
+                                  "'Authorization: Bearer <token>'."
+                    },
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+            return await call_next(request)
 
         # =====================================================================
         # Root Endpoint
@@ -241,11 +352,21 @@ class ModelServer:
             summary="Load a model"
         )
         async def load_model(request: LoadModelRequest):
-            """Load a model from disk into memory."""
+            """Load a model from disk into memory.
+
+            The path is confined to ``models_dir``. Loading unpickles the file,
+            so an unbounded path here is arbitrary code execution by whoever
+            can reach the endpoint.
+            """
+            try:
+                path = resolve_model_path(request.path)
+            except PermissionError as e:
+                raise HTTPException(status_code=403, detail=str(e))
+
             try:
                 info = manager.load(
                     request.model_id,
-                    request.path,
+                    path,
                     request.metadata
                 )
                 return info
@@ -413,6 +534,9 @@ def create_app(
     model_path: Optional[Union[str, Path]] = None,
     model_id: str = "default",
     max_models: int = 10,
+    auth_token: Union[str, bool] = True,
+    models_dir: Optional[Union[str, Path]] = None,
+    allow_origins: Optional[List[str]] = None,
 ) -> "FastAPI":
     """
     Create a FastAPI application for model serving.
@@ -425,6 +549,14 @@ def create_app(
         Identifier for the startup model.
     max_models : int, default=10
         Maximum models to cache.
+    auth_token : str or bool, default=True
+        Bearer token required by the API. ``True`` generates one, which is
+        readable afterwards as ``app.state.auth_token``; ``False`` disables
+        authentication.
+    models_dir : str or Path, optional
+        Directory ``POST /models`` may load from. Unset disables that endpoint.
+    allow_origins : list of str, optional
+        Browser origins permitted to call the API. None permits none.
 
     Returns
     -------
@@ -435,14 +567,24 @@ def create_app(
     --------
     >>> from tuiml.serving import create_app
     >>> app = create_app("classifier.pkl")
+    >>> token = app.state.auth_token          # send as: Authorization: Bearer <token>
     >>> # Run with: uvicorn module:app --port 8000
     """
-    server = ModelServer(max_models=max_models)
+    server = ModelServer(
+        max_models=max_models,
+        auth_token=auth_token,
+        models_dir=models_dir,
+        allow_origins=allow_origins,
+    )
 
     if model_path:
         server.load_model(model_id, model_path)
 
-    return server.create_app()
+    app = server.create_app()
+    # The generated token is otherwise unreachable: `uvicorn module:app` never
+    # touches the ModelServer that built the app.
+    app.state.auth_token = server.auth_token
+    return app
 
 
 # Module-level state for tracking running servers
@@ -457,6 +599,9 @@ def serve(
     background: bool = True,
     reload: bool = False,
     workers: int = 1,
+    auth_token: Union[str, bool] = True,
+    models_dir: Optional[Union[str, Path]] = None,
+    allow_origins: Optional[List[str]] = None,
 ):
     """Serve a trained model via REST API.
 
@@ -558,7 +703,26 @@ def serve(
             "Install with: pip install uvicorn"
         )
 
-    server = ModelServer()
+    server = ModelServer(
+        auth_token=auth_token,
+        models_dir=models_dir,
+        allow_origins=allow_origins,
+    )
+
+    # Binding off loopback puts an unpickling endpoint on the network. That can
+    # be legitimate, but it should never happen without the operator noticing,
+    # and it must not happen without a token.
+    if host not in ("127.0.0.1", "localhost", "::1"):
+        if server.auth_token is None:
+            raise ValueError(
+                f"Refusing to bind {host} with authentication disabled. Loading and "
+                "predicting would be open to anyone who can reach this port. Pass "
+                "auth_token=True (or a token of your own), or bind 127.0.0.1."
+            )
+        logger.warning(
+            "Serving on %s:%s -- reachable from outside this machine. Requests "
+            "need the bearer token, and the traffic is unencrypted.", host, port
+        )
 
     if isinstance(model_or_path, (str, Path)):
         # File path, load directly
@@ -591,8 +755,14 @@ def serve(
             "port": port,
             "model_id": model_id,
             "url": f"http://{host}:{port}",
+            "auth_token": server.auth_token,
             "server_obj": server,
         }
+        if server.auth_token:
+            logger.info(
+                "Model server token: %s  (send as 'Authorization: Bearer <token>')",
+                server.auth_token,
+            )
         try:
             uvicorn.run(app, host=host, port=port, reload=reload,
                         workers=workers, log_level="info")
@@ -652,19 +822,23 @@ def serve(
             "health": f"http://{host}:{port}/health",
             "docs": f"http://{host}:{port}/docs",
         },
+        "auth_token": server.auth_token,
         "server_obj": server,
         "uvicorn_server": uvicorn_server,
         "thread": thread,
     }
     _SERVERS[server_id] = info
 
-    # Return a clean dict without internal objects
+    # Return a clean dict without internal objects. The token is included
+    # because the caller has no other way to reach the server they just
+    # started -- it is generated inside this call.
     return {
         "server_id": server_id,
         "host": host,
         "port": port,
         "model_id": model_id,
         "url": f"http://{host}:{port}",
+        "auth_token": server.auth_token,
         "endpoints": info["endpoints"],
     }
 

@@ -1304,6 +1304,11 @@ Serve model as API:
 }
 ```
 
+The response carries an `auth_token`. Every endpoint except `/` and `/health`
+requires it as `Authorization: Bearer <auth_token>`; the returned
+`example_curl` already includes the header. The token is generated per server
+and appears only in that response, so keep it if you plan to call the API.
+
 Hyperparameter tuning:
 
 ```json

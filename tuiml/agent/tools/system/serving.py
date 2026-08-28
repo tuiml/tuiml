@@ -58,15 +58,17 @@ def execute_serve_model(**kwargs) -> Dict[str, Any]:
     port : int, default=8000
         TCP port to bind; must be free.
     host : str, default='127.0.0.1'
-        Interface to bind the server to.
+        Interface to bind the server to. Anything other than loopback puts the
+        API on the network; it stays authenticated, but the traffic is
+        unencrypted.
 
     Returns
     -------
     result : dict
         On success: ``status`` (``'success'``), ``server_id`` (``'host:port'``),
-        ``model_id``, ``url``, ``endpoints`` (name -> URL map) and
-        ``example_curl``. On failure: ``status`` (``'error'``), ``error``,
-        ``error_type`` and optionally ``suggestion``.
+        ``model_id``, ``url``, ``auth_token``, ``auth``, ``endpoints``
+        (name -> URL map) and ``example_curl``. On failure: ``status``
+        (``'error'``), ``error``, ``error_type`` and optionally ``suggestion``.
     """
     import tuiml
 
@@ -119,15 +121,25 @@ def execute_serve_model(**kwargs) -> Dict[str, Any]:
         return {'status': 'error', 'error': str(e), 'error_type': type(e).__name__}
 
     url = info['url']
+    token = info.get('auth_token')
+    # The server generates its own token, so this response is the only place
+    # the caller can learn it. Without it every endpoint answers 401.
+    auth_header = f'-H "Authorization: Bearer {token}" ' if token else ''
     return {
         'status': 'success',
         'server_id': info['server_id'],
         'model_id': info['model_id'],
         'url': url,
+        'auth_token': token,
+        'auth': (
+            'Send "Authorization: Bearer <auth_token>" on every request except '
+            '/ and /health.'
+        ) if token else 'This server has authentication disabled.',
         'endpoints': _endpoints(url, info['model_id']),
         'example_curl': (
             f'curl -X POST {url}/predict '
             f'-H "Content-Type: application/json" '
+            f'{auth_header}'
             f'-d \'{{"features": [[5.1, 3.5, 1.4, 0.2]]}}\''
         ),
     }
@@ -268,6 +280,15 @@ SERVE_SPEC = ToolSpec(
                 "server_id": {"type": "string", "description": "Server ID ('host:port'); pass to tuiml_stop_server"},
                 "model_id": {"type": "string"},
                 "url": {"type": "string", "description": "Base URL of the serving API"},
+                "auth_token": {
+                    "type": "string",
+                    "description": (
+                        "Bearer token this server requires. Send as "
+                        "'Authorization: Bearer <token>' on every request except / and "
+                        "/health. Generated per server; this response is the only place "
+                        "it appears."
+                    ),
+                },
                 "endpoints": {"type": "object", "description": "Map of endpoint names to URLs"},
                 "example_curl": {"type": "string"},
                 "error": {"type": "string"}

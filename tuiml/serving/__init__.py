@@ -32,12 +32,28 @@ Notes
 The port must be free: :func:`serve` raises rather than silently picking
 another one, so nothing ends up listening where you did not expect.
 
+Security
+--------
+Loading a model unpickles a file, and predicting runs it, so the API is
+**authenticated by default**. Each server generates a bearer token, returned as
+``info["auth_token"]``; send it as ``Authorization: Bearer <token>`` on every
+endpoint except ``/`` and ``/health``. Pass ``auth_token=False`` only behind a
+proxy that authenticates for you.
+
+Two related defaults follow from the same reasoning. ``POST /models`` takes a
+path from the caller, so it is refused unless ``models_dir`` says which
+directory it may read from -- ``server.load_model()`` in-process is unaffected.
+And no cross-origin headers are sent unless ``allow_origins`` names the origins,
+since a wildcard would let any page the operator visits drive a server bound to
+their own machine.
+
 Examples
 --------
 >>> from tuiml.serving import serve, stop_server
 >>> info = serve("model.pkl", port=8000)          # doctest: +SKIP
 >>> info["url"]                                   # doctest: +SKIP
 'http://127.0.0.1:8000'
+>>> headers = {"Authorization": f"Bearer {info['auth_token']}"}   # doctest: +SKIP
 >>> stop_server("127.0.0.1:8000")                 # doctest: +SKIP
 """
 
