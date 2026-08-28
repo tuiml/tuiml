@@ -742,6 +742,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   they pinned different pytest versions, so whether the lint tools existed
   depended on which install command you ran. They are now identical.
 
+### Added
+- **`SECURITY.md`, `CONTRIBUTING.md` and Dependabot.** The security policy
+  states the reporting route and, more usefully, draws the line: loading a
+  model unpickles, agent-authored algorithms are checked but not sandboxed, and
+  `--no-auth` does what it says — all documented behaviour rather than bugs, so
+  reports can focus on the parts that are actually in scope. It also records
+  that the library has no telemetry of any kind and makes exactly one outbound
+  request, a PyPI version check carrying only the package name.
+  `CONTRIBUTING.md` covers what the website guide does not: what CI enforces,
+  and the conventions that are easy to violate. Dependabot watches the pip and
+  Actions ecosystems, grouping dev-tool bumps into one PR and holding back
+  major bumps of `mcp` and `torch`, which need someone to read a changelog
+  rather than a green tick.
+
+### Removed
+- **Four artefacts that should never have been committed**: `output.arff` and
+  `output.csv` at the repository root, a tracked zero-byte `.!57845!.coverage`
+  (an NFS silly-rename leftover), and `scratch/chat_to_notebook.py`. The
+  scratch script is untracked rather than deleted — it is a working utility,
+  just not part of the library, and it was reaching the sdist. `.gitignore` and
+  `sdist.exclude` now cover all four.
+
 ### Fixed
 - **Cross-validation did not stratify.** `Workflow._cross_validate` hardcoded
   plain `KFold` and never received the `stratify` argument the holdout path and

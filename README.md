@@ -143,7 +143,7 @@ results: [tuiml.ai/benchmarks](https://tuiml.ai/benchmarks.html).</sub>
 
 ## Documentation
 
-Full documentation is available at [tuiml.ai/docs](https://tuiml.ai/getting_started.html), including getting started guides, API reference, and tutorials. Want to contribute? Pick something from the [Build Board](https://tuiml.ai/projects.html) &mdash; algorithms, integrations, and good first issues.
+Full documentation is available at [tuiml.ai/docs](https://tuiml.ai/getting_started.html), including getting started guides, API reference, and tutorials. Want to contribute? See [CONTRIBUTING.md](CONTRIBUTING.md), then pick something from the [Build Board](https://tuiml.ai/projects.html) &mdash; algorithms, integrations, and good first issues. Found a security issue? Please report it privately: see [SECURITY.md](SECURITY.md).
 
 ---
 

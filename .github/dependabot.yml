@@ -1,0 +1,47 @@
+version: 2
+
+# All dependency bounds in pyproject.toml are lower-only, which is the right
+# default for a library but means an upstream breaking release reaches users
+# before it reaches the maintainer. These PRs are the notification.
+updates:
+  # The Actions in publish.yml and test.yml are pinned by major tag, so this
+  # mostly catches deprecations -- the Node 20 runner warnings on checkout@v4
+  # and friends are exactly the kind of thing that goes unnoticed otherwise.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "ci:"
+
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps:"
+    groups:
+      # One PR for the dev toolchain rather than five. A black or mypy bump
+      # cannot break a user's install, so these do not deserve separate review.
+      dev-tools:
+        patterns:
+          - black
+          - flake8
+          - mypy
+          - pytest
+          - pytest-cov
+          - build
+          - twine
+    ignore:
+      # The MCP SDK went 2.0.0 to 2.1.1 in four weeks and 2.0 broke source
+      # compatibility with 1.x. A major bump here needs someone to read the
+      # changelog and check tuiml/agent/mcp/server.py against it, not a
+      # green-tick merge.
+      - dependency-name: mcp
+        update-types: [version-update:semver-major]
+      # Torch majors change API and wheel availability together, and pulling
+      # one in unreviewed would break the deep tabular models on some
+      # platforms while CI stays green on others.
+      - dependency-name: torch
+        update-types: [version-update:semver-major]

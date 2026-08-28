@@ -173,7 +173,9 @@ build-dir = "build/{wheel_tag}"
 # The bundled landing/docs site (served via GitHub Pages) is not part of the
 # Python package. wheel.packages already keeps it out of the wheel; exclude it
 # from the sdist too so the source tarball stays lean.
-sdist.exclude = ["website"]
+# scratch/ is gitignored, so it should not reach the sdist anyway; naming it
+# here means a stray local file cannot ship just because someone re-added it.
+sdist.exclude = ["website", "scratch"]
 
 [tool.scikit-build.cmake.define]
 USE_OPENMP = "ON"
