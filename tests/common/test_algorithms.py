@@ -36,49 +36,18 @@ SKIP_ALGORITHMS = {
 }
 
 # Known contract violations, as {algorithm: {check: reason}}. Every entry is a
-# bug to fix, not a permanent exemption -- an empty table is the goal. Listing
-# them keeps the suite green while making the debt explicit and greppable, and
-# `strict=False` means a fix turns the entry into an XPASS rather than a
-# failure, so the table degrades safely as things are repaired.
+# bug to fix, not a permanent exemption -- an empty table is the goal, and it is
+# currently met: every registered algorithm satisfies every check. Listing a
+# violation here keeps the suite green while making the debt explicit and
+# greppable, and `strict=False` means a fix turns the entry into an XPASS
+# rather than a failure, so the table degrades safely as things are repaired.
 #
-# Generated from an actual run; regenerate rather than hand-editing after
-# fixing an algorithm.
+# Add an entry only for a violation you are recording to fix. Prefer fixing the
+# algorithm; the last eight entries were cleared by finding that three of them
+# were not algorithm bugs at all but a fixture that put NaN in the regression
+# target, and one advised refitting with a constructor argument that had never
+# existed.
 XFAIL_CHECKS = {
-    'AgglomerativeClusterer': {
-        **{c: 'predict() after fit() requires store_data=True' for c in (
-            'check_pickle_roundtrip',
-            'check_predict_output_shape',
-        )},
-    },
-    'CatBoostRegressor': {
-        'check_missing_value_support_is_honest':
-            'declares missing_values but raises on NaN',
-    },
-    'DBSCANClusterer': {
-        **{c: 'IndexError when no core samples are found (empty float index array)' for c in (
-            'check_fit_does_not_mutate_input',
-            'check_fit_returns_self',
-            'check_pickle_roundtrip',
-            'check_predict_output_shape',
-        )},
-    },
-    'KMeansClusterer': {
-        'check_missing_value_support_is_honest':
-            'declares missing_values but raises on NaN',
-    },
-    'NaiveBayesMultinomialClassifier': {
-        **{c: "declares 'numeric' but rejects negative features" for c in (
-            'check_fit_does_not_mutate_input',
-            'check_fit_returns_self',
-            'check_pickle_roundtrip',
-            'check_predict_output_shape',
-            'check_predict_proba_is_a_distribution',
-        )},
-    },
-    'XGBoostRegressor': {
-        'check_missing_value_support_is_honest':
-            'declares missing_values but raises on NaN',
-    },
 }
 
 

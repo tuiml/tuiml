@@ -17,14 +17,9 @@ from ..contract.splitters import ALL_CHECKS
 SKIP = {"BaseSplitter"}
 
 # Known contract violations, as {splitter: {check: reason}}. Each is a bug to
-# fix, not a permanent exemption.
+# fix, not a permanent exemption. Currently empty: every splitter satisfies
+# every check.
 XFAIL_CHECKS = {
-    "StratifiedGroupKFold": {
-        "check_folds_are_non_empty":
-            "with 6 groups and n_splits=5 it packs every group into the first "
-            "3 folds, leaving folds 4 and 5 with empty test sets; GroupKFold "
-            "splits the same data into 5 usable folds",
-    },
 }
 
 

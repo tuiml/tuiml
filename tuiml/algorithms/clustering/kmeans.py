@@ -215,8 +215,14 @@ class KMeansClusterer(Clusterer):
 
     @classmethod
     def get_capabilities(cls) -> List[str]:
-        """Return algorithm capabilities."""
-        return ["numeric", "missing_values"]
+        """Return algorithm capabilities.
+
+        Not ``missing_values``: the squared Euclidean distance to a centroid is
+        undefined when a coordinate is NaN, and nothing here imputes. Declaring
+        it was worse than declaring nothing, because the workflow layer routes
+        incomplete data on this capability -- impute before clustering.
+        """
+        return ["numeric"]
 
     @classmethod
     def get_complexity(cls) -> str:

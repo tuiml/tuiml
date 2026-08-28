@@ -148,9 +148,17 @@ class NaiveBayesMultinomialClassifier(Classifier):
 
     @classmethod
     def get_capabilities(cls) -> List[str]:
-        """Return classifier capabilities."""
+        """Return classifier capabilities.
+
+        ``non_negative`` alongside ``numeric``: the multinomial likelihood is a
+        product of per-feature probabilities, so it is defined over counts,
+        frequencies or TF-IDF, not the whole real line. ``fit`` raises on
+        negative input, and scikit-learn's ``MultinomialNB`` does the same.
+        Declaring ``numeric`` on its own overstated what the model accepts.
+        """
         return [
             "numeric",
+            "non_negative",
             "binary_class",
             "multiclass"
         ]

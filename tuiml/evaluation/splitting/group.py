@@ -391,18 +391,33 @@ class StratifiedGroupKFold(BaseSplitter):
 
         # Assign groups to folds trying to balance classes
         fold_class_counts = [{} for _ in range(self.n_splits)]
+        fold_sizes = [0] * self.n_splits
         group_to_fold = {}
 
         for group in sorted_groups:
-            # Find fold with lowest count of this group's majority class
+            # Fewest rows of this group's majority class first, then the
+            # emptiest fold.
+            #
+            # The size tiebreak is what keeps every fold populated. Choosing on
+            # the majority-class counter alone lets each class fill folds
+            # independently from the left: with three class-0 groups and three
+            # class-1 groups over five folds, both classes pick folds 0, 1 and
+            # 2, and folds 3 and 4 are never assigned anything. That yielded
+            # test folds of [20, 20, 20, 0, 0] where GroupKFold managed
+            # [20, 10, 10, 10, 10] on the same data, and a fold with no test
+            # rows scores nothing while still counting as a fold.
             majority_class = get_majority_class(group)
-            fold_counts = [
-                fold_class_counts[f].get(majority_class, 0)
-                for f in range(self.n_splits)
-            ]
-            best_fold = np.argmin(fold_counts)
+            best_fold = min(
+                range(self.n_splits),
+                key=lambda f: (
+                    fold_class_counts[f].get(majority_class, 0),
+                    fold_sizes[f],
+                    f,
+                ),
+            )
 
             group_to_fold[group] = best_fold
+            fold_sizes[best_fold] += sum(group_class_counts[group].values())
 
             # Update fold class counts
             for cls, cnt in group_class_counts[group].items():

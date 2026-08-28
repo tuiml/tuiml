@@ -724,6 +724,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   run rather than skipping.
 
 ### Fixed
+- **Every contract xfail is cleared; both tables are now empty.** The suite
+  shipped 22 known violations across 8 algorithms and 1 splitter. Working
+  through them, three turned out not to be algorithm bugs at all:
+
+  - **The contract fixture put NaN in the regression target.** `make_data`
+    punched holes into `X` and then derived `y` from `X[:, 1]`, so the target
+    inherited them. `XGBoostRegressor`, `CatBoostRegressor` and every other
+    regressor declaring `missing_values` were recorded as violating a contract
+    they honour — the capability is about features, and no supervised learner
+    trains on missing labels. The target is now built before the holes.
+  - **`AgglomerativeClusterer.predict` advised refitting with `store_data=True`,
+    a constructor argument that has never existed**, then raised
+    `NotImplementedError` unconditionally, so the branch was dead and the
+    advice impossible. It now assigns by nearest centroid, recorded at fit
+    time — the same shape as `DBSCANClusterer` assigning to its nearest core
+    sample. `fit_predict` remains the right call for training-set labels.
+  - **`KMeansClusterer` declared `missing_values` it does not implement.** The
+    squared distance to a centroid is undefined with NaN and nothing imputes,
+    so the declaration is dropped rather than faked; the workflow layer routes
+    incomplete data on this capability.
+  - **`NaiveBayesMultinomialClassifier` declared plain `numeric`** while
+    correctly rejecting negatives, as scikit-learn's `MultinomialNB` does. The
+    vocabulary had no way to say "non-negative numeric", so `non_negative` is
+    added and the sweep now feeds it counts.
+  - **`DBSCANClusterer` raised `IndexError` when no core samples were found** —
+    a legitimate outcome on sparse data. `np.array([])` on an empty set is
+    float64, and a float array cannot index. Now `dtype=int`, and the run
+    returns all-noise labels.
+  - **`StratifiedGroupKFold` produced empty folds.** It chose each group's fold
+    by the majority-class counter alone, so classes filled folds independently
+    from the left: three class-0 groups and three class-1 groups over five
+    folds all landed in folds 0-2, giving test sizes of `[20, 20, 20, 0, 0]`
+    where `GroupKFold` managed `[20, 10, 10, 10, 10]`. Fold size is now the
+    tiebreak.
+
 - **The logistic-regression "accuracy gap" was a benchmark error, not a
   defect.** The three libraries normalise the objective differently —
   scikit-learn minimises `0.5||w||² + C·sum(loss)`, Weka `sum(loss) +

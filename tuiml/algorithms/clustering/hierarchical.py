@@ -240,6 +240,17 @@ class AgglomerativeClusterer(Clusterer):
         labels = _clu_cpp.hierarchical_fit(X, self.n_clusters, self.linkage)
         self.labels_ = np.asarray(labels)
         self.n_clusters_ = self.n_clusters
+
+        # Agglomerative clustering has no out-of-sample rule of its own: the
+        # merge history describes these points and nothing else. Keeping a
+        # centroid per cluster gives predict() a defined answer without
+        # retaining the training set, and matches how DBSCANClusterer assigns
+        # new points to its nearest core sample.
+        self.cluster_centers_ = np.array([
+            X[self.labels_ == c].mean(axis=0)
+            for c in range(self.n_clusters_)
+        ]) if self.n_clusters_ > 0 else np.empty((0, X.shape[1]))
+
         self._is_fitted = True
 
         return self
@@ -310,16 +321,20 @@ class AgglomerativeClusterer(Clusterer):
         if X.ndim == 1:
             X = X.reshape(-1, 1)
 
-        # Compute cluster centroids from training data
-        if not hasattr(self, '_X_train'):
-            raise RuntimeError("Training data not stored. Refit with store_data=True")
+        if X.shape[1] != self.cluster_centers_.shape[1]:
+            raise ValueError(
+                f"X has {X.shape[1]} features, but this clusterer was fitted on "
+                f"{self.cluster_centers_.shape[1]}."
+            )
 
-        # This is a limitation - hierarchical clustering doesn't naturally
-        # support predicting new points. We use nearest centroid.
-        raise NotImplementedError(
-            "AgglomerativeClusterer does not support predicting new data. "
-            "Use fit_predict() instead."
+        # Nearest centroid. The merge history cannot be replayed for unseen
+        # points, so this is an assignment rule layered on top of the fitted
+        # clustering rather than the algorithm itself -- fit_predict() is what
+        # to use when the labels for the training data are what you want.
+        distances = np.linalg.norm(
+            X[:, None, :] - self.cluster_centers_[None, :, :], axis=2
         )
+        return np.argmin(distances, axis=1).astype(int)
 
     def get_dendrogram_data(self) -> Tuple[np.ndarray, np.ndarray]:
         """Get data for plotting a dendrogram.

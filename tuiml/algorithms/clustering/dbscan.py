@@ -294,7 +294,11 @@ class DBSCANClusterer(Clusterer):
                 cluster_id += 1
 
         self.labels_ = labels
-        self.core_sample_indices_ = np.array(sorted(core_samples))
+        # dtype=int explicitly: np.array([]) on an empty set is float64, and a
+        # float array cannot index, so a run that finds no core samples -- every
+        # point noise, which is a legitimate DBSCAN outcome on sparse data --
+        # raised IndexError on the next line instead of returning all -1.
+        self.core_sample_indices_ = np.array(sorted(core_samples), dtype=int)
         self.components_ = X[self.core_sample_indices_].copy()
 
         # Count clusters (excluding noise labeled as -1)

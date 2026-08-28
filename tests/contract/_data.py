@@ -15,31 +15,6 @@ from typing import Optional, Sequence, Tuple
 
 import numpy as np
 
-#: Capability strings the library uses. A capability outside this set is almost
-#: always a typo, and a typo silently disables the checks that key off it --
-#: ``missing_values`` spelled ``missing-values`` would exempt a component from
-#: the missing-data check with nobody noticing.
-KNOWN_CAPABILITIES = frozenset({
-    # data types accepted
-    "numeric", "nominal", "categorical", "sparse", "text", "date", "string",
-    "missing_values", "empty_nominal", "high_dimensional",
-    # target / task
-    "binary_class", "multiclass", "numeric_class", "regression", "clustering",
-    "unsupervised", "anomaly_detection", "novelty_detection",
-    "noise_detection", "uncertainty", "probabilistic",
-    # survival / uplift
-    "censored", "survival_curve", "proportional_hazards", "non_parametric",
-    "uplift", "binary_treatment", "continuous_outcome",
-    # timeseries
-    "timeseries", "forecasting", "univariate", "multivariate", "stationary",
-    "seasonal", "seasonality", "trend", "holidays",
-    "multivariate_timeseries", "unequal_length", "noise_tolerant",
-    # learning style / assumptions
-    "online", "incremental", "ensemble", "weighted_instances",
-    "gaussian_assumption", "kernel_methods", "interpretable", "non_linear",
-    "tree",
-})
-
 SEED = 0
 N_SAMPLES = 60
 N_FEATURES = 4
@@ -52,6 +27,12 @@ KNOWN_CAPABILITIES = frozenset({
     # data types accepted
     "numeric", "nominal", "categorical", "sparse", "text", "date", "string",
     "missing_values", "empty_nominal", "high_dimensional",
+    # Numeric, but only over non-negative values -- counts, frequencies or
+    # TF-IDF. Multinomial naive Bayes is the canonical case: its likelihood is
+    # a product of feature probabilities, so a negative value is not merely
+    # unhelpful, it is undefined. Declaring "numeric" alone claimed the whole
+    # real line and made the sweep feed it standard normals.
+    "non_negative",
     # target / task
     "binary_class", "multiclass", "numeric_class", "regression", "clustering",
     "unsupervised", "anomaly_detection", "novelty_detection",
@@ -159,13 +140,23 @@ def make_data(kind: str, capabilities: Sequence[str] = (),
         outcome = X[:, 0] * 2.0 + treatment * X[:, 1] + rng.normal(0, 0.1, N_SAMPLES)
         return X, np.column_stack([treatment, outcome])
 
-    if "nominal" in capabilities and "numeric" not in capabilities:
+    if "non_negative" in capabilities:
+        # Counts, which is what a multinomial likelihood is defined over.
+        X = rng.integers(0, 5, size=(N_SAMPLES, N_FEATURES)).astype(float)
+    elif "nominal" in capabilities and "numeric" not in capabilities:
         # Nominal-only models (categorical Naive Bayes and friends) index into
         # per-category tables, so a standard normal is not merely unhelpful --
         # it raises. Give them small non-negative integer codes instead.
         X = rng.integers(0, 3, size=(N_SAMPLES, N_FEATURES)).astype(float)
     else:
         X = rng.normal(size=(N_SAMPLES, N_FEATURES))
+
+    # The regression target is derived from X, so it has to be built before any
+    # holes are punched. Reading a column that later gets NaN would put NaN in
+    # y as well, and no supervised learner trains on missing *labels* -- the
+    # missing_values capability is about features. Three algorithms were
+    # recorded as violating that contract on the strength of this.
+    target_source = X
 
     if missing:
         # Leave column 0 intact so every row keeps a usable value and an
@@ -179,7 +170,10 @@ def make_data(kind: str, capabilities: Sequence[str] = (),
         return X, None
 
     if kind == "regressor":
-        return X, X[:, 0] * 2.0 - X[:, 1] + rng.normal(0, 0.1, N_SAMPLES)
+        y = (target_source[:, 0] * 2.0 - target_source[:, 1]
+             + rng.normal(0, 0.1, N_SAMPLES))
+        assert not np.isnan(y).any(), "regression target must not contain NaN"
+        return X, y
 
     n_classes = 3 if "multiclass" in capabilities else 2
     y = np.zeros(N_SAMPLES, dtype=int)
