@@ -505,6 +505,10 @@ def test_mondrian_accepts_an_external_taxonomy(binary_data):
 
 def test_cqr_produces_input_dependent_widths():
     """CQR intervals widen where the noise widens."""
+    # Guard on scikit-learn itself: tuiml.sklearn.ensemble imports fine without
+    # it -- the wrapper only raises at construction -- so naming the wrapper
+    # module here never skips.
+    pytest.importorskip("sklearn")
     sklearn_ensemble = pytest.importorskip("tuiml.sklearn.ensemble")
     gbr = sklearn_ensemble.GradientBoostingRegressor
 
@@ -529,6 +533,10 @@ def test_cqr_produces_input_dependent_widths():
 
 def test_cqr_intervals_are_well_formed():
     """Lower never exceeds upper, even when the correction is negative."""
+    # Guard on scikit-learn itself: tuiml.sklearn.ensemble imports fine without
+    # it -- the wrapper only raises at construction -- so naming the wrapper
+    # module here never skips.
+    pytest.importorskip("sklearn")
     sklearn_ensemble = pytest.importorskip("tuiml.sklearn.ensemble")
     gbr = sklearn_ensemble.GradientBoostingRegressor
 

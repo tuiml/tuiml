@@ -713,6 +713,82 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     registering under `foundation.<ClassName>` keys, matching the convention
     `tuiml.sklearn` and `tuiml.weka` already use for delegated implementations.
 
+### Added
+- **CI runs the test suite.** `.github/workflows/test.yml` runs pytest on
+  ubuntu/macos/windows across Python 3.10-3.13 on every push and pull request,
+  asserts the compiled C++ extension actually imported (a source install
+  missing it makes two dozen modules skip, so the suite would go green with
+  every native path untested), and builds a wheel per platform with a
+  `CIBW_TEST_COMMAND` that imports it. Before this, 1,708 tests never ran
+  outside a developer's machine and wheels were published without being
+  imported once. `black --check` and `mypy` run advisory-only: 426 files would
+  be reformatted and mypy reports 2,111 errors, so enforcing either would mean
+  a workflow that is red on every commit.
+
+### Fixed
+- **The test suite is green.** 44 tests failed on a default install because
+  algorithms from uninstalled extras reached the contract sweep and raised in
+  `fit` -- which is the optional-dependency contract working as designed, not a
+  violation. The sweep now skips an algorithm whose backing library is absent,
+  matching on the documented "install it with pip install ..." message so a
+  genuine ImportError still fails. Two conformal-quantile tests guarded on
+  `tuiml.sklearn.ensemble`, which imports fine without scikit-learn, so they
+  never skipped; they guard on `sklearn` itself now.
+- **`pytest` failed without pytest-cov installed**, because coverage flags sat
+  in unconditional `addopts`, which also wrote `htmlcov/` on every run. Pass
+  `--cov=tuiml` explicitly instead.
+- **The two `dev` dependency groups disagreed.** `[dependency-groups].dev` had
+  no black, flake8 or mypy while `[project.optional-dependencies].dev` did, and
+  they pinned different pytest versions, so whether the lint tools existed
+  depended on which install command you ran. They are now identical.
+
+### Security
+- **The agent-facing write and execute paths are now contained.** Both were
+  reachable from a single tool call, and they composed: an arbitrary write into
+  the user algorithms directory became code execution at the next server start.
+
+  - `tuiml_upload_data` concatenated `name` into the destination path with no
+    sanitisation, and `format` chose the extension, so `name="../../.claude"`
+    with `format="json"` wrote `$HOME/.claude.json` — the MCP client config
+    `tuiml setup` manages — with caller-chosen content. A failed load then
+    called `os.remove` on the same path, giving an arbitrary delete. Names are
+    reduced to a bare filename, the resolved destination is verified to be
+    inside the uploads directory, the content-mode extension comes from a
+    closed set, and the tool schema carries a matching pattern.
+  - **User algorithms were executed at startup without validation.**
+    `registration.py` never called the validator; the check ran only when an
+    algorithm was created, so anything that reached the directory by another
+    route ran unchecked. `load_all` now validates every file before importing
+    it, and executes the source string it validated rather than letting the
+    loader re-read the file.
+  - **The AST check is an allowlist.** A denylist has to enumerate every route
+    out and missed several — `importlib` reaches what `__import__` does,
+    `pathlib` writes without `open`, and blocking attributes by name falls to
+    `getattr`. Imports are now refused unless permitted. `getattr` and friends
+    remain available with a literal, non-dunder attribute name, since
+    `getattr(model, "classes_", None)` is ordinary ensemble code. This is a
+    static check on source, not a sandbox: it raises the cost of getting code
+    to run and does not make execution safe.
+
+- **The serving API is authenticated, and bounded in what it will unpickle.**
+  It previously had no authentication, sent `Access-Control-Allow-Origin: *`,
+  and exposed `POST /models`, which loads a caller-supplied path through
+  pickle — so any page the operator visited could make a locally bound server
+  deserialise any file on disk, or unload the models it was serving.
+
+  - Every endpoint except `/`, `/health` and the docs requires a bearer token,
+    generated per server and compared with `compare_digest`. The token is
+    returned from `serve()`, exposed as `app.state.auth_token`, included in the
+    `tuiml_serve_model` response, and printed by `tuiml serve`.
+    `auth_token=False` still allows an unauthenticated server behind a proxy.
+  - `POST /models` resolves its path inside `models_dir` and is refused
+    entirely when none is set. `ModelServer.load_model()` in-process is
+    unaffected.
+  - No CORS headers unless `allow_origins` names the origins.
+  - `serve()` refuses a non-loopback host when authentication is off, and warns
+    when it binds one with authentication on.
+  - New: `--auth-token`, `--no-auth` and `--models-dir` on `tuiml serve`.
+
 ### Fixed
 - **Boolean hyperparameters were silently dropped from random search.** `bool`
   is a subclass of `int`, so a two-value choice such as `[True, False]` was

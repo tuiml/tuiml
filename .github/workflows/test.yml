@@ -1,0 +1,112 @@
+name: Tests
+
+# The suite is 1,700+ tests including a registry-driven contract sweep, and
+# until this workflow existed none of it ran on push. A commit that broke the
+# C++ build was not detected until release day, simultaneously on four
+# platforms and four Python versions.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: ${{ matrix.os }} / py${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ['3.10', '3.13']
+        # The middle versions only on Linux: they exercise the Python range
+        # without tripling the macOS and Windows minutes for versions that
+        # differ from their neighbours in nothing this suite touches.
+        include:
+          - os: ubuntu-latest
+            python: '3.11'
+          - os: ubuntu-latest
+            python: '3.12'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ matrix.python }}
+          enable-cache: true
+
+      # Compiling the C++ core is most of the point: a source install that
+      # silently lacks the extension makes two dozen modules skip, so the suite
+      # would go green with every native path untested.
+      - name: Install
+        run: uv sync --extra dev
+
+      - name: Verify the C++ extension built
+        run: uv run python -c "import tuiml._cpp; print('C++ core present')"
+
+      - name: Run tests
+        run: uv run pytest tests/ -q
+
+  lint:
+    name: Lint and types
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: '3.12'
+          enable-cache: true
+
+      - name: Install
+        run: uv sync --extra dev
+
+      # Advisory, not blocking. Measured at the time this workflow was added:
+      # black would reformat 426 of 506 files, and mypy reports 2,111 errors
+      # across 238 -- py.typed is shipped while mypy has never been run, so
+      # downstream type-checkers trust annotations nothing verifies. Enforcing
+      # either today means a workflow that is red on every commit, which is the
+      # same as no workflow. These run so the numbers are visible and can be
+      # driven down; make them blocking, one at a time, once they reach zero.
+      - name: black --check
+        continue-on-error: true
+        run: uv run black --check tuiml/ tests/
+
+      - name: mypy
+        continue-on-error: true
+        run: uv run mypy tuiml/
+
+  wheels:
+    name: Build and import wheel
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      # publish.yml builds wheels only on release, with no CIBW_TEST_COMMAND,
+      # so a wheel that cannot be imported reaches PyPI before anyone notices.
+      # One build per platform on PRs catches that while it is still cheap to
+      # fix. Restricted to cp312 to keep the matrix affordable; release day
+      # still covers cp310-cp313.
+      - name: Build and smoke-test a wheel
+        uses: pypa/cibuildwheel@v3.3.0
+        env:
+          CIBW_BUILD: "cp312-*"
+          CIBW_SKIP: "*-musllinux* *-win32 *-manylinux_i686"
+          CIBW_TEST_COMMAND: >-
+            python -c "import tuiml, tuiml._cpp;
+            print(tuiml.__version__, len(tuiml.list_algorithms()), 'algorithms')"

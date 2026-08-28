@@ -11,6 +11,7 @@ under ``test_algorithms/``. This file only asserts what every algorithm owes
 its callers.
 """
 
+import re
 import warnings
 
 import pytest
@@ -161,9 +162,23 @@ def test_registry_is_not_empty():
     )
 
 
+# TuiML's optional-dependency contract says construction always succeeds and
+# only fit() raises, with an ImportError naming the exact install command. An
+# algorithm from an uninstalled extra therefore reaches these checks and fails
+# in fit -- which is the library working as designed, not a contract violation.
+# Matching the message keeps that distinct from a genuine ImportError bug: a
+# real one says "cannot import name X", not "install it with pip install ...".
+_MISSING_EXTRA = re.compile(r"not installed|pip install", re.IGNORECASE)
+
+
 @pytest.mark.parametrize("name, cls, check", _cases())
 def test_algorithm_contract(name, cls, check):
     """Every registered algorithm satisfies every contract check."""
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        check(name, cls())
+        try:
+            check(name, cls())
+        except ImportError as e:
+            if not _MISSING_EXTRA.search(str(e)):
+                raise
+            pytest.skip(f"{name}: backing library not installed ({e})")

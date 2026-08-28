@@ -70,14 +70,14 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=7.0.0",
-    "pytest-cov>=3.0.0",
-    "black>=22.0.0",
-    "flake8>=4.0.0",
-    "mypy>=0.950",
-    "jupyter>=1.0.0",
+    "pytest>=8.0.0",
+    "pytest-cov>=5.0.0",
+    "black>=24.0.0",
+    "flake8>=7.0.0",
+    "mypy>=1.8.0",
+    "jupyter>=1.1.1",
     "build",
-    "twine",
+    "twine>=6.2.0",
 ]
 
 # Algorithm backends — `import tuiml.sklearn` / `tuiml.capymoa` / `tuiml.weka`
@@ -188,7 +188,10 @@ testpaths = ["tests"]
 python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
-addopts = "--cov=tuiml --cov-report=html --cov-report=term-missing"
+# No coverage flags here: unconditional --cov makes a bare `pytest` fail
+# without pytest-cov installed, and writes htmlcov/ on every run. Ask for it
+# explicitly instead:
+#     uv run pytest --cov=tuiml --cov-report=term-missing
 
 [tool.mypy]
 python_version = "3.10"
@@ -196,10 +199,18 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
 
+# Kept identical to [project.optional-dependencies].dev above. uv installs this
+# group for a bare `uv sync`, while `pip install tuiml[dev]` and
+# `uv sync --extra dev` read the extra; when the two disagreed, whether black
+# and mypy were present depended on which command you happened to run.
 [dependency-groups]
 dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=5.0.0",
+    "black>=24.0.0",
+    "flake8>=7.0.0",
+    "mypy>=1.8.0",
     "jupyter>=1.1.1",
-    "pytest>=9.0.2",
-    "pytest-cov>=7.0.0",
+    "build",
     "twine>=6.2.0",
 ]
