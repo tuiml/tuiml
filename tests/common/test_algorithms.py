@@ -25,6 +25,13 @@ from ..contract.algorithms import ALL_CHECKS
 # an xfail entry keeps the remaining checks honest.
 SKIP_ALGORITHMS = {
     "STLDecomposition": "__init__ requires a `period` argument with no default",
+    # The sweep constructs every algorithm as `cls()`, and these default to a
+    # 60-second search. Eleven checks each running one -- twice, for the
+    # reproducibility check -- puts the suite into the tens of minutes on its
+    # own. They need coverage that constructs them with a small `time_budget`;
+    # see tests for tuiml.automl, which do not exist yet.
+    "AutoMLClassifier": "60s default search budget per check; needs dedicated tests",
+    "AutoMLRegressor": "60s default search budget per check; needs dedicated tests",
 }
 
 # Known contract violations, as {algorithm: {check: reason}}. Every entry is a

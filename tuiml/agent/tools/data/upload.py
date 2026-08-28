@@ -1,12 +1,95 @@
 """Dataset registration."""
 
 import os
+import re
 import uuid
 from typing import Any, Dict
 
 from .._spec import ToolSpec
 from .._state import _UPLOADS_DIR, _DATASET_INDEX
 from .._shared import _load_data
+
+# A dataset name becomes a filename inside the uploads directory, so it must not
+# be able to describe a path. Anything outside this set is replaced rather than
+# rejected, because the name is often derived from a file the caller did not
+# choose and a hard error there is unhelpful.
+_SAFE_NAME = re.compile(r"[^A-Za-z0-9._-]")
+
+# Content mode writes ``<name>.<format>``; the extension has to come from a
+# closed set, or it is a second way to choose the written path.
+_CONTENT_FORMATS = {"csv", "tsv", "arff", "json", "jsonl"}
+
+
+def _safe_dataset_name(raw: str) -> str:
+    """Reduce a caller-supplied dataset name to a bare, path-free filename.
+
+    The name arrives from an LLM agent that may be relaying untrusted content,
+    and it is joined onto the uploads directory to build a destination path.
+    Left alone, ``"../../.claude"`` escapes that directory and overwrites files
+    elsewhere in the home directory -- including the MCP client configs that
+    ``tuiml setup`` manages.
+
+    Parameters
+    ----------
+    raw : str
+        Caller-supplied name.
+
+    Returns
+    -------
+    name : str
+        A non-empty name of ``[A-Za-z0-9._-]`` only, with no leading dots,
+        truncated to a filesystem-safe length.
+
+    Raises
+    ------
+    ValueError
+        If nothing usable survives sanitisation.
+    """
+    # basename() first: it drops any directory part, including a Windows
+    # separator, before the character filter runs.
+    name = os.path.basename(str(raw).replace("\\", "/")).strip()
+    name = _SAFE_NAME.sub("_", name)
+    # A leading dot would create a hidden file, and "." / ".." survive the
+    # character filter untouched.
+    name = name.lstrip(".")
+    name = name[:100]
+    if not name:
+        raise ValueError(
+            f"Dataset name {raw!r} contains no usable characters. "
+            "Use letters, digits, dots, dashes or underscores."
+        )
+    return name
+
+
+def _dest_within(upload_dir: str, filename: str) -> str:
+    """Join ``filename`` onto ``upload_dir`` and verify it stayed inside.
+
+    :func:`_safe_dataset_name` should already make this unreachable. The check
+    is kept because containment, not the character filter, is the property that
+    actually matters, and it still holds if the filter is later loosened.
+
+    Parameters
+    ----------
+    upload_dir : str
+        Directory uploads are confined to.
+    filename : str
+        Bare filename to place inside it.
+
+    Returns
+    -------
+    dest : str
+        Absolute destination path.
+
+    Raises
+    ------
+    ValueError
+        If the resolved destination escapes ``upload_dir``.
+    """
+    root = os.path.realpath(upload_dir)
+    dest = os.path.realpath(os.path.join(root, filename))
+    if dest != root and not dest.startswith(root + os.sep):
+        raise ValueError(f"Refusing to write outside the uploads directory: {filename!r}")
+    return dest
 
 
 def execute_upload_data(**kwargs) -> Dict[str, Any]:
@@ -73,15 +156,28 @@ def execute_upload_data(**kwargs) -> Dict[str, Any]:
                     'error_type': 'ValueError'
                 }
 
-            name = kwargs.get('name') or os.path.splitext(os.path.basename(src_path))[0]
-            dest_path = os.path.join(upload_dir, f'{name}{ext}')
+            name = _safe_dataset_name(
+                kwargs.get('name') or os.path.splitext(os.path.basename(src_path))[0]
+            )
+            dest_path = _dest_within(upload_dir, f'{name}{ext}')
             shutil.copy2(src_path, dest_path)
             file_path = dest_path
         else:
             # --- Content mode: write inline text to file ---
-            file_format = kwargs.get('format', 'csv')
-            name = kwargs.get('name', f'uploaded_{uuid.uuid4().hex[:8]}')
-            file_path = os.path.join(upload_dir, f'{name}.{file_format}')
+            file_format = str(kwargs.get('format') or 'csv').lower().lstrip('.')
+            if file_format not in _CONTENT_FORMATS:
+                return {
+                    'status': 'error',
+                    'error': (
+                        f"Unsupported format '{file_format}'. "
+                        f"Supported: {sorted(_CONTENT_FORMATS)}"
+                    ),
+                    'error_type': 'ValueError'
+                }
+            name = _safe_dataset_name(
+                kwargs.get('name') or f'uploaded_{uuid.uuid4().hex[:8]}'
+            )
+            file_path = _dest_within(upload_dir, f'{name}.{file_format}')
             with open(file_path, 'w') as f:
                 f.write(content)
 
@@ -105,7 +201,14 @@ def execute_upload_data(**kwargs) -> Dict[str, Any]:
                 )
             }
         except Exception as e:
-            os.remove(file_path)
+            # The path is confined to the uploads directory by _dest_within, so
+            # this cannot delete anything the caller chose. Ignore a failed
+            # cleanup: reporting why the dataset was invalid is more useful than
+            # replacing that with an OSError about the tidy-up.
+            try:
+                os.remove(file_path)
+            except OSError:
+                pass
             return {
                 'status': 'error',
                 'error': f'Invalid dataset: {str(e)}',
@@ -150,7 +253,12 @@ SPEC = ToolSpec(
                 },
                 "name": {
                     "type": "string",
-                    "description": "Optional name for the dataset (without extension)"
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$",
+                    "description": (
+                        "Optional name for the dataset (without extension). "
+                        "Letters, digits, dots, dashes and underscores only -- "
+                        "it becomes a filename, so it cannot contain a path."
+                    )
                 }
             },
             "required": []

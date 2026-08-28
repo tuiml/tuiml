@@ -943,6 +943,24 @@ class AutoMLClassifier(_AutoMLBase, Classifier):
         """Convert a probability matrix to hard class labels."""
         return self.classes_[np.argmax(prediction, axis=1)]
 
+    @classmethod
+    def get_capabilities(cls) -> List[str]:
+        """Return classifier capabilities.
+
+        A search is only as capable as the portfolio it draws from, so this is
+        the intersection of what every candidate classifier handles rather than
+        the union: ``missing_values`` is absent because a portfolio member that
+        cannot impute would fail on data this claimed to accept.
+        """
+        return [
+            "numeric",
+            "nominal",
+            "binary_class",
+            "multiclass",
+            "probabilistic",
+            "ensemble",
+        ]
+
 
 @regressor(tags=["automl", "meta", "search"], version="1.0.0")
 class AutoMLRegressor(_AutoMLBase, Regressor):
@@ -1048,6 +1066,22 @@ class AutoMLRegressor(_AutoMLBase, Regressor):
     def _decode(self, prediction: np.ndarray) -> np.ndarray:
         """Return the predicted values unchanged (no decoding needed)."""
         return prediction
+
+    @classmethod
+    def get_capabilities(cls) -> List[str]:
+        """Return regressor capabilities.
+
+        As with the classifier, this is the intersection over the portfolio
+        rather than the union: a capability is only claimed when every
+        candidate the search may select can honour it.
+        """
+        return [
+            "numeric",
+            "nominal",
+            "numeric_class",
+            "regression",
+            "ensemble",
+        ]
 
 
 __all__ = ["AutoMLClassifier", "AutoMLRegressor"]

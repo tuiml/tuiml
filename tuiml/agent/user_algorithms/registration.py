@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Tuple
 from pathlib import Path
 
 from ._paths import USER_ALGS_DIR
+from .validation import _ast_validate
 
 def _versioned_alias_name(name: str, version: str) -> str:
     """Return a valid Python identifier encoding the version, e.g. MyGBM_v1_0_0.
@@ -55,6 +56,22 @@ def _import_and_register(file_path: Path, name: str, version: str) -> Tuple[Any,
     """
     from tuiml.registry import registry
 
+    # Re-validate before executing, every time, rather than trusting that the
+    # file passed when it was created. Anything that can place a file in the
+    # algorithms directory -- by another tool, or a bug in one -- otherwise gets
+    # code execution at the next server start with no check at all. Reading the
+    # source here also means the file that runs is the file that was checked.
+    try:
+        source = Path(file_path).read_text(encoding="utf-8")
+    except OSError as e:
+        raise RuntimeError(f"could not read user algorithm {file_path}: {e}") from e
+
+    ok, reason = _ast_validate(source)
+    if not ok:
+        raise RuntimeError(
+            f"user algorithm {file_path} failed validation and was not loaded: {reason}"
+        )
+
     module_name = f"_tuiml_user_{name}_v{version.replace('.', '_')}"
     # Remove any previously-imported copy so decorators re-fire.
     sys.modules.pop(module_name, None)
@@ -64,13 +81,24 @@ def _import_and_register(file_path: Path, name: str, version: str) -> Tuple[Any,
         raise RuntimeError(f"could not build import spec for {file_path}")
     module = importlib.util.module_from_spec(spec)
     sys.modules[module_name] = module
+
+    # Execute the source string that was validated above, rather than letting
+    # the loader read the file a second time. The two are normally identical,
+    # but re-reading reopens the gap validation just closed: a file swapped
+    # between the check and the load would be executed unchecked.
+    try:
+        code = compile(source, str(file_path), "exec")
+    except SyntaxError as e:
+        sys.modules.pop(module_name, None)
+        raise RuntimeError(f"error while importing user algorithm: {e}") from e
+
     # Re-registering a user algorithm (new version, restart, or edit) is
     # intentional, so suppress the registry's "already registered" warning for
     # the whole load, both the user's @classifier/@regressor decorator firing
-    # during exec_module and the versioned-alias registration below.
+    # during execution and the versioned-alias registration below.
     with registry.suppress_overwrite_warnings():
         try:
-            spec.loader.exec_module(module)
+            exec(code, module.__dict__)
         except Exception as e:
             sys.modules.pop(module_name, None)
             raise RuntimeError(f"error while importing user algorithm: {e}") from e
