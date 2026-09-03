@@ -18,7 +18,7 @@ inline auto unchecked(const py::array_t<T>& arr) {
 
 // Get shape of a numpy array
 template <typename T>
-inline ssize_t shape(const py::array_t<T>& arr, int dim) {
+inline py::ssize_t shape(const py::array_t<T>& arr, int dim) {
     return arr.shape(dim);
 }
 
@@ -37,12 +37,12 @@ inline py::array_t<T> to_numpy(const std::vector<T>& vec) {
 template <typename T>
 inline py::array_t<T> to_numpy_2d(const std::vector<std::vector<T>>& data) {
     if (data.empty()) return py::array_t<T>({0, 0});
-    ssize_t rows = data.size();
-    ssize_t cols = data[0].size();
+    py::ssize_t rows = data.size();
+    py::ssize_t cols = data[0].size();
     py::array_t<T> result({rows, cols});
     auto buf = result.mutable_unchecked<2>();
-    for (ssize_t i = 0; i < rows; i++) {
-        for (ssize_t j = 0; j < cols; j++) {
+    for (py::ssize_t i = 0; i < rows; i++) {
+        for (py::ssize_t j = 0; j < cols; j++) {
             buf(i, j) = data[i][j];
         }
     }

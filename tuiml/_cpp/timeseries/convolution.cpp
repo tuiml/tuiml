@@ -122,7 +122,7 @@ py::array_t<int> minirocket_kernel_indices() {
     auto buf = result.mutable_unchecked<2>();
     for (size_t i = 0; i < table.size(); i++)
         for (int g = 0; g < kNumGamma; g++)
-            buf(static_cast<ssize_t>(i), g) = table[i][g];
+            buf(static_cast<py::ssize_t>(i), g) = table[i][g];
     return result;
 }
 
