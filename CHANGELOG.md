@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-03
+
+The first minor release. Six new packages (`automl`, `uncertainty`, `explain`,
+`survival`, `causal`, `foundation`), native time-series classification, the
+Weka learners moved into a `tuiml.weka` bridge, and the agent and serving
+paths hardened.
+
 ### Added
 - **New `tuiml.automl` package — model selection and tuning built from parts
   the library already owns.** No new dependency and no second modelling stack:
@@ -405,6 +412,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is present but failing — a common driver-mismatch state — is treated as no
   GPU rather than trusted.
 
+- **The installers offer to install `git` instead of just refusing.** Building
+  from source (`TUIML_CHANNEL=git`) needs git, and both installers previously
+  aborted with instructions and left you to start over. They now offer to
+  install it: Homebrew or the Xcode Command Line Tools on macOS,
+  apt/dnf/yum/pacman/zypper/apk on Linux, winget/scoop/choco on Windows.
+
+  Consent is required, because this installs software system-wide and may use
+  `sudo`. `TUIML_INSTALL_GIT=1` answers yes for automation and `0` answers no;
+  with no terminal and no variable set the answer is **no**, so an unattended
+  run never escalates on its own. Declining still prints the manual command,
+  and now also points at the stable channel, which needs no git at all.
+
+  Two details that would otherwise bite:
+
+  - On macOS, `/usr/bin/git` exists as a stub even with no Command Line Tools
+    installed, so `command -v git` succeeds while every invocation fails. The
+    check runs `git --version` and tests the exit status instead.
+  - On Windows, winget writes PATH to the registry but the running session
+    keeps the PATH it started with, so git would still look missing right
+    after a successful install. `$env:Path` is rebuilt from the machine and
+    user scopes before re-checking.
+
+  The Xcode Command Line Tools installer is a separate GUI process that runs
+  on after `xcode-select` returns, so that path polls for git to appear rather
+  than assuming the command exiting means it finished.
+
+- **Reference-parity tests against scikit-learn**
+  (`tests/test_reference_parity.py`). The contract suite checks that an
+  algorithm is self-consistent; nothing checked whether the answer was
+  *correct*, because no external reference was ever consulted. That gap is
+  precisely how the benchmark's "logistic regression is 2.6 points behind"
+  result went unexplained. Covers logistic regression, Gaussian naive Bayes,
+  k-NN and linear regression; CI installs `tuiml[sklearn]` so they actually
+  run rather than skipping.
+
+- **`SECURITY.md`, `CONTRIBUTING.md` and Dependabot.** The security policy
+  states the reporting route and, more usefully, draws the line: loading a
+  model unpickles, agent-authored algorithms are checked but not sandboxed, and
+  `--no-auth` does what it says — all documented behaviour rather than bugs, so
+  reports can focus on the parts that are actually in scope. It also records
+  that the library has no telemetry of any kind and makes exactly one outbound
+  request, a PyPI version check carrying only the package name.
+  `CONTRIBUTING.md` covers what the website guide does not: what CI enforces,
+  and the conventions that are easy to violate. Dependabot watches the pip and
+  Actions ecosystems, grouping dev-tool bumps into one PR and holding back
+  major bumps of `mcp` and `torch`, which need someone to read a changelog
+  rather than a green tick.
+
 ### Changed
 - **`curl … | install.sh | bash` now installs a release, and asks first.** The
   installer only ever installed from `git+https://github.com/tuiml/tuiml.git`,
@@ -493,6 +548,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   per-extra sync and `pytest -rs`, plus the three-level rule any new optional
   dependency has to follow.
 
+- **`tuiml.algorithms.tabular_foundation` split into two packages.** Bundling a
+  pretrained checkpoint next to architectures TuiML trains itself blurred the
+  one distinction that matters to a user deciding what to run:
+
+  - `tuiml.algorithms.tabular_deep` — FT-Transformer, SAINT and NODE, TuiML's
+    own code, trained from scratch on your data, keeping their bare hub names.
+  - `tuiml.foundation` — the TabICL wrappers, now a top-level bridge package
+    registering under `foundation.<ClassName>` keys, matching the convention
+    `tuiml.sklearn` and `tuiml.weka` already use for delegated implementations.
+
 ### Changed (breaking)
 - **`ARIMA` no longer accepts `seasonal_order`.** The argument was stored in
   `__init__` and read nowhere else in the file, so `seasonal_order=(1,1,1,12)`
@@ -502,32 +567,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   regressors, exact maximum likelihood and forecast intervals. Passing it now
   raises `TypeError` instead of being ignored.
 
-### Added
-- **The installers offer to install `git` instead of just refusing.** Building
-  from source (`TUIML_CHANNEL=git`) needs git, and both installers previously
-  aborted with instructions and left you to start over. They now offer to
-  install it: Homebrew or the Xcode Command Line Tools on macOS,
-  apt/dnf/yum/pacman/zypper/apk on Linux, winget/scoop/choco on Windows.
+### Removed
+- **Four artefacts that should never have been committed**: `output.arff` and
+  `output.csv` at the repository root, a tracked zero-byte `.!57845!.coverage`
+  (an NFS silly-rename leftover), and `scratch/chat_to_notebook.py`. The
+  scratch script is untracked rather than deleted — it is a working utility,
+  just not part of the library, and it was reaching the sdist. `.gitignore` and
+  `sdist.exclude` now cover all four.
 
-  Consent is required, because this installs software system-wide and may use
-  `sudo`. `TUIML_INSTALL_GIT=1` answers yes for automation and `0` answers no;
-  with no terminal and no variable set the answer is **no**, so an unattended
-  run never escalates on its own. Declining still prints the manual command,
-  and now also points at the stable channel, which needs no git at all.
-
-  Two details that would otherwise bite:
-
-  - On macOS, `/usr/bin/git` exists as a stub even with no Command Line Tools
-    installed, so `command -v git` succeeds while every invocation fails. The
-    check runs `git --version` and tests the exit status instead.
-  - On Windows, winget writes PATH to the registry but the running session
-    keeps the PATH it started with, so git would still look missing right
-    after a successful install. `$env:Path` is rebuilt from the machine and
-    user scopes before re-checking.
-
-  The Xcode Command Line Tools installer is a separate GUI process that runs
-  on after `xcode-select` returns, so that path polls for git to appear rather
-  than assuming the command exiting means it finished.
+- `_parse_component_spec`, which had no callers.
 
 ### Fixed
 - **The installers failed on any machine whose default Python is older than
@@ -702,28 +750,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   are no longer recorded — a template is superseded by the create call, and an
   exported delete would remove real files from `~/.tuiml/` on re-run.
 
-### Changed
-- **`tuiml.algorithms.tabular_foundation` split into two packages.** Bundling a
-  pretrained checkpoint next to architectures TuiML trains itself blurred the
-  one distinction that matters to a user deciding what to run:
-
-  - `tuiml.algorithms.tabular_deep` — FT-Transformer, SAINT and NODE, TuiML's
-    own code, trained from scratch on your data, keeping their bare hub names.
-  - `tuiml.foundation` — the TabICL wrappers, now a top-level bridge package
-    registering under `foundation.<ClassName>` keys, matching the convention
-    `tuiml.sklearn` and `tuiml.weka` already use for delegated implementations.
-
-### Added
-- **Reference-parity tests against scikit-learn**
-  (`tests/test_reference_parity.py`). The contract suite checks that an
-  algorithm is self-consistent; nothing checked whether the answer was
-  *correct*, because no external reference was ever consulted. That gap is
-  precisely how the benchmark's "logistic regression is 2.6 points behind"
-  result went unexplained. Covers logistic regression, Gaussian naive Bayes,
-  k-NN and linear regression; CI installs `tuiml[sklearn]` so they actually
-  run rather than skipping.
-
-### Fixed
 - **Every contract xfail is cleared; both tables are now empty.** The suite
   shipped 22 known violations across 8 algorithms and 1 splitter. Working
   through them, three turned out not to be algorithm bugs at all:
@@ -800,7 +826,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   be reformatted and mypy reports 2,111 errors, so enforcing either would mean
   a workflow that is red on every commit.
 
-### Fixed
 - **The test suite is green.** 44 tests failed on a default install because
   algorithms from uninstalled extras reached the contract sweep and raised in
   `fit` -- which is the optional-dependency contract working as designed, not a
@@ -817,29 +842,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   they pinned different pytest versions, so whether the lint tools existed
   depended on which install command you ran. They are now identical.
 
-### Added
-- **`SECURITY.md`, `CONTRIBUTING.md` and Dependabot.** The security policy
-  states the reporting route and, more usefully, draws the line: loading a
-  model unpickles, agent-authored algorithms are checked but not sandboxed, and
-  `--no-auth` does what it says — all documented behaviour rather than bugs, so
-  reports can focus on the parts that are actually in scope. It also records
-  that the library has no telemetry of any kind and makes exactly one outbound
-  request, a PyPI version check carrying only the package name.
-  `CONTRIBUTING.md` covers what the website guide does not: what CI enforces,
-  and the conventions that are easy to violate. Dependabot watches the pip and
-  Actions ecosystems, grouping dev-tool bumps into one PR and holding back
-  major bumps of `mcp` and `torch`, which need someone to read a changelog
-  rather than a green tick.
-
-### Removed
-- **Four artefacts that should never have been committed**: `output.arff` and
-  `output.csv` at the repository root, a tracked zero-byte `.!57845!.coverage`
-  (an NFS silly-rename leftover), and `scratch/chat_to_notebook.py`. The
-  scratch script is untracked rather than deleted — it is a working utility,
-  just not part of the library, and it was reaching the sdist. `.gitignore` and
-  `sdist.exclude` now cover all four.
-
-### Fixed
 - **Cross-validation did not stratify.** `Workflow._cross_validate` hardcoded
   plain `KFold` and never received the `stratify` argument the holdout path and
   `Benchmark` both honour. On an imbalanced target that leaves a rare class out
@@ -877,8 +879,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   server advertising zero algorithms with a startup banner that read as normal.
   Both sites now log the failure and the likely cause.
 
-### Removed
-- `_parse_component_spec`, which had no callers.
+- **Boolean hyperparameters were silently dropped from random search.** `bool`
+  is a subclass of `int`, so a two-value choice such as `[True, False]` was
+  read as the numeric range `(1, 0)` and never sampled. `ParameterDistribution`
+  now excludes booleans when deciding whether a tuple is a range.
 
 ### Security
 - **The agent-facing write and execute paths are now contained.** Both were
@@ -926,12 +930,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `serve()` refuses a non-loopback host when authentication is off, and warns
     when it binds one with authentication on.
   - New: `--auth-token`, `--no-auth` and `--models-dir` on `tuiml serve`.
-
-### Fixed
-- **Boolean hyperparameters were silently dropped from random search.** `bool`
-  is a subclass of `int`, so a two-value choice such as `[True, False]` was
-  read as the numeric range `(1, 0)` and never sampled. `ParameterDistribution`
-  now excludes booleans when deciding whether a tuple is a range.
 
 ## [0.1.9] - 2026-08-03
 
@@ -1504,6 +1502,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Model serialization via joblib with save/load utilities.
 - Cross-validation, grid search, and hyperparameter tuning support.
 
+[0.2.0]: https://github.com/tuiml/tuiml/releases/tag/v0.2.0
 [0.1.9]: https://github.com/tuiml/tuiml/releases/tag/v0.1.9
 [0.1.8]: https://github.com/tuiml/tuiml/releases/tag/v0.1.8
 [0.1.7]: https://github.com/tuiml/tuiml/releases/tag/v0.1.7

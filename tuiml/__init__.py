@@ -41,7 +41,7 @@ _LAZY_ATTRS = {
     "On": "tuiml.workflow:On",
 }
 
-__version__ = "0.1.9"
+__version__ = "0.2.0"
 
 
 def __getattr__(name: str):
