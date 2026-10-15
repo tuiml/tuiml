@@ -31,6 +31,7 @@ _DEFAULT_METRICS = {
     "classification": ["accuracy_score", "f1_score"],
     "regression": ["r2_score", "root_mean_squared_error"],
     "clustering": ["silhouette_score", "calinski_harabasz_score"],
+    "forecasting": ["mean_absolute_error", "root_mean_squared_error"],
 }
 
 
@@ -336,6 +337,75 @@ def _make_splits(X, y, task, cv, test_size, stratify, repeats, seed):
     return splits
 
 
+def _series_from(X, y) -> np.ndarray:
+    """Pick the univariate series a forecaster should consume.
+
+    Mirrors :class:`tuiml.Workflow`: the target column is the series when it
+    carries information, otherwise the first feature column.
+
+    Parameters
+    ----------
+    X : np.ndarray
+        Feature matrix, possibly with zero columns.
+    y : np.ndarray or None
+        Target column.
+
+    Returns
+    -------
+    series : np.ndarray of shape (n_samples,)
+        The series, as float.
+    """
+    series = None if y is None else np.asarray(y)
+    if series is None or series.size == 0 or np.unique(series).size <= 1:
+        X = np.asarray(X)
+        if X.ndim == 2 and X.shape[1] == 0:
+            raise ValueError(
+                "A forecasting benchmark needs a series: pass the value column "
+                'as "y" (in-memory) or "target" (file).'
+            )
+        series = X[:, 0] if X.ndim == 2 else X
+    return np.asarray(series, dtype=float).ravel()
+
+
+def _make_series_splits(n_samples: int, cv, test_size):
+    """Build time-ordered ``(train_idx, test_idx)`` splits for one series.
+
+    Forecasting folds must never shuffle: the test window always lies after
+    the training window. With ``cv`` this is an expanding-window scheme via
+    :class:`~tuiml.evaluation.splitting.TimeSeriesSplit`; with ``test_size``
+    it is a single tail holdout. ``repeats`` does not apply, since reseeding
+    cannot change an ordered split.
+
+    Parameters
+    ----------
+    n_samples : int
+        Length of the series.
+    cv : int or None
+        Number of expanding-window folds.
+    test_size : float or None
+        Tail fraction held out when ``cv`` is None.
+
+    Returns
+    -------
+    list of tuple
+        ``(train_indices, test_indices)`` pairs, in time order.
+    """
+    from tuiml.evaluation.splitting import TimeSeriesSplit
+
+    if cv:
+        if n_samples < 2 * (cv + 1):
+            raise ValueError(
+                f"A series of {n_samples} points cannot be split into {cv} "
+                "expanding-window folds; pass a smaller cv or a longer series."
+            )
+        dummy = np.zeros((n_samples, 1))
+        return list(TimeSeriesSplit(n_splits=cv).split(dummy))
+    n_test = int(round(n_samples * float(test_size)))
+    n_test = min(max(n_test, 1), n_samples - 1)
+    indices = np.arange(n_samples)
+    return [(indices[:-n_test], indices[-n_test:])]
+
+
 def _tune_on_fold(build_workflow, tune, X_tr, y_tr, metric, seed, rng):
     """Pick the best hyperparameters using only this fold's training data.
 
@@ -449,10 +519,17 @@ class Benchmark:
         which also gives holdout a spread for statistics. ``"stratify"``
         (default True) keeps class balance, and ``"metrics"`` lists metric
         function names from ``tuiml.evaluation.metrics``.
+
+        Forecasters (models tagged ``timeseries``) never shuffle: ``"cv"``
+        becomes an expanding-window
+        :class:`~tuiml.evaluation.splitting.TimeSeriesSplit`, ``"test_size"``
+        a single tail holdout, and ``"repeats"``, ``"stratify"`` and the
+        shared ``pipeline`` do not apply. The series is the dataset's target
+        column, or its first feature column when there is no target.
     random_seed : int, optional
         Seeds the splits and every component that accepts a seed, making
         the run reproducible. Falls back to the global seed, then 42.
-    task : {"classification", "regression", "clustering"}, optional
+    task : {"classification", "regression", "clustering", "forecasting"}, optional
         Overrides the task inferred from the models.
 
     Attributes
@@ -563,8 +640,16 @@ class Benchmark:
                         f"Algorithm '{spec['name']}' not found in hub. "
                         f"Use list_algorithms() to see available options."
                     )
+                # Forecasters register as regressors; their tags tell them
+                # apart, exactly as Workflow does.
+                try:
+                    tags = cls.get_component_info().get("tags") or []
+                except Exception:
+                    tags = []
                 component_type = getattr(cls, "_component_type", None)
-                if component_type == ComponentType.REGRESSOR:
+                if "timeseries" in tags:
+                    kinds.add("forecasting")
+                elif component_type == ComponentType.REGRESSOR:
                     kinds.add("regression")
                 elif component_type == ComponentType.CLUSTERER:
                     kinds.add("clustering")
@@ -577,6 +662,14 @@ class Benchmark:
             )
         self.task = task
         self.metrics = list(evaluation.get("metrics") or _DEFAULT_METRICS[task])
+        if task == "forecasting":
+            tuned = [m["name"] for m in self._model_specs if m.get("tune")]
+            if tuned:
+                raise ValueError(
+                    f"Tuning is not supported for forecasting benchmarks "
+                    f"(requested for {tuned}); the inner k-fold search would "
+                    "shuffle the series."
+                )
 
         # Shared pipeline: preset name or step list
         if isinstance(pipeline, str):
@@ -629,6 +722,39 @@ class Benchmark:
                     built = [_build_step(s, random_seed) for s in steps]
                     built.append(_build_step(model_spec, random_seed))
                     return Workflow(built)
+
+                if task == "forecasting":
+                    # Forecasters consume a 1-D series and predict a number
+                    # of steps ahead. Splits are time-ordered and the shared
+                    # pipeline (column-oriented) does not apply, as in
+                    # Workflow.
+                    from tuiml.evaluation import metrics as metrics_module
+
+                    series = _series_from(X, y)
+                    splits = _make_series_splits(len(series), self._cv,
+                                                 self._test_size)
+                    for fold, (train_idx, test_idx) in enumerate(splits):
+                        train, test = series[train_idx], series[test_idx]
+                        model = _build_step(
+                            {"name": spec["name"],
+                             "params": dict(spec.get("params") or {})},
+                            random_seed,
+                        )
+                        model.fit(train)
+                        predictions = np.asarray(model.predict(len(test)),
+                                                 dtype=float).ravel()
+                        horizon = min(len(test), len(predictions))
+                        for metric in metrics:
+                            func = getattr(metrics_module, metric, None)
+                            if func is None:
+                                continue
+                            value = func(test[:horizon], predictions[:horizon])
+                            records.append({"dataset": ds_name, "model": label,
+                                            "metric": metric, "fold": fold,
+                                            "value": float(value)})
+                        _report(progress_callback, verbose, ds_name, label,
+                                fold + 1, len(splits))
+                    continue
 
                 if task == "clustering":
                     # Unsupervised: fit on all data, score quality once.

@@ -53,6 +53,13 @@ jobs:
       # is the only thing checking TuiML's numerics against an outside
       # reference, and it skips without it -- which is how a benchmark result
       # went unexplained for a release. It is a small, pure-Python wheel.
+      # xgboost's wheel links against libomp, which the macOS runner image
+      # no longer ships. Without it `import xgboost` fails in dlopen and the
+      # lazy-import test aborts collection for the whole suite.
+      - name: Install libomp (macOS)
+        if: runner.os == 'macOS'
+        run: brew install libomp
+
       - name: Install
         run: uv sync --extra dev --extra sklearn
 
