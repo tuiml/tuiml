@@ -69,7 +69,7 @@ def test_no_module_scope_backend_import_in_the_package():
     """
     offenders = []
     for path in _PACKAGE.rglob("*.py"):
-        tree = ast.parse(path.read_text(), filename=str(path))
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
         for node in tree.body:  # module scope only -- nested imports are fine
             if isinstance(node, ast.Import):
                 names = [a.name.split(".")[0] for a in node.names]
