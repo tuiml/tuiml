@@ -197,16 +197,32 @@ def build_args_model(tool_name: str, schema: Dict[str, Any]) -> Type:
 # Skill / system prompt loader
 # ---------------------------------------------------------------------------
 
-@lru_cache(maxsize=1)
-def load_skill() -> str:
-    """Return the bundled ``SKILL.md`` contents (canonical system prompt).
+@lru_cache(maxsize=2)
+def load_skill(full: bool = True) -> str:
+    """Return the bundled skill text used as the canonical system prompt.
+
+    Parameters
+    ----------
+    full : bool, default=True
+        When True, append the mistakes list and the MCP tool and Python
+        API references, so a framework agent (LangChain, CrewAI, ...) that
+        cannot fetch skill files on demand still sees the complete guide.
+        When False, return only the ``SKILL.md`` router.
 
     Returns
     -------
     skill : str
-        Full text of the ``SKILL.md`` file shipped with ``tuiml.agent``.
+        ``SKILL.md`` alone, or ``SKILL.md`` followed by
+        ``reference/mistakes.md``, ``reference/mcp-tools.md`` and
+        ``reference/python-api.md``, separated by horizontal rules.
     """
-    return resources.files("tuiml.agent.prompts").joinpath("SKILL.md").read_text(encoding="utf-8")
+    root = resources.files("tuiml.agent.prompts")
+    parts = [root.joinpath("SKILL.md").read_text(encoding="utf-8")]
+    if full:
+        for rel in ("reference/mistakes.md", "reference/mcp-tools.md",
+                    "reference/python-api.md"):
+            parts.append(root.joinpath(rel).read_text(encoding="utf-8"))
+    return "\n\n---\n\n".join(parts)
 
 
 # ---------------------------------------------------------------------------

@@ -803,10 +803,12 @@ def write_toml_mcp(config_path: Path, server_name: str, command: str) -> tuple[b
 
 
 def install_skill_file(skills_dir: Path) -> tuple[bool, str]:
-    """Copy the bundled ``SKILL.md`` into a coding agent's skills directory.
+    """Copy the bundled skill (``SKILL.md`` plus its reference and workflow
+    files) into a coding agent's skills directory.
 
-    The file is written to ``<skills_dir>/tuiml/SKILL.md``. An existing file
-    with different contents is backed up before being overwritten.
+    The tree is written under ``<skills_dir>/tuiml/``. An existing
+    ``SKILL.md`` with different contents is backed up before being
+    overwritten; other files are overwritten in place.
 
     Parameters
     ----------
@@ -816,34 +818,33 @@ def install_skill_file(skills_dir: Path) -> tuple[bool, str]:
     Returns
     -------
     changed : bool
-        True if the skill file was written.
+        True if any skill file was written.
     reason : str
         Short human-readable description of what happened.
     """
     try:
-        from importlib.resources import files
-        # SKILL.md lives in tuiml/agent/prompts/, not tuiml/agent/. Reading the
-        # wrong package made is_file() False on every install, so the skill was
-        # never written and the caller was told "not found in package" -- which
-        # the CLI reports as a non-change rather than an error.
-        skill_src = files("tuiml.agent.prompts").joinpath("SKILL.md")
-        if not skill_src.is_file():
-            return False, f"skill file not found in package: {skill_src}"
-        src_text = skill_src.read_text(encoding="utf-8")
+        from tuiml.agent.mcp.skills import _load_skill_files
+        files = _load_skill_files()
     except Exception as exc:
-        return False, f"could not read package skill file: {exc}"
+        return False, f"could not read package skill files: {exc}"
+    if "SKILL.md" not in files:
+        return False, "skill file not found in package"
 
     target_dir = skills_dir / "tuiml"
     target_dir.mkdir(parents=True, exist_ok=True)
-    target = target_dir / "SKILL.md"
-
-    if target.exists():
-        if target.read_text(encoding="utf-8") == src_text:
-            return False, "already up to date"
-        backup_file(target)
-
-    target.write_text(src_text, encoding="utf-8")
-    return True, f"installed to {target}"
+    written = 0
+    for rel, data in files.items():
+        target = target_dir / rel
+        if target.exists() and target.read_bytes() == data:
+            continue
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if target.exists() and rel == "SKILL.md":
+            backup_file(target)
+        target.write_bytes(data)
+        written += 1
+    if not written:
+        return False, "already up to date"
+    return True, f"installed {written} file(s) to {target_dir}"
 
 
 def print_yaml_instructions(spec: dict) -> tuple[bool, str]:
