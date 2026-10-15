@@ -1,18 +1,24 @@
-"""Pretrained tabular foundation model bridge for TuiML.
+"""Pretrained foundation model bridge for TuiML.
 
 Importing this package registers the wrapped foundation models into the TuiML
 hub under ``foundation.<ClassName>`` keys, so they never collide with the
-native TuiML algorithms.
+native TuiML algorithms. Two kinds live here: **tabular** models
+(:class:`TabICLClassifier`, :class:`TabICLRegressor`) that learn in-context
+from your training rows, and **time series** models
+(:class:`ChronosForecaster`, :class:`TimesFMForecaster`) that forecast a
+series zero-shot from its own history.
 
-A **pretrained tabular foundation model** is a different animal from every
-other model in the library. The native learners -- including the deep ones in
-:mod:`tuiml.algorithms.tabular_deep` -- are TuiML's own code and train from
-scratch on your data: ``fit`` runs gradient steps or grows trees, and the
-resulting parameters *are* the model. A foundation model arrives already
+A **pretrained foundation model** is a different animal from every other
+model in the library. The native learners -- including the deep ones in
+:mod:`tuiml.algorithms.tabular_deep` and
+:mod:`tuiml.algorithms.timeseries.deep` -- are TuiML's own code and train
+from scratch on your data: ``fit`` runs gradient steps or grows trees, and
+the resulting parameters *are* the model. A foundation model arrives already
 trained. Its weights are a **pretrained checkpoint**, downloaded from a model
 hub and run in a single forward pass with no gradient step at all. Nothing is
-fitted here: ``fit`` only memorises the training set so it can be handed back
-as in-context examples at predict time, which is why these models are fast to
+fitted here: ``fit`` only memorises the data so it can be handed to the model
+as *context* at predict time -- the training rows for a tabular model, the
+series' history for a forecaster -- which is why these models are fast to
 "train" and why their cost lands almost entirely in :meth:`predict`.
 
 That difference is what the namespace records. A key like
@@ -43,9 +49,15 @@ license.
 This matters because a permissive wrapper does not relicense what it wraps: a
 checkpoint restricted to non-commercial use stays restricted no matter how
 TuiML is licensed. Only models whose **weights** carry a license compatible
-with TuiML's own are integrated here. Today that means TabICL alone, which is
-BSD-3-Clause for code *and* weights. Adding a model with restricted weights
-would require a consent gate, which deliberately does not exist yet.
+with TuiML's own are integrated here:
+
+- **TabICL** -- BSD-3-Clause for code *and* weights.
+- **Chronos** (Bolt and Chronos-2) -- Apache-2.0 for code and weights.
+- **TimesFM 2.5** -- Apache-2.0 for code and weights.
+
+Models whose weights are non-commercial -- TabPFN, Google's TabFM, Salesforce's
+Moirai -- are deliberately left out. Adding one would require a consent gate,
+which does not exist yet.
 
 Usage
 -----
@@ -88,21 +100,35 @@ The registration is what makes the key resolvable:
 
 >>> import tuiml.foundation
 >>> from tuiml.registry import registry
->>> sorted(k for k in registry.list_names() if k.startswith("foundation."))
-['foundation.TabICLClassifier', 'foundation.TabICLRegressor']
+>>> sorted(k for k in registry.list_names() if k.startswith("foundation."))  # doctest: +NORMALIZE_WHITESPACE
+['foundation.ChronosForecaster', 'foundation.TabICLClassifier',
+ 'foundation.TabICLRegressor', 'foundation.TimesFMForecaster']
+
+The forecasters follow the native forecaster API -- ``fit(y)`` then
+``predict(steps)`` -- and add ``predict_quantiles(steps)``:
+
+>>> from tuiml.foundation import ChronosForecaster
+>>> ChronosForecaster().checkpoint
+'amazon/chronos-bolt-small'
 
 See Also
 --------
 :mod:`tuiml.algorithms.tabular_deep` : Native deep tabular architectures
     (FT-Transformer, SAINT, NODE) trained from scratch on your data.
+:mod:`tuiml.algorithms.timeseries` : Native forecasters, classical and deep
+    (Theta, SARIMAX, N-BEATS, PatchTST), trained on your series.
 :mod:`tuiml.sklearn` : The same bridge pattern for scikit-learn estimators.
 :mod:`tuiml.weka` : The same bridge pattern for Weka (JVM) learners.
 """
 
 # Importing this module triggers registration of every wrapper.
+from tuiml.foundation.chronos import ChronosForecaster
 from tuiml.foundation.tabicl import TabICLClassifier, TabICLRegressor
+from tuiml.foundation.timesfm import TimesFMForecaster
 
 __all__ = [
+    "ChronosForecaster",
     "TabICLClassifier",
     "TabICLRegressor",
+    "TimesFMForecaster",
 ]
