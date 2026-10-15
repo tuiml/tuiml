@@ -924,7 +924,7 @@ def _translate_call(call: Dict, train_counter: List[int],
         # round-trips through them too, carrying its steps along.
         code = [
             f"{model_var}.save({repr(dest)})\n",
-            f"print('Model saved to {dest}')\n",
+            f"print('Model saved to', {repr(dest)})\n",
             "\n",
             f"# Verify reload\n",
             f"from tuiml.base.algorithms import Algorithm\n",

@@ -190,7 +190,8 @@ class ParameterDistribution:
             if callable(dist):
                 params[key] = dist()
             elif isinstance(dist, (list, tuple)) and not self._is_range(dist):
-                params[key] = rng.choice(dist)
+                # Select by index to preserve Python types (and mixed choices).
+                params[key] = dist[rng.randint(len(dist))]
             elif isinstance(dist, tuple):
                 if len(dist) == 3 and dist[2] == 'log':
                     # Log-uniform
@@ -213,6 +214,9 @@ class ParameterDistribution:
         would otherwise be mistaken for the range ``(1, 0)`` and silently
         dropped from the sample.
         """
+        if not isinstance(t, tuple):
+            return False
+
         def _numeric(value) -> bool:
             return isinstance(value, (int, float)) and not isinstance(value, bool)
 

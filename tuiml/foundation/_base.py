@@ -3,7 +3,7 @@
 Provides the two namespaced registration decorators every wrapper in this
 package uses, and the lazy import helper that turns a missing optional
 dependency into an actionable error message. See the package docstring of
-:mod:`tuiml.foundation` for what a pretrained tabular foundation model is, why
+:mod:`tuiml.foundation` for what a pretrained foundation model is, why
 it registers under a ``foundation.<ClassName>`` key rather than a bare name,
 and TuiML's stance on model-weight licensing.
 

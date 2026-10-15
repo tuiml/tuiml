@@ -129,7 +129,7 @@ backends = [
 ]
 
 # Everything: every wrapper backend, the neural models and the pretrained
-# foundation model. Pulls in PyTorch, which on Linux resolves to the CUDA build
+# foundation models. Pulls in PyTorch, which on Linux resolves to the CUDA build
 # and several gigabytes of NVIDIA runtime libraries unless the index is pinned
 # to CPU wheels -- `uv pip install --torch-backend=cpu 'tuiml[all]'`, or the
 # UV_TORCH_BACKEND=cpu environment variable. The bundled installer picks that
@@ -138,20 +138,29 @@ all = [
     "scikit-learn>=1.7.0",
     "capymoa>=0.14.0",
     "python-weka-wrapper3>=0.3.0",
-    "torch>=2.2.0",
+    "torch>=2.5.0",
     "tabicl>=2.1.0",
+    "chronos-forecasting>=2.2",
+    "timesfm[torch]>=2.0",
 ]
-# Pretrained tabular foundation models — `foundation.TabICLClassifier` and
-# `foundation.TabICLRegressor`. Wraps the upstream `tabicl` package, which
-# pulls torch itself and downloads its own ~150 MB checkpoint on first use.
+# Pretrained foundation models, tabular and time series:
+#   foundation.TabICLClassifier / TabICLRegressor  -> `tabicl`
+#   foundation.ChronosForecaster                   -> `chronos-forecasting`
+#   foundation.TimesFMForecaster                   -> `timesfm`
+# Each upstream package pulls torch itself and downloads its own checkpoint on
+# first use (~150 MB for TabICL, ~200-800 MB for Chronos, ~800 MB for TimesFM).
+# torch>=2.5 is the floor both forecasting packages resolve against together.
 #
-# TuiML ships no model weights. TabICL's code *and* weights are BSD-3-Clause,
-# matching TuiML's own license, so there is nothing for a user to accept. That
-# is the reason it is the only foundation model integrated: several others
-# (TabPFN, Google's TabFM) publish weights under non-commercial terms, which a
+# TuiML ships no model weights. Only models whose weights are licensed
+# compatibly with TuiML's BSD-3-Clause are integrated: TabICL is BSD-3-Clause,
+# Chronos and TimesFM are Apache-2.0. Others (TabPFN, Google's TabFM,
+# Salesforce's Moirai) publish weights under non-commercial terms, which a
 # BSD-3 wrapper cannot relicense.
 foundation = [
+    "torch>=2.5.0",
     "tabicl>=2.1.0",
+    "chronos-forecasting>=2.2",
+    "timesfm[torch]>=2.0",
 ]
 
 [project.urls]
