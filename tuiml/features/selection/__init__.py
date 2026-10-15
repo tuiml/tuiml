@@ -49,30 +49,25 @@ Automatic subset selection using CFS:
 >>> X_new = cfs.fit_transform(X, y)
 >>> print(f"Selected: {cfs.get_support(indices=True)}")
 """
-
 # Base classes and utilities
 from tuiml.features.selection._base import (
-    SelectorMixin,
     GenericUnivariateSelector,
+    SelectorMixin,
 )
 
-# Univariate selectors
-from tuiml.features.selection.univariate import (
-    SelectKBestSelector,
-    SelectPercentileSelector,
-    SelectThresholdSelector,
-    SelectFprSelector,
+# Random selection
+from tuiml.features.selection.random_subset import (
+    BootstrapFeaturesSelector,
+    RandomSubsetSelector,
 )
 
-# Variance-based selection
-from tuiml.features.selection.variance import (
-    VarianceThresholdSelector,
-)
+# Recursive feature selection
+from tuiml.features.selection.rfe import RFE, RFECV
 
 # Sequential/wrapper selectors
 from tuiml.features.selection.sequential import (
-    SequentialFeatureSelector,
     BestFirstSelector,
+    SequentialFeatureSelector,
 )
 
 # Subset evaluators
@@ -81,30 +76,40 @@ from tuiml.features.selection.subset import (
     WrapperSelector,
 )
 
-# Random selection
-from tuiml.features.selection.random_subset import (
-    RandomSubsetSelector,
-    BootstrapFeaturesSelector,
+# Univariate selectors
+from tuiml.features.selection.univariate import (
+    SelectFprSelector,
+    SelectKBestSelector,
+    SelectPercentileSelector,
+    SelectThresholdSelector,
+)
+
+# Variance-based selection
+from tuiml.features.selection.variance import (
+    VarianceThresholdSelector,
 )
 
 __all__ = [
     # Base
-    "SelectorMixin",
     "GenericUnivariateSelector",
+    "SelectorMixin",
     # Univariate
+    "SelectFprSelector",
     "SelectKBestSelector",
     "SelectPercentileSelector",
     "SelectThresholdSelector",
-    "SelectFprSelector",
     # Variance
     "VarianceThresholdSelector",
     # Sequential
-    "SequentialFeatureSelector",
     "BestFirstSelector",
+    "SequentialFeatureSelector",
+    # Recursive
+    "RFE",
+    "RFECV",
     # Subset
     "CFSSelector",
     "WrapperSelector",
     # Random
-    "RandomSubsetSelector",
     "BootstrapFeaturesSelector",
+    "RandomSubsetSelector",
 ]
