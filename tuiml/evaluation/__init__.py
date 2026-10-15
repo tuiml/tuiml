@@ -153,6 +153,8 @@ from .tuning import (
     HyperbandSearchCV,
     RandomSearchCV,
     SuccessiveHalvingSearchCV,
+    HalvingGridSearchCV,
+    HalvingRandomSearchCV,
 )
 
 
@@ -243,4 +245,6 @@ __all__ = [
     "BayesianSearchCV",
     "SuccessiveHalvingSearchCV",
     "HyperbandSearchCV",
+    "HalvingGridSearchCV",
+    "HalvingRandomSearchCV",
 ]

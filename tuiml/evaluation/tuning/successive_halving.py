@@ -580,6 +580,6 @@ class SuccessiveHalvingSearchCV(BaseTuner):
     def __repr__(self) -> str:
         """Return a readable representation of the searcher."""
         return (
-            f"SuccessiveHalvingSearchCV(n_candidates={self.n_candidates}, "
+            f"{type(self).__name__}(n_candidates={self.n_candidates}, "
             f"factor={self.factor})"
         )

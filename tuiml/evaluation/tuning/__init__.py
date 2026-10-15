@@ -43,6 +43,8 @@ from .random_search import RandomSearchCV
 from .bayesian_search import BayesianSearchCV
 from .successive_halving import SuccessiveHalvingSearchCV
 from .hyperband import HyperbandSearchCV
+from .halving_grid_search import HalvingGridSearchCV
+from .halving_random_search import HalvingRandomSearchCV
 from tuiml.base.tuning import (
     BaseTuner,
     TuningResult,
@@ -58,4 +60,6 @@ __all__ = [
     "GridSearchCV",
     "RandomSearchCV",
     "BayesianSearchCV",
+    "HalvingGridSearchCV",
+    "HalvingRandomSearchCV",
 ]
