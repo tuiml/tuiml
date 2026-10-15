@@ -264,7 +264,51 @@ def _accumulate_split_counts(node, importances):
     _accumulate_split_counts(node.right, importances)
 
 
-@classifier(tags=["trees", "ensemble", "random", "bagging"], version="1.0.0")
+def _build_single_balanced_classifier_tree(
+    X: np.ndarray,
+    y: np.ndarray,
+    config: TreeConfig,
+    seed: int,
+):
+    """Build one classifier tree using a class-balanced bootstrap sample."""
+
+    rng = np.random.RandomState(seed)
+
+    classes, counts = np.unique(y, return_counts=True)
+    min_count = np.min(counts)
+
+    balanced_indices = []
+
+    for target_class in classes:
+        class_indices = np.flatnonzero(y == target_class)
+
+        # Sample every class to the size of the minority class.
+        selected = rng.choice(
+            class_indices,
+            size=min_count,
+            replace=True,
+        )
+        balanced_indices.append(selected)
+
+    indices = np.concatenate(balanced_indices)
+    rng.shuffle(indices)
+
+    X_balanced = X[indices]
+    y_balanced = y[indices]
+
+    tree = build_classifier_tree(
+        X_balanced,
+        y_balanced,
+        config,
+        rng,
+    )
+
+    return tree, indices
+
+@classifier(
+    tags=["trees", "ensemble", "random", "bagging"],
+    version="1.0.0",
+)
 class RandomForestClassifier(Classifier):
     """Random Forest classifier - ensemble of random trees.
 
@@ -716,12 +760,315 @@ class RandomForestClassifier(Classifier):
         """String representation."""
         if self._is_fitted:
             oob_str = f", oob_score={self.oob_score_:.4f}" if self.oob_score_ is not None else ""
-            return (f"RandomForestClassifier(n_estimators={self.n_estimators}, "
-                   f"n_features={self.n_features_}{oob_str})")
+            return (
+                f"RandomForestClassifier(n_estimators={self.n_estimators}, "
+                f"n_features={self.n_features_}{oob_str})"
+            )
         return f"RandomForestClassifier(n_estimators={self.n_estimators})"
 
 
-@regressor(tags=["trees", "ensemble", "random", "bagging"], version="1.0.0")
+@classifier(
+    tags=["trees", "ensemble", "random", "bagging"],
+    version="1.0.0",
+)
+class BalancedRandomForestClassifier(RandomForestClassifier):
+    """Balanced Random Forest classifier.
+    Overview
+    --------
+    Balanced Random Forest handles class imbalance by creating a balanced
+    training subset for each decision tree.
+
+    Theory
+    ------
+    For every tree, samples are drawn from each class so that the tree is
+    trained on a balanced class distribution. The predictions of all trees
+    are aggregated to produce the final prediction.
+
+    Notes
+    -----
+    Each tree uses TuiML's native decision-tree implementation.
+
+    References
+    ----------
+    Chen, C., Liaw, A., & Breiman, L. (2004). Using Random Forest to Learn
+    Imbalanced Data. University of California, Berkeley.
+    DOI: 10.1109/ICDM.2004.10095
+
+    See Also
+    --------
+    RandomForestClassifier
+    EasyEnsembleClassifier
+    Builds an ensemble of native TuiML decision trees using a balanced
+    bootstrap sample for every tree.
+
+    For each tree, every class is randomly sampled to the size of the
+    smallest class. This prevents majority classes from dominating the
+    individual trees during training.
+
+    Parameters
+    ----------
+    n_estimators : int, default=100
+        Number of trees in the forest.
+
+    max_features : {'sqrt', 'log2'}, int or float, default='sqrt'
+        Number of features considered at each split.
+
+    max_depth : int or None, default=None
+        Maximum depth of each tree.
+
+    min_samples_split : int, default=2
+        Minimum number of samples required to split a node.
+
+    min_samples_leaf : int, default=1
+        Minimum number of samples required at a leaf node.
+
+    random_state : int or None, default=None
+        Random seed for reproducibility.
+
+    n_jobs : int, default=-1
+        Number of parallel jobs.
+
+    criterion : str, default='gini'
+        Splitting criterion.
+
+    Examples
+    --------
+    >>> from tuiml.algorithms.trees import BalancedRandomForestClassifier
+    >>> clf = BalancedRandomForestClassifier(
+    ...     n_estimators=10,
+    ...     random_state=42,
+    ... )
+    >>> clf.fit(X, y)
+    BalancedRandomForestClassifier(...)
+    """
+
+    def __init__(
+    self,
+    n_estimators: int = 100,
+    max_features: Any = "sqrt",
+    max_depth: Optional[int] = None,
+    min_samples_split: int = 2,
+    min_samples_leaf: int = 1,
+    bootstrap: bool = True,
+    oob_score: bool = False,
+    random_state: Optional[int] = None,
+    n_jobs: int = -1,
+    criterion: str = "gini",
+    ):
+        super().__init__(
+            n_estimators=n_estimators,
+            max_features=max_features,
+            max_depth=max_depth,
+            min_samples_split=min_samples_split,
+            min_samples_leaf=min_samples_leaf,
+            bootstrap=bootstrap,
+            oob_score=oob_score,
+            random_state=random_state,
+            n_jobs=n_jobs,
+            criterion=criterion,
+        )
+
+    @classmethod
+    def get_parameter_schema(cls) -> Dict[str, Dict[str, Any]]:
+        """Return parameter schema."""
+
+        return {
+            "n_estimators": {
+                "type": "integer",
+                "default": 100,
+                "minimum": 1,
+                "description": "Number of trees in the balanced forest",
+            },
+            "max_features": {
+                "type": ["string", "integer", "number"],
+                "default": "sqrt",
+                "description": (
+                    "Number of features to consider at each split"
+                ),
+            },
+            "max_depth": {
+                "type": ["integer", "null"],
+                "default": None,
+                "minimum": 1,
+                "description": "Maximum depth of trees",
+            },
+            "min_samples_split": {
+                "type": "integer",
+                "default": 2,
+                "minimum": 2,
+                "description": "Minimum samples required to split a node",
+            },
+            "min_samples_leaf": {
+                "type": "integer",
+                "default": 1,
+                "minimum": 1,
+                "description": "Minimum samples required at a leaf node",
+            },
+            "bootstrap": {
+                "type": "boolean",
+                "default": True,
+                "description": "Whether bootstrap samples are used when building trees",
+            },
+            "oob_score": {
+                "type": "boolean",
+                "default": False,
+                "description": "Whether to compute the out-of-bag score",
+            },
+            "random_state": {
+                "type": ["integer", "null"],
+                "default": None,
+                "description": "Random seed for reproducibility",
+            },
+            "n_jobs": {
+                "type": "integer",
+                "default": -1,
+                "description": "Number of parallel jobs",
+            },
+            "criterion": {
+                "type": "string",
+                "default": "gini",
+                "enum": ["gini", "entropy"],
+                "description": "Splitting criterion",
+            },
+        }
+
+    @classmethod
+    def get_capabilities(cls) -> List[str]:
+        """Return classifier capabilities."""
+
+        return [
+            "numeric",
+            "missing_values",
+            "binary_class",
+            "multiclass",
+        ]
+
+    @classmethod
+    def get_complexity(cls) -> str:
+        """Return time/space complexity."""
+
+        return "O(n * m * log(n) * T) training, O(log(n) * T) prediction"
+
+    @classmethod
+    def get_references(cls) -> List[str]:
+        """Return academic references."""
+
+        return [
+            (
+                "Chen, C., Liaw, A., & Breiman, L. (2004). "
+                "Using Random Forest to Learn Imbalanced Data."
+            )
+        ]
+
+    def fit(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+    ) -> "BalancedRandomForestClassifier":
+        """Fit the Balanced Random Forest classifier."""
+
+        X = np.asarray(X, dtype=float)
+        y = np.asarray(y)
+
+        if X.ndim == 1:
+            X = X.reshape(-1, 1)
+
+        n_samples, self.n_features_ = X.shape
+        self.classes_ = np.unique(y)
+        n_classes = len(self.classes_)
+
+        if n_classes < 2:
+            raise ValueError(
+                "BalancedRandomForestClassifier requires at least "
+                "two classes."
+            )
+
+        # Encode labels to integer indices.
+        if not np.issubdtype(y.dtype, np.integer) or not np.array_equal(
+            self.classes_,
+            np.arange(n_classes),
+        ):
+            self._label_map = {
+                label: i for i, label in enumerate(self.classes_)
+            }
+            y_encoded = np.array(
+                [self._label_map[label] for label in y]
+            )
+        else:
+            self._label_map = None
+            y_encoded = y
+
+        max_features_int = compute_max_features(
+            self.max_features,
+            self.n_features_,
+        )
+
+        config = TreeConfig(
+            max_depth=self.max_depth,
+            min_samples_split=self.min_samples_split,
+            min_samples_leaf=self.min_samples_leaf,
+            criterion=self.criterion,
+            max_features=max_features_int,
+            n_classes=n_classes,
+        )
+
+        # Generate independent seeds for every tree.
+        master_rng = np.random.RandomState(self.random_state)
+        seeds = master_rng.randint(
+            0,
+            2**31,
+            size=self.n_estimators,
+        )
+
+        workers = _resolve_workers(
+            self.n_jobs,
+            self.n_estimators,
+            X,
+        )
+
+        results = Parallel(
+            n_jobs=workers,
+            prefer="threads",
+        )(
+            delayed(_build_single_balanced_classifier_tree)(
+                X,
+                y_encoded,
+                config,
+                int(seed),
+            )
+            for seed in seeds
+        )
+
+        self.estimators_ = [result[0] for result in results]
+        self.bootstrap_indices_ = [result[1] for result in results]
+
+        self.feature_importances_ = _compute_feature_importances(
+            self.estimators_,
+            self.n_features_,
+            mode="classifier",
+        )
+
+        self._is_fitted = True
+        return self
+
+    def __repr__(self) -> str:
+        """String representation."""
+
+        if self._is_fitted:
+            return (
+                "BalancedRandomForestClassifier("
+                f"n_estimators={self.n_estimators}, "
+                f"n_features={self.n_features_})"
+            )
+
+        return (
+            "BalancedRandomForestClassifier("
+            f"n_estimators={self.n_estimators})"
+        )
+@regressor(
+    tags=["trees", "ensemble", "random", "bagging"],
+    version="1.0.0",
+)
 class RandomForestRegressor(Regressor):
     """Random Forest regressor - ensemble of random regression trees.
 

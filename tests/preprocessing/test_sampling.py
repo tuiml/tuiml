@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 from tuiml.preprocessing.sampling.oversampling import RandomOverSampler
 from tuiml.preprocessing.sampling.undersampling import RandomUnderSampler
-from tuiml.preprocessing.sampling.smote import SMOTESampler
+from tuiml.preprocessing.sampling.smote import SMOTESampler , SMOTENCSampler
 from collections import Counter
 from tuiml.preprocessing.sampling.class_balance import ClassBalanceSampler
 
@@ -283,3 +283,153 @@ class TestClassBalanceSampler:
         assert "strategy" in schema
         assert "target_ratio" in schema
         assert "random_state" in schema
+
+
+class TestSMOTENCSampler:
+    @pytest.fixture
+    def data(self):
+        X = np.array(
+            [
+                [20.0, 30.0, 0],
+                [22.0, 34.0, 0],
+                [21.0, 32.0, 1],
+                [24.0, 40.0, 1],
+                [23.0, 38.0, 0],
+                [25.0, 42.0, 1],
+                [28.0, 45.0, 0],
+            ]
+        )
+
+        y = np.array([0, 0, 0, 1, 1, 1, 0])
+
+        return X, y
+
+    def test_categorical_values_remain_valid(self, data):
+        X, y = data
+
+        sampler = SMOTENCSampler(
+            categorical_features=[2],
+            k_neighbors=2,
+            random_state=42,
+        )
+
+        X_resampled, y_resampled = sampler.fit_resample(X, y)
+
+        original_categories = set(X[:, 2])
+        generated_categories = set(X_resampled[len(X):, 2])
+
+        assert generated_categories.issubset(original_categories)
+
+    def test_numeric_values_are_generated(self, data):
+        X, y = data
+
+        sampler = SMOTENCSampler(
+            categorical_features=[2],
+            k_neighbors=2,
+            random_state=42,
+        )
+
+        X_resampled, y_resampled = sampler.fit_resample(X, y)
+
+        generated = X_resampled[len(X):]
+
+        assert len(generated) > 0
+        assert np.all(generated[:, 0] >= X[:, 0].min())
+        assert np.all(generated[:, 0] <= X[:, 0].max())
+
+    def test_reproducibility(self, data):
+        X, y = data
+
+        sampler1 = SMOTENCSampler(
+            categorical_features=[2],
+            k_neighbors=2,
+            random_state=42,
+        )
+
+        sampler2 = SMOTENCSampler(
+            categorical_features=[2],
+            k_neighbors=2,
+            random_state=42,
+        )
+
+        X1, y1 = sampler1.fit_resample(X, y)
+        X2, y2 = sampler2.fit_resample(X, y)
+
+        np.testing.assert_array_equal(X1, X2)
+        np.testing.assert_array_equal(y1, y2)
+
+    def test_invalid_categorical_feature_index(self, data):
+        X, y = data
+
+        sampler = SMOTENCSampler(
+            categorical_features=[3],
+            k_neighbors=2,
+            random_state=42,
+        )
+
+        with pytest.raises(
+            ValueError,
+            match="categorical_features contains an invalid column index",
+        ):
+            sampler.fit(X, y)
+
+    def test_negative_categorical_feature_index(self, data):
+        X, y = data
+
+        sampler = SMOTENCSampler(
+            categorical_features=[-1],
+            k_neighbors=2,
+            random_state=42,
+        )
+
+        with pytest.raises(
+            ValueError,
+            match="categorical_features contains an invalid column index",
+        ):
+            sampler.fit(X, y)
+
+    def test_requires_categorical_feature(self, data):
+        X, y = data
+
+        sampler = SMOTENCSampler(
+            categorical_features=[],
+            k_neighbors=2,
+            random_state=42,
+        )
+
+        with pytest.raises(
+            ValueError,
+            match="SMOTENC requires at least one categorical feature",
+        ):
+            sampler.fit(X, y)
+
+    def test_requires_numerical_feature(self, data):
+        X, y = data
+
+        sampler = SMOTENCSampler(
+            categorical_features=[0, 1, 2],
+            k_neighbors=2,
+            random_state=42,
+        )
+
+        with pytest.raises(
+            ValueError,
+            match="SMOTENC requires at least one numerical feature",
+        ):
+            sampler.fit(X, y)
+
+    def test_sampling_balances_minority_class(self, data):
+        X, y = data
+
+        sampler = SMOTENCSampler(
+            categorical_features=[2],
+            k_neighbors=2,
+            random_state=42,
+        )
+
+        X_resampled, y_resampled = sampler.fit_resample(X, y)
+
+        unique, counts = np.unique(y_resampled, return_counts=True)
+        class_counts = dict(zip(unique, counts))
+
+        assert class_counts[0] == class_counts[1]

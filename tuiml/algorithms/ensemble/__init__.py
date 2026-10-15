@@ -16,18 +16,39 @@ Available algorithms
 - **VotingRegressor:** Combines regressors using various aggregation rules.
 """
 
-from tuiml.algorithms.ensemble.bagging import BaggingClassifier, BaggingRegressor
-from tuiml.algorithms.ensemble.adaboost import AdaBoostClassifier, AdaBoostRegressor
-from tuiml.algorithms.ensemble.voting import VotingClassifier, VotingRegressor
-from tuiml.algorithms.ensemble.stacking import StackingClassifier, StackingRegressor
-from tuiml.algorithms.ensemble.gradient_boosting_regressor import GradientBoostingRegressor
-from tuiml.algorithms.ensemble.one_vs_rest import OneVsRestClassifier
+from tuiml.algorithms.ensemble.bagging import (
+    BaggingClassifier,
+    BaggingRegressor,
+)
+from tuiml.algorithms.ensemble.adaboost import (
+    AdaBoostClassifier,
+    AdaBoostRegressor,
+)
+from tuiml.algorithms.ensemble.easy_ensemble import (
+    EasyEnsembleClassifier,
+)
+from tuiml.algorithms.ensemble.voting import (
+    VotingClassifier,
+    VotingRegressor,
+)
+from tuiml.algorithms.ensemble.stacking import (
+    StackingClassifier,
+    StackingRegressor,
+)
+from tuiml.algorithms.ensemble.gradient_boosting_regressor import (
+    GradientBoostingRegressor,
+)
+from tuiml.algorithms.ensemble.one_vs_rest import (
+    OneVsRestClassifier,
+)
+
 
 __all__ = [
     "BaggingClassifier",
     "BaggingRegressor",
     "AdaBoostClassifier",
     "AdaBoostRegressor",
+    "EasyEnsembleClassifier",
     "VotingClassifier",
     "VotingRegressor",
     "StackingClassifier",
