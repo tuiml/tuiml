@@ -731,6 +731,23 @@ class TestHashingVectorizer:
         X = vec.fit_transform(docs)
         assert np.all(X[X > 0] == 1)
 
+    def test_binary_mode_survives_a_bucket_collision(self):
+        # Two tokens, one bucket: binary must clip the sum to 1.
+        docs = ["cat dog"]
+        vec = HashingVectorizer(n_features=1, binary=True, norm=None)
+        X = vec.fit_transform(docs)
+        assert X.tolist() == [[1.0]]
+
+    def test_feature_indices_are_stable_across_processes(self):
+        import os, subprocess, sys
+        code = ("from tuiml.preprocessing.text import HashingVectorizer; import numpy as np; "
+                "X = HashingVectorizer(n_features=64, norm=None).fit_transform(['cat dog bird']); "
+                "print(np.flatnonzero(X[0]).tolist())")
+        runs = {subprocess.check_output([sys.executable, "-c", code], text=True,
+                                        env={**os.environ, "PYTHONHASHSEED": seed}).strip()
+                for seed in ("1", "2", "3")}
+        assert len(runs) == 1, runs
+
     def test_no_vocabulary_stored(self):
         vec = HashingVectorizer(n_features=128)
         vec.fit(["hello world"])

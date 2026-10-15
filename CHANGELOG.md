@@ -59,6 +59,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `load_skill()`.
 
 ### Fixed
+- `HashingVectorizer` hashed tokens with Python's salted built-in `hash`, so
+  feature indices changed from one process to the next and a bucket collision
+  in `binary` mode could produce a count of 2. It now uses a stable BLAKE2b
+  hash and clips to 1 after accumulation.
 - `tuiml_read_algorithm`, `tuiml_list_files` and `tuiml_search_source` now
   cover the wrapper packages (`foundation`, `sklearn`, `capymoa`, `weka`)
   as well as `algorithms/`, and accept namespaced keys such as

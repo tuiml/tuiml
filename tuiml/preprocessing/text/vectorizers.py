@@ -2,6 +2,7 @@
 Text vectorization utilities - Convert text to numeric feature vectors.
 """
 
+import hashlib
 import numpy as np
 from collections import Counter
 from typing import Dict, List, Optional, Union, Callable
@@ -10,6 +11,27 @@ import math
 
 from tuiml.base.preprocessing import Transformer
 from .tokenizers import BaseTokenizer, WordTokenizer
+
+
+def _stable_hash(token: str) -> int:
+    """Hash a token to a non-negative integer that is the same in every process.
+
+    Python's built-in ``hash`` is salted per interpreter run
+    (``PYTHONHASHSEED``), so using it for the hashing trick gives a different
+    feature matrix every time, and a model trained in one process cannot
+    score text in another. BLAKE2b with an 8-byte digest is fast and stable.
+
+    Parameters
+    ----------
+    token : str
+        The token to hash.
+
+    Returns
+    -------
+    int
+        Unsigned 64-bit hash of the UTF-8 encoding of ``token``.
+    """
+    return int.from_bytes(hashlib.blake2b(token.encode("utf-8"), digest_size=8).digest(), "big")
 
 class CountVectorizer(Transformer):
     """Convert a collection of text documents to a matrix of token counts.
@@ -866,9 +888,12 @@ class HashingVectorizer(Transformer):
             token_counts = Counter(tokens)
 
             for token, count in token_counts.items():
-                # Hash token to feature index
-                feature_idx = hash(token) % self.n_features
-                X[doc_idx, feature_idx] += 1 if self.binary else count
+                X[doc_idx, _stable_hash(token) % self.n_features] += count
+
+        # Binary applies after accumulation: two tokens hashed to the same
+        # bucket must still give 1, not 2.
+        if self.binary:
+            X[X > 0] = 1
 
         # Normalize
         if self.norm == 'l2':
