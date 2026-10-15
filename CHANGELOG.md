@@ -40,6 +40,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `boxplot_comparison`, `heatmap`, `ranking_table`) accept a
   `tuiml_benchmark` result as returned, with an optional `metric`; the
   flat `{algorithm: [scores]}` form still works.
+- Two-value lists such as `[2, 8]` or `[0.01, 0.3]` in `ParameterDistribution`
+  (random search) and `BayesianSearchCV` param spaces are discrete choices
+  again, not continuous ranges, and sampled values keep their Python type.
+  Ranges are tuples: `(2, 8, "int")`, `(0.01, 0.3)`.
+
 
 ## [0.2.0] - 2026-09-03
 
