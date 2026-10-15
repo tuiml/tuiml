@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `Benchmark` (and `tuiml_benchmark`) support a `forecasting` task:
+  forecasters are detected by their `timeseries` tag and scored on
+  time-ordered expanding-window folds (`cv`) or a tail holdout
+  (`test_size`), with `mean_absolute_error` and `root_mean_squared_error`
+  as defaults. Previously they were fed shuffled k-fold feature matrices
+  and crashed.
+
 ## [0.2.0] - 2026-09-03
 
 The first minor release. Six new packages (`automl`, `uncertainty`, `explain`,

@@ -759,6 +759,71 @@ class TestBenchmark:
         ])
         assert result.scores_["model"].nunique() == 2
 
+    @staticmethod
+    def _series_dataset():
+        t = np.arange(120)
+        y = 10 + 0.05 * t + np.sin(2 * np.pi * t / 12)
+        return {"name": "wave", "X": np.zeros((120, 0)), "y": y}
+
+    def test_forecasters_get_the_forecasting_task_and_ordered_folds(self):
+        """Forecasters used to be fed shuffled k-fold matrices and crashed."""
+        import tuiml
+
+        result = tuiml.Benchmark(
+            models=[{"name": "ThetaForecaster"}],
+            datasets=[self._series_dataset()],
+            evaluation={"cv": 3},
+            random_seed=0,
+        ).run()
+        assert result.task == "forecasting"
+        assert result.metrics == ["mean_absolute_error", "root_mean_squared_error"]
+        assert len(result.scores_) == 6  # 3 folds x 2 metrics
+        assert np.isfinite(result.scores_["value"]).all()
+        # A clean trend-plus-seasonal series is easy for Theta: the fit is
+        # only meaningful if the folds were in time order.
+        mae = result.scores_[result.scores_["metric"] == "mean_absolute_error"]
+        assert mae["value"].max() < 2.0
+
+    def test_forecasting_holdout_is_a_single_tail_fold(self):
+        import tuiml
+
+        result = tuiml.Benchmark(
+            models=[{"name": "ThetaForecaster"}],
+            datasets=[self._series_dataset()],
+            evaluation={"test_size": 0.2, "metrics": ["mean_absolute_error"]},
+        ).run()
+        assert result.scores_["fold"].tolist() == [0]
+
+    def test_forecasting_rejects_tuning(self):
+        import tuiml
+
+        with pytest.raises(ValueError, match="Tuning is not supported"):
+            tuiml.Benchmark(
+                models=[{"name": "ThetaForecaster",
+                         "tune": {"space": {"theta": [1.5, 2.0]}}}],
+                datasets=[self._series_dataset()],
+            )
+
+    def test_forecasting_needs_a_series(self):
+        import tuiml
+
+        with pytest.raises(ValueError, match="needs a series"):
+            tuiml.Benchmark(
+                models=[{"name": "ThetaForecaster"}],
+                datasets=[{"name": "empty", "X": np.zeros((50, 0)), "y": None}],
+                evaluation={"cv": 2},
+            ).run()
+
+    def test_mixed_forecaster_and_regressor_falls_back_to_classification_default(self):
+        """Mixed kinds keep the existing fallback rather than guessing."""
+        import tuiml
+
+        bench = tuiml.Benchmark(
+            models=[{"name": "ThetaForecaster"}, {"name": "LinearRegression"}],
+            datasets=[{"source": "iris"}],
+        )
+        assert bench.task == "classification"
+
     def test_label_key_sets_display_name(self):
         result = self._quick(models=[
             {"name": "RandomForestClassifier", "params": {"n_estimators": 5},
