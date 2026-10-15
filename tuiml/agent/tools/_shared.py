@@ -123,3 +123,112 @@ def _get_model_tags(model) -> List[str]:
         # Try class-level tags
         tags = getattr(target.__class__, '_tags', [])
     return tags or []
+
+
+def _normalise_scores(results, metric=None):
+    """Coerce any supported results shape to ``{algorithm: [scores...]}``.
+
+    Accepts the flat shape unchanged, a whole ``tuiml_benchmark`` result
+    (its ``results`` key is used), or that ``results`` sub-dict, which is
+    shaped ``{dataset: {algorithm: {metric: {"mean", "std", "scores"}}}}``.
+    With one dataset the per-fold ``scores`` are returned; with several, one
+    value per dataset (the ``mean``), so that a Friedman test treats datasets
+    as blocks, the standard multi-dataset comparison.
+
+    Parameters
+    ----------
+    results : dict
+        One of the shapes above.
+    metric : str, default=None
+        Metric to extract from a benchmark result. Defaults to the first
+        metric present.
+
+    Returns
+    -------
+    dict of str -> list of float
+        Algorithm name -> scores.
+
+    Raises
+    ------
+    ValueError
+        If ``results`` is empty, or ``metric`` is not in the benchmark.
+    """
+    if not isinstance(results, dict) or not results:
+        raise ValueError("results must be a non-empty dict")
+    if "results" in results and isinstance(results["results"], dict):
+        results = results["results"]
+    first = next(iter(results.values()))
+    if not isinstance(first, dict):
+        return {name: [float(v) for v in scores] for name, scores in results.items()}
+
+    # Benchmark shape: dataset -> algorithm -> metric -> {mean, std, scores}
+    datasets = list(results)
+    metrics_seen = []
+    for algos in results.values():
+        for per_metric in algos.values():
+            for m in per_metric:
+                if m not in metrics_seen:
+                    metrics_seen.append(m)
+    if not metrics_seen:
+        raise ValueError("benchmark results contain no metrics")
+    if metric is None:
+        metric = metrics_seen[0]
+    elif metric not in metrics_seen:
+        raise ValueError(f"metric '{metric}' not in benchmark results; available: {metrics_seen}")
+
+    out = {}
+    if len(datasets) == 1:
+        for algo, per_metric in results[datasets[0]].items():
+            entry = per_metric[metric]
+            out[algo] = [float(v) for v in entry.get("scores", [entry.get("mean")])]
+        return out
+    for ds in datasets:
+        for algo, per_metric in results[ds].items():
+            out.setdefault(algo, []).append(float(per_metric[metric]["mean"]))
+    return out
+
+
+def _unknown_metrics(metrics):
+    """Return an error dict for metric names that do not exist, else None.
+
+    Parameters
+    ----------
+    metrics : list of str or None
+        Metric function names as passed by the agent.
+
+    Returns
+    -------
+    dict or None
+        A ``status: error`` result naming the bad metrics, close matches
+        and every valid name; None when all names resolve (or none given).
+    """
+    if not metrics:
+        return None
+    import difflib
+    from tuiml.evaluation import metrics as metrics_module
+
+    valid = sorted(n for n in dir(metrics_module)
+                   if n.endswith(("_score", "_error", "_loss", "_corrcoef")) and not n.startswith("_"))
+    names = [metrics] if isinstance(metrics, str) else list(metrics)
+    bad = [m for m in names if getattr(metrics_module, m, None) is None]
+    if not bad:
+        return None
+    aliases = {"rmse": "root_mean_squared_error", "mse": "mean_squared_error",
+               "mae": "mean_absolute_error", "r2": "r2_score", "auc": "roc_auc_score",
+               "roc_auc": "roc_auc_score", "f1": "f1_score", "acc": "accuracy_score",
+               "accuracy": "accuracy_score", "precision": "precision_score",
+               "recall": "recall_score", "mcc": "matthews_corrcoef", "kappa": "cohen_kappa_score",
+               "silhouette": "silhouette_score"}
+    hints = {}
+    for m in bad:
+        close = [aliases[m.lower()]] if m.lower() in aliases else []
+        close += [c for c in difflib.get_close_matches(m, valid, n=3, cutoff=0.5) if c not in close]
+        close += [v for v in valid if m.lower() in v and v not in close][:3]
+        hints[m] = close
+    hint_txt = "; ".join(f"'{m}' -> {', '.join(c) or '?'}" for m, c in hints.items())
+    return {
+        "status": "error",
+        "error": f"Unknown metric(s): {bad}. Did you mean: {hint_txt}",
+        "error_type": "ValueError",
+        "suggestion": f"Use exact metric function names: {valid}",
+    }

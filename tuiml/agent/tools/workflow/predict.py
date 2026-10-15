@@ -204,53 +204,25 @@ def execute_predict(**kwargs) -> Dict[str, Any]:
 
 SPEC = ToolSpec(
     name='tuiml_predict',
-    description="Make predictions using a trained model on new data. Supports supervised models, "
-        "timeseries models (use 'steps' parameter), and anomaly detection models.",
+    description="Predict with a trained model on new data. Timeseries models take steps; "
+        "anomaly detectors are supported too.",
     input_schema={
             "type": "object",
             "properties": {
-                "model_id": {
-                    "type": "string",
-                    "description": "Model ID returned by tuiml_train (preferred)"
-                },
-                "model_path": {
-                    "type": "string",
-                    "description": "Path to saved model file (.pkl) (alternative to model_id)"
-                },
-                "data": {
-                    "type": "string",
-                    "description": "Path to data file for prediction"
-                },
-                "steps": {
-                    "type": "integer",
-                    "description": "Number of forecast steps (timeseries models only)"
-                },
-                "output_path": {
-                    "type": "string",
-                    "description": "Path to save predictions (optional)"
-                },
-                "stage": {
-                    "type": "string",
-                    "description": "Atomic prediction stage: 'predict', 'predict_proba', 'forecast'"
-                },
-                "stage_kwargs": {
-                    "type": "object",
-                    "description": "Arbitrary stage-specific keyword arguments"
-                }
-            },
-            "required": []
+                "model_id": {"type": "string", "description": "From tuiml_train (preferred)."},
+                "model_path": {"type": "string", "description": "Saved model file (alternative)."},
+                "data": {"type": "string", "description": "Data file path."},
+                "steps": {"type": "integer", "description": "Forecast horizon (timeseries only)."},
+                "output_path": {"type": "string", "description": "Save predictions here (optional)."},
+                "stage": {"type": "string", "description": "Atomic stage: predict, predict_proba, forecast."},
+                "stage_kwargs": {"type": "object"}
+            }
         },
     output_schema={
             "type": "object",
             "properties": {
                 "status": {"type": "string", "enum": ["success", "error"]},
-                "num_predictions": {"type": "integer"},
-                "predictions_preview": {
-                    "type": "array",
-                    "description": "First 10 predictions"
-                },
-                "output_path": {"type": "string"},
-                "error": {"type": "string"}
+                "predictions_preview": {"type": "array", "description": "First 10"}
             },
             "required": ["status"]
         },

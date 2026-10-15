@@ -18,6 +18,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `foundation` extra now pulls `chronos-forecasting` and `timesfm`. Pickled
   forecasters store the context only, never the checkpoint.
 
+### Changed
+- MCP tool schemas trimmed: shorter descriptions, permissive shapes in
+  place of verbose `oneOf` blocks, and the wrong examples (`SVM`, `wine`,
+  `breast_cancer`) corrected. `tools/list` now costs roughly half the
+  tokens it did, with no change in accepted arguments.
+
+### Fixed
+- `tuiml_read_algorithm`, `tuiml_list_files` and `tuiml_search_source` now
+  cover the wrapper packages (`foundation`, `sklearn`, `capymoa`, `weka`)
+  as well as `algorithms/`, and accept namespaced keys such as
+  `foundation.ChronosForecaster` or `sklearn.SVC`. A bare name still
+  resolves to the native implementation first. The packages are located
+  on disk without being imported, so listing never starts a JVM.
+- Unknown component names now come back with close matches ("Unknown
+  component 'SVM'. Did you mean: SVC, SVR?").
+- Built-in dataset names accept underscore, hyphen and case variants
+  (`breast_cancer` → `breast-cancer`) and the alias `credit` → `credit-g`;
+  the not-found error lists close matches.
+- `tuiml_test_statistics` and the comparison plots (`cd_diagram`,
+  `boxplot_comparison`, `heatmap`, `ranking_table`) accept a
+  `tuiml_benchmark` result as returned, with an optional `metric`; the
+  flat `{algorithm: [scores]}` form still works.
+
 ## [0.2.0] - 2026-09-03
 
 The first minor release. Six new packages (`automl`, `uncertainty`, `explain`,

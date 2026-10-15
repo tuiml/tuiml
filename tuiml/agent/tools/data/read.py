@@ -104,64 +104,24 @@ def execute_read_data(**kwargs) -> Dict[str, Any]:
 
 SPEC = ToolSpec(
     name='tuiml_read_data',
-    description="Read and preview actual rows from a dataset. Returns sample rows as a list of "
-        "dictionaries. Supports head, tail, random sample, or specific row indices.",
+    description="Preview rows of a dataset as a list of dicts.",
     input_schema={
             "type": "object",
             "properties": {
-                "data": {
-                    "type": "string",
-                    "description": "Data file path or built-in dataset name (e.g., 'iris', '/tmp/tuiml_preprocessed/file.csv')"
-                },
-                "n_rows": {
-                    "type": "integer",
-                    "default": 10,
-                    "description": "Number of rows to return (default: 10, max: 100)"
-                },
-                "mode": {
-                    "type": "string",
-                    "enum": ["head", "tail", "sample", "indices"],
-                    "default": "head",
-                    "description": (
-                        "How to select rows:\n"
-                        "- head: First n_rows (default)\n"
-                        "- tail: Last n_rows\n"
-                        "- sample: Random sample of n_rows\n"
-                        "- indices: Specific row indices (provide 'indices' parameter)"
-                    )
-                },
-                "indices": {
-                    "type": "array",
-                    "items": {"type": "integer"},
-                    "description": "Specific row indices to return (only used when mode='indices')"
-                },
-                "columns": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "description": "Subset of columns to return (optional, returns all if omitted)"
-                },
-                "include_target": {
-                    "type": "boolean",
-                    "default": True,
-                    "description": "Include the target column in the output (default: True)"
-                },
-                "target": {
-                    "type": "string",
-                    "description": "Target column name (used to label the target in the output)"
-                }
+                "data": {"type": "string", "description": "File path or built-in dataset name."},
+                "n_rows": {"type": "integer", "default": 10, "description": "Max 100."},
+                "mode": {"type": "string", "enum": ["head", "tail", "sample", "indices"], "default": "head"},
+                "indices": {"type": "array", "items": {"type": "integer"}, "description": "Rows to return when mode=indices."},
+                "columns": {"type": "array", "items": {"type": "string"}, "description": "Column subset."},
+                "include_target": {"type": "boolean", "default": True},
+                "target": {"type": "string", "description": "Column to label as target."}
             },
             "required": ["data"]
         },
     output_schema={
             "type": "object",
             "properties": {
-                "status": {"type": "string", "enum": ["success", "error"]},
-                "name": {"type": "string"},
-                "shape": {"type": "array", "items": {"type": "integer"}},
-                "columns": {"type": "array", "items": {"type": "string"}},
-                "n_rows_returned": {"type": "integer"},
-                "rows": {"type": "array", "items": {"type": "object"}},
-                "error": {"type": "string"}
+                "status": {"type": "string", "enum": ["success", "error"]}
             },
             "required": ["status"]
         },

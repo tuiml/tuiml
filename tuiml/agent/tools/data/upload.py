@@ -226,57 +226,23 @@ def execute_upload_data(**kwargs) -> Dict[str, Any]:
 
 SPEC = ToolSpec(
     name='tuiml_upload_data',
-    description="Register a dataset for use with other TuiML tools. "
-        "Provide either a file_path to an existing file on disk (preferred for large datasets), "
-        "or content as raw text for small inline datasets. "
-        "Supported formats: CSV, TSV, ARFF, Parquet, Excel (xlsx/xls), JSON, JSONL, NumPy (npy/npz). "
-        "Returns a validated path for use with tuiml_train, tuiml_preprocess, etc.",
+    description="Register a dataset for the other tools, from a file on disk (file_path, preferred) or "
+        "inline text (content + format). Accepts CSV, TSV, ARFF, Parquet, Excel, JSON, JSONL, NumPy. "
+        "Returns a dataset_id to pass as data.",
     input_schema={
             "type": "object",
             "properties": {
-                "file_path": {
-                    "type": "string",
-                    "description": (
-                        "Path to an existing dataset file on disk. "
-                        "Supported: .csv, .tsv, .arff, .parquet, .pq, .xlsx, .xls, .json, .jsonl, .ndjson, .npy, .npz"
-                    )
-                },
-                "content": {
-                    "type": "string",
-                    "description": "Raw text content for small inline datasets (use with 'format')"
-                },
-                "format": {
-                    "type": "string",
-                    "enum": ["csv", "tsv", "arff", "json", "jsonl"],
-                    "default": "csv",
-                    "description": "File format, only needed with 'content'; auto-detected from file_path extension"
-                },
-                "name": {
-                    "type": "string",
-                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$",
-                    "description": (
-                        "Optional name for the dataset (without extension). "
-                        "Letters, digits, dots, dashes and underscores only -- "
-                        "it becomes a filename, so it cannot contain a path."
-                    )
-                }
-            },
-            "required": []
+                "file_path": {"type": "string", "description": "Existing file: .csv .tsv .arff .parquet .xlsx .xls .json .jsonl .npy .npz"},
+                "content": {"type": "string", "description": "Raw text for small inline datasets."},
+                "format": {"type": "string", "enum": ["csv", "tsv", "arff", "json", "jsonl"], "default": "csv", "description": "Only with content."},
+                "name": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$", "description": "Dataset name (no path, no extension)."}
+            }
         },
     output_schema={
             "type": "object",
             "properties": {
                 "status": {"type": "string", "enum": ["success", "error"]},
-                "dataset_id": {
-                    "type": "string",
-                    "description": "Stable name to pass as `data` to tuiml_train / tuiml_predict / tuiml_evaluate"
-                },
-                "file_path": {"type": "string"},
-                "rows": {"type": "integer"},
-                "features": {"type": "integer"},
-                "feature_names": {"type": "array", "items": {"type": "string"}},
-                "message": {"type": "string"},
-                "error": {"type": "string"}
+                "dataset_id": {"type": "string", "description": "Pass as data to other tools"}
             },
             "required": ["status"]
         },

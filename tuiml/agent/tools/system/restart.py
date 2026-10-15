@@ -199,27 +199,12 @@ def execute_restart(**kwargs) -> Dict[str, Any]:
 
 SPEC = ToolSpec(
     name='tuiml_restart',
-    description="Restart every running tuiml-mcp process so AI clients pick up "
-        "freshly installed code (e.g. right after tuiml_self_update). "
-        "Sends SIGTERM (then SIGKILL after a grace period) to every "
-        "tuiml-mcp child; each parent client (Claude Desktop, Cursor, "
-        "Codex, ...) automatically respawns its child on the next "
-        "request. The current MCP process schedules a self-exit AFTER "
-        "this response is sent, so the agent should expect a brief "
-        "reconnect.",
+    description="Restart every tuiml-mcp process so clients load freshly installed code (after tuiml_self_update). "
+        "This process exits after replying, so expect a brief reconnect.",
     input_schema={
             "type": "object",
             "properties": {
-                "include_self": {
-                    "type": "boolean",
-                    "description": (
-                        "Also exit the current MCP process after responding. "
-                        "True is the usual case, it forces the calling "
-                        "client to respawn with the new code too. Set False "
-                        "to restart only the other clients' instances."
-                    ),
-                    "default": True,
-                },
+                "include_self": {"type": "boolean", "default": True, "description": "False restarts only other clients' instances."}
             },
         },
     # No dedicated output schema; falls back to COMPONENT_OUTPUT_SCHEMA.

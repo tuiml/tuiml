@@ -73,14 +73,46 @@ def read_source(name: str, version: Optional[str] = None,
     }
 
 
+#: Packages whose ``.py`` files count as built-in algorithm source, in
+#: search order. ``algorithms`` holds the native learners; the rest are the
+#: wrapper packages, which register under namespaced hub keys such as
+#: ``foundation.ChronosForecaster`` or ``sklearn.SVC``.
+BUILTIN_PACKAGES = ("algorithms", "foundation", "sklearn", "capymoa", "weka")
+
+
+def _builtin_roots() -> List[tuple]:
+    """Return the ``(package_name, directory)`` pairs holding built-in source.
+
+    Resolved from the installed ``tuiml`` package's location without
+    importing the wrapper packages, so listing source never triggers an
+    optional dependency or a JVM start.
+
+    Returns
+    -------
+    roots : list of tuple
+        ``(name, Path)`` for every package in :data:`BUILTIN_PACKAGES` that
+        exists on disk.
+    """
+    import tuiml as _tuiml
+    pkg_root = Path(_tuiml.__file__).parent
+    roots = []
+    for name in BUILTIN_PACKAGES:
+        directory = pkg_root / name
+        if directory.is_dir():
+            roots.append((name, directory))
+    return roots
+
+
 def _read_builtin_source(name: str) -> Dict[str, Any]:
     """Locate and return source for a built-in tuiml algorithm file.
 
     Parameters
     ----------
     name : str
-        Class name (e.g. ``'RandomForestClassifier'``) or file stem
-        (e.g. ``'random_forest'``) to look up under ``tuiml/algorithms/``.
+        Class name (e.g. ``'RandomForestClassifier'``), namespaced hub key
+        (e.g. ``'foundation.ChronosForecaster'``) or file stem (e.g.
+        ``'random_forest'``) to look up under the built-in packages listed in
+        :data:`BUILTIN_PACKAGES`.
 
     Returns
     -------
@@ -89,29 +121,37 @@ def _read_builtin_source(name: str) -> Dict[str, Any]:
         ``line_count``, ``source``, ``source_with_line_numbers``, ``note``.
         On failure: keys ``status``, ``error_type``, ``error``.
     """
-    import tuiml.algorithms as _alg_pkg
-    alg_root = Path(_alg_pkg.__file__).parent
+    # A namespaced hub key names the class after its last dot and pins the
+    # package; a bare name searches the packages in order, so a native
+    # algorithm always wins over a wrapper of the same name.
+    package_hint, _, class_name = name.rpartition(".")
+    roots = _builtin_roots()
+    if package_hint in BUILTIN_PACKAGES:
+        roots = [(pkg, root) for pkg, root in roots if pkg == package_hint]
 
-    # Try class name → search all .py files for class definition
-    candidates: List[Path] = []
-    stem = name.lower().replace(" ", "_")
-    for py_file in alg_root.rglob("*.py"):
-        if py_file.name.startswith("_"):
-            continue
-        if py_file.stem == stem or py_file.stem == name:
-            candidates.append(py_file)
-        elif name in py_file.read_text(encoding="utf-8", errors="ignore"):
-            # class name appears in the file
+    # Exact class definitions first, then file-stem matches, then files
+    # that merely mention the name -- each group in package order.
+    exact: List[Path] = []
+    by_stem: List[Path] = []
+    mentions: List[Path] = []
+    stem = class_name.lower().replace(" ", "_")
+    for _package, root in roots:
+        for py_file in sorted(root.rglob("*.py")):
+            if py_file.name.startswith("_"):
+                continue
             text = py_file.read_text(encoding="utf-8", errors="ignore")
-            if f"class {name}(" in text:
-                candidates.insert(0, py_file)
-            else:
-                candidates.append(py_file)
+            if f"class {class_name}(" in text:
+                exact.append(py_file)
+            elif py_file.stem == stem or py_file.stem == class_name:
+                by_stem.append(py_file)
+            elif class_name in text:
+                mentions.append(py_file)
+    candidates = exact + by_stem + mentions
 
     if not candidates:
         return {"status": "error", "error_type": "NotFound",
                 "error": f"no built-in algorithm file found for {name!r}. "
-                         "Use tuiml_list_algorithm_files to see all built-in paths."}
+                         "Use tuiml_list_files to see all built-in paths."}
 
     py_file = candidates[0]
     source = py_file.read_text(encoding="utf-8")
@@ -135,7 +175,9 @@ def list_algorithm_files(builtin: bool = True, user: bool = True) -> Dict[str, A
     Parameters
     ----------
     builtin : bool, default=True
-        Include built-in algorithm files from ``tuiml/algorithms/``.
+        Include built-in algorithm files from every package in
+        :data:`BUILTIN_PACKAGES` (``tuiml/algorithms/`` and the wrapper
+        packages ``foundation``, ``sklearn``, ``capymoa``, ``weka``).
     user : bool, default=True
         Include user algorithm files from ``USER_ALGS_DIR``.
 
@@ -144,25 +186,32 @@ def list_algorithm_files(builtin: bool = True, user: bool = True) -> Dict[str, A
     result : Dict[str, Any]
         Keys ``status``, ``count``, and ``files``: a list of dicts with
         ``type`` (``'builtin'``/``'user'``) and ``path``, plus
-        ``relative_path``/``category``/``file`` for built-ins and
-        ``name``/``version``/``class_name``/``kind`` for user algorithms.
+        ``package``/``relative_path``/``category``/``file`` for built-ins
+        (``relative_path`` is relative to the package directory; ``category``
+        is the sub-folder inside ``algorithms``, or the package name for a
+        wrapper package) and ``name``/``version``/``class_name``/``kind`` for
+        user algorithms.
     """
     results: List[Dict[str, Any]] = []
 
     if builtin:
-        import tuiml.algorithms as _alg_pkg
-        alg_root = Path(_alg_pkg.__file__).parent
-        for py_file in sorted(alg_root.rglob("*.py")):
-            if py_file.name.startswith("_"):
-                continue
-            rel = py_file.relative_to(alg_root)
-            results.append({
-                "type": "builtin",
-                "path": str(py_file),
-                "relative_path": str(rel),
-                "category": rel.parts[0] if len(rel.parts) > 1 else "root",
-                "file": py_file.name,
-            })
+        for package, root in _builtin_roots():
+            for py_file in sorted(root.rglob("*.py")):
+                if py_file.name.startswith("_"):
+                    continue
+                rel = py_file.relative_to(root)
+                if package == "algorithms":
+                    category = rel.parts[0] if len(rel.parts) > 1 else "root"
+                else:
+                    category = package
+                results.append({
+                    "type": "builtin",
+                    "package": package,
+                    "path": str(py_file),
+                    "relative_path": str(rel),
+                    "category": category,
+                    "file": py_file.name,
+                })
 
     if user and USER_ALGS_DIR.exists():
         for name_dir in sorted(USER_ALGS_DIR.iterdir()):

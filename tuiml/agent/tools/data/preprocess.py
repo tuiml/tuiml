@@ -441,55 +441,18 @@ def execute_preprocess(**kwargs) -> Dict[str, Any]:
 
 SPEC = ToolSpec(
     name='tuiml_preprocess',
-    description="Apply preprocessing steps to a dataset and return the result as a new file. "
-        "Supports running standard pipelines or single atomic stages like split, impute, "
-        "balance, scale, encode, and discretize.",
+    description="Apply preprocessing to a dataset and write the result to a new file. "
+        "Either a list of steps, or one atomic stage (split, impute, balance, scale, encode, discretize).",
     input_schema={
             "type": "object",
             "properties": {
-                "data": {
-                    "type": "string",
-                    "description": "Data file path or built-in dataset name"
-                },
-                "target": {
-                    "type": "string",
-                    "description": "Target column name (excluded from preprocessing, re-appended to output)"
-                },
-                "steps": {
-                    "type": "array",
-                    "items": {
-                        "oneOf": [
-                            {"type": "string"},
-                            {
-                                "type": "object",
-                                "properties": {"name": {"type": "string"}},
-                                "required": ["name"],
-                                "additionalProperties": True
-                            }
-                        ]
-                    },
-                    "description": (
-                        "Preprocessing steps as names or objects with params.\n"
-                        "Examples: ['StandardScaler', 'SimpleImputer'] or "
-                        "[{'name': 'SimpleImputer', 'strategy': 'median'}, 'MinMaxScaler']"
-                    )
-                },
-                "stage": {
-                    "type": "string",
-                    "description": "Atomic preprocessing stage to execute: 'split', 'impute', 'balance', 'scale', 'encode', 'discretize'"
-                },
-                "stage_kwargs": {
-                    "type": "object",
-                    "description": "Arbitrary keyword arguments for the selected stage (e.g. kfold, test_size, strategy, method)"
-                },
-                "output": {
-                    "type": "string",
-                    "description": "Output path to save the generated file(s)"
-                },
-                "save_as": {
-                    "type": "string",
-                    "description": "Custom output file path (optional, alias for output)"
-                }
+                "data": {"type": "string", "description": "File path or built-in dataset name."},
+                "target": {"type": "string", "description": "Kept aside and re-appended to the output."},
+                "steps": {"type": "array", "items": {}, "description": "Names or {name, ...params} objects, e.g. [{\"name\": \"SimpleImputer\", \"strategy\": \"median\"}, \"MinMaxScaler\"]."},
+                "stage": {"type": "string", "description": "Atomic stage: split, impute, balance, scale, encode, discretize."},
+                "stage_kwargs": {"type": "object", "description": "e.g. kfold, test_size, strategy, method."},
+                "output": {"type": "string", "description": "Output path."},
+                "save_as": {"type": "string", "description": "Alias for output."}
             },
             "required": ["data"]
         },
@@ -497,18 +460,7 @@ SPEC = ToolSpec(
             "type": "object",
             "properties": {
                 "status": {"type": "string", "enum": ["success", "error"]},
-                "file_path": {"type": "string"},
-                "files": {
-                    "type": "object",
-                    "description": "Mapping of split names/folds to file paths"
-                },
-                "stage": {"type": "string"},
-                "split_type": {"type": "string"},
-                "n_splits": {"type": "integer"},
-                "original_shape": {"type": "array", "items": {"type": "integer"}},
-                "new_shape": {"type": "array", "items": {"type": "integer"}},
-                "steps_applied": {"type": "array", "items": {"type": "string"}},
-                "error": {"type": "string"}
+                "files": {"type": "object", "description": "Split name/fold -> path"}
             },
             "required": ["status"]
         },

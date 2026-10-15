@@ -48,40 +48,17 @@ def execute_edit_algorithm(**kwargs) -> Dict[str, Any]:
 
 SPEC = ToolSpec(
     name='tuiml_edit_algorithm',
-    description="Apply a targeted str_replace edit to a user algorithm. "
-        "Replaces exactly one occurrence of old_string with new_string, "
-        "fails loudly if old_string is not found or appears more than once "
-        "(make it more specific with surrounding context). "
-        "The edited source is AST-validated and the algorithm is re-registered "
-        "so all MCP tools immediately see the change. "
-        "Workflow: tuiml_read_algorithm → identify the text to change → tuiml_edit_algorithm. "
-        "Set bump_version=true to save as a new patch version instead of overwriting. "
-        "Built-in algorithms cannot be edited, fork them first with tuiml_create_algorithm. "
-        "",
+    description="str_replace edit on a user algorithm: old_string must occur exactly once. The result is "
+        "AST-validated and re-registered. Read with tuiml_read_algorithm first; set bump_version to keep "
+        "the previous version. Built-ins are read-only (fork via tuiml_create_algorithm).",
     input_schema={
             "type": "object",
             "properties": {
-                "name": {
-                    "type": "string",
-                    "description": "User algorithm name (directory name / class name).",
-                },
-                "old_string": {
-                    "type": "string",
-                    "description": "The exact text to find and replace. Must be unique in the file.",
-                },
-                "new_string": {
-                    "type": "string",
-                    "description": "The replacement text.",
-                },
-                "version": {
-                    "type": "string",
-                    "description": "Target a specific version. Defaults to latest.",
-                },
-                "bump_version": {
-                    "type": "boolean",
-                    "default": False,
-                    "description": "Save the edit as a new patch version instead of overwriting the current one.",
-                },
+                "name": {"type": "string", "description": "User algorithm name."},
+                "old_string": {"type": "string", "description": "Exact, unique text to replace."},
+                "new_string": {"type": "string"},
+                "version": {"type": "string", "description": "Defaults to latest."},
+                "bump_version": {"type": "boolean", "default": False, "description": "Save as a new patch version."}
             },
             "required": ["name", "old_string", "new_string"],
         },

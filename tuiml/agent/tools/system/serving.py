@@ -244,54 +244,23 @@ def execute_server_status(**kwargs) -> Dict[str, Any]:
 
 SERVE_SPEC = ToolSpec(
     name='tuiml_serve_model',
-    description="Start a REST API server to serve a trained model for predictions. "
-        "Returns the URL with endpoints: POST /predict, POST /models/{id}/predict, "
-        "GET /health, GET /models, GET /docs (Swagger UI).",
+    description="Start a REST API for a trained model (POST /predict, GET /health, GET /docs). "
+        "The response's auth_token must be sent as a Bearer token on every request except / and /health.",
     input_schema={
             "type": "object",
             "properties": {
-                "model_id": {
-                    "type": "string",
-                    "description": "Model ID returned by tuiml_train"
-                },
-                "model_path": {
-                    "type": "string",
-                    "description": "Path to model file (alternative to model_id)"
-                },
-                "port": {
-                    "type": "integer",
-                    "default": 8000,
-                    "minimum": 1024,
-                    "maximum": 65535,
-                    "description": "Port to serve on (default: 8000)"
-                },
-                "host": {
-                    "type": "string",
-                    "default": "127.0.0.1",
-                    "description": "Host to bind to (default: 127.0.0.1)"
-                }
-            },
-            "required": []
+                "model_id": {"type": "string", "description": "From tuiml_train."},
+                "model_path": {"type": "string", "description": "Saved model file (alternative)."},
+                "port": {"type": "integer", "default": 8000, "minimum": 1024, "maximum": 65535},
+                "host": {"type": "string", "default": "127.0.0.1"}
+            }
         },
     output_schema={
             "type": "object",
             "properties": {
                 "status": {"type": "string", "enum": ["success", "error"]},
-                "server_id": {"type": "string", "description": "Server ID ('host:port'); pass to tuiml_stop_server"},
-                "model_id": {"type": "string"},
-                "url": {"type": "string", "description": "Base URL of the serving API"},
-                "auth_token": {
-                    "type": "string",
-                    "description": (
-                        "Bearer token this server requires. Send as "
-                        "'Authorization: Bearer <token>' on every request except / and "
-                        "/health. Generated per server; this response is the only place "
-                        "it appears."
-                    ),
-                },
-                "endpoints": {"type": "object", "description": "Map of endpoint names to URLs"},
-                "example_curl": {"type": "string"},
-                "error": {"type": "string"}
+                "server_id": {"type": "string", "description": "host:port; pass to tuiml_stop_server"},
+                "auth_token": {"type": "string", "description": "Bearer token; only shown here"}
             },
             "required": ["status"]
         },
@@ -300,28 +269,21 @@ SERVE_SPEC = ToolSpec(
     read_only=False, destructive=False,
     idempotent=False, open_world=True,
 )
-
-
 STOP_SPEC = ToolSpec(
     name='tuiml_stop_server',
-    description="Stop a running model serving API server.",
+    description="Stop a serving API server, or all of them when server_id is omitted.",
     input_schema={
             "type": "object",
             "properties": {
-                "server_id": {
-                    "type": "string",
-                    "description": "Server ID returned by tuiml_serve_model. If omitted, stops all servers."
-                }
-            },
-            "required": []
+                "server_id": {"type": "string", "description": "From tuiml_serve_model."}
+            }
         },
     output_schema={
             "type": "object",
             "properties": {
                 "status": {"type": "string", "enum": ["success", "error"]},
                 "message": {"type": "string"},
-                "stopped": {"type": "array"},
-                "error": {"type": "string"}
+                "stopped": {"type": "array"}
             },
             "required": ["status"]
         },
@@ -330,23 +292,19 @@ STOP_SPEC = ToolSpec(
     read_only=False, destructive=False,
     idempotent=True, open_world=False,
 )
-
-
 STATUS_SPEC = ToolSpec(
     name='tuiml_server_status',
-    description="Get status of running model serving API servers.",
+    description="Status of running model serving servers.",
     input_schema={
             "type": "object",
-            "properties": {},
-            "required": []
+            "properties": {}
         },
     output_schema={
             "type": "object",
             "properties": {
                 "status": {"type": "string", "enum": ["success", "error"]},
                 "count": {"type": "integer"},
-                "servers": {"type": "array"},
-                "error": {"type": "string"}
+                "servers": {"type": "array"}
             },
             "required": ["status"]
         },

@@ -8,6 +8,24 @@ from .._state import _MODEL_INDEX
 from .._shared import _save_model_to_disk, _load_data
 
 
+def _normalise_search_space(param_grid: Dict[str, Any]) -> Dict[str, Any]:
+    """Convert JSON ``[low, high, type]`` ranges to tuner tuples.
+
+    Only explicitly tagged numeric ranges are converted. Plain lists,
+    including two numeric choices, keep their discrete-choice meaning.
+    """
+    return {
+        name: tuple(values) if (
+            isinstance(values, list)
+            and len(values) == 3
+            and values[2] in ("int", "float")
+            and all(isinstance(v, (int, float)) and not isinstance(v, bool)
+                    for v in values[:2])
+        ) else values
+        for name, values in param_grid.items()
+    }
+
+
 def execute_tune(**kwargs) -> Dict[str, Any]:
     """Hyperparameter optimization for any registered algorithm.
 
@@ -71,6 +89,8 @@ def execute_tune(**kwargs) -> Dict[str, Any]:
 
         method = kwargs['method']
         param_grid = kwargs['param_grid']
+        if method in ('random', 'bayesian'):
+            param_grid = _normalise_search_space(param_grid)
         cv = kwargs.get('cv', 5)
         scoring = kwargs.get('scoring', 'accuracy')
         random_seed = kwargs.get('random_seed')
@@ -183,74 +203,28 @@ def execute_tune(**kwargs) -> Dict[str, Any]:
 
 SPEC = ToolSpec(
     name='tuiml_tune',
-    description="Hyperparameter optimization for any algorithm. Supports grid search, "
-        "random search, and Bayesian optimization. Returns best parameters, "
-        "best score, and a trained model with optimal settings.",
+    description="Hyperparameter search (grid, random or bayesian) with CV. Returns best_params, "
+        "best_score and a model_id trained with them.",
     input_schema={
             "type": "object",
             "properties": {
-                "algorithm": {
-                    "type": "string",
-                    "description": "Algorithm class name (e.g., 'RandomForestClassifier', 'SVM')"
-                },
-                "data": {
-                    "type": "string",
-                    "description": "Data file path or built-in dataset name"
-                },
-                "target": {
-                    "type": "string",
-                    "description": "Target column name"
-                },
-                "method": {
-                    "type": "string",
-                    "enum": ["grid", "random", "bayesian"],
-                    "description": "Tuning method: 'grid' (exhaustive), 'random' (sampled), 'bayesian' (GP-based)"
-                },
-                "param_grid": {
-                    "type": "object",
-                    "description": (
-                        "Parameter search space. For grid: {'param': [val1, val2]}. "
-                        "For random/bayesian: {'param': [low, high, 'int']} or {'param': [val1, val2]}."
-                    )
-                },
-                "cv": {
-                    "type": "integer",
-                    "default": 5,
-                    "description": "Number of cross-validation folds"
-                },
-                "scoring": {
-                    "type": "string",
-                    "description": "Scoring metric (e.g., 'accuracy', 'r2', 'neg_mse')"
-                },
-                "n_iter": {
-                    "type": "integer",
-                    "default": 10,
-                    "description": "Number of iterations for random search"
-                },
-                "n_iterations": {
-                    "type": "integer",
-                    "default": 50,
-                    "description": "Number of iterations for Bayesian search"
-                },
-                "random_seed": {
-                    "type": "integer",
-                    "description": "Random seed for reproducibility"
-                }
+                "algorithm": {"type": "string", "description": "Exact class name, e.g. RandomForestClassifier."},
+                "data": {"type": "string", "description": "File path or built-in dataset name."},
+                "target": {"type": "string", "description": "Target column for files; omit for built-in datasets."},
+                "method": {"type": "string", "enum": ["grid", "random", "bayesian"]},
+                "param_grid": {"type": "object", "description": "grid: {param: [values]}; random/bayesian: [low, high, \"int\"] for integer ranges, [low, high, \"float\"] for continuous ranges. Plain lists (including two numbers) are discrete choices."},
+                "cv": {"type": "integer", "default": 5},
+                "scoring": {"type": "string", "description": "e.g. accuracy, f1_weighted, r2, neg_mse."},
+                "n_iter": {"type": "integer", "default": 10, "description": "Random-search iterations."},
+                "n_iterations": {"type": "integer", "default": 50, "description": "Bayesian iterations."},
+                "random_seed": {"type": "integer"}
             },
-            "required": ["algorithm", "data", "target", "method", "param_grid"]
+            "required": ["algorithm", "data", "method", "param_grid"]
         },
     output_schema={
             "type": "object",
             "properties": {
-                "status": {"type": "string", "enum": ["success", "error"]},
-                "method": {"type": "string"},
-                "best_params": {"type": "object"},
-                "best_score": {"type": "number"},
-                "cv_results": {"type": "object"},
-                "model_id": {"type": "string"},
-                "model_path": {"type": "string"},
-                "random_seed": {"type": "integer"},
-                "error": {"type": "string"}
+                "status": {"type": "string", "enum": ["success", "error"]}
             },
             "required": ["status"]
         },

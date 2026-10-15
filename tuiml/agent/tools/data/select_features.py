@@ -134,56 +134,23 @@ def execute_select_features(**kwargs) -> Dict[str, Any]:
 
 SPEC = ToolSpec(
     name='tuiml_select_features',
-    description="Run feature selection on a dataset and return selected feature names/indices. "
-        "Supports filter methods (SelectKBestSelector, SelectPercentileSelector, "
-        "VarianceThresholdSelector, SelectFprSelector, SelectThresholdSelector), "
-        "correlation-based (CFSSelector), and wrapper methods (WrapperSelector).",
+    description="Feature selection as a standalone step; returns the selected feature names.",
     input_schema={
             "type": "object",
             "properties": {
-                "data": {
-                    "type": "string",
-                    "description": "Data file path or built-in dataset name"
-                },
-                "target": {
-                    "type": "string",
-                    "description": "Target column name"
-                },
-                "method": {
-                    "type": "string",
-                    "enum": [
-                        "SelectKBestSelector", "SelectPercentileSelector",
-                        "VarianceThresholdSelector", "CFSSelector",
-                        "WrapperSelector", "SelectFprSelector", "SelectThresholdSelector"
-                    ],
-                    "description": "Feature selection method"
-                },
-                "k": {
-                    "type": "integer",
-                    "description": "Number of top features to select (SelectKBestSelector)"
-                },
-                "threshold": {
-                    "type": "number",
-                    "description": "Threshold for VarianceThresholdSelector or SelectThresholdSelector"
-                },
-                "method_params": {
-                    "type": "object",
-                    "description": "Additional method-specific parameters"
-                }
+                "data": {"type": "string", "description": "File path or built-in dataset name."},
+                "target": {"type": "string"},
+                "method": {"type": "string", "enum": ["SelectKBestSelector", "SelectPercentileSelector", "VarianceThresholdSelector", "CFSSelector", "WrapperSelector", "SelectFprSelector", "SelectThresholdSelector"]},
+                "k": {"type": "integer", "description": "SelectKBestSelector."},
+                "threshold": {"type": "number", "description": "VarianceThreshold / SelectThreshold selectors."},
+                "method_params": {"type": "object"}
             },
             "required": ["data", "target", "method"]
         },
     output_schema={
             "type": "object",
             "properties": {
-                "status": {"type": "string", "enum": ["success", "error"]},
-                "method": {"type": "string"},
-                "n_original": {"type": "integer"},
-                "n_selected": {"type": "integer"},
-                "selected_features": {"type": "array", "items": {"type": "string"}},
-                "scores": {"type": "object"},
-                "file_path": {"type": "string"},
-                "error": {"type": "string"}
+                "status": {"type": "string", "enum": ["success", "error"]}
             },
             "required": ["status"]
         },

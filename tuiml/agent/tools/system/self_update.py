@@ -187,26 +187,13 @@ def execute_self_update(**kwargs) -> Dict[str, Any]:
 
 SPEC = ToolSpec(
     name='tuiml_self_update',
-    description="Upgrade the TuiML installation to the latest PyPI release. "
-        "Auto-detects the installer (uv tool install vs pip) and runs the "
-        "appropriate upgrade command. Returns the command, its stdout / "
-        "stderr, and the resulting version. Editable / dev installs are "
-        "refused, those need a git pull instead.\n\n"
-        "IMPORTANT: the running MCP process is still using the old package "
-        "in memory. Call tuiml_restart immediately after, or restart the "
-        "client manually, for the new version to take effect.",
+    description="Upgrade TuiML to the latest PyPI release (uv tool or pip auto-detected; editable installs refused). "
+        "The running server keeps the old code: call tuiml_restart afterwards.",
     input_schema={
             "type": "object",
             "properties": {
-                "dry_run": {
-                    "type": "boolean",
-                    "description": "Print the command that would be run without executing it.",
-                    "default": False,
-                },
-                "target_version": {
-                    "type": "string",
-                    "description": "Upgrade to a specific version (e.g. '0.1.3'). Defaults to latest.",
-                },
+                "dry_run": {"type": "boolean", "default": False, "description": "Only print the command."},
+                "target_version": {"type": "string", "description": "Defaults to latest."}
             },
         },
     # No dedicated output schema; falls back to COMPONENT_OUTPUT_SCHEMA.

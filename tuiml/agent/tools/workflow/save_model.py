@@ -63,30 +63,19 @@ def execute_save_model(**kwargs) -> Dict[str, Any]:
 
 SPEC = ToolSpec(
     name='tuiml_save_model',
-    description="Copy a trained model to a custom path. Use this when the user wants to save or download a model to a specific location.",
+    description="Copy a trained model to a path of the user's choosing.",
     input_schema={
             "type": "object",
             "properties": {
-                "model_id": {
-                    "type": "string",
-                    "description": "Model ID returned by tuiml_train"
-                },
-                "destination": {
-                    "type": "string",
-                    "description": "Destination file path (e.g., './my_model.joblib', '/home/user/models/rf.joblib')"
-                }
+                "model_id": {"type": "string", "description": "From tuiml_train."},
+                "destination": {"type": "string", "description": "Destination file path, e.g. ./rf.joblib."}
             },
             "required": ["model_id", "destination"]
         },
     output_schema={
             "type": "object",
             "properties": {
-                "status": {"type": "string", "enum": ["success", "error"]},
-                "model_id": {"type": "string"},
-                "source": {"type": "string"},
-                "destination": {"type": "string"},
-                "message": {"type": "string"},
-                "error": {"type": "string"}
+                "status": {"type": "string", "enum": ["success", "error"]}
             },
             "required": ["status"]
         },

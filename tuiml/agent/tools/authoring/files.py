@@ -34,22 +34,12 @@ def execute_list_algorithm_files(**kwargs) -> Dict[str, Any]:
 
 SPEC = ToolSpec(
     name='tuiml_list_files',
-    description="List all algorithm source files, built-in and/or user-authored. "
-        "Returns file paths, categories, and metadata. Use this before "
-        "tuiml_read_algorithm to discover what's available and find the right name.",
+    description="List algorithm source files (built-in and/or user) with paths; use before tuiml_read_algorithm.",
     input_schema={
             "type": "object",
             "properties": {
-                "builtin": {
-                    "type": "boolean",
-                    "default": True,
-                    "description": "Include built-in tuiml algorithm files.",
-                },
-                "user": {
-                    "type": "boolean",
-                    "default": True,
-                    "description": "Include user-authored algorithm files.",
-                },
+                "builtin": {"type": "boolean", "default": True},
+                "user": {"type": "boolean", "default": True}
             },
         },
     # No dedicated output schema; falls back to COMPONENT_OUTPUT_SCHEMA.

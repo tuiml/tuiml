@@ -40,28 +40,15 @@ def execute_read_algorithm(**kwargs) -> Dict[str, Any]:
 
 SPEC = ToolSpec(
     name='tuiml_read_algorithm',
-    description="Return the full source code of any algorithm, user-authored or built-in. "
-        "For user algorithms pass the directory name (class name). "
-        "For built-in algorithms set builtin=true and pass the class name "
-        "(e.g. 'RandomForestClassifier') or file stem (e.g. 'random_forest'). "
-        "Source is returned both raw and with line numbers for easy reference. "
-        "Built-in algorithms are read-only; use tuiml_create_algorithm to fork them.",
+    description="Full source of a user algorithm (by name) or, with builtin=true, a built-in one "
+        "(class name, namespaced hub key such as foundation.ChronosForecaster or sklearn.SVC, "
+        "or file stem). Returned raw and with line numbers.",
     input_schema={
             "type": "object",
             "properties": {
-                "name": {
-                    "type": "string",
-                    "description": "Algorithm name (class name or directory name).",
-                },
-                "version": {
-                    "type": "string",
-                    "description": "Specific version to read (e.g. '1.0.2'). Defaults to latest.",
-                },
-                "builtin": {
-                    "type": "boolean",
-                    "default": False,
-                    "description": "Set true to read a built-in tuiml algorithm instead of a user algorithm.",
-                },
+                "name": {"type": "string"},
+                "version": {"type": "string", "description": "Defaults to latest."},
+                "builtin": {"type": "boolean", "default": False}
             },
             "required": ["name"],
         },

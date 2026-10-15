@@ -35,18 +35,13 @@ def execute_delete_user_algorithm(**kwargs) -> Dict[str, Any]:
 
 SPEC = ToolSpec(
     name='tuiml_delete_algorithm',
-    description="Delete a user algorithm from disk. Pass only `name` to remove every "
-        "version; pass both to remove a single version. Registry entries for "
-        "already-loaded classes remain until the MCP server restarts. "
-        "",
+    description="Delete a user algorithm from disk: one version, or every version when version is omitted. "
+        "Loaded classes stay registered until the server restarts.",
     input_schema={
             "type": "object",
             "properties": {
                 "name": {"type": "string"},
-                "version": {
-                    "type": "string",
-                    "description": "If omitted, all versions are removed.",
-                },
+                "version": {"type": "string"}
             },
             "required": ["name"],
         },

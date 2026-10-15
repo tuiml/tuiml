@@ -2,6 +2,7 @@
 
 from typing import Any, Dict
 
+from .._shared import _normalise_scores
 from .._spec import ToolSpec
 
 
@@ -19,7 +20,10 @@ def execute_statistical_test(**kwargs) -> Dict[str, Any]:
         Name of the test to run (arrives via ``**kwargs``, like all
         parameters below).
     results : dict
-        ``{algorithm_name: [scores...]}`` mapping of per-fold scores.
+        ``{algorithm_name: [scores...]}`` mapping of per-fold scores, or a
+        ``tuiml_benchmark`` result (see :func:`_normalise_scores`).
+    metric : str, default=None
+        Which metric to take from a benchmark result; defaults to the first.
     significance_level : float, default=0.05
         Alpha level for significance.
     higher_better : bool, default=True
@@ -43,8 +47,9 @@ def execute_statistical_test(**kwargs) -> Dict[str, Any]:
         alpha = kwargs.get('significance_level', 0.05)
         higher_better = kwargs.get('higher_better', True)
 
-        # Convert results to numpy arrays
-        results = {name: np.array(scores, dtype=float) for name, scores in raw_results.items()}
+        # Accept the flat {algorithm: [scores]} shape or a tuiml_benchmark result as-is.
+        flat = _normalise_scores(raw_results, kwargs.get('metric'))
+        results = {name: np.array(scores, dtype=float) for name, scores in flat.items()}
 
         from tuiml.evaluation.statistics import (
             friedman_test, nemenyi_post_hoc, wilcoxon_signed_rank_test,
@@ -150,56 +155,24 @@ def execute_statistical_test(**kwargs) -> Dict[str, Any]:
 
 SPEC = ToolSpec(
     name='tuiml_test_statistics',
-    description="Run statistical significance tests on experiment results (cross-validation scores). "
-        "Supports Friedman test, Nemenyi post-hoc, Wilcoxon signed-rank, paired t-test, "
-        "one-way ANOVA, Friedman aligned ranks, and Quade test.",
+    description="Significance tests over per-fold scores. friedman / anova / friedman_aligned / quade "
+        "compare 3+ algorithms; nemenyi is the post-hoc after friedman; wilcoxon / paired_t compare two. "
+        "results may be a tuiml_benchmark result passed as-is.",
     input_schema={
             "type": "object",
             "properties": {
-                "test": {
-                    "type": "string",
-                    "enum": [
-                        "friedman", "nemenyi", "wilcoxon",
-                        "paired_t", "anova", "friedman_aligned", "quade"
-                    ],
-                    "description": (
-                        "Statistical test to run:\n"
-                        "- friedman: Non-parametric test for 3+ algorithms\n"
-                        "- nemenyi: Post-hoc pairwise test after Friedman\n"
-                        "- wilcoxon: Non-parametric pairwise test (2 algorithms)\n"
-                        "- paired_t: Parametric pairwise test (2 algorithms)\n"
-                        "- anova: Parametric test for 3+ groups\n"
-                        "- friedman_aligned: More powerful variant of Friedman\n"
-                        "- quade: Non-parametric test accounting for dataset difficulty"
-                    )
-                },
-                "results": {
-                    "type": "object",
-                    "description": "Algorithm CV scores: { 'AlgorithmName': [score1, score2, ...], ... }"
-                },
-                "significance_level": {
-                    "type": "number",
-                    "default": 0.05,
-                    "description": "Significance level (alpha), default 0.05"
-                },
-                "higher_better": {
-                    "type": "boolean",
-                    "default": True,
-                    "description": "Whether higher scores are better (default True)"
-                }
+                "test": {"type": "string", "enum": ["friedman", "nemenyi", "wilcoxon", "paired_t", "anova", "friedman_aligned", "quade"]},
+                "results": {"type": "object", "description": "{\"AlgoName\": [fold scores...], ...} or the tuiml_benchmark result."},
+                "metric": {"type": "string", "description": "Metric to take from a benchmark result (default: first)."},
+                "significance_level": {"type": "number", "default": 0.05},
+                "higher_better": {"type": "boolean", "default": True}
             },
             "required": ["test", "results"]
         },
     output_schema={
             "type": "object",
             "properties": {
-                "status": {"type": "string", "enum": ["success", "error"]},
-                "test": {"type": "string"},
-                "statistic": {"type": "number"},
-                "p_value": {"type": "number"},
-                "significant": {"type": "boolean"},
-                "details": {"type": "object"},
-                "error": {"type": "string"}
+                "status": {"type": "string", "enum": ["success", "error"]}
             },
             "required": ["status"]
         },

@@ -6,7 +6,7 @@ from typing import Any, Dict
 
 from .._spec import ToolSpec
 from .._state import _MODEL_INDEX
-from .._shared import _save_model_to_disk, _load_model_from_disk, _load_data
+from .._shared import _save_model_to_disk, _load_model_from_disk, _load_data, _unknown_metrics
 
 
 def execute_train(**kwargs) -> Dict[str, Any]:
@@ -379,6 +379,10 @@ def execute_train(**kwargs) -> Dict[str, Any]:
     elif preset:
         kwargs['pipeline'] = preset
 
+    bad_metrics = _unknown_metrics(kwargs.get('metrics'))
+    if bad_metrics:
+        return bad_metrics
+
     evaluation = {
         key: kwargs.pop(key)
         for key in ('cv', 'test_size', 'stratify', 'metrics')
@@ -457,168 +461,43 @@ def execute_train(**kwargs) -> Dict[str, Any]:
 
 SPEC = ToolSpec(
     name='tuiml_train',
-    description="Train a machine learning model with evaluation. Two evaluation modes:\n"
-        "1. Holdout (default): splits data into train/test sets using test_size. "
-        "Returns metrics on the test set and predictions.\n"
-        "2. Cross-validation: set cv=5 or cv=10 for k-fold CV. "
-        "Returns mean/std metrics across folds.\n"
-        "If neither cv nor test_size is provided, defaults to holdout with test_size=0.2.\n"
-        "Supports classifiers, regressors, and clusterers.",
+    description="Train and evaluate one model. Holdout split by default (test_size=0.2); "
+        "set cv=5 or cv=10 for k-fold instead. Works for classifiers, regressors and clusterers. "
+        "Returns metrics plus a model_id for tuiml_predict / tuiml_evaluate / tuiml_plot.",
     input_schema={
             "type": "object",
             "properties": {
                 "algorithm": {
                     "type": "string",
-                    "description": (
-                        "Algorithm class name. Examples:\n"
-                        "- Classifiers: 'RandomForestClassifier', 'SVM', 'NaiveBayesClassifier', 'DecisionTreeClassifier'\n"
-                        "- Regressors: 'LinearRegression', 'RandomForestRegressor'\n"
-                        "- Clusterers: 'KMeansClusterer', 'GaussianMixtureClusterer', 'DBSCANClusterer'\n"
-                        "- Optional sklearn backends (needs tuiml[sklearn]): 'sklearn.RandomForestClassifier', 'sklearn.SVC', 'sklearn.Lasso'"
-                    )
+                    "description": "Exact class name from tuiml_list, e.g. RandomForestClassifier, SVC, LinearRegression, KMeansClusterer (sklearn.X for the optional sklearn backend)."
                 },
-                "data": {
-                    "type": "string",
-                    "description": "Data file path or built-in dataset name (e.g., 'iris', 'wine')"
-                },
-                "target": {
-                    "type": "string",
-                    "description": "Target column (required for supervised, optional for clustering)"
-                },
-                "features": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "description": (
-                        "Optional: restrict the feature matrix to these named columns. "
-                        "When omitted, every non-target column is used as a feature."
-                    )
-                },
+                "data": {"type": "string", "description": "File path, uploaded dataset_id, or built-in name (iris, diabetes, breast-cancer, glass, ionosphere, vote, credit-g, soybean, labor, hypothyroid, contact-lenses, cpu)."},
+                "target": {"type": "string", "description": "Target column (supervised only)."},
+                "features": {"type": "array", "items": {"type": "string"}, "description": "Restrict to these columns; default: all non-target columns."},
                 "preprocessing": {
                     "type": "array",
-                    "items": {
-                        "oneOf": [
-                            {"type": "string"},
-                            {
-                                "type": "object",
-                                "properties": {"name": {"type": "string"}},
-                                "required": ["name"],
-                                "additionalProperties": True
-                            }
-                        ]
-                    },
-                    "description": (
-                        "Preprocessing steps as names or objects with params.\n"
-                        "Examples: ['SimpleImputer', 'StandardScaler'] or "
-                        "[{'name': 'SimpleImputer', 'strategy': 'median'}, 'MinMaxScaler']"
-                    )
+                    "items": {},
+                    "description": "Steps as names or {name, ...params} objects, e.g. [\"StandardScaler\", {\"name\": \"SimpleImputer\", \"strategy\": \"median\"}]."
                 },
-                "feature_selection": {
-                    "oneOf": [
-                        {"type": "string"},
-                        {
-                            "type": "object",
-                            "properties": {
-                                "name": {"type": "string"},
-                            },
-                            "required": ["name"],
-                            "additionalProperties": True
-                        }
-                    ],
-                    "description": (
-                        "Feature selection method. String name or object with params.\n"
-                        "Examples: 'SelectKBestSelector' or {'name': 'SelectKBestSelector', 'k': 10}"
-                    )
-                },
-                "cv": {
-                    "type": "integer",
-                    "description": (
-                        "Number of cross-validation folds (e.g. 5 or 10). "
-                        "OPTIONAL: if omitted, uses holdout train/test split instead. "
-                        "Only used for supervised learning (ignored for clustering)."
-                    )
-                },
-                "test_size": {
-                    "type": "number",
-                    "default": 0.2,
-                    "description": (
-                        "Proportion of data for the test set (0.0-1.0). "
-                        "Used in holdout mode (when cv is NOT set). Default 0.2 (80/20 split). "
-                        "Ignored when cv is set."
-                    )
-                },
-                "metrics": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "description": (
-                        "Metrics to compute. Use exact function names. Must match algorithm type:\n"
-                        "- Classification: ['accuracy_score', 'f1_score', 'precision_score', 'recall_score', 'roc_auc_score', 'balanced_accuracy_score', 'log_loss', 'matthews_corrcoef']\n"
-                        "- Regression: ['r2_score', 'root_mean_squared_error', 'mean_absolute_error', 'mean_squared_error']\n"
-                        "- Clustering: ['silhouette_score', 'calinski_harabasz_score', 'davies_bouldin_score']"
-                    )
-                },
-                "preset": {
-                    "type": "string",
-                    "enum": ["minimal", "fast", "standard", "full", "imbalanced"],
-                    "description": "Preprocessing preset"
-                },
-                "algorithm_params": {
-                    "type": "object",
-                    "description": "Algorithm hyperparameters (e.g., {'n_clusters': 3})"
-                },
-                "save_path": {
-                    "type": "string",
-                    "description": "Custom path to save the model file (optional). If omitted, saved to temp directory."
-                },
-                "random_seed": {
-                    "type": "integer",
-                    "description": "Random seed for reproducibility"
-                },
-                "stage": {
-                    "type": "string",
-                    "description": "Atomic training stage: 'init', 'fit', 'partial_fit', 'cross_validate'"
-                },
-                "stage_kwargs": {
-                    "type": "object",
-                    "description": "Arbitrary stage-specific keyword arguments (e.g. classes)"
-                },
-                "model_id": {
-                    "type": "string",
-                    "description": "Unique identifier of a previously initialized/saved model"
-                },
-                "model_path": {
-                    "type": "string",
-                    "description": "File path of a previously initialized/saved model"
-                }
-            },
-            "required": []
+                "feature_selection": {"description": "Selector name or {name, ...params}, e.g. {\"name\": \"SelectKBestSelector\", \"k\": 10}."},
+                "cv": {"type": "integer", "description": "k-fold CV folds; omit for holdout."},
+                "test_size": {"type": "number", "default": 0.2, "description": "Holdout test fraction (ignored when cv is set)."},
+                "metrics": {"type": "array", "items": {"type": "string"}, "description": "Exact metric function names. Classification: accuracy_score, f1_score, precision_score, recall_score, roc_auc_score, balanced_accuracy_score, log_loss, matthews_corrcoef. Regression: r2_score, root_mean_squared_error, mean_absolute_error, mean_squared_error. Clustering: silhouette_score, calinski_harabasz_score, davies_bouldin_score."},
+                "preset": {"type": "string", "enum": ["minimal", "fast", "standard", "full", "imbalanced"], "description": "Preprocessing preset."},
+                "algorithm_params": {"type": "object", "description": "Constructor hyperparameters, e.g. {\"n_estimators\": 200}."},
+                "save_path": {"type": "string", "description": "Where to save the model; default temp dir."},
+                "random_seed": {"type": "integer", "description": "Seed for reproducibility."},
+                "stage": {"type": "string", "description": "Atomic stage: init, fit, partial_fit, cross_validate."},
+                "stage_kwargs": {"type": "object", "description": "Extra kwargs for the stage."},
+                "model_id": {"type": "string", "description": "Existing model to continue (stages)."},
+                "model_path": {"type": "string", "description": "Existing model file to continue (stages)."}
+            }
         },
     output_schema={
             "type": "object",
             "properties": {
                 "status": {"type": "string", "enum": ["success", "error"]},
-                "model_id": {
-                    "type": "string",
-                    "description": "Model ID - use with tuiml_predict and tuiml_evaluate"
-                },
-                "model_path": {
-                    "type": "string",
-                    "description": "File path where the model is saved on disk"
-                },
-                "metrics": {
-                    "type": "object",
-                    "description": "Performance metrics (accuracy, f1, etc.)"
-                },
-                "cv_results": {
-                    "type": "object",
-                    "description": "Cross-validation fold results"
-                },
-                "model_class": {
-                    "type": "string",
-                    "description": "Name of the trained model class"
-                },
-                "metadata": {"type": "object"},
-                "random_seed": {"type": "integer"},
-                "error": {"type": "string"}
+                "model_id": {"type": "string", "description": "Use with tuiml_predict / tuiml_evaluate / tuiml_plot"}
             },
             "required": ["status"]
         },

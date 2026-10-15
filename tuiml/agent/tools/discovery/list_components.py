@@ -166,71 +166,23 @@ def execute_list(**kwargs) -> Dict[str, Any]:
 
 SPEC = ToolSpec(
     name='tuiml_list',
-    description="List TuiML components (algorithms, preprocessors, datasets, features) "
-        "or custom user-authored algorithms. Use category='custom' to list "
-        "algorithms created via tuiml_create_algorithm, shows all versions, "
-        "best scores, and run history. Pass include_runs=true for full experiment "
-        "history (useful for auto-research: see what was tried and what to improve next).",
+    description="List components by category, with optional type filter, keyword search and paging. "
+        "category='custom' lists agent-authored algorithms (versions, best scores; include_runs for history).",
     input_schema={
             "type": "object",
             "properties": {
-                "category": {
-                    "type": "string",
-                    "enum": ["algorithm", "preprocessing", "dataset", "feature", "splitting", "custom", "all"],
-                    "default": "all",
-                    "description": "Category to list. Use 'custom' for user-authored algorithms."
-                },
-                "type": {
-                    "type": "string",
-                    "enum": ["classifier", "regressor", "clusterer", "anomaly", "associator", "timeseries"],
-                    "description": "Filter algorithms by type (ignored for category='custom')."
-                },
-                "search": {
-                    "type": "string",
-                    "description": "Search keyword to filter results."
-                },
-                "include_runs": {
-                    "type": "boolean",
-                    "default": False,
-                    "description": "For category='custom': include full experiment run history and best scores per version."
-                },
-                "limit": {
-                    "type": "integer",
-                    "default": 50,
-                    "minimum": 1,
-                    "maximum": 200,
-                    "description": "Maximum number of results to return (default: 50)."
-                },
-                "offset": {
-                    "type": "integer",
-                    "default": 0,
-                    "minimum": 0,
-                    "description": "Number of results to skip for pagination."
-                }
-            },
-            "required": []
+                "category": {"type": "string", "enum": ["algorithm", "preprocessing", "dataset", "feature", "splitting", "custom", "all"], "default": "all"},
+                "type": {"type": "string", "enum": ["classifier", "regressor", "clusterer", "anomaly", "associator", "timeseries"], "description": "Algorithm type filter."},
+                "search": {"type": "string", "description": "Keyword filter."},
+                "include_runs": {"type": "boolean", "default": False, "description": "custom only: full run history."},
+                "limit": {"type": "integer", "default": 50, "minimum": 1, "maximum": 200},
+                "offset": {"type": "integer", "default": 0, "minimum": 0}
+            }
         },
     output_schema={
             "type": "object",
             "properties": {
-                "status": {"type": "string", "enum": ["success", "error"]},
-                "total": {"type": "integer", "description": "Total number of components"},
-                "count": {"type": "integer", "description": "Number of components returned"},
-                "limit": {"type": "integer"},
-                "offset": {"type": "integer"},
-                "has_more": {"type": "boolean"},
-                "components": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "name": {"type": "string"},
-                            "description": {"type": "string"},
-                            "category": {"type": "string"}
-                        }
-                    }
-                },
-                "error": {"type": "string"}
+                "status": {"type": "string", "enum": ["success", "error"]}
             },
             "required": ["status"]
         },

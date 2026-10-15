@@ -103,38 +103,19 @@ def execute_data_profile(**kwargs) -> Dict[str, Any]:
 
 SPEC = ToolSpec(
     name='tuiml_profile_data',
-    description="Inspect a dataset before training, shape, dtypes, missing values, "
-        "basic statistics, and class distribution. Works with file paths or "
-        "built-in dataset names.",
+    description="Inspect a dataset before training: shape, dtypes, missing values, stats, class balance.",
     input_schema={
             "type": "object",
             "properties": {
-                "data": {
-                    "type": "string",
-                    "description": "Data file path or built-in dataset name (e.g., 'iris', 'wine', '/path/to/data.csv')"
-                },
-                "target": {
-                    "type": "string",
-                    "description": "Target column name (optional, used for class distribution)"
-                }
+                "data": {"type": "string", "description": "File path or built-in dataset name."},
+                "target": {"type": "string", "description": "For class distribution."}
             },
             "required": ["data"]
         },
     output_schema={
             "type": "object",
             "properties": {
-                "status": {"type": "string", "enum": ["success", "error"]},
-                "name": {"type": "string"},
-                "shape": {"type": "array", "items": {"type": "integer"}},
-                "n_samples": {"type": "integer"},
-                "n_features": {"type": "integer"},
-                "feature_names": {"type": "array", "items": {"type": "string"}},
-                "dtypes": {"type": "object"},
-                "missing_values": {"type": "object"},
-                "numeric_stats": {"type": "object"},
-                "class_distribution": {"type": "object"},
-                "target_column": {"type": "string"},
-                "error": {"type": "string"}
+                "status": {"type": "string", "enum": ["success", "error"]}
             },
             "required": ["status"]
         },

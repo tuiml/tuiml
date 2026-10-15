@@ -125,10 +125,7 @@ OUTPUT_SCHEMAS: Dict[str, Dict] = {
 COMPONENT_OUTPUT_SCHEMA = {
     "type": "object",
     "properties": {
-        "status": {"type": "string", "enum": ["success", "error"]},
-        "result": {"type": "string", "description": "String representation of the component"},
-        "type": {"type": "string", "description": "Component class name"},
-        "error": {"type": "string"}
+        "status": {"type": "string", "enum": ["success", "error"]}
     },
     "required": ["status"]
 }

@@ -172,37 +172,20 @@ def execute_export_notebook(**kwargs) -> Dict[str, Any]:
 
 SPEC = ToolSpec(
     name='tuiml_export_notebook',
-    description="Export the current MCP chat session as a reproducible Jupyter notebook (.ipynb). "
-        "Training, experiment, tuning, plotting, and data-prep steps performed in this "
-        "session are translated to equivalent Python API calls so the user can re-run the "
-        "full workflow without the AI client. "
-        "Call this at the end of a session when the user wants to save their work as a notebook.",
+    description="Export this session's training, benchmark, tuning, plotting and data-prep calls as a "
+        "reproducible Jupyter notebook of equivalent Python API calls.",
     input_schema={
             "type": "object",
             "properties": {
-                "path": {
-                    "type": "string",
-                    "description": (
-                        "Destination file path for the notebook. "
-                        "Defaults to ~/tuiml_session.ipynb if omitted."
-                    ),
-                },
-                "title": {
-                    "type": "string",
-                    "description": "Optional custom title for the notebook header cell.",
-                },
+                "path": {"type": "string", "description": "Defaults to ~/tuiml_session.ipynb."},
+                "title": {"type": "string"}
             },
             "required": [],
         },
     output_schema={
             "type": "object",
             "properties": {
-                "status": {"type": "string", "enum": ["success", "error"]},
-                "path": {"type": "string", "description": "Absolute path to the written .ipynb file"},
-                "cells": {"type": "integer", "description": "Total number of notebook cells"},
-                "workflow_calls": {"type": "integer", "description": "Number of MCP calls translated"},
-                "message": {"type": "string"},
-                "error": {"type": "string"}
+                "status": {"type": "string", "enum": ["success", "error"]}
             },
             "required": ["status"]
         },

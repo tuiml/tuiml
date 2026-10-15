@@ -52,46 +52,18 @@ def execute_create_algorithm(**kwargs) -> Dict[str, Any]:
 
 SPEC = ToolSpec(
     name='tuiml_create_algorithm',
-    description="Persist, validate, and register a new agent-authored algorithm. "
-        "The source is AST-validated (forbidden modules: subprocess, socket, "
-        "os, urllib, requests, …; forbidden calls: eval, exec, open, __import__) "
-        "and saved to ~/.tuiml/user_algorithms/<name>/<version>/algorithm.py. "
-        "After registration, the algorithm is available via its class name to "
-        "every existing MCP tool (tuiml_train, tuiml_benchmark, tuiml_describe). "
-        "Each version is also registered under a pinned alias "
-        "<ClassName>_v<major>_<minor>_<patch> so you can A/B compare versions "
-        "inside a single tuiml_benchmark. "
-        "",
+    description="Validate (AST: no os/subprocess/socket/network modules, no eval/exec/open) and register "
+        "an agent-authored algorithm under ~/.tuiml/user_algorithms/<name>/<version>/. It then works in "
+        "every tool by class name, plus a pinned alias <Class>_v<M>_<m>_<p> for A/B benchmarks.",
     input_schema={
             "type": "object",
             "properties": {
-                "name": {
-                    "type": "string",
-                    "description": "Directory name, usually equal to the class name (Python identifier).",
-                },
-                "kind": {
-                    "type": "string",
-                    "enum": ["classifier", "regressor"],
-                    "description": "Task kind. Must match the imported class's base type.",
-                },
-                "code": {
-                    "type": "string",
-                    "description": "Full Python source. Must define exactly one @classifier or @regressor class.",
-                },
-                "version": {
-                    "type": "string",
-                    "description": "Semver for this submission, e.g. '1.0.0', '1.0.1'.",
-                    "default": "1.0.0",
-                },
-                "description": {
-                    "type": "string",
-                    "description": "Optional short description (falls back to the class docstring).",
-                },
-                "force": {
-                    "type": "boolean",
-                    "description": "Overwrite an existing file at <name>/<version>/. Bump the version instead when possible.",
-                    "default": False,
-                },
+                "name": {"type": "string", "description": "Python identifier, usually the class name."},
+                "kind": {"type": "string", "enum": ["classifier", "regressor"], "description": "Must match the class's base type."},
+                "code": {"type": "string", "description": "Full source defining exactly one @classifier or @regressor class."},
+                "version": {"type": "string", "default": "1.0.0", "description": "Semver."},
+                "description": {"type": "string", "description": "Falls back to the class docstring."},
+                "force": {"type": "boolean", "default": False, "description": "Overwrite an existing version (prefer bumping)."}
             },
             "required": ["name", "kind", "code"],
         },

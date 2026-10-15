@@ -252,10 +252,62 @@ def _resolve_component(name: str):
         if cls is not None:
             return cls
 
+    hint = _did_you_mean(name, registry.list_names())
     raise ValueError(
-        f"Unknown component '{name}'. Use tuiml.search_algorithms('{name}') to "
+        f"Unknown component '{name}'.{hint} Use tuiml.search_algorithms('{name}') to "
         f"find the right name, or pass the class/instance directly."
     )
+
+
+#: Shorthands agents reach for that are not registry names.
+_COMPONENT_SHORTHANDS = {
+    "svm": ("SVC", "SVR"),
+    "knn": ("KNearestNeighborsClassifier", "KNearestNeighborsRegressor"),
+    "kneighborsclassifier": ("KNearestNeighborsClassifier",),
+    "kneighborsregressor": ("KNearestNeighborsRegressor",),
+    "naivebayes": ("NaiveBayesClassifier",),
+    "gaussiannb": ("NaiveBayesClassifier",),
+    "mlp": ("MultilayerPerceptronClassifier", "MultilayerPerceptronRegressor"),
+    "kmeans": ("KMeansClusterer",),
+    "dbscan": ("DBSCANClusterer",),
+    "isolationforest": ("IsolationForestDetector",),
+}
+
+
+def _did_you_mean(name: str, candidates, limit: int = 5) -> str:
+    """Build a ``" Did you mean: A, B?"`` hint for an unknown component name.
+
+    Matches case-insensitively by known shorthand (``SVM`` -> ``SVC``),
+    substring (``RandomForest`` -> ``RandomForestClassifier``, ``...Regressor``)
+    and :func:`difflib.get_close_matches`, in that order.
+
+    Parameters
+    ----------
+    name : str
+        The name that failed to resolve.
+    candidates : iterable of str
+        Registered component names.
+    limit : int, default=5
+        Maximum number of suggestions.
+
+    Returns
+    -------
+    str
+        The hint with a leading space, or ``""`` when nothing is close.
+    """
+    import difflib
+
+    names = list(candidates)
+    lower = {n.lower(): n for n in names}
+    key = name.strip().lower().split(".")[-1]
+    found = [lower[c.lower()] for c in _COMPONENT_SHORTHANDS.get(key, ()) if c.lower() in lower]
+    found += [n for k, n in lower.items() if key in k and n not in found]
+    for c in difflib.get_close_matches(key, list(lower), n=limit, cutoff=0.6):
+        if lower[c] not in found:
+            found.append(lower[c])
+    # Native names first; namespaced backends (sklearn.X) are rarely what was meant.
+    found = sorted(found, key=lambda n: "." in n)[:limit]
+    return f" Did you mean: {', '.join(found)}?" if found else ""
 
 
 def _build_step(spec: Any, seed: Optional[int] = None):

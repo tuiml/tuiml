@@ -23,6 +23,8 @@ Examples
 
 from typing import List, Optional
 
+import re
+
 from tuiml.datasets.builtin._paths import _CATEGORY_DIRS
 from tuiml.datasets.loaders import Dataset, load_arff
 
@@ -133,6 +135,103 @@ DATASET_REGISTRY = {
 }
 
 
+#: Short names people commonly type for a bundled dataset. Values are the
+#: ARFF file stem that :func:`load_dataset` resolves.
+DATASET_ALIASES = {
+    "credit": "credit-g",
+    "breast": "breast-cancer",
+    "lenses": "contact-lenses",
+}
+
+
+def _canonical(name: str) -> str:
+    """Lower-case a dataset name and unify ``_``/``-``/space separators to ``-``.
+
+    Parameters
+    ----------
+    name : str
+        User-supplied dataset name.
+
+    Returns
+    -------
+    str
+        Normalised key, e.g. ``'Breast_Cancer'`` -> ``'breast-cancer'``.
+    """
+    key = name.strip().lower()
+    if key.endswith(".arff"):
+        key = key[:-5]
+    return re.sub(r"[\s_]+", "-", key)
+
+
+def resolve_dataset_name(name: str) -> str:
+    """Map a loosely written dataset name to the bundled ARFF file stem.
+
+    Accepts case, separator (``breast_cancer`` / ``breast-cancer`` /
+    ``Breast Cancer``) and alias (``credit`` -> ``credit-g``) variants, so
+    the same name works whether it came from :data:`DATASET_REGISTRY`
+    (underscore keys), a file stem (hyphens) or an agent's guess.
+
+    Parameters
+    ----------
+    name : str
+        Dataset name in any of the accepted spellings.
+
+    Returns
+    -------
+    str
+        The file stem to load, e.g. ``'breast-cancer'``.
+
+    Raises
+    ------
+    ValueError
+        If nothing matches; the message lists close matches and every
+        available name.
+
+    Examples
+    --------
+    >>> from tuiml.datasets.builtin.catalog import resolve_dataset_name
+    >>> resolve_dataset_name("breast_cancer")
+    'breast-cancer'
+    >>> resolve_dataset_name("credit")
+    'credit-g'
+    """
+    available = list_datasets()
+    by_key = {_canonical(stem): stem for stem in available}
+    key = _canonical(name)
+    if key in by_key:
+        return by_key[key]
+    if key in DATASET_ALIASES:
+        return DATASET_ALIASES[key]
+    import difflib
+    close = difflib.get_close_matches(key, list(by_key), n=3, cutoff=0.6)
+    close += [stem for k, stem in by_key.items() if key in k and stem not in close]
+    hint = f" Did you mean: {', '.join(dict.fromkeys(close))}?" if close else ""
+    raise ValueError(f"Dataset '{name}' not found.{hint} Available: {available}")
+
+
+def _registry_key(name: str) -> str:
+    """Return the :data:`DATASET_REGISTRY` key (underscore form) for ``name``.
+
+    Parameters
+    ----------
+    name : str
+        Dataset name in any accepted spelling.
+
+    Returns
+    -------
+    str
+        The registry key, or ``name`` unchanged when it has no registry entry.
+    """
+    try:
+        stem = resolve_dataset_name(name)
+    except ValueError:
+        return name
+    for key in DATASET_REGISTRY:
+        if _canonical(key) == stem or DATASET_ALIASES.get(_canonical(key)) == stem:
+            return key
+    return name
+
+
 def get_dataset_info(name: str = None) -> dict:
     """Get metadata about built-in datasets in an LLM-friendly format.
 
@@ -161,9 +260,10 @@ def get_dataset_info(name: str = None) -> dict:
     768
     """
     if name:
-        if name not in DATASET_REGISTRY:
+        key = _registry_key(name)
+        if key not in DATASET_REGISTRY:
             raise ValueError(f"Unknown dataset: {name}. Available: {list(DATASET_REGISTRY.keys())}")
-        return DATASET_REGISTRY[name]
+        return DATASET_REGISTRY[key]
     return DATASET_REGISTRY
 
 
@@ -261,20 +361,20 @@ def load_dataset(name: str) -> Dataset:
     >>> iris = load_dataset('iris')
     >>> X, y = iris
     """
-    # Search in all directories
-    for category_dir in _CATEGORY_DIRS.values():
-        path = category_dir / f"{name}.arff"
-        if path.exists():
-            return load_arff(path)
-
-    # Try exact filename
+    # Exact file name first (``iris.arff``), then the normalised stem so
+    # ``breast_cancer``, ``Breast-Cancer`` and ``credit`` all resolve.
     for category_dir in _CATEGORY_DIRS.values():
         path = category_dir / name
         if path.exists():
             return load_arff(path)
 
-    available = list_datasets()
-    raise ValueError(f"Dataset '{name}' not found. Available: {available}")
+    stem = resolve_dataset_name(name)
+    for category_dir in _CATEGORY_DIRS.values():
+        path = category_dir / f"{stem}.arff"
+        if path.exists():
+            return load_arff(path)
+
+    raise ValueError(f"Dataset '{name}' not found. Available: {list_datasets()}")
 
 
 __all__ = [
@@ -283,4 +383,6 @@ __all__ = [
     "get_datasets_by_task",
     "list_datasets",
     "load_dataset",
+    "resolve_dataset_name",
+    "DATASET_ALIASES",
 ]

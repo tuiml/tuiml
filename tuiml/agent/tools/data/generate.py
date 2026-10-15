@@ -120,65 +120,26 @@ def execute_generate_data(**kwargs) -> Dict[str, Any]:
 
 SPEC = ToolSpec(
     name='tuiml_generate_data',
-    description="Generate synthetic datasets for testing and demos. Supports classification "
-        "(RandomRBF, Agrawal, LED, Hyperplane), regression (Friedman, MexicanHat, Sine), "
-        "and clustering (Blobs, Moons, Circles, SwissRoll) generators.",
+    description="Generate a synthetic dataset. Classification: RandomRBF, Agrawal, LED, Hyperplane. "
+        "Regression: Friedman, MexicanHat, Sine. Clustering: Blobs, Moons, Circles, SwissRoll.",
     input_schema={
             "type": "object",
             "properties": {
-                "generator": {
-                    "type": "string",
-                    "enum": [
-                        "RandomRBF", "Agrawal", "LED", "Hyperplane",
-                        "Friedman", "MexicanHat", "Sine",
-                        "Blobs", "Moons", "Circles", "SwissRoll"
-                    ],
-                    "description": "Generator class name"
-                },
-                "n_samples": {
-                    "type": "integer",
-                    "default": 100,
-                    "description": "Number of samples to generate"
-                },
-                "n_features": {
-                    "type": "integer",
-                    "description": "Number of features (not all generators support this)"
-                },
-                "n_classes": {
-                    "type": "integer",
-                    "description": "Number of classes (classification generators only)"
-                },
-                "n_clusters": {
-                    "type": "integer",
-                    "description": "Number of clusters (clustering generators only)"
-                },
-                "noise": {
-                    "type": "number",
-                    "description": "Noise level (regression generators only)"
-                },
-                "random_seed": {
-                    "type": "integer",
-                    "description": "Random seed for reproducibility"
-                },
-                "generator_params": {
-                    "type": "object",
-                    "description": "Additional generator-specific parameters"
-                }
+                "generator": {"type": "string", "enum": ["RandomRBF", "Agrawal", "LED", "Hyperplane", "Friedman", "MexicanHat", "Sine", "Blobs", "Moons", "Circles", "SwissRoll"]},
+                "n_samples": {"type": "integer", "default": 100},
+                "n_features": {"type": "integer", "description": "Where the generator supports it."},
+                "n_classes": {"type": "integer", "description": "Classification generators."},
+                "n_clusters": {"type": "integer", "description": "Clustering generators."},
+                "noise": {"type": "number", "description": "Regression generators."},
+                "random_seed": {"type": "integer"},
+                "generator_params": {"type": "object", "description": "Other generator-specific params."}
             },
             "required": ["generator"]
         },
     output_schema={
             "type": "object",
             "properties": {
-                "status": {"type": "string", "enum": ["success", "error"]},
-                "generator": {"type": "string"},
-                "file_path": {"type": "string"},
-                "shape": {"type": "array", "items": {"type": "integer"}},
-                "feature_names": {"type": "array", "items": {"type": "string"}},
-                "target_names": {"type": "array", "items": {"type": "string"}},
-                "preview": {"type": "object"},
-                "random_seed": {"type": "integer"},
-                "error": {"type": "string"}
+                "status": {"type": "string", "enum": ["success", "error"]}
             },
             "required": ["status"]
         },

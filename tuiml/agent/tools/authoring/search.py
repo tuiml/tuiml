@@ -44,31 +44,14 @@ def execute_search_source(**kwargs) -> Dict[str, Any]:
 
 SPEC = ToolSpec(
     name='tuiml_search_source',
-    description="Grep for a pattern inside algorithm source files. "
-        "Returns matching lines with file path and line number, "
-        "use this to locate a specific function, variable, or logic before editing. "
-        "Accepts a regex pattern.",
+    description="Grep algorithm source files by regex; returns matching lines with path and line number.",
     input_schema={
             "type": "object",
             "properties": {
-                "query": {
-                    "type": "string",
-                    "description": "Regex pattern to search for.",
-                },
-                "name": {
-                    "type": "string",
-                    "description": "Scope search to one user algorithm by name. Omit to search all.",
-                },
-                "builtin": {
-                    "type": "boolean",
-                    "default": True,
-                    "description": "Search built-in algorithm files.",
-                },
-                "user": {
-                    "type": "boolean",
-                    "default": True,
-                    "description": "Search user-authored algorithm files.",
-                },
+                "query": {"type": "string", "description": "Regex pattern."},
+                "name": {"type": "string", "description": "Limit to one user algorithm."},
+                "builtin": {"type": "boolean", "default": True},
+                "user": {"type": "boolean", "default": True}
             },
             "required": ["query"],
         },

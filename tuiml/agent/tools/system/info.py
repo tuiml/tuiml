@@ -284,19 +284,11 @@ def execute_system_info(**kwargs) -> Dict[str, Any]:
 
 SPEC = ToolSpec(
     name='tuiml_system_info',
-    description="Report details about the TuiML installation on this machine: "
-        "installed version, install method (uv tool / pip / editable), "
-        "package location, Python executable, platform, and the latest "
-        "version available on PyPI. Agents can use this to decide whether "
-        "an update is worth running via tuiml_self_update.",
+    description="Installed TuiML version, install method, package path, Python, platform and latest PyPI version.",
     input_schema={
             "type": "object",
             "properties": {
-                "check_latest": {
-                    "type": "boolean",
-                    "description": "Query PyPI for the latest released version. Defaults to true.",
-                    "default": True,
-                }
+                "check_latest": {"type": "boolean", "default": True, "description": "Query PyPI."}
             },
         },
     # No dedicated output schema; falls back to COMPONENT_OUTPUT_SCHEMA.

@@ -105,26 +105,18 @@ def execute_describe(**kwargs) -> Dict[str, Any]:
 
 SPEC = ToolSpec(
     name='tuiml_describe',
-    description="Get detailed information and parameter schema for any TuiML component.",
+    description="Parameter schema and details for any component (algorithm, preprocessor, dataset).",
     input_schema={
             "type": "object",
             "properties": {
-                "name": {
-                    "type": "string",
-                    "description": "Component name (e.g., 'RandomForestClassifier', 'SimpleImputer', 'iris')"
-                }
+                "name": {"type": "string", "description": "e.g. RandomForestClassifier, SimpleImputer, iris."}
             },
             "required": ["name"]
         },
     output_schema={
             "type": "object",
             "properties": {
-                "status": {"type": "string", "enum": ["success", "error"]},
-                "type": {"type": "string"},
-                "name": {"type": "string"},
-                "description": {"type": "string"},
-                "parameters": {"type": "object"},
-                "error": {"type": "string"}
+                "status": {"type": "string", "enum": ["success", "error"]}
             },
             "required": ["status"]
         },

@@ -41,33 +41,15 @@ def execute_algorithm_skeleton(**kwargs) -> Dict[str, Any]:
 
 SPEC = ToolSpec(
     name='tuiml_get_skeleton',
-    description="Return a ready-to-edit Python source template for a new @classifier "
-        "or @regressor class. Agents should call this, fill in fit() and "
-        "predict(), then pass the completed source to tuiml_create_algorithm. "
-        "",
+    description="Fill-in-the-blanks source template for a new @classifier or @regressor; complete fit()/predict() "
+        "and pass it to tuiml_create_algorithm.",
     input_schema={
             "type": "object",
             "properties": {
-                "kind": {
-                    "type": "string",
-                    "enum": ["classifier", "regressor"],
-                    "description": "Task kind the new algorithm targets.",
-                },
-                "class_name": {
-                    "type": "string",
-                    "description": "Python identifier for the new class, e.g. 'MyGradientBoosting'.",
-                    "default": "MyAlgorithm",
-                },
-                "version": {
-                    "type": "string",
-                    "description": "Initial semver, e.g. '1.0.0'.",
-                    "default": "1.0.0",
-                },
-                "description": {
-                    "type": "string",
-                    "description": "One-line docstring for the class.",
-                    "default": "Describe what your algorithm does.",
-                },
+                "kind": {"type": "string", "enum": ["classifier", "regressor"]},
+                "class_name": {"type": "string", "default": "MyAlgorithm"},
+                "version": {"type": "string", "default": "1.0.0"},
+                "description": {"type": "string", "default": "Describe what your algorithm does.", "description": "Class docstring."}
             },
             "required": ["kind"],
         },

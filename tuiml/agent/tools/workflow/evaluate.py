@@ -350,51 +350,24 @@ def execute_evaluate(**kwargs) -> Dict[str, Any]:
 
 SPEC = ToolSpec(
     name='tuiml_evaluate',
-    description="Evaluate a trained model on test data and compute metrics.",
+    description="Score a trained model on a labelled dataset.",
     input_schema={
             "type": "object",
             "properties": {
-                "model_id": {
-                    "type": "string",
-                    "description": "Model ID returned by tuiml_train (preferred)"
-                },
-                "model_path": {
-                    "type": "string",
-                    "description": "Path to saved model file (alternative to model_id)"
-                },
-                "data": {
-                    "type": "string",
-                    "description": "Path to test data file"
-                },
-                "target": {
-                    "type": "string",
-                    "description": "Target column name"
-                },
-                "metrics": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "description": "Metrics to compute"
-                },
-                "stage": {
-                    "type": "string",
-                    "description": "Atomic evaluation stage: 'metrics', 'report'"
-                },
-                "stage_kwargs": {
-                    "type": "object",
-                    "description": "Arbitrary stage-specific keyword arguments"
-                }
+                "model_id": {"type": "string", "description": "From tuiml_train (preferred)."},
+                "model_path": {"type": "string", "description": "Saved model file (alternative)."},
+                "data": {"type": "string", "description": "Test data file path."},
+                "target": {"type": "string"},
+                "metrics": {"type": "array", "items": {"type": "string"}, "description": "Exact metric function names."},
+                "stage": {"type": "string", "description": "Atomic stage: metrics, report."},
+                "stage_kwargs": {"type": "object"}
             },
             "required": ["data"]
         },
     output_schema={
             "type": "object",
             "properties": {
-                "status": {"type": "string", "enum": ["success", "error"]},
-                "metrics": {
-                    "type": "object",
-                    "description": "Evaluation metrics"
-                },
-                "error": {"type": "string"}
+                "status": {"type": "string", "enum": ["success", "error"]}
             },
             "required": ["status"]
         },

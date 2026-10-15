@@ -5,7 +5,7 @@ import uuid
 from typing import Any, Dict
 
 from .._spec import ToolSpec
-from .._shared import _load_model_from_disk, _load_data
+from .._shared import _load_model_from_disk, _load_data, _normalise_scores
 
 
 def execute_plot(**kwargs) -> Dict[str, Any]:
@@ -33,6 +33,8 @@ def execute_plot(**kwargs) -> Dict[str, Any]:
         Normalize counts in the confusion matrix.
     algorithm : str, default=None
         Algorithm name; required for ``learning_curve``.
+    metric : str, default=None
+        Which metric to take from a benchmark result; defaults to the first.
     benchmark_results : dict, default=None
         ``{algorithm_name: [scores...]}`` mapping; required for the
         comparison plots (cd_diagram, boxplot_comparison, heatmap,
@@ -394,7 +396,8 @@ def execute_plot(**kwargs) -> Dict[str, Any]:
                 }
 
             scores_dict = {
-                name: np.array(scores) for name, scores in benchmark_results.items()
+                name: np.array(scores)
+                for name, scores in _normalise_scores(benchmark_results, kwargs.get('metric')).items()
             }
 
             if plot_type == 'cd_diagram':
@@ -464,83 +467,34 @@ def execute_plot(**kwargs) -> Dict[str, Any]:
 
 SPEC = ToolSpec(
     name='tuiml_plot',
-    description="Generate a visualization/plot for model analysis. Returns the plot as an "
-        "inline image. Supported plot types: confusion_matrix, roc_curve, pr_curve, "
-        "learning_curve, tree, feature_importance.",
+    description="Render a plot as an inline image. Model plots (tree, feature_importance) need model_id; "
+        "evaluation plots (confusion_matrix, roc_curve, pr_curve) need model_id + data + target; "
+        "learning_curve needs algorithm + data + target; comparison plots (cd_diagram, "
+        "boxplot_comparison, heatmap, ranking_table) need benchmark_results (a tuiml_benchmark result as-is works).",
     input_schema={
             "type": "object",
             "properties": {
                 "plot_type": {
                     "type": "string",
-                    "enum": [
-                        "confusion_matrix",
-                        "roc_curve",
-                        "pr_curve",
-                        "learning_curve",
-                        "tree",
-                        "feature_importance",
-                        "cd_diagram",
-                        "boxplot_comparison",
-                        "heatmap",
-                        "ranking_table"
-                    ],
-                    "description": (
-                        "Type of plot to generate:\n"
-                        "- confusion_matrix: Heatmap of predicted vs actual classes (requires model_id + data + target)\n"
-                        "- roc_curve: ROC curve with AUC for binary or multiclass classifiers (requires model_id + data + target)\n"
-                        "- pr_curve: Precision-Recall curve with AP for binary classifiers (requires model_id + data + target)\n"
-                        "- learning_curve: Training vs validation score over dataset sizes (requires algorithm + data + target)\n"
-                        "- tree: Decision tree structure visualization (requires model_id)\n"
-                        "- feature_importance: Bar chart of feature importances (requires model_id)\n"
-                        "- cd_diagram: Critical difference diagram for algorithm comparison (requires benchmark_results)\n"
-                        "- boxplot_comparison: Box plot comparing algorithm scores (requires benchmark_results)\n"
-                        "- heatmap: Heatmap of algorithm scores across datasets (requires benchmark_results)\n"
-                        "- ranking_table: Ranking table of algorithms (requires benchmark_results)"
-                    )
+                    "enum": ["confusion_matrix", "roc_curve", "pr_curve", "learning_curve", "tree",
+                             "feature_importance", "cd_diagram", "boxplot_comparison", "heatmap", "ranking_table"]
                 },
-                "model_id": {
-                    "type": "string",
-                    "description": "Model ID from tuiml_train (required for most plot types)"
-                },
-                "model_path": {
-                    "type": "string",
-                    "description": "Path to saved model file (alternative to model_id)"
-                },
-                "data": {
-                    "type": "string",
-                    "description": "Data file path or built-in dataset name (required for confusion_matrix, roc_curve, pr_curve, learning_curve)"
-                },
-                "target": {
-                    "type": "string",
-                    "description": "Target column name (required for confusion_matrix, roc_curve, pr_curve, learning_curve)"
-                },
-                "algorithm": {
-                    "type": "string",
-                    "description": "Algorithm class name (required for learning_curve)"
-                },
-                "title": {
-                    "type": "string",
-                    "description": "Custom plot title (optional)"
-                },
-                "normalize": {
-                    "type": "boolean",
-                    "default": False,
-                    "description": "Normalize confusion matrix to show percentages (confusion_matrix only)"
-                },
-                "benchmark_results": {
-                    "type": "object",
-                    "description": "Algorithm CV scores for comparison plots: { 'AlgoName': [score1, score2, ...], ... }"
-                }
+                "model_id": {"type": "string", "description": "From tuiml_train."},
+                "model_path": {"type": "string", "description": "Saved model file (alternative to model_id)."},
+                "data": {"type": "string", "description": "File path or built-in dataset name."},
+                "target": {"type": "string"},
+                "algorithm": {"type": "string", "description": "Class name (learning_curve only)."},
+                "title": {"type": "string"},
+                "normalize": {"type": "boolean", "default": False, "description": "Show confusion matrix as percentages."},
+                "benchmark_results": {"type": "object", "description": "{\"AlgoName\": [fold scores...], ...} or the tuiml_benchmark result."},
+                "metric": {"type": "string", "description": "Metric to take from a benchmark result (default: first)."}
             },
             "required": ["plot_type"]
         },
     output_schema={
             "type": "object",
             "properties": {
-                "status": {"type": "string", "enum": ["success", "error"]},
-                "plot_type": {"type": "string"},
-                "description": {"type": "string"},
-                "error": {"type": "string"}
+                "status": {"type": "string", "enum": ["success", "error"]}
             },
             "required": ["status"]
         },

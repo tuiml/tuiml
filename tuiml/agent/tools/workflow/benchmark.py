@@ -3,7 +3,7 @@
 from typing import Any, Dict
 
 from .._spec import ToolSpec
-from .._shared import _load_data
+from .._shared import _load_data, _unknown_metrics
 
 
 def execute_benchmark(**kwargs) -> Dict[str, Any]:
@@ -87,6 +87,9 @@ def execute_benchmark(**kwargs) -> Dict[str, Any]:
 
         evaluation = {"cv": kwargs.get('cv', 10)}
         if kwargs.get('metrics'):
+            bad_metrics = _unknown_metrics(kwargs['metrics'])
+            if bad_metrics:
+                return bad_metrics
             evaluation["metrics"] = list(kwargs['metrics'])
 
         bench = tuiml.Benchmark(
@@ -139,65 +142,28 @@ def execute_benchmark(**kwargs) -> Dict[str, Any]:
 
 SPEC = ToolSpec(
     name='tuiml_benchmark',
-    description="Compare multiple algorithms on one or more datasets with cross-validation and statistical tests. Supports supervised learning (classification, regression) and unsupervised learning (clustering). Pass a single dataset name or a list of dataset names to benchmark across multiple datasets.",
+    description="Compare several algorithms on one or more datasets with k-fold CV. "
+        "Supports classification, regression, clustering and forecasting (forecasters get "
+        "expanding-window time-ordered folds on the target column; namespaced keys such as "
+        "foundation.ChronosForecaster work). Returns per-dataset mean/std "
+        "scores you can pass to tuiml_test_statistics and tuiml_plot.",
     input_schema={
             "type": "object",
             "properties": {
-                "algorithms": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "description": "List of algorithm class names to compare (e.g., ['RandomForestClassifier', 'SVM'] for classification, ['KMeansClusterer', 'GaussianMixtureClusterer'] for clustering)"
-                },
-                "data": {
-                    "oneOf": [
-                        {"type": "string"},
-                        {"type": "array", "items": {"type": "string"}}
-                    ],
-                    "description": "Dataset name(s) or file path(s). Single string (e.g., 'iris') or list of names (e.g., ['iris', 'wine', 'breast_cancer']) to compare across multiple datasets."
-                },
-                "target": {
-                    "type": "string",
-                    "description": "Target column name (for supervised learning)"
-                },
-                "cv": {
-                    "type": "integer",
-                    "default": 10,
-                    "description": "Number of CV folds (ignored for clustering)"
-                },
-                "metrics": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "description": (
-                        "Metrics to compute. Use exact function names. IMPORTANT: Must match algorithm type:\n"
-                        "- Classification: ['accuracy_score', 'f1_score', 'precision_score', 'recall_score', 'roc_auc_score']\n"
-                        "- Regression: ['r2_score', 'root_mean_squared_error', 'mean_absolute_error', 'mean_squared_error']\n"
-                        "- Clustering: ['silhouette_score', 'calinski_harabasz_score', 'davies_bouldin_score']\n"
-                        "If omitted, appropriate metrics are automatically selected based on algorithm type."
-                    )
-                },
-                "random_seed": {
-                    "type": "integer",
-                    "description": "Random seed for reproducibility"
-                }
+                "algorithms": {"type": "array", "items": {"type": "string"}, "description": "Exact class names, e.g. [\"RandomForestClassifier\", \"SVC\", \"NaiveBayesClassifier\"]."},
+                "data": {"description": "One dataset name/path, or a list of them, e.g. [\"iris\", \"glass\", \"breast-cancer\"]."},
+                "target": {"type": "string", "description": "Target column for supervised files; omit for built-in datasets or clustering."},
+                "cv": {"type": "integer", "default": 10, "description": "CV folds (ignored for clustering)."},
+                "metrics": {"type": "array", "items": {"type": "string"}, "description": "Exact metric function names, auto-selected when omitted. Classification: accuracy_score, f1_score, precision_score, recall_score, roc_auc_score. Regression: r2_score, root_mean_squared_error, mean_absolute_error, mean_squared_error. Clustering: silhouette_score, calinski_harabasz_score, davies_bouldin_score. Forecasting: mean_absolute_error, root_mean_squared_error, mean_squared_error."},
+                "random_seed": {"type": "integer"}
             },
-            "required": ["algorithms", "data", "target"]
+            "required": ["algorithms", "data"]
         },
     output_schema={
             "type": "object",
             "properties": {
                 "status": {"type": "string", "enum": ["success", "error"]},
-                "summary": {"type": "string"},
-                "results": {
-                    "type": "object",
-                    "description": "Results by dataset and model"
-                },
-                "algorithms": {"type": "array", "items": {"type": "string"}},
-                "datasets": {"type": "array", "items": {"type": "string"}},
-                "cv_folds": {"type": "integer"},
-                "error": {"type": "string"},
-                "suggested_metrics": {"type": "array", "items": {"type": "string"}},
-                "algorithm_types": {"type": "array", "items": {"type": "string"}},
-                "random_seed": {"type": "integer"}
+                "results": {"type": "object", "description": "By dataset and model"}
             },
             "required": ["status"]
         },
