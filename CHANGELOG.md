@@ -8,6 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **The MCP server serves its own skill ("Skills over MCP", SEP-2640).**
+  The bundled skill is exposed as `skill://tuiml/...` resources and the
+  server advertises the `io.modelcontextprotocol/skills` extension with the
+  `skills/list` and `skills/get` methods (frontmatter plus a SHA-256 digest
+  manifest per file, so clients such as fast-agent can install and verify
+  it). Clients without the extension still get every file through plain
+  `resources/read`. `tuiml-mcp --info` reports the extension.
+- **Task-specific skill guides.** `workflows/research.md` walks an agent
+  from a research question through experiment design, `tuiml_benchmark`
+  runs, Friedman/Nemenyi analysis, a paper draft and a self-review rubric;
+  `workflows/industry.md` covers churn, fraud, forecasting, segmentation
+  and regression playbooks, business metrics, and a single-file HTML report
+  and dashboard template. `reference/mistakes.md` lists the failure modes
+  seen in real MCP sessions (wrong algorithm and dataset names, argument
+  shapes, tool ordering, plot requirements) with the fix for each.
+- Cache hints on `tools/list`, `resources/list` and
+  `resources/templates/list`, so 2026-07-28 clients stop re-fetching the
+  static tool list every turn.
 - **Pretrained time series foundation models.** `foundation.ChronosForecaster`
   (Amazon Chronos-Bolt tiny/mini/small/base and Chronos-2, selected by
   `checkpoint`) and `foundation.TimesFMForecaster` (Google TimesFM 2.5
@@ -29,6 +47,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   place of verbose `oneOf` blocks, and the wrong examples (`SVM`, `wine`,
   `breast_cancer`) corrected. `tools/list` now costs roughly half the
   tokens it did, with no change in accepted arguments.
+- **`SKILL.md` is now a 1,200-token router instead of a 13,000-token
+  manual.** It keeps the two-dialect rule, the exact-name table, the
+  built-in dataset list and the core tool loop, and links to
+  `reference/python-api.md`, `reference/mcp-tools.md`, `reference/cli.md`,
+  `reference/mistakes.md` and the two workflow guides, which clients load
+  on demand (progressive disclosure per the Agent Skills spec). The
+  frontmatter `name` is now `tuiml` (lowercase, as the spec requires).
+  `tuiml setup` installs the whole tree; framework adapters
+  (`tuiml.agent.adapters`) still receive the full text through
+  `load_skill()`.
 
 ### Fixed
 - `tuiml_read_algorithm`, `tuiml_list_files` and `tuiml_search_source` now

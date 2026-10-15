@@ -223,21 +223,25 @@ uv run pytest    <span class="cm"># Run tests</span></div>
 
                     <div class="oc-sub">Step 3: Optional, install the skill file by hand</div>
                     <p class="oc-caption">
-                        Setup registers the MCP server for every client, and installs the skill file wherever the
+                        Setup registers the MCP server for every client, and installs the skill folder wherever the
                         client has a skills directory (Claude Code, OpenClaw). Editors that read project rules
                         instead want the file copied in by hand:
                     </p>
-<div class="code-block"><span class="cm"># Cursor</span>
-cp path/to/tuiml/tuiml/agent/prompts/SKILL.md .cursor/rules/tuiml.md
+<div class="code-block"><span class="cm"># The skill is a folder (SKILL.md + reference/ + workflows/). For editors that read
+# one rules file, write the merged text that the SDK adapters use as their system prompt:</span>
+uv run python -c "from tuiml.agent import load_skill; print(load_skill())" > tuiml-skill.md
+
+<span class="cm"># Cursor</span>
+mv tuiml-skill.md .cursor/rules/tuiml.md
 
 <span class="cm"># Windsurf</span>
-cp path/to/tuiml/tuiml/agent/prompts/SKILL.md .windsurf/rules/tuiml.md
+mv tuiml-skill.md .windsurf/rules/tuiml.md
 
 <span class="cm"># GitHub Copilot</span>
-cp path/to/tuiml/tuiml/agent/prompts/SKILL.md .github/copilot-instructions.md
+mv tuiml-skill.md .github/copilot-instructions.md
 
 <span class="cm"># Cline</span>
-cp path/to/tuiml/tuiml/agent/prompts/SKILL.md .clinerules</div>
+mv tuiml-skill.md .clinerules</div>
                     <p class="oc-caption" style="margin-top: 8px;">Optional: the tools work without it; the agent just has less context on how to use them well.</p>
                 </div>
 

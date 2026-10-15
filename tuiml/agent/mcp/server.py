@@ -159,6 +159,7 @@ _MCP_UNAVAILABLE_REASON = None
 try:
     import jsonschema
     from mcp.server import Server
+    from mcp.server.caching import CacheHint
     from mcp.server.stdio import stdio_server
     from mcp.types import (
         Tool,
@@ -172,6 +173,8 @@ try:
         ListResourcesResult,
         ListResourceTemplatesResult,
         ReadResourceResult,
+        RequestParams,
+        PaginatedRequestParams,
     )
     MCP_AVAILABLE = True
 except ImportError:
@@ -197,6 +200,17 @@ if MCP_AVAILABLE and hasattr(Server, "list_tools"):
         f"Installed MCP SDK {_found} is too old. TuiML's MCP server targets "
         f"the 2.x SDK. Upgrade with: pip install 'mcp>=2'"
     )
+
+from tuiml.agent.mcp.skills import (
+    SKILLS_EXTENSION_ID,
+    SKILLS_EXTENSION_SETTINGS,
+    SKILL_MD_URI,
+    get_skill,
+    list_skills,
+    list_skill_resources,
+    read_skill_resource,
+)
+
 
 def _strip_none(obj):
     """Recursively remove None values from dicts so absent optional fields pass schema validation.
@@ -546,10 +560,13 @@ def create_server() -> "Server":
         Returns
         -------
         mcp.types.ListResourcesResult
-            One Resource per built-in dataset, with a
+            The TuiML skill files (``skill://tuiml/SKILL.md``, Markdown)
+            followed by one Resource per built-in dataset, with a
             ``tuiml://dataset/{name}`` URI and JSON mime type.
         """
-        resources = []
+        # The bundled SKILL.md first (SEP-2640 "Skills over MCP"): clients
+        # without the skills extension can still find and read the guide.
+        resources = [Resource(**entry) for entry in list_skill_resources()]
 
         try:
             from tuiml.datasets.builtin import DATASET_REGISTRY
@@ -577,17 +594,26 @@ def create_server() -> "Server":
         ctx : mcp.server.context.ServerRequestContext
             Per-request context (unused here).
         params : mcp.types.ReadResourceRequestParams
-            Carries the ``tuiml://dataset/{name}`` URI to read.
+            Carries the ``skill://tuiml/{file}`` or ``tuiml://dataset/{name}``
+            URI to read.
 
         Returns
         -------
         mcp.types.ReadResourceResult
-            One JSON text block with dataset name, info, shape, feature
+            For a skill URI, the file as Markdown text. For a dataset URI,
+            one JSON text block with dataset name, info, shape, feature
             names, and a 5-row preview; or a JSON error object for unknown
             URIs.
         """
         uri = str(params.uri)
         payload = None
+
+        skill_file = read_skill_resource(uri)
+        if skill_file is not None:
+            mime, text = skill_file
+            return ReadResourceResult(contents=[
+                TextResourceContents(uri=uri, mime_type=mime, text=text)
+            ])
 
         if uri.startswith("tuiml://dataset/"):
             dataset_name = uri.replace("tuiml://dataset/", "")
@@ -631,8 +657,8 @@ def create_server() -> "Server":
         Returns
         -------
         mcp.types.ListResourceTemplatesResult
-            A single template describing the ``tuiml://dataset/{name}``
-            URI scheme for built-in datasets.
+            Templates for the ``tuiml://dataset/{name}`` dataset URIs and
+            the ``skill://tuiml/{path}`` skill files.
         """
         return ListResourceTemplatesResult(resource_templates=[
             ResourceTemplate(
@@ -640,22 +666,107 @@ def create_server() -> "Server":
                 name="TuiML Dataset",
                 description="Load a built-in TuiML dataset",
                 mime_type="application/json"
-            )
+            ),
+            ResourceTemplate(
+                uri_template="skill://tuiml/{path}",
+                name="TuiML Skill",
+                description="Files of the bundled TuiML agent skill (SKILL.md)",
+                mime_type="text/markdown"
+            ),
         ])
 
     # 2.x registers handlers on the constructor instead of by decorator, and
     # derives advertised capabilities from which ones are passed.
     from tuiml import __version__
 
-    return Server(
+    # The tool list and the bundled skill are static for the life of the
+    # process; datasets change only when a file is uploaded. Advertising
+    # freshness lets 2026-07-28 clients stop re-fetching them every turn.
+    _hour = 60 * 60 * 1000
+    server = Server(
         "tuiml",
         version=__version__,
+        cache_hints={
+            "tools/list": CacheHint(ttl_ms=_hour, scope="private"),
+            "resources/list": CacheHint(ttl_ms=5 * 60 * 1000, scope="private"),
+            "resources/templates/list": CacheHint(ttl_ms=_hour, scope="private"),
+        },
         on_list_tools=on_list_tools,
         on_call_tool=on_call_tool,
         on_list_resources=on_list_resources,
         on_read_resource=on_read_resource,
         on_list_resource_templates=on_list_resource_templates,
     )
+    _register_skills_extension(server)
+    return server
+
+
+class _SkillsGetParams(RequestParams if MCP_AVAILABLE else object):
+    """Params for ``skills/get``: the URI of the skill to fetch."""
+
+    uri: str
+
+
+def _register_skills_extension(server: "Server") -> None:
+    """Advertise and serve the ``io.modelcontextprotocol/skills`` extension.
+
+    Adds the SEP-2640 ``skills/list`` and ``skills/get`` request methods and
+    lists the extension under ``capabilities.extensions`` so clients such as
+    fast-agent recognise the server as a skill source. The skill files
+    themselves are already reachable through ``resources/read``.
+
+    Parameters
+    ----------
+    server : mcp.server.Server
+        The low-level server returned by ``create_server``; mutated in place.
+
+    Returns
+    -------
+    None
+    """
+    async def on_skills_list(ctx, params) -> Dict[str, Any]:
+        """Serve ``skills/list``.
+
+        Parameters
+        ----------
+        ctx : mcp.server.context.ServerRequestContext
+            Per-request context (unused here).
+        params : mcp.types.PaginatedRequestParams
+            Pagination params; the single-skill list is sent whole.
+
+        Returns
+        -------
+        dict
+            ``{"skills": [entry]}`` per SEP-2640.
+        """
+        return list_skills()
+
+    async def on_skills_get(ctx, params) -> Dict[str, Any]:
+        """Serve ``skills/get``.
+
+        Parameters
+        ----------
+        ctx : mcp.server.context.ServerRequestContext
+            Per-request context (unused here).
+        params : _SkillsGetParams
+            Carries the ``skill://`` URI of the requested skill.
+
+        Returns
+        -------
+        dict
+            The skill entry, or an ``ErrorData``-shaped JSON-RPC error
+            (``INVALID_PARAMS``) for an unknown skill.
+        """
+        entry = get_skill(params.uri)
+        if entry is None:
+            from mcp.types import ErrorData, INVALID_PARAMS
+            return ErrorData(code=INVALID_PARAMS,
+                             message=f"Unknown skill: {params.uri}")
+        return entry
+
+    server.extensions[SKILLS_EXTENSION_ID] = dict(SKILLS_EXTENSION_SETTINGS)
+    server.add_request_handler("skills/list", PaginatedRequestParams, on_skills_list)
+    server.add_request_handler("skills/get", _SkillsGetParams, on_skills_get)
 
 async def run_server():
     """Run the MCP server using stdio transport.
@@ -726,6 +837,8 @@ def main():
         print(f"MCP Available: {info['mcp_available']}")
         print(f"Exposed Tools: {info['tools']['exposed_tools']}")
         print(f"Discoverable Components: {info['tools']['discoverable_components']}")
+        for ext_id, ext in info["extensions"].items():
+            print(f"Extension {ext_id}: skills {', '.join(ext['skills'])}")
         print()
         print("Exposed tools (workflow + discovery):")
         from tuiml.agent.tools import get_workflow_tools
@@ -767,7 +880,8 @@ def get_server_info() -> Dict[str, Any]:
     -------
     dict
         Server metadata with keys ``"name"``, ``"version"``,
-        ``"description"``, ``"mcp_available"``, and ``"tools"`` (a dict
+        ``"description"``, ``"mcp_available"``, ``"extensions"`` (the
+        Skills-over-MCP extension and the skill URIs it serves), and ``"tools"`` (a dict
         with ``"exposed_tools"``, ``"discoverable_components"``, and
         ``"components_by_category"`` counts).
     """
@@ -787,6 +901,7 @@ def get_server_info() -> Dict[str, Any]:
         "version": __version__,
         "description": "TuiML Machine Learning MCP Server",
         "mcp_available": MCP_AVAILABLE,
+        "extensions": {SKILLS_EXTENSION_ID: {"skills": [SKILL_MD_URI]}},
         "tools": {
             "exposed_tools": workflow_count,
             "discoverable_components": sum(component_counts.values()),
