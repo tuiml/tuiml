@@ -15,6 +15,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   as defaults. Previously they were fed shuffled k-fold feature matrices
   and crashed.
 
+### Fixed
+- Notebook export no longer emits a `print` with a raw Windows path, which
+  Python read as a broken `\U` escape and refused to run.
+- Two-value lists such as `[2, 8]` or `[0.01, 0.3]` in `ParameterDistribution`
+  (random search) and `BayesianSearchCV` param spaces are discrete choices
+  again, not continuous ranges, and sampled values keep their Python type.
+  Ranges are tuples: `(2, 8, "int")`, `(0.01, 0.3)`.
+
+
 ## [0.2.0] - 2026-09-03
 
 The first minor release. Six new packages (`automl`, `uncertainty`, `explain`,

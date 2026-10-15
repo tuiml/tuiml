@@ -789,7 +789,10 @@ class BayesianSearchCV(BaseTuner):
         for param_name in self._param_names:
             space = self.param_space[param_name]
             
-            if isinstance(space, (list, tuple)):
+            if isinstance(space, list):
+                # Lists are discrete choices, even with two numeric values.
+                bounds.append((0.0, float(len(space) - 1)))
+            elif isinstance(space, tuple):
                 if len(space) == 2 or (len(space) == 3 and space[2] in ['int', 'float']):
                     # Continuous or integer range
                     bounds.append((float(space[0]), float(space[1])))
