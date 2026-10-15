@@ -133,7 +133,16 @@ def _load_skill_files() -> Dict[str, bytes]:
         package data.
     """
     root = resources.files("tuiml.agent.prompts")
-    return {rel: root.joinpath(rel).read_bytes() for rel in _skill_files()}
+    files = {}
+    for rel, mime in _skill_files().items():
+        data = root.joinpath(rel).read_bytes()
+        if mime.startswith("text/") or mime == "application/json":
+            # A Windows checkout with autocrlf rewrites the Markdown to CRLF.
+            # Serve LF everywhere so the text, and the digest manifest built
+            # from it, are the same on every platform.
+            data = data.replace(b"\r\n", b"\n")
+        files[rel] = data
+    return files
 
 
 def _file_uri(rel_path: str) -> str:

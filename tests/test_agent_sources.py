@@ -7,6 +7,7 @@ namespaced ``foundation.*``, ``sklearn.*`` and ``weka.*`` keys -- can also be
 read, without any wrapper package being imported to find it.
 """
 
+import pathlib
 import sys
 
 import pytest
@@ -29,7 +30,7 @@ def test_read_builtin_source_finds_wrapper_classes(name, expected_file):
     """A namespaced hub key or bare class name resolves to its source file."""
     result = sources.read_source(name, builtin=True)
     assert result["status"] == "success", result
-    assert result["path"].endswith(expected_file)
+    assert pathlib.Path(result["path"]).as_posix().endswith(expected_file)
     class_name = name.rsplit(".", 1)[-1]
     assert f"class {class_name}(" in result["source"]
 
