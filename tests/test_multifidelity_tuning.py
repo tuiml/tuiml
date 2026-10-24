@@ -10,6 +10,8 @@ from tuiml.evaluation.tuning import (
     HyperbandSearchCV,
     RandomSearchCV,
     SuccessiveHalvingSearchCV,
+    HalvingGridSearchCV,
+    HalvingRandomSearchCV,
 )
 
 SPACE = {"max_depth": (2, 12, "int"), "n_estimators": (5, 30, "int")}
@@ -198,6 +200,48 @@ def test_halving_rejects_a_degenerate_factor():
     with pytest.raises(ValueError, match="n_candidates"):
         SuccessiveHalvingSearchCV(RandomForestClassifier(), SPACE, n_candidates=0)
 
+# --------------------------------------------------------------------------
+# Halving grid and random search
+# --------------------------------------------------------------------------
+
+
+def test_halving_grid_search_evaluates_the_full_grid(iris):
+    """Halving grid search starts with every parameter combination."""
+    X, y = iris
+    search = HalvingGridSearchCV(
+        RandomForestClassifier(),
+        {
+            "max_depth": [2, 4],
+            "n_estimators": [5, 10],
+        },
+        factor=2,
+        cv=3,
+        random_seed=0,
+    ).fit(X, y)
+    assert search.n_candidates == 4
+    assert search.n_candidates_per_round_ == [4, 2, 1]
+    assert search.best_params_ is not None
+    assert search.best_estimator_ is not None
+    assert search.best_score_ > 0.8
+
+
+def test_halving_random_search_samples_requested_candidates(iris):
+    """Halving random search starts with the requested number of candidates."""
+    X, y = iris
+    search = HalvingRandomSearchCV(
+        RandomForestClassifier(),
+        ParameterDistribution(SPACE),
+        n_candidates=6,
+        factor=2,
+        cv=3,
+        random_seed=0,
+    ).fit(X, y)
+    assert search.n_candidates == 6
+    assert search.n_candidates_per_round_ == [6, 3, 1]
+    assert len(search.cv_results_["params"]) == 10
+    assert search.best_params_ is not None
+    assert search.best_estimator_ is not None
+    assert search.best_score_ > 0.8
 
 # --------------------------------------------------------------------------
 # Hyperband
@@ -311,6 +355,8 @@ def test_all_searchers_are_exported_from_evaluation():
         "BayesianSearchCV",
         "SuccessiveHalvingSearchCV",
         "HyperbandSearchCV",
+        "HalvingGridSearchCV",
+        "HalvingRandomSearchCV",
     ):
         assert name in evaluation.__all__
         assert hasattr(evaluation, name)

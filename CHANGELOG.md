@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- **Successive-halving hyperparameter search** via `HalvingGridSearchCV` and
+  `HalvingRandomSearchCV`, built on TuiML's existing tuning and
+  cross-validation infrastructure to progressively allocate more resources to
+  promising parameter configurations.
 
 ### Added
 - **The MCP server serves its own skill ("Skills over MCP", SEP-2640).**
