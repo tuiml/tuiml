@@ -545,6 +545,8 @@ TUTORIALS = [
     ("12_agents_in_your_code", "12. Agents in Your Code", "fa-solid fa-code"),
     ("13_serving", "13. Serving & Deploying", "fa-solid fa-server"),
     ("14_case_study", "14. Case Study: Credit Risk", "fa-solid fa-landmark"),
+    ("15_clustering", "15. End-to-End Clustering", "fa-solid fa-circle-nodes"),
+    ("16_streaming", "16. End-to-End Streaming", "fa-solid fa-water"),
 ]
 
 # Notebooks used to be filed in group folders with a numeric prefix

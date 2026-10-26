@@ -92,6 +92,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Ranges are tuples: `(2, 8, "int")`, `(0.01, 0.3)`.
 
 
+### Added
+- **Tutorial notebooks for clustering and streaming** (issue #27).
+  Two new end-to-end walkthroughs covering unsupervised clustering and incremental learning:
+  - `15_clustering.ipynb` — unsupervised clustering: `KMeansClusterer`,
+    `AgglomerativeClusterer`, `DBSCANClusterer`, and `GaussianMixtureClusterer`; elbow
+    method; silhouette, Davies-Bouldin, and Calinski-Harabasz metrics; ARI against ground
+    truth; comparison of convex vs. non-convex data.
+  - `16_streaming.ipynb` — streaming and incremental learning: `partial_fit` workflow
+    with `NaiveBayesClassifier`, `SGDClassifier`, and `PerceptronClassifier`; prequential
+    (test-then-train) evaluation; concept drift simulation and heuristic response; `Agrawal`
+    and `Hyperplane` stream generators.
+
 ## [0.2.0] - 2026-09-03
 
 The first minor release. Six new packages (`automl`, `uncertainty`, `explain`,
