@@ -7,6 +7,7 @@ from tuiml.algorithms.trees import (
     DecisionTreeClassifier,
     DecisionTreeRegressor,
     RandomForestClassifier,
+    BalancedRandomForestClassifier,
 )
 from tuiml.algorithms.trees._core.predict import predict_single_numpy
 from tuiml.datasets import load_vote
@@ -284,6 +285,162 @@ class TestDecisionTreeClassifierEdgeCases:
         assert all(p == 0 for p in predictions)
 
 
+class TestBalancedRandomForestClassifier:
+    """Tests for the native BalancedRandomForestClassifier."""
+
+    def _make_imbalanced_data(self):
+        rng = np.random.RandomState(42)
+
+        X_majority = rng.normal(
+            loc=0.0,
+            scale=1.0,
+            size=(40, 4),
+        )
+
+        X_minority = rng.normal(
+            loc=2.0,
+            scale=1.0,
+            size=(10, 4),
+        )
+
+        X = np.vstack([X_majority, X_minority])
+        y = np.array([0] * 40 + [1] * 10)
+
+        return X, y
+
+    def test_fit_and_predict(self):
+        X, y = self._make_imbalanced_data()
+
+        model = BalancedRandomForestClassifier(
+            n_estimators=10,
+            random_state=42,
+        )
+
+        model.fit(X, y)
+
+        predictions = model.predict(X)
+
+        assert predictions.shape == y.shape
+        assert len(model.estimators_) == 10
+
+    def test_predict_proba(self):
+        X, y = self._make_imbalanced_data()
+
+        model = BalancedRandomForestClassifier(
+            n_estimators=10,
+            random_state=42,
+        )
+
+        model.fit(X, y)
+
+        proba = model.predict_proba(X)
+
+        assert proba.shape == (len(X), 2)
+        assert np.allclose(
+            proba.sum(axis=1),
+            1.0,
+        )
+
+    def test_balanced_bootstrap_samples(self):
+        X, y = self._make_imbalanced_data()
+
+        model = BalancedRandomForestClassifier(
+            n_estimators=5,
+            random_state=42,
+        )
+
+        model.fit(X, y)
+
+        for indices in model.bootstrap_indices_:
+            sampled_y = y[indices]
+            _, counts = np.unique(
+                sampled_y,
+                return_counts=True,
+            )
+
+            assert len(counts) == 2
+            assert counts[0] == counts[1]
+
+    def test_reproducibility(self):
+        X, y = self._make_imbalanced_data()
+
+        model1 = BalancedRandomForestClassifier(
+            n_estimators=10,
+            random_state=42,
+        )
+        model2 = BalancedRandomForestClassifier(
+            n_estimators=10,
+            random_state=42,
+        )
+
+        model1.fit(X, y)
+        model2.fit(X, y)
+
+        assert np.array_equal(
+            model1.predict(X),
+            model2.predict(X),
+        )
+
+    def test_multiclass_balancing(self):
+        rng = np.random.RandomState(42)
+
+        X = rng.normal(size=(60, 4))
+        y = np.array(
+            [0] * 30
+            + [1] * 20
+            + [2] * 10
+        )
+
+        model = BalancedRandomForestClassifier(
+            n_estimators=5,
+            random_state=42,
+        )
+
+        model.fit(X, y)
+
+        for indices in model.bootstrap_indices_:
+            sampled_y = y[indices]
+            _, counts = np.unique(
+                sampled_y,
+                return_counts=True,
+            )
+
+            assert len(counts) == 3
+            assert np.all(counts == 10)
+
+    def test_feature_importances(self):
+        X, y = self._make_imbalanced_data()
+
+        model = BalancedRandomForestClassifier(
+            n_estimators=10,
+            random_state=42,
+        )
+
+        model.fit(X, y)
+
+        assert model.feature_importances_.shape == (X.shape[1],)
+        assert np.isclose(
+            model.feature_importances_.sum(),
+            1.0,
+        )
+
+    def test_repr(self):
+        model = BalancedRandomForestClassifier(
+            n_estimators=10,
+            random_state=42,
+        )
+
+        assert repr(model) == (
+            "BalancedRandomForestClassifier(n_estimators=10)"
+        )
+
+        X, y = self._make_imbalanced_data()
+        model.fit(X, y)
+
+        assert repr(model) == (
+            "BalancedRandomForestClassifier("
+            "n_estimators=10, n_features=4)"
+        )
 # --------------------------------------------------------------------------
 # Missing-value handling in the shared tree engine.
 # --------------------------------------------------------------------------
