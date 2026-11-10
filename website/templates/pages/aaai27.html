@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AAAI-27 Lab, TuiML</title>
+    <meta name="description" content="A Hands-On Lab on Teaching an Agent to Do Transparent, Reproducible Machine Learning. AAAI-27 Tutorial and Lab Forum, 16–17 February 2027, Montréal.">
+    <meta name="robots" content="index,follow">
+    <meta name="theme-color" content="#0b1628">
+    <link rel="canonical" href="https://tuiml.ai/aaai27.html">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{{ config.project_name }}">
+    <meta property="og:title" content="AAAI-27 Lab: Teaching an Agent to Do Transparent, Reproducible Machine Learning">
+    <meta property="og:description" content="Hands-on lab at AAAI-27, Montréal, 16–17 February 2027. Drive a full ML workflow through an agent over MCP, then reproduce every step yourself.">
+    <meta property="og:url" content="https://tuiml.ai/aaai27.html">
+    <meta property="og:image" content="https://tuiml.ai/static/images/tuiml_logo.png">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="AAAI-27 Lab: Teaching an Agent to Do Transparent, Reproducible Machine Learning">
+    <meta name="twitter:description" content="Hands-on lab at AAAI-27, Montréal, 16–17 February 2027.">
+    <meta name="twitter:image" content="https://tuiml.ai/static/images/tuiml_logo.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32.png?v=10">
+    <link rel="icon" type="image/png" sizes="512x512" href="/static/images/favicon.png?v=10">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png?v=10">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- FontAwesome (site nav icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Tailwind CSS (site nav / breadcrumb / footer chrome) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="landing-page antialiased overflow-x-hidden">
+
+    {% include 'components/_docs_navbar.html' %}
+
+    <link rel="stylesheet" href="/static/css/oc.css">
+    <script src="/static/js/oc.js"></script>
+
+    <div class="oc-wrap">
+
+        <!-- ===================== HEADER ===================== -->
+        <section class="oc-section" style="padding-top: 64px;">
+            <p class="oc-caption" style="margin-bottom: 12px;">
+                AAAI-27 Tutorial and Lab Forum &middot; 16&ndash;17 February 2027 &middot; Palais des congr&egrave;s, Montr&eacute;al, Canada
+            </p>
+            <h1 class="oc-display">Teaching an Agent to Do Transparent, Reproducible Machine Learning</h1>
+            <p class="oc-body oc-max" style="margin-top: 16px;">
+                A hands-on lab (quarter day, 1&nbsp;h&nbsp;45&nbsp;min). Connect an AI assistant to a local
+                machine learning runtime over the Model Context Protocol, drive a complete modelling
+                workflow in plain English, then reproduce every step yourself from the run log.
+            </p>
+            <p class="oc-caption" style="margin-top: 12px;">
+                Slides, setup guide, notebooks, and the final schedule will be posted here before the forum.
+            </p>
+
+            <nav class="oc-toc oc-toc-flow" aria-label="On this page">
+                <div class="oc-toc-label">On this page</div>
+                <a href="#overview">Overview</a>
+                <a href="#learn">What you will learn</a>
+                <a href="#schedule">Schedule</a>
+                <a href="#prerequisites">Prerequisites</a>
+                <a href="#presenters">Presenters</a>
+                <a href="#registration">Registration</a>
+            </nav>
+        </section>
+
+        <section class="oc-section">
+            <h2 class="oc-h" id="overview">Overview</h2>
+            <hr class="oc-rule">
+            <p class="oc-body oc-max">
+                As AI agents become more capable, machine learning practitioners are offloading more of
+                their modelling work to them. The agent usually answers with a block of throwaway Python
+                that nobody checks: the result cannot be reproduced and the evaluation cannot be audited.
+            </p>
+            <p class="oc-body oc-max" style="margin-top: 12px;">
+                This lab teaches the alternative. Instead of letting the assistant write code, we expose
+                an open-source machine learning library, <a href="/">TuiML</a>, to it as a set of typed
+                tools over the Model Context Protocol (MCP). The agent calls ordinary, schema-checked
+                library functions, every call is logged, and every action can be replayed afterwards.
+                The session is built around one claim that attendees verify for themselves rather than
+                accept on trust: <em>agent-driven data science can be fully transparent and reproducible,
+                provided the agent is restricted to the same function calls a human would make.</em>
+            </p>
+
+            <h2 class="oc-h" id="learn">What you will learn</h2>
+            <hr class="oc-rule">
+            <div class="list-col">
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Connect</span><span
+                            class="txt"> an MCP-capable assistant to a local Python ML runtime and inspect which
+                        capabilities it can see.</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Drive</span><span
+                            class="txt"> a complete supervised learning workflow in plain English: profiling,
+                        preprocessing, cross-validated training, and evaluation.</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Reproduce</span><span
+                            class="txt">: recover the exact sequence of library calls from the run log, re-execute it
+                        in a notebook, and confirm the metrics match to the digit.</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Go further</span><span
+                            class="txt">: hyperparameter search, ensembling, and revising a model in response to its
+                        own evaluation.</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Judge</span><span
+                            class="txt">: attach a feature attribution and a conformal prediction interval to a single
+                        prediction and decide whether the model is fit to deploy.</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Know the limits</span><span
+                            class="txt">: where this workflow breaks down and what should still be left to a
+                        human.</span></span></div>
+            </div>
+
+            <h2 class="oc-h" id="schedule">Schedule</h2>
+            <hr class="oc-rule">
+            <p class="oc-body oc-max">
+                Provisional 105-minute programme. Final times and the room will be confirmed by AAAI.
+            </p>
+            <div class="oc-table-wrap" style="margin-top: 16px;">
+                <table class="oc-table">
+                    <thead>
+                        <tr>
+                            <th>Segment</th>
+                            <th>Minutes</th>
+                            <th>Hands-on</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Setup and safety net</td><td>0&ndash;10</td><td>Environment check, sandbox</td></tr>
+                        <tr><td>What a tool call is</td><td>10&ndash;25</td><td>Connect the assistant</td></tr>
+                        <tr><td>The agent trains a model</td><td>25&ndash;45</td><td>Plain-English workflow</td></tr>
+                        <tr><td>Proving it is reproducible</td><td>45&ndash;70</td><td>Replay the run log in a notebook</td></tr>
+                        <tr><td>Harder questions, reading results</td><td>70&ndash;85</td><td>Tuning, ensembles</td></tr>
+                        <tr><td>Explaining and shipping</td><td>85&ndash;100</td><td>SHAP, conformal, serving</td></tr>
+                        <tr><td>Where this breaks; Q&amp;A</td><td>100&ndash;105</td><td>Discussion</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2 class="oc-h" id="prerequisites">Prerequisites</h2>
+            <hr class="oc-rule">
+            <p class="oc-body oc-max">
+                None beyond a laptop. Python is helpful but not required: no modelling code is written by
+                attendees, and the notebook is supplied ready to run. No machine learning, mathematics, or
+                agent background is assumed; tool calling and MCP are built up from zero.
+            </p>
+            <div class="list-col" style="margin-top: 8px;">
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Laptop</span><span
+                            class="txt"> with Wi-Fi. No GPU needed; the datasets are small.</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Python 3.10+</span><span
+                            class="txt"> and an environment tool such as <code>uv</code> or <code>conda</code>.
+                        TuiML installs with <code>pip install tuiml</code>.</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Any MCP-capable
+                            assistant</span><span class="txt">. Free and open clients will be listed in the setup
+                        guide, so no paid subscription is required.</span></span></div>
+                <div class="list-row"><span class="m">[+]</span><span><span class="lbl">Fallback</span><span
+                            class="txt">: pre-configured cloud sandboxes are provided, so a broken laptop never
+                        costs you the session.</span></span></div>
+            </div>
+
+            <h2 class="oc-h" id="presenters">Presenters</h2>
+            <hr class="oc-rule">
+            <div class="person-list">
+                <div class="person">
+                    <img src="/static/images/albert.png" alt="Albert Bifet">
+                    <div>
+                        <div class="person-name">Albert Bifet</div>
+                        <div class="person-role">Lead presenter</div>
+                        <div class="person-org">AI Institute, University of Waikato &middot; LTCI, T&eacute;l&eacute;com Paris</div>
+                        <p class="person-bio">Professor of Machine Learning and Director of the Te Ipu o te Mahara AI Institute, University of Waikato, and Professor at LTCI, T&eacute;l&eacute;com Paris. He co-created MOA and co-authored <em>Machine Learning for Data Streams</em>. His research covers adaptive, continual, and streaming learning for trustworthy, long-running AI systems.</p>
+                    </div>
+                </div>
+                <div class="person">
+                    <img src="/static/images/nick.jpg" alt="Nick Lim">
+                    <div>
+                        <div class="person-name">Nick Lim</div>
+                        <div class="person-role">Presenter</div>
+                        <div class="person-org">AI Institute, University of Waikato</div>
+                        <p class="person-bio">Postdoctoral Research Fellow at the Te Ipu o te Mahara AI Institute, University of Waikato, with a PhD in Statistics. He works on adaptive, explainable, and deployed machine learning, teaches machine learning and agentic AI, and co-authors TuiML, contributing to its evaluation and benchmarking.</p>
+                    </div>
+                </div>
+                <div class="person">
+                    <img src="/static/images/nilesh.png" alt="Nilesh Verma">
+                    <div>
+                        <div class="person-name">Nilesh Verma</div>
+                        <div class="person-role">Presenter</div>
+                        <div class="person-org">AI Institute, University of Waikato</div>
+                        <p class="person-bio">Research Fellow at the AI Institute, University of Waikato, and the creator and lead maintainer of TuiML. He works on automated machine learning for data streams and agentic ML tooling, publishes in peer-reviewed machine learning venues, and contributes to open-source ML software.</p>
+                    </div>
+                </div>
+            </div>
+
+            <h2 class="oc-h" id="registration">Registration</h2>
+            <hr class="oc-rule">
+            <p class="oc-body oc-max">
+                Register through the
+                <a href="https://aaai.org/conference/aaai/aaai-27/" target="_blank" rel="noopener noreferrer">AAAI-27 conference website</a>
+                and add the Tutorial and Lab Forum to your registration. Early registration ends
+                15 December 2026. All presentations are in person. Questions about the lab:
+                <a href="mailto:nilesh.verma@waikato.ac.nz">nilesh.verma@waikato.ac.nz</a>.
+            </p>
+        </section>
+
+    </div>
+
+    {% include 'components/_footer.html' %}
+</body>
+
+</html>

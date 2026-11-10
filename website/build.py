@@ -251,6 +251,13 @@ PAGES: dict[str, tuple[str, dict]] = {
         ),
         "active_nav": "about", "page_title": "About",
     }),
+    # Standalone event page for the AAAI-27 Tutorial and Lab Forum (Feb 2027).
+    # Not in the nav or sitemap on purpose: drop this entry and the template
+    # once the event is over.
+    "/aaai27.html": ("pages/aaai27.html", {
+        "title": "AAAI-27 Lab, TuiML",
+        "active_nav": "", "page_title": "AAAI-27 Lab",
+    }),
     # /changelog.html is rendered separately (needs the parsed CHANGELOG).
 }
 
