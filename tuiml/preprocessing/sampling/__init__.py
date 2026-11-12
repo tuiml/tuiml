@@ -55,6 +55,7 @@ from tuiml.preprocessing.sampling.class_balance import ClassBalanceSampler
 # SMOTE family
 from tuiml.preprocessing.sampling.smote import (
     SMOTESampler,
+    SMOTENCSampler,
     BorderlineSMOTESampler,
     ADASYNSampler,
     SVMSMOTESampler,
@@ -83,6 +84,7 @@ __all__ = [
     "ClassBalanceSampler",
     # SMOTE family
     "SMOTESampler",
+    "SMOTENCSampler",
     "BorderlineSMOTESampler",
     "ADASYNSampler",
     "SVMSMOTESampler",

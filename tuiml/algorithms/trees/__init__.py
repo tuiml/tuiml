@@ -10,10 +10,15 @@ Algorithms
 - **DecisionStumpClassifier:** One-level decision tree (weak learner).
 - **RandomForestClassifier:** Ensemble of random trees for classification.
 - **RandomForestRegressor:** Ensemble of random trees for regression.
+- **BalancedRandomForestClassifier:** Class-balanced random forest.
 """
 
 from tuiml.algorithms.trees.decision_stump import DecisionStumpClassifier
-from tuiml.algorithms.trees.random_forest import RandomForestClassifier, RandomForestRegressor
+from tuiml.algorithms.trees.random_forest import (
+    BalancedRandomForestClassifier,
+    RandomForestClassifier,
+    RandomForestRegressor,
+)
 from tuiml.algorithms.trees.decision_tree import (
     DecisionTreeClassifier,
     DecisionTreeRegressor,
@@ -25,5 +30,6 @@ __all__ = [
     "DecisionStumpClassifier",
     "RandomForestClassifier",
     "RandomForestRegressor",
+    "BalancedRandomForestClassifier",
     # Backward compat
 ]

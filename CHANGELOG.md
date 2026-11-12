@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   promising parameter configurations.
 
 ### Added
+
+- Added `SMOTENCSampler` for mixed numerical and categorical data.
+- Added `BalancedRandomForestClassifier` for imbalanced classification.
+- Added `EasyEnsembleClassifier` for imbalanced classification.
+
 - **The MCP server serves its own skill ("Skills over MCP", SEP-2640).**
   The bundled skill is exposed as `skill://tuiml/...` resources and the
   server advertises the `io.modelcontextprotocol/skills` extension with the
